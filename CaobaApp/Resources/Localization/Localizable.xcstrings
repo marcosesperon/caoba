@@ -128,6 +128,9 @@
     "%.0f s" : {
 
     },
+    "%.1f %%" : {
+
+    },
     "%.1f %% de los %@ disparos de vida útil %@" : {
       "localizations" : {
         "en" : {
@@ -362,6 +365,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bottom"
+          }
+        }
+      }
+    },
+    "Abajo centro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom center"
           }
         }
       }
@@ -788,6 +801,16 @@
         }
       }
     },
+    "Arriba centro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top center"
+          }
+        }
+      }
+    },
     "Arriba derecha" : {
       "localizations" : {
         "en" : {
@@ -924,6 +947,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Advanced"
+          }
+        }
+      }
+    },
+    "Banda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Band"
           }
         }
       }
@@ -1204,6 +1237,26 @@
         }
       }
     },
+    "Centro derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Middle right"
+          }
+        }
+      }
+    },
+    "Centro izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Middle left"
+          }
+        }
+      }
+    },
     "Cerca del final de la vida útil estimada." : {
       "localizations" : {
         "en" : {
@@ -1230,6 +1283,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dismiss"
+          }
+        }
+      }
+    },
+    "Cierre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closing"
+          }
+        }
+      }
+    },
+    "Cierre al final (pantalla propia)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closing screen at the end"
           }
         }
       }
@@ -1922,6 +1995,16 @@
         }
       }
     },
+    "El estilo del texto se ajusta en la pestaña «Portada y texto»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text style is set in the “Cover & text” tab."
+          }
+        }
+      }
+    },
     "El fichero no es una exportación de presets de CAOBA." : {
       "localizations" : {
         "en" : {
@@ -2322,6 +2405,26 @@
         }
       }
     },
+    "Estilo de los pies" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caption style"
+          }
+        }
+      }
+    },
+    "Estilo del título" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title style"
+          }
+        }
+      }
+    },
     "estimados para este modelo" : {
       "localizations" : {
         "en" : {
@@ -2565,6 +2668,16 @@
         }
       }
     },
+    "Fuente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font"
+          }
+        }
+      }
+    },
     "Fundido a negro" : {
       "localizations" : {
         "en" : {
@@ -2695,6 +2808,9 @@
           }
         }
       }
+    },
+    "Gracias" : {
+
     },
     "Gris" : {
       "localizations" : {
@@ -3386,6 +3502,26 @@
         }
       }
     },
+    "Nada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        }
+      }
+    },
+    "Negrita" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bold"
+          }
+        }
+      }
+    },
     "Negro" : {
       "localizations" : {
         "en" : {
@@ -3909,6 +4045,16 @@
         }
       }
     },
+    "Pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own screen"
+          }
+        }
+      }
+    },
     "Parámetros no válidos: %@" : {
       "localizations" : {
         "en" : {
@@ -3945,6 +4091,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Custom"
+          }
+        }
+      }
+    },
+    "Pie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caption"
+          }
+        }
+      }
+    },
+    "Pies de foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captions"
           }
         }
       }
@@ -4041,11 +4207,22 @@
       }
     },
     "Portada y marca" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cover and watermark"
+          }
+        }
+      }
+    },
+    "Portada y texto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover & text"
           }
         }
       }
@@ -4161,6 +4338,16 @@
         }
       }
     },
+    "Propio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own"
+          }
+        }
+      }
+    },
     "Proporción" : {
       "localizations" : {
         "en" : {
@@ -4257,6 +4444,16 @@
         }
       }
     },
+    "Quitar cierre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove closing"
+          }
+        }
+      }
+    },
     "Quitar créditos" : {
       "localizations" : {
         "en" : {
@@ -4293,6 +4490,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove cover"
+          }
+        }
+      }
+    },
+    "Quitar título" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove title"
           }
         }
       }
@@ -4567,6 +4774,16 @@
         }
       }
     },
+    "Segundos visible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds visible"
+          }
+        }
+      }
+    },
     "Seguridad" : {
       "localizations" : {
         "en" : {
@@ -4728,6 +4945,16 @@
         }
       }
     },
+    "Sin pie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No caption"
+          }
+        }
+      }
+    },
     "Sin pistas. Añade una canción y colócala arrastrando su bloque en el timeline." : {
       "localizations" : {
         "en" : {
@@ -4754,6 +4981,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No saved presets"
+          }
+        }
+      }
+    },
+    "Sin título" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No title"
           }
         }
       }
@@ -4794,6 +5031,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "SMS"
+          }
+        }
+      }
+    },
+    "Sobre la primera foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over the first photo"
           }
         }
       }
@@ -4844,6 +5091,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shadow on overlapping templates"
+          }
+        }
+      }
+    },
+    "Subtítulo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subtitle"
           }
         }
       }
@@ -5116,6 +5373,16 @@
         }
       }
     },
+    "Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty = no captions. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Each photo or collage can have its own caption from its inspector."
+          }
+        }
+      }
+    },
     "Valores por defecto" : {
       "localizations" : {
         "en" : {
@@ -5334,262 +5601,42 @@
         }
       }
     },
-    "Portada y texto" : {
+    "Activa un título, un cierre o un patrón de pie para ver cómo quedan sobre el vídeo." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cover & text"
+            "value" : "Turn on a title, a closing or a caption pattern to see how they look on the video."
           }
         }
       }
     },
-    "Cierre" : {
+    "Título · pantalla propia" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Closing"
+            "value" : "Title · own screen"
           }
         }
       }
     },
-    "Sin título" : {
+    "Título · sobre la primera foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No title"
+            "value" : "Title · over the first photo"
           }
         }
       }
     },
-    "Pantalla propia" : {
+    "Pie: %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Own screen"
-          }
-        }
-      }
-    },
-    "Sobre la primera foto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Over the first photo"
-          }
-        }
-      }
-    },
-    "Subtítulo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subtitle"
-          }
-        }
-      }
-    },
-    "Segundos visible" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds visible"
-          }
-        }
-      }
-    },
-    "Cierre al final (pantalla propia)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Closing screen at the end"
-          }
-        }
-      }
-    },
-    "Estilo del título" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title style"
-          }
-        }
-      }
-    },
-    "Pies de foto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Captions"
-          }
-        }
-      }
-    },
-    "Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Empty = no captions. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Each photo or collage can have its own caption from its inspector."
-          }
-        }
-      }
-    },
-    "Estilo de los pies" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caption style"
-          }
-        }
-      }
-    },
-    "Fuente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Font"
-          }
-        }
-      }
-    },
-    "Negrita" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bold"
-          }
-        }
-      }
-    },
-    "Arriba centro" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top center"
-          }
-        }
-      }
-    },
-    "Centro izquierda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Middle left"
-          }
-        }
-      }
-    },
-    "Centro derecha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Middle right"
-          }
-        }
-      }
-    },
-    "Abajo centro" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom center"
-          }
-        }
-      }
-    },
-    "Nada" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "None"
-          }
-        }
-      }
-    },
-    "Banda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Band"
-          }
-        }
-      }
-    },
-    "Pie" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caption"
-          }
-        }
-      }
-    },
-    "Propio" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Own"
-          }
-        }
-      }
-    },
-    "Sin pie" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No caption"
-          }
-        }
-      }
-    },
-    "El estilo del texto se ajusta en la pestaña «Portada y texto»." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The text style is set in the “Cover & text” tab."
-          }
-        }
-      }
-    },
-    "Quitar título" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove title"
-          }
-        }
-      }
-    },
-    "Quitar cierre" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove closing"
+            "value" : "Caption: %@"
           }
         }
       }

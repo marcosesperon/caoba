@@ -45,7 +45,12 @@ struct SlideshowView: View {
                 switch tab {
                 case .photos: SourceTab(doc: doc, showComposePicker: $showComposePicker, showAddPicker: $showAddPicker)
                 case .video: ScrollView { VideoTab(doc: doc).padding(.horizontal, 4) }
-                case .extras: ScrollView { ExtrasTab(doc: doc).padding(.horizontal, 4) }
+                case .extras:
+                    // Controles a la izquierda y, a la derecha, cómo quedan los textos sobre el vídeo.
+                    HStack(alignment: .top, spacing: 14) {
+                        ScrollView { ExtrasTab(doc: doc).padding(.horizontal, 4) }
+                        TextPreviewPanel(doc: doc).frame(width: 380)
+                    }
                 case .music: ScrollView { MusicTab(doc: doc).padding(.horizontal, 4) }
                 case .inspector: SelectionTab(doc: doc, expandedFraming: $expandedFraming).padding(.horizontal, 4)
                 }

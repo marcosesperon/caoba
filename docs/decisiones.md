@@ -879,5 +879,26 @@ Texto en el vídeo del Slideshow, en dos piezas:
 - Usar `CIFilter` de texto (`CIAttributedTextImageGenerator`): no da control de truncado ni de banda; Core Text sí.
 
 ### 6. Pendiente de comprobar
-- Una vista previa en vivo del estilo (hoy se ve al generar o en la tarjeta del timeline); podría añadirse un «Ver muestra» que renderice un fotograma.
+- ~~Una vista previa en vivo del estilo~~ Hecha a continuación (petición del usuario).
+
+## 2026-10-16 — Vista previa de los textos a la derecha
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* «Necesitaría un previsualizador a la derecha para ir viendo cómo va a quedar»: en la pestaña «Portada y texto», un panel a la derecha que enseñe en vivo cómo quedan título, cierre y pie sobre el vídeo.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `SlideshowView` (la pestaña iba en un `ScrollView` a toda la anchura), `TextRenderer`, `ThumbnailProvider`.
+
+### 4. Decisiones
+- `TextPreviewPanel` a la derecha (380 pt): controles a la izquierda en su scroll y a la derecha hasta tres previsualizaciones: título (pantalla propia renderizada con `TextRenderer.card`, o la primera foto con la capa del título encima), cierre y pie (primera foto con el pie real calculado con el patrón y los datos de esa foto). Se renderiza en segundo plano a 720 px de ancho con el motor de verdad, y se recalcula solo cuando cambia algo que afecte (una clave `Equatable` con todos los campos). Sin nada activo, un texto explica qué activar.
+- `CGContext.rgba` del motor pasa a público para componer foto y capa.
+
+### 5. Alternativas descartadas
+- Botón «Ver muestra» que renderice un fotograma: el usuario quiere verlo mientras ajusta, no a demanda.
+
+### 6. Pendiente de comprobar
+Nada.
 
