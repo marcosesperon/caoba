@@ -108,4 +108,39 @@ struct ContentComposerTests {
         ContentComposer.forEachPermutation(count: 1) { _ in one += 1 }
         #expect(one == 1)
     }
+
+    @Test("Con fotos parecidas no se repite la misma plantilla más de dos veces seguidas ni abundan los singles")
+    func variety() {
+        // 24 fotos apaisadas con pareja (como un reportaje de dos personas).
+        let couple = PhotoProfile(aspectRatio: 1.5, subject: CGRect(x: 0.3, y: 0.2, width: 0.4, height: 0.3), faceCount: 2)
+        let profiles = Array(repeating: couple, count: 24)
+        let singleWide = CollageTemplate(id: "s16", name: "single", photos: 1, aspect: [16, 9], cells: [CollageCell(x: 0, y: 0, w: 1, h: 1)])
+        let split = CollageTemplate(id: "split", name: "60/40", photos: 2, aspect: [16, 9], cells: [
+            CollageCell(x: 0, y: 0, w: 0.6, h: 1), CollageCell(x: 0.6, y: 0, w: 0.4, h: 1),
+        ])
+        let halves = CollageTemplate(id: "halves", name: "halves", photos: 2, aspect: [16, 9], cells: [
+            CollageCell(x: 0, y: 0, w: 0.5, h: 1), CollageCell(x: 0.5, y: 0, w: 0.5, h: 1),
+        ])
+        let rowsOf3 = CollageTemplate(id: "row3", name: "row3", photos: 3, aspect: [16, 9], cells: [
+            CollageCell(x: 0, y: 0, w: 1 / 3, h: 1), CollageCell(x: 1 / 3, y: 0, w: 1 / 3, h: 1), CollageCell(x: 2 / 3, y: 0, w: 1 / 3, h: 1),
+        ])
+        let (rows, leftover) = ContentComposer.compose(profiles: profiles, templates: [singleWide, split, halves, rowsOf3, mixed, stack], allowReorder: false)
+        #expect(leftover.isEmpty)
+        let ids = rows.map(\.template.id)
+        var longestRun = 1, run = 1
+        for i in 1..<ids.count { run = ids[i] == ids[i - 1] ? run + 1 : 1; longestRun = max(longestRun, run) }
+        #expect(longestRun <= 2)
+        #expect(Set(ids).count >= 3)
+        let singles = rows.filter { $0.template.photos == 1 }.count
+        #expect(singles * 3 <= rows.count)
+    }
+
+    @Test("Un single sí se elige para una foto que destaca")
+    func singleForStandout() {
+        let singleWide = CollageTemplate(id: "s32", name: "single", photos: 1, aspect: [3, 2], cells: [CollageCell(x: 0, y: 0, w: 1, h: 1)])
+        let (rows, _) = ContentComposer.compose(profiles: [groupPhoto, landscapePlain, landscapePlain], templates: [singleWide, pair], allowReorder: false)
+        #expect(rows.first?.template.id == "s32")
+        #expect(rows.first?.photoIndices == [0])
+    }
 }
+

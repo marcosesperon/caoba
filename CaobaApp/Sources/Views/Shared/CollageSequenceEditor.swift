@@ -178,12 +178,12 @@ struct CollageSequenceEditor: View {
     }
 
     /// Para pruebas desde línea de comandos: `--state collage.autocompose=content`
-    /// (y `collage.reorder=1`) compone con todas las plantillas de 2 a 4 fotos en cuanto hay fotos.
+    /// (y `collage.reorder=1`) compone con todas las plantillas de 1 a 4 fotos en cuanto hay fotos.
     private func autoComposeIfRequested() {
         guard !autoComposed, !files.isEmpty,
               let mode = appState.launchState["collage.autocompose"].flatMap(ComposeMode.init(rawValue:)) else { return }
         autoComposed = true
-        selectedTemplates = Set(CollageTemplates.all.filter { !$0.overlap && (2...4).contains($0.photos) }.map(\.id))
+        selectedTemplates = Set(CollageTemplates.all.filter { !$0.overlap && (1...4).contains($0.photos) }.map(\.id))
         composeState.mode = mode
         composeState.allowReorder = appState.launchState["collage.reorder"] == "1"
         compose()

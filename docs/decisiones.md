@@ -492,3 +492,29 @@ Dos mejoras en la hoja «Componer secuencia» (Collage y Slideshow):
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Variedad en el reparto según el contenido
+
+### 1. La petición tal como se ha entendido
+«El componer según el contenido está funcionando, pero repite mucho»: en el Slideshow, con 16:9, salían «Single» y «60/40» una y otra vez. Plan aprobado («dale»): penalizar repetir plantilla, singles solo para fotos que destaquen y una pasada de variedad.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `ContentComposer.compose` (reparto por programación dinámica) y la captura del timeline del usuario.
+
+### 4. Decisiones
+- **Causa**: el reparto maximizaba la puntuación por grupo y, con fotos parecidas, la plantilla ganadora es siempre la misma; las de una foto salían muy favorecidas (todo el sujeto se conserva y se llevan la bonificación de celda grande). Nada penalizaba repetir.
+- **Memoria del grupo anterior**: la programación dinámica pasa a tener como estado (posición, plantilla del grupo anterior). Repetir la misma plantilla resta 0,3 por foto del grupo; repetir solo el número de fotos resta 0,08 por foto, para que varíe también el tamaño.
+- **Singles**: una plantilla de una foto resta 0,25 salvo que la foto tenga importancia ≥ 0,85 (grupo de gente o sujeto que llene el encuadre).
+- **Pasada de variedad** al final: si la plantilla de un grupo ya salió en los tres anteriores, se prueba la mejor del mismo número de fotos que no haya salido en los tres anteriores ni en los tres siguientes, y se cambia si pierde como mucho 0,12 por foto. Cubre el «single, 60/40, single, 60/40» que la memoria de un solo grupo no ve.
+- Las puntuaciones de cada (posición, plantilla) se calculan una sola vez; el estado extra multiplica por el número de plantillas, pero con 300 plantillas y 100 fotos sigue siendo inmediato.
+- Tests: con 24 fotos iguales y seis plantillas 16:9, ninguna se repite más de dos veces seguidas, salen al menos tres distintas y los singles no pasan de un tercio; un single sí se elige para una foto que destaca.
+
+### 5. Alternativas descartadas
+- Estado con las dos plantillas anteriores en la programación dinámica: exacto, pero el coste crece con el cuadrado del número de plantillas (con 300 permitidas, cientos de millones de operaciones). La pasada de variedad consigue casi lo mismo.
+- Quitar las plantillas de una foto del reparto automático: el usuario las permite a propósito; mejor reservarlas a fotos que destacan.
+
+### 6. Pendiente de comprobar
+- Si en reportajes reales sigue pareciendo repetitivo, subir `repeatPenalty` o ampliar `varietyWindow`.
+

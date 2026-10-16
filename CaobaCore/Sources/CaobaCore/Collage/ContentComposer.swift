@@ -137,39 +137,77 @@ public enum ContentComposer {
 
     /// Penalización por cada foto que se queda sin collage al final.
     static let leftoverPenalty = 1.0
+    /// Por foto del grupo si repite la plantilla del grupo anterior.
+    static let repeatPenalty = 0.3
+    /// Por foto del grupo si repite solo el número de fotos del grupo anterior.
+    static let sameSizePenalty = 0.08
+    /// Una plantilla de una foto solo compensa si la foto destaca.
+    static let singlePenalty = 0.25
+    static let standoutImportance = 0.85
+    /// Grupos hacia atrás en los que una plantilla cuenta como «reciente».
+    static let varietyWindow = 3
+    /// Pérdida máxima por foto que se acepta al cambiar una plantilla repetida por otra.
+    static let varietyTolerance = 0.12
+
+    /// Puntuación de un grupo con una plantilla, con la penalización de single ya aplicada.
+    static func groupScore(photos: [Int], profiles: [PhotoProfile], template: CollageTemplate) -> (indices: [Int], total: Double) {
+        var (indices, total) = bestAssignment(photos: photos, profiles: profiles, template: template)
+        if template.photos == 1, profiles[photos[0]].importance < standoutImportance { total -= singlePenalty }
+        return (indices, total)
+    }
 
     /// Reparte las fotos (en el orden dado) entre las plantillas permitidas.
-    /// Programación dinámica sobre la posición: en cada punto se prueba cada
-    /// plantilla con las siguientes N fotos y se maximiza la suma de puntuaciones,
-    /// así el tamaño de cada grupo también lo decide el contenido. Las fotos que
-    /// no quepan en ninguna plantilla se quedan fuera al final (`leftover`).
+    /// Programación dinámica sobre la posición y la plantilla del grupo anterior:
+    /// en cada punto se prueba cada plantilla con las siguientes N fotos y se
+    /// maximiza la suma de puntuaciones, penalizando repetir plantilla (o tamaño)
+    /// respecto al grupo anterior. Así el tamaño de cada grupo también lo decide
+    /// el contenido. Las fotos que no quepan se quedan fuera al final (`leftover`).
     public static func compose(profiles: [PhotoProfile], templates: [CollageTemplate], allowReorder: Bool) -> (rows: [ComposedRow], leftover: [Int]) {
         let n = profiles.count
         guard n > 0, !templates.isEmpty else { return ([], Array(0..<n)) }
+        let t = templates.count
 
-        struct Choice { var total: Double; var template: Int?; var indices: [Int] }
-        var dp = Array(repeating: Choice(total: 0, template: nil, indices: []), count: n + 1)
+        // Puntuación de cada (posición, plantilla), calculada una sola vez.
+        var memo: [[(indices: [Int], total: Double)?]] = Array(repeating: Array(repeating: nil, count: t), count: n)
+        func scoreAt(_ i: Int, _ ti: Int) -> (indices: [Int], total: Double) {
+            if let cached = memo[i][ti] { return cached }
+            let result = groupScore(photos: Array(i..<(i + templates[ti].photos)), profiles: profiles, template: templates[ti])
+            memo[i][ti] = result
+            return result
+        }
+
+        // dp[i][last]: mejor total desde la foto i si el grupo anterior usó la plantilla `last`
+        // (índice t = ningún grupo anterior).
+        struct Choice { var total: Double; var template: Int? }
+        var dp = Array(repeating: Array(repeating: Choice(total: 0, template: nil), count: t + 1), count: n + 1)
         for i in stride(from: n - 1, through: 0, by: -1) {
-            // Si nada encaja, lo que queda se deja fuera.
-            var best = Choice(total: -leftoverPenalty * Double(n - i), template: nil, indices: [])
-            for (ti, template) in templates.enumerated() where template.photos <= n - i {
-                let group = Array(i..<(i + template.photos))
-                let (indices, sum) = bestAssignment(photos: group, profiles: profiles, template: template)
-                let total = sum + dp[i + template.photos].total
-                if total > best.total { best = Choice(total: total, template: ti, indices: indices) }
+            for last in 0...t {
+                var best = Choice(total: -leftoverPenalty * Double(n - i), template: nil)
+                for ti in 0..<t where templates[ti].photos <= n - i {
+                    let template = templates[ti]
+                    var total = scoreAt(i, ti).total + dp[i + template.photos][ti].total
+                    if last < t {
+                        if last == ti { total -= repeatPenalty * Double(template.photos) }
+                        else if templates[last].photos == template.photos { total -= sameSizePenalty * Double(template.photos) }
+                    }
+                    if total > best.total { best = Choice(total: total, template: ti) }
+                }
+                dp[i][last] = best
             }
-            dp[i] = best
         }
 
         var groups: [(template: CollageTemplate, photos: [Int])] = []
         var i = 0
-        while i < n, let ti = dp[i].template {
-            groups.append((templates[ti], dp[i].indices))
+        var last = t
+        while i < n, let ti = dp[i][last].template {
+            groups.append((templates[ti], scoreAt(i, ti).indices))
             i += templates[ti].photos
+            last = ti
         }
         let leftover = Array(i..<n)
 
         if allowReorder { improveBySwapping(&groups, profiles: profiles, templates: templates) }
+        diversify(&groups, profiles: profiles, templates: templates)
 
         let rows = groups.map { group in
             ComposedRow(template: group.template, photoIndices: group.photos,
@@ -178,12 +216,33 @@ public enum ContentComposer {
         return (rows, leftover)
     }
 
+    /// Pasada de variedad: si una plantilla ya salió en los últimos grupos, se
+    /// prueba otra del mismo número de fotos que no haya salido hace poco (ni
+    /// venga justo después) y se cambia si pierde poca puntuación.
+    static func diversify(_ groups: inout [(template: CollageTemplate, photos: [Int])], profiles: [PhotoProfile], templates: [CollageTemplate]) {
+        for g in groups.indices {
+            let before = groups[max(0, g - varietyWindow)..<g].map(\.template.id)
+            guard before.contains(groups[g].template.id) else { continue }
+            let after = groups[(g + 1)..<min(groups.count, g + 1 + varietyWindow)].map(\.template.id)
+            let recent = Set(before + after)
+            let current = groupScore(photos: groups[g].photos, profiles: profiles, template: groups[g].template)
+            var best: (template: CollageTemplate, indices: [Int], total: Double)?
+            for template in templates where template.photos == groups[g].photos.count && !recent.contains(template.id) {
+                let candidate = groupScore(photos: groups[g].photos, profiles: profiles, template: template)
+                if best == nil || candidate.total > best!.total { best = (template, candidate.indices, candidate.total) }
+            }
+            if let best, best.total >= current.total - varietyTolerance * Double(groups[g].photos.count) {
+                groups[g] = (best.template, best.indices)
+            }
+        }
+    }
+
     /// Con reordenación permitida: prueba a intercambiar fotos entre collages
     /// vecinos (el siguiente y el que va después) mientras suba la puntuación, y
     /// al final deja que cada grupo vuelva a elegir plantilla de su tamaño.
     static func improveBySwapping(_ groups: inout [(template: CollageTemplate, photos: [Int])], profiles: [PhotoProfile], templates: [CollageTemplate]) {
         func total(_ g: (template: CollageTemplate, photos: [Int])) -> Double {
-            bestAssignment(photos: g.photos, profiles: profiles, template: g.template).total
+            groupScore(photos: g.photos, profiles: profiles, template: g.template).total
         }
         var pass = 0
         var improved = true
@@ -218,7 +277,7 @@ public enum ContentComposer {
             let candidates = templates.filter { $0.photos == groups[g].photos.count }
             var best = (template: groups[g].template, indices: groups[g].photos, total: -Double.infinity)
             for template in candidates {
-                let (indices, sum) = bestAssignment(photos: groups[g].photos, profiles: profiles, template: template)
+                let (indices, sum) = groupScore(photos: groups[g].photos, profiles: profiles, template: template)
                 if sum > best.total { best = (template, indices, sum) }
             }
             groups[g] = (best.template, best.indices)
