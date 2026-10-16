@@ -491,6 +491,16 @@
         }
       }
     },
+    "Analizando %lld de %lld fotos…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzing %lld of %lld photos…"
+          }
+        }
+      }
+    },
     "Analizando audio…" : {
       "localizations" : {
         "en" : {
@@ -692,6 +702,16 @@
         }
       }
     },
+    "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is how the collage will look with the current output options. Go back to “Framing” to fix any photo."
+          }
+        }
+      }
+    },
     "Asignar efectos" : {
       "localizations" : {
         "en" : {
@@ -778,6 +798,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Advanced"
+          }
+        }
+      }
+    },
+    "Básicas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic"
           }
         }
       }
@@ -1776,6 +1806,16 @@
         }
       }
     },
+    "Elige qué plantillas pueden usarse. Se analizarán las %lld fotos marcadas para dar a cada grupo la plantilla que mejor le encaje." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which templates may be used. The %lld checked photos will be analyzed to give each group the template that fits it best."
+          }
+        }
+      }
+    },
     "Elige qué plantillas pueden usarse. Se repartirán al azar entre las %lld fotos marcadas." : {
       "localizations" : {
         "en" : {
@@ -1881,7 +1921,6 @@
       }
     },
     "Encuadre" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3080,6 +3119,16 @@
         }
       }
     },
+    "No se pudo renderizar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not render"
+          }
+        }
+      }
+    },
     "Nombre" : {
       "localizations" : {
         "en" : {
@@ -3419,6 +3468,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pattern"
+          }
+        }
+      }
+    },
+    "Permitir reordenar fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow reordering photos"
           }
         }
       }
@@ -3871,6 +3930,16 @@
         }
       }
     },
+    "Renderizando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rendering…"
+          }
+        }
+      }
+    },
     "Renombrador" : {
       "localizations" : {
         "en" : {
@@ -3897,6 +3966,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rename"
+          }
+        }
+      }
+    },
+    "Reparto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout"
           }
         }
       }
@@ -3931,6 +4010,16 @@
         }
       }
     },
+    "Resultado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Result"
+          }
+        }
+      }
+    },
     "Retardo" : {
       "localizations" : {
         "en" : {
@@ -3957,6 +4046,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sequence"
+          }
+        }
+      }
+    },
+    "Según el contenido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By content"
           }
         }
       }
@@ -4228,6 +4327,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Suffix"
+          }
+        }
+      }
+    },
+    "Superpuestas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overlapping"
           }
         }
       }
@@ -4658,112 +4767,102 @@
         }
       }
     },
-    "Reparto" : {
+    "Ritmo" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Layout"
+            "value" : "Rhythm"
           }
         }
       }
     },
-    "Según el contenido" : {
+    "Golpes por foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "By content"
+            "value" : "Beats per photo"
           }
         }
       }
     },
-    "Permitir reordenar fotos" : {
+    "Auto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow reordering photos"
+            "value" : "Auto"
           }
         }
       }
     },
-    "Analizando %lld de %lld fotos…" : {
+    "Ajustar al ritmo" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analyzing %lld of %lld photos…"
+            "value" : "Fit to the beat"
           }
         }
       }
     },
-    "Elige qué plantillas pueden usarse. Se analizarán las %lld fotos marcadas para dar a cada grupo la plantilla que mejor le encaje." : {
+    "Analizando la música…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choose which templates may be used. The %lld checked photos will be analyzed to give each group the template that fits it best."
+            "value" : "Analyzing the music…"
           }
         }
       }
     },
-    "Básicas" : {
+    "Añade una pista de música para ajustar al ritmo." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basic"
+            "value" : "Add a music track to fit to the beat."
           }
         }
       }
     },
-    "Superpuestas" : {
+    "No se ha encontrado un ritmo claro en la música." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Overlapping"
+            "value" : "No clear beat was found in the music."
           }
         }
       }
     },
-    "Resultado" : {
+    "Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Result"
+            "value" : "Optional: every photo or collage change lands on a beat of the music playing at that moment. Durations you set by hand are kept."
           }
         }
       }
     },
-    "Renderizando…" : {
+    "· %lld ppm" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rendering…"
+            "value" : "· %lld bpm"
           }
         }
       }
     },
-    "No se pudo renderizar" : {
+    "· sin ritmo claro" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Could not render"
-          }
-        }
-      }
-    },
-    "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This is how the collage will look with the current output options. Go back to “Framing” to fix any photo."
+            "value" : "· no clear beat"
           }
         }
       }

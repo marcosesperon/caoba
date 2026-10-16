@@ -121,6 +121,10 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
     public var collage: CollageSection?
     /// Nuevo: duración propia por nombre de fichero (las demás usan `durationPerPhoto`).
     public var durations: [String: Double]?
+    /// Nuevo: golpes por foto elegidos para «Ajustar al ritmo» (`nil` = automático).
+    public var beatsPerCut: Int?
+    /// Nuevo: elementos (nombre de foto o id de collage) cuya duración la puso el ritmo.
+    public var rhythmItems: [String]?
 
     public init() {}
 

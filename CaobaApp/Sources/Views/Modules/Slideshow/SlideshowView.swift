@@ -61,6 +61,10 @@ struct SlideshowView: View {
             // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
             if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
             if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
+            // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
+            if appState.launchState["slideshow.rhythm"] != nil {
+                Task { await autoAdjustToRhythm(doc) }
+            }
         }
         .onChange(of: doc.snapshot) { doc.scheduleSave() }
         .onChange(of: doc.files) { doc.pruneSequence() }
@@ -103,6 +107,17 @@ struct SlideshowView: View {
                                 filters: $doc.addFilters,
                                 selection: .constant([]), confirmTitle: nil, onPick: { doc.addTemplate($0); showAddPicker = false }) {}
         }
+    }
+
+    /// Espera a que haya fotos y pistas, va a Música y ajusta al ritmo (solo para pruebas).
+    private func autoAdjustToRhythm(_ doc: SlideshowDocument) async {
+        var attempts = 0
+        while (doc.files.isEmpty || doc.tracks.isEmpty) && attempts < 40 {
+            try? await Task.sleep(for: .milliseconds(250))
+            attempts += 1
+        }
+        tab = .music
+        await doc.adjustToRhythm()
     }
 
     private func tabBar(_ doc: SlideshowDocument) -> some View {

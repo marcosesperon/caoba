@@ -174,8 +174,13 @@ struct MusicTab: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(track.url.lastPathComponent).lineLimit(1).truncationMode(.middle)
                             if let d = doc.trackDurations[track.id] {
-                                Text("Empieza en \(TimecodeField.format(doc.effectiveStart(of: track))) · suena \(TimecodeField.format(track.effectiveDuration(assetDuration: d)))")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                HStack(spacing: 4) {
+                                    Text("Empieza en \(TimecodeField.format(doc.effectiveStart(of: track))) · suena \(TimecodeField.format(track.effectiveDuration(assetDuration: d)))")
+                                    if let beat = doc.beatTracks[track.url.path] {
+                                        Text(beat.isReliable ? "· \(Int(beat.tempo.rounded())) ppm" : "· sin ritmo claro")
+                                    }
+                                }
+                                .font(.caption).foregroundStyle(.secondary)
                             }
                         }
                         Spacer()
@@ -192,6 +197,29 @@ struct MusicTab: View {
                 Toggle("Fundido de salida (3 s)", isOn: $doc.fadeOut)
                 Toggle("Normalizar volumen (EBU R128, -16 LUFS)", isOn: $doc.normalize)
                 Text("Entre pistas hay siempre un crossfade de 3 segundos.").font(.caption).foregroundStyle(.secondary)
+            }
+            OptionGroup(title: "Ritmo") {
+                LabeledRow("Golpes por foto") {
+                    Picker("", selection: $doc.beatsPerCut) {
+                        Text("Auto").tag(Int?.none)
+                        ForEach(RhythmPlanner.densities, id: \.self) { Text("\($0)").tag(Int?.some($0)) }
+                    }
+                    .pickerStyle(.segmented).fixedSize()
+                    .labelsHidden()
+                }
+                HStack(spacing: 10) {
+                    Button("Ajustar al ritmo") { Task { await doc.adjustToRhythm() } }
+                        .disabled(doc.tracks.isEmpty || doc.isAnalyzingRhythm || doc.files.isEmpty)
+                    if doc.isAnalyzingRhythm {
+                        ProgressView().controlSize(.small)
+                        Text("Analizando la música…").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                if let message = doc.rhythmMessage {
+                    Text(message).font(.caption).foregroundStyle(Color.accentColor)
+                }
+                Text("Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
     }

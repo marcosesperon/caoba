@@ -155,6 +155,15 @@ final class SlideshowDocument {
     // Música
     var tracks: [AudioTrack] = []
     var trackDurations: [UUID: Double] = [:]
+    // Ritmo (bajo demanda: nada se analiza hasta pulsar «Ajustar al ritmo»)
+    /// Golpes de cada pista, por ruta del fichero.
+    var beatTracks: [String: BeatTrack] = [:]
+    /// Golpes por foto elegidos; `nil` = automático por tramo.
+    var beatsPerCut: Int?
+    /// Elementos cuya duración la fijó el ritmo: si el usuario los toca, pasan a propios.
+    var rhythmItems: Set<String> = []
+    var isAnalyzingRhythm = false
+    var rhythmMessage: String?
     var fadeOut = true
     var normalize = false
     var loopPlaylist = true
@@ -290,6 +299,8 @@ final class SlideshowDocument {
     // MARK: - Edición
 
     func setDuration(_ seconds: Double, for item: TimelineItem) {
+        // Un cambio a mano convierte la duración en propia: el ritmo ya no la pisa.
+        rhythmItems.remove(item.id)
         let value = max(0.5, min(60, (seconds * 2).rounded() / 2))
         switch item.kind {
         case .cover: coverDuration = value
@@ -311,6 +322,75 @@ final class SlideshowDocument {
     func equalizeDurations() {
         photoDurations = [:]
         for i in sequence.indices { sequence[i].hold = nil }
+        rhythmItems = []
+    }
+
+    // MARK: - Ritmo
+
+    /// Golpes en el tiempo del vídeo según lo que suena en cada momento (para la regla y el ajuste).
+    var videoBeats: [VideoBeat] {
+        guard !beatTracks.isEmpty else { return [] }
+        return RhythmPlanner.videoBeats(segments: audioSegments, tracks: beatTracks)
+    }
+
+    /// Analiza las pistas que falten y ajusta las duraciones para que cada
+    /// cambio caiga en un golpe. Respeta las duraciones propias del usuario.
+    func adjustToRhythm() async {
+        guard !tracks.isEmpty else { rhythmMessage = L("Añade una pista de música para ajustar al ritmo."); return }
+        isAnalyzingRhythm = true
+        rhythmMessage = nil
+        defer { isAnalyzingRhythm = false }
+        let pending = Array(Set(tracks.map(\.url.path))).filter { beatTracks[$0] == nil }
+        if !pending.isEmpty {
+            await withTaskGroup(of: (String, BeatTrack?).self) { group in
+                for path in pending {
+                    group.addTask { (path, try? await BeatDetector.analyze(url: URL(fileURLWithPath: path))) }
+                }
+                for await (path, track) in group { if let track { beatTracks[path] = track } }
+            }
+        }
+        guard tracks.contains(where: { beatTracks[$0.url.path]?.isReliable == true }) else {
+            rhythmMessage = L("No se ha encontrado un ritmo claro en la música.")
+            return
+        }
+        // Dos pasadas: las pistas que empiezan en una foto se mueven con las duraciones nuevas.
+        applyRhythm()
+        applyRhythm()
+    }
+
+    private func applyRhythm() {
+        let beats = videoBeats
+        let entries = orderedKinds
+        let items: [RhythmItem] = entries.map { entry in
+            switch entry.kind {
+            case .cover, .credits:
+                return RhythmItem(fixedDuration: entry.duration)
+            case .photo(let url):
+                let own = photoDurations[url.lastPathComponent] != nil && !rhythmItems.contains(entry.id)
+                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: 1, maximum: 15)
+            case .collage(let row):
+                let own = row.hold != nil && !rhythmItems.contains(entry.id)
+                // Un collage no puede durar menos que su aparición de fotos.
+                let fixed = CollageSlideshow.emptyFrameSeconds + reveal * Double(row.template.photos)
+                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: max(1, fixed), maximum: max(15, fixed + 15))
+            }
+        }
+        let target = mode == .collage ? CollageSlideshow.emptyFrameSeconds + reveal * 3 + hold : durationPerPhoto
+        let durations = RhythmPlanner.plan(beats: beats, items: items, target: target, beatsPerCut: beatsPerCut,
+                                           transition: transition ? SlideshowSpec.transitionSeconds : 0)
+        for (entry, duration) in zip(entries, durations) where items[entries.firstIndex { $0.id == entry.id }!].fixedDuration == nil {
+            switch entry.kind {
+            case .photo(let url):
+                photoDurations[url.lastPathComponent] = (duration * 100).rounded() / 100
+            case .collage(let row):
+                let fixed = CollageSlideshow.emptyFrameSeconds + reveal * Double(row.template.photos)
+                if let i = sequence.firstIndex(where: { $0.id == row.id }) { sequence[i].hold = max(0, ((duration - fixed) * 100).rounded() / 100) }
+            case .cover, .credits:
+                break
+            }
+            rhythmItems.insert(entry.id)
+        }
+        scheduleSave()
     }
 
     func toggleExcluded(_ url: URL) {
@@ -613,6 +693,8 @@ final class SlideshowDocument {
         p.videoFormat = format.rawValue
         p.durationPerPhoto = durationPerPhoto
         p.durations = photoDurations
+        p.beatsPerCut = beatsPerCut
+        p.rhythmItems = rhythmItems.sorted()
         p.useTransition = transition
         p.cover = coverURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: coverDuration) }
         p.credits = creditsURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: creditsDuration) }
@@ -670,6 +752,8 @@ final class SlideshowDocument {
         if let f = preset.videoFormat.flatMap(VideoFormat.init(rawValue:)) { format = f }
         if let d = preset.durationPerPhoto { durationPerPhoto = d }
         photoDurations = preset.durations ?? [:]
+        beatsPerCut = preset.beatsPerCut
+        rhythmItems = Set(preset.rhythmItems ?? [])
         if let t = preset.useTransition { transition = t }
         if let c = preset.cover, let path = c.path, FileManager.default.fileExists(atPath: path) { coverURL = URL(fileURLWithPath: path); coverDuration = c.duration ?? 4 }
         if let c = preset.credits, let path = c.path, FileManager.default.fileExists(atPath: path) { creditsURL = URL(fileURLWithPath: path); creditsDuration = c.duration ?? 4 }
@@ -743,6 +827,7 @@ final class SlideshowDocument {
         coverURL = nil; coverDuration = 4; creditsURL = nil; creditsDuration = 4
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true
+        beatTracks = [:]; beatsPerCut = nil; rhythmItems = []; rhythmMessage = nil
         kbSettings = KenBurnsSettings(); kbChoices = [:]; kbPoints = [:]
         sequence = []; reveal = 1.5; hold = 3; csBackground = .white; csGap = 10; csRadius = 0; csShadow = 50
         composeSheet = ComposeSheetState(); selectedTemplates = []; addFilters = TemplateFilterState()

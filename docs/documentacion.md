@@ -217,6 +217,15 @@ Detalles de la app:
 - Al cargar un `.caoba` v1, los efectos por índice se traducen a nombres usando el `fileOrder` guardado, y el inicio de pista "en la foto N" se convierte a segundos del vídeo (`startTime`). Las duraciones propias se guardan en `durations` por nombre de fichero.
 - La vista previa usa las primeras 10 fotos (o 3 collages), media resolución, sin normalizar el audio, y se reproduce en una ventana de la app.
 
+### Ritmo de la música (`BeatDetector`, `RhythmPlanner`)
+
+Opcional, bajo el botón «Ajustar al ritmo» de la pestaña Música del Slideshow: sin pulsarlo nada cambia.
+
+- `AudioDecoder.read(url:block:)`: lectura PCM común (la usan el medidor de sonoridad y el detector).
+- `BeatDetector.analyze(url:)` → `BeatTrack` (tempo, golpes en segundos del fichero, confianza; `isReliable` a partir de 0,12 y 8 golpes). Envolvente de ataques por energía con banda de graves, tempo por autocorrelación (60–200 ppm, preferencia por 120) y seguimiento de golpes. Unos 8 s por canción de 3 minutos.
+- `RhythmPlanner.videoBeats(segments:tracks:)`: pasa los golpes de cada pista al tiempo del vídeo con los segmentos de `AudioPlan`; en el crossfade manda la pista que entra. `plan(beats:items:target:beatsPerCut:transition:)` da la duración de cada elemento para que el centro de cada transición caiga en un golpe, con densidad automática por tramo (`automaticDensity`) o fija (1, 2, 4, 8, 16), límites de 1–15 s y respeto de los fijos.
+- En la app, `SlideshowDocument.adjustToRhythm()` analiza las pistas que falten, hace dos pasadas y escribe las duraciones en fotos y collages; `rhythmItems` recuerda cuáles puso el ritmo para respetar las que el usuario cambie a mano. `beatsPerCut` y `rhythmItems` se guardan en el preset. Para probar desde línea de comandos: `--state slideshow.rhythm=1`.
+
 ### Shutter Count (`ShutterCountReader`, `ShutterLife`)
 
 - `read(url)` devuelve `ShutterCountResult` con la fuente usada, la cámara (marca, modelo, serie, firmware, objetivo), el obturador (disparos, mecánicos, vida útil estimada, porcentaje, si es estimación genérica) y datos de la foto.

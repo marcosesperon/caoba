@@ -63,36 +63,10 @@ public struct LoudnessMeter: Sendable {
 
     /// Mide un fichero de audio entero. Devuelve LUFS o `nil` si está en silencio.
     public static func measure(url: URL) async throws -> Double? {
-        let asset = AVURLAsset(url: url)
-        guard let track = try await asset.loadTracks(withMediaType: .audio).first else { return nil }
-        let reader = try AVAssetReader(asset: asset)
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatLinearPCM,
-            AVLinearPCMBitDepthKey: 32,
-            AVLinearPCMIsFloatKey: true,
-            AVLinearPCMIsNonInterleaved: false,
-        ]
-        let output = AVAssetReaderTrackOutput(track: track, outputSettings: settings)
-        reader.add(output)
-        guard reader.startReading() else { throw CaobaError.cannotReadImage(url.lastPathComponent) }
-
         var meter: LoudnessMeter?
-        while let sample = output.copyNextSampleBuffer() {
-            try Task.checkCaobaCancellation()
-            guard let format = CMSampleBufferGetFormatDescription(sample),
-                  let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)?.pointee,
-                  let block = CMSampleBufferGetDataBuffer(sample) else { continue }
-            let channels = Int(asbd.mChannelsPerFrame)
-            if meter == nil { meter = LoudnessMeter(channelCount: channels, sampleRate: asbd.mSampleRate) }
-            var length = 0
-            var pointer: UnsafeMutablePointer<Int8>?
-            guard CMBlockBufferGetDataPointer(block, atOffset: 0, lengthAtOffsetOut: nil, totalLengthOut: &length, dataPointerOut: &pointer) == noErr,
-                  let pointer else { continue }
-            let frames = length / (MemoryLayout<Float>.size * channels)
-            let floats = UnsafeBufferPointer(start: UnsafeRawPointer(pointer).assumingMemoryBound(to: Float.self), count: frames * channels)
-            var perChannel = Array(repeating: [Float](repeating: 0, count: frames), count: channels)
-            for f in 0..<frames { for c in 0..<channels { perChannel[c][f] = floats[f * channels + c] } }
-            meter?.process(channels: perChannel)
+        try await AudioDecoder.read(url: url) { channels, sampleRate in
+            if meter == nil { meter = LoudnessMeter(channelCount: channels.count, sampleRate: sampleRate) }
+            meter?.process(channels: channels)
         }
         return meter?.integratedLoudness
     }
@@ -141,6 +115,16 @@ public struct Biquad: Sendable {
 
     init(b0: Double, b1: Double, b2: Double, a1: Double, a2: Double) {
         self.b0 = b0; self.b1 = b1; self.b2 = b2; self.a1 = a1; self.a2 = a2
+    }
+
+    /// Paso bajo de segundo orden (fórmulas RBJ), para aislar los graves.
+    static func lowPass(cutoff: Double, sampleRate: Double, q: Double = 0.707) -> Biquad {
+        let w0 = 2 * Double.pi * cutoff / sampleRate
+        let alpha = sin(w0) / (2 * q)
+        let cosW0 = cos(w0)
+        let a0 = 1 + alpha
+        return Biquad(b0: (1 - cosW0) / 2 / a0, b1: (1 - cosW0) / a0, b2: (1 - cosW0) / 2 / a0,
+                      a1: -2 * cosW0 / a0, a2: (1 - alpha) / a0)
     }
 
     mutating func process(_ samples: [Float]) -> [Float] {

@@ -591,3 +591,47 @@ En el editor de foco de los collages (Collage y Slideshow), añadir una vista «
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Sincronizar los cortes del Slideshow con la música
+
+### 1. La petición tal como se ha entendido
+En el Slideshow, sincronizar los cambios de foto o collage con la música:
+
+- **Detección de golpes**: el motor analiza cada pista (sobre el mismo audio que ya decodifica para la sonoridad) y obtiene los golpes y el tempo. Los golpes se sitúan en el tiempo del vídeo teniendo en cuenta el inicio de cada pista, su recorte y el bucle de la lista.
+- **Ajuste**: un botón «Ajustar al ritmo» en la pestaña Música. Las fotos se adaptan a la música (P1): cada foto o collage dura hasta el siguiente golpe elegido, dentro de un mínimo y un máximo razonables (1 y 15 s, los límites actuales del control). Las duraciones propias fijadas a mano se respetan (P3) y los cortes siguientes se recalculan a partir de ellas.
+- **Densidad** (P2): automática por defecto, eligiendo los golpes por foto que dejen la duración media más cerca de los «segundos por foto» configurados; con un selector visible «Golpes por foto: Auto / 1 / 2 / 4 / 8 / 16» para afinar y volver a aplicar.
+- **Timeline**: los golpes se dibujan como marcas finas en la regla cuando hay pistas analizadas, para ver dónde caen.
+- **Resultado editable**: las duraciones calculadas se aplican a cada foto y collage y se ven en el timeline como ahora; si luego se cambia una a mano pasa a ser propia y «Ajustar al ritmo» la respeta en adelante. Se guardan con el resto del proyecto en el `.caoba`.
+- Sin pistas, o si no se detecta un ritmo claro, el botón avisa y no cambia nada.
+- **Es opcional y bajo demanda**: por defecto el Slideshow funciona exactamente como ahora (duración global por foto y duraciones propias). Nada se analiza ni se cambia hasta que el usuario pulsa «Ajustar al ritmo»; las marcas de golpes en la regla solo aparecen después de ese análisis.
+
+*Confirmación: «sí, pero esto es opcional bajo un botón… por defecto tiene que funcionar como ahora» (16-10-2026); incorporado al punto anterior.*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Las fotos se adaptan a la música (duración hasta el siguiente golpe elegido) o solo se desplazan los cortes cercanos?** R: 1, las fotos se adaptan a la música.
+**P2. ¿Densidad de cortes automática, manual (golpes por foto) o las dos?** R: 3, automática por defecto con el selector visible para afinar.
+**P3. ¿Qué pasa con las duraciones propias fijadas a mano?** R: 1, se respetan; solo se ajustan las demás.
+**P4 (del usuario). ¿Se tiene en cuenta que puede haber varias pistas, cada una con su ritmo, y que el cálculo debe ser según el audio que suene en cada momento?** R: sí; cada pista se analiza por separado, los golpes se pasan al tiempo del vídeo con los segmentos que ya calcula el motor para la mezcla (inicio, recorte, repetición), en el crossfade mandan los golpes de la pista que entra, la densidad automática se decide por tramo y el resumen muestra el tempo de cada pista. Donde no suena nada, duración global. Plan aprobado: «dale».
+
+### 3. Fuentes analizadas
+- `LoudnessMeter.measure` (lectura PCM con `AVAssetReader`), `AudioPlan.build` (segmentos de la mezcla: inicio, recorte, crossfade de 3 s, repetición), `SlideshowTimeline` (la foto siguiente empieza a entrar cuando a la actual le queda la transición), `SlideshowDocument` (duraciones por foto, «mantener» por collage, preset), `MusicTab` y la regla del timeline.
+- Prueba con las dos canciones reales del proyecto BOOK: 100 ppm y 70 ppm detectados (coinciden con el tempo conocido de ambas), 8 s de análisis por canción de 3 minutos.
+
+### 4. Decisiones
+- **`AudioDecoder`** común: el bucle de lectura PCM sale del medidor de sonoridad para que lo use también el detector.
+- **`BeatDetector`** sin dependencias: envolvente de ataques por tramos de 512 muestras (subida de energía logarítmica respecto a los 4 tramos anteriores, en banda completa y con más peso en graves por debajo de 150 Hz), tempo por autocorrelación entre 60 y 200 ppm con preferencia suave por 120 ppm para no saltar de octava, afinado del periodo por parábola, fase por máxima energía sobre la rejilla y seguimiento golpe a golpe pegándose al ataque más fuerte (±12 % del periodo) con periodo adaptativo. Confianza = (pico − mediana) de la autocorrelación; fiable a partir de 0,12 (las canciones reales dan 0,15–0,17; el ruido blanco, no).
+- **Golpes en tiempo de vídeo** (`RhythmPlanner.videoBeats`): con los mismos segmentos de `AudioPlan`; cada segmento aporta sus golpes solo hasta que empieza el siguiente, así en el crossfade manda la pista que entra y cada tramo lleva su periodo.
+- **`RhythmPlanner.plan`**: recorre los elementos; el centro de la transición debe caer en un golpe (`d = golpe − transición/2 − t`). Densidad automática por tramo: la potencia de dos (1–16) que más acerque `golpes × periodo` a los segundos por foto. Si el golpe elegido se sale de 1–15 s, el golpe dentro de límites más cercano a lo pedido; sin golpes (no suena nada), el objetivo. Los fijos se respetan y el siguiente se resincroniza.
+- **Aplicación en el documento**: `adjustToRhythm` analiza las pistas que falten (en paralelo, caché por ruta), hace **dos pasadas** (las pistas que empiezan en una foto se mueven con las duraciones nuevas), escribe las duraciones en `photoDurations` y en el «mantener» de los collages (para un collage, objetivo y mínimo cuentan su aparición de fotos), y apunta en `rhythmItems` qué elementos fijó. `setDuration` a mano quita el elemento de esa lista, así pasa a propio. `beatsPerCut` y `rhythmItems` se guardan en el preset.
+- **Interfaz**: grupo «Ritmo» en Música (selector Auto/1/2/4/8/16, botón con progreso, aviso en rojo CAOBA si no hay pistas o ritmo claro, texto que deja claro que es opcional), tempo de cada pista en su fila, marcas finas de golpe bajo la regla solo cuando hay análisis.
+- Por defecto nada cambia: sin pulsar el botón no se analiza ni se toca ninguna duración.
+- Gancho de prueba `--state slideshow.rhythm=1`. El `.caoba` de BOOK se restauró tras la prueba.
+
+### 5. Alternativas descartadas
+- FFT y flujo espectral multibanda: más preciso en teoría, pero la envolvente por energía con banda de graves acierta con las canciones probadas y evita dependencias y código.
+- Analizar en el arranque o al añadir pistas: el usuario quiere que sea opcional; además son 8 s por canción.
+- Mezclar golpes de las dos pistas en el crossfade: los cortes saltarían entre dos ritmos.
+
+### 6. Pendiente de comprobar
+- Más canciones (tempos lentos, música sin percusión) para afinar el umbral de confianza y la preferencia por 120 ppm.
+

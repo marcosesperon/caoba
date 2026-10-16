@@ -81,6 +81,11 @@ struct SlideshowTimelineView: View {
                 }
                 .offset(x: CGFloat(t) * pps)
             }
+            // Golpes de la música (solo tras «Ajustar al ritmo»): marcas finas bajo la regla.
+            ForEach(Array(doc.videoBeats.enumerated()), id: \.offset) { _, beat in
+                Rectangle().fill(Color.accentColor.opacity(0.55)).frame(width: 1, height: 5)
+                    .offset(x: CGFloat(beat.time) * pps, y: 13)
+            }
         }
         .frame(width: totalWidth, height: 18, alignment: .topLeading)
     }
