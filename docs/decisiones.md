@@ -295,3 +295,23 @@ Ninguna.
 ### 6. Pendiente de comprobar
 - Revisar la landing publicada en Pages (móvil y tema claro) y repetir las capturas cuando cambie la interfaz; conseguir un RAW con contador para la captura de Shutter Count.
 
+## 2026-10-16 — Titular de la landing en degradado
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* En el titular «CAOBA» de la landing, todas las letras claras y el rojo entrando en degradado desde abajo en todas ellas, en lugar de «CAO» blanco y «BA» rojo.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `index.html` (CSS del hero).
+
+### 4. Decisiones
+- Degradado vertical recortado al texto (`background-clip: text`): rojo CAOBA en el 22 % inferior, fundiendo al color de tinta a partir del 68 %. En tema claro la «tinta» es negra, así que las letras van de negro a rojo; en oscuro, de blanco a rojo.
+
+### 5. Alternativas descartadas
+- Mantener el `em` rojo en «BA»: era justo lo que se quería cambiar.
+
+### 6. Pendiente de comprobar
+Nada.
+

@@ -75,12 +75,15 @@
 
   /* ---------- Hero ---------- */
   .hero { padding: clamp(56px, 10vw, 120px) 0 48px; position: relative; }
+  /* Titular: letras claras con el rojo CAOBA subiendo en degradado desde abajo */
   .hero h1 {
     font-family: var(--display); font-weight: 900; line-height: .9; margin: 0;
     font-size: clamp(64px, 14vw, 180px); letter-spacing: .02em;
     color: var(--ink);
+    background: linear-gradient(to top, var(--accent) 0%, var(--accent) 22%, var(--ink) 68%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    width: fit-content; padding-bottom: .05em;
   }
-  .hero h1 em { font-style: normal; color: var(--accent); }
   .hero .lede { max-width: 640px; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.35; margin: 28px 0 0; }
   .hero .lede strong { font-weight: 600; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; align-items: center; }
@@ -187,7 +190,7 @@
 
 <main>
   <div class="wrap hero">
-    <h1 class="reveal">CAO<em>BA</em></h1>
+    <h1 class="reveal">CAOBA</h1>
     <p class="lede reveal">
       <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR y contador de disparos. Nativa de macOS, gratis y de código abierto.</span>
       <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes and shutter count. Native to macOS, free and open source.</span>
