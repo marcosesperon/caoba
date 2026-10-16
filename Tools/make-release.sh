@@ -47,9 +47,15 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Release \
 [ -d "$APP" ] || { echo "No se ha generado la app" >&2; exit 1; }
 lipo -info "$APP/Contents/MacOS/CAOBA"
 
-# Firma ad hoc de todo el bundle (sin Developer ID todavia).
-codesign --force --deep --sign - "$APP" 2>/dev/null
-codesign --verify --deep --strict "$APP" && echo "Firma ad hoc correcta"
+# Firma: con CAOBA_SIGN_IDENTITY (p. ej. "Developer ID Application: Nombre (EQUIPO)") se firma
+# con ese certificado y hardened runtime; sin ella, firma ad hoc como hasta ahora.
+if [ -n "${CAOBA_SIGN_IDENTITY:-}" ]; then
+  codesign --force --deep --options runtime --timestamp --sign "$CAOBA_SIGN_IDENTITY" "$APP"
+  codesign --verify --deep --strict "$APP" && echo "Firma Developer ID correcta"
+else
+  codesign --force --deep --sign - "$APP" 2>/dev/null
+  codesign --verify --deep --strict "$APP" && echo "Firma ad hoc correcta"
+fi
 
 echo "-- DMG"
 mkdir -p "$DIST"
@@ -60,6 +66,14 @@ ln -s /Applications "$STAGE/Applications"
 hdiutil create -quiet -volname "CAOBA $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 rm -rf "$STAGE"
 du -h "$DMG"
+
+# Notarizacion: con CAOBA_NOTARY_PROFILE (perfil guardado con `xcrun notarytool store-credentials`)
+# se envia el DMG a Apple, se espera el resultado y se grapa el ticket.
+if [ -n "${CAOBA_SIGN_IDENTITY:-}" ] && [ -n "${CAOBA_NOTARY_PROFILE:-}" ]; then
+  echo "-- Notarizando"
+  xcrun notarytool submit "$DMG" --keychain-profile "$CAOBA_NOTARY_PROFILE" --wait
+  xcrun stapler staple "$DMG"
+fi
 
 if [ "$PUBLISH" = "1" ]; then
   echo "-- Publicando $TAG"

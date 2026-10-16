@@ -712,3 +712,43 @@ Transiciones entre fotos en el Slideshow, además del fundido cruzado actual:
 ### 6. Pendiente de comprobar
 - Ver en un vídeo real largo si el zoom cruzado necesita más o menos crecimiento (25 %).
 
+## 2026-10-16 — Actualización dentro de la app y firma Developer ID
+
+### 1. La petición tal como se ha entendido
+Actualización dentro de la app y preparación de la firma:
+
+- **«Actualizar ahora»** en la banda de versión nueva (y en el enlace del pie): descarga el DMG de la release con progreso y cancelable, lo monta, sustituye la app donde está instalada, lo desmonta y relanza la app ya actualizada. Si la carpeta de la app no se puede escribir, o la app corre desde el propio DMG o desde la carpeta de compilación, se descarga el DMG, se abre y se indica que se arrastre a Aplicaciones (respaldo manual, P2).
+- **Cuarentena**: como la firma sigue siendo ad hoc (P1), la app quita el atributo de cuarentena del DMG descargado y de la app copiada, para que la versión nueva abra sin el aviso de «no se puede comprobar el desarrollador». Al instalar a mano desde el navegador el aviso seguirá existiendo hasta que haya Developer ID.
+- **Comprobación mínima** antes de instalar: el DMG monta, contiene `CAOBA.app`, su versión es la anunciada y la firma del paquete verifica (`codesign --verify`).
+- **Script de release preparado para Developer ID**: si existen las variables `CAOBA_SIGN_IDENTITY` (y las de notarización, `CAOBA_NOTARY_PROFILE`), firma con ese certificado, notariza y grapa el DMG; si no, sigue en ad hoc como ahora. Documentado para el día que haya cuenta.
+- Nada cambia para quien no pulse el botón: la banda y el enlace siguen igual.
+
+*Confirmación: «si» (16-10-2026). Plan aprobado: «adelante, esta vez al finalizar genera release y publica».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Hay cuenta de desarrollador de Apple con Developer ID?** R: 2, no de momento: actualización dentro de la app con firma ad hoc; Developer ID preparado en el script pero desactivado.
+**P2. ¿Instalación automática (descargar, sustituir y relanzar) o semiautomática (abrir el DMG)?** R: 1, automática con respaldo manual.
+
+### 3. Fuentes analizadas
+- `VersionCheck` (solo leía la página de la release), `UpdateBanner`, `Tools/make-release.sh` (firma ad hoc) y la API de releases de GitHub (`assets[].browser_download_url`).
+
+### 4. Decisiones
+- `VersionCheck.Release` incluye la URL del DMG adjunto; `fetchLatest()` separado de la comparación de versiones.
+- **`Updater`** (`@Observable`, hilo principal) con fases: descargando (progreso), comprobando, instalando, reiniciando, manual o error. Descarga con `URLSession` y delegado (la lectura byte a byte de `AsyncBytes` resultó demasiado lenta: un 15 % de 12 MB en 20 s), a un temporal al que se quita la cuarentena.
+- Montaje con `hdiutil attach` en un punto propio, `-nobrowse`; se desmonta siempre al terminar (con `-force` por si queda algo abierto).
+- Comprobación antes de instalar: existe `CAOBA.app`, `CFBundleShortVersionString` coincide con la versión anunciada y `codesign --verify --deep --strict` pasa.
+- Sustitución segura: se copia la nueva junto a la actual con nombre oculto, se renombra la actual, se mueve la nueva a su sitio y se borra la antigua; si el movimiento falla, se restaura la antigua. Se quita la cuarentena a la copia.
+- Solo se sustituye si la carpeta es escribible, la app no está en `/Volumes/` (DMG montado) ni en `DerivedData`/`build/`; si no, se abre el DMG descargado y se indica arrastrar a Aplicaciones.
+- Relanzado con un `sh` que espera a que muera el proceso actual y hace `open -n` de la app.
+- Banda: «Actualizar ahora» (o «Descargar» si la release no trae DMG), progreso con «Cancelar», mensajes de fase y, en error o modo manual, «Abrir en el navegador».
+- Script: `CAOBA_SIGN_IDENTITY` firma con Developer ID (hardened runtime y timestamp); con `CAOBA_NOTARY_PROFILE` además notariza y grapa el DMG. Sin variables, ad hoc como hasta ahora.
+- Ganchos de prueba: `update.force=1` (banda con la última release aunque no sea más nueva), `update.auto=1` (lanza la actualización) y `update.target=/ruta/CAOBA.app` (sustituye esa copia y no relanza). Probado sustituyendo una copia del build de desarrollo (arm64) por la release 3.0.3 (universal), sin cuarentena y con firma verificada, DMG desmontado.
+
+### 5. Alternativas descartadas
+- Sparkle: resuelve esto muy bien, pero añade un framework, un feed XML y claves EdDSA; con un solo DMG en GitHub, el instalador propio son 200 líneas.
+- Sustituir la app en caliente sin pasos intermedios: si el movimiento fallara a medias, el usuario se quedaría sin app.
+
+### 6. Pendiente de comprobar
+- Cuando haya cuenta de desarrollador: crear el certificado Developer ID Application, el perfil de `notarytool` y probar una release firmada y notarizada de principio a fin.
+

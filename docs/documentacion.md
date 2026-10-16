@@ -33,9 +33,15 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 - `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
 - `CollageResultView(row:options:)`: el collage renderizado con el motor y las opciones reales, a resolución de pantalla (lado mayor 1600 px), en segundo plano; se recalcula al cambiar la fila o las opciones. `CollageViewModePicker` es el conmutador «Encuadre / Resultado» que la acompaña en el editor de foco de Collage y en el inspector de collage del Slideshow.
 
+### Actualización dentro de la app (`Updater`)
+
+Cuando hay una versión nueva, la banda ofrece «Actualizar ahora»: descarga el DMG de la release (progreso y cancelación), le quita la cuarentena, lo monta, comprueba que trae `CAOBA.app` con la versión anunciada y firma válida, sustituye la app instalada (copia junto a la actual, intercambio y borrado de la antigua), quita la cuarentena a la copia, desmonta y relanza. Si la app no está en una carpeta escribible, o corre desde un DMG o desde la carpeta de compilación, abre el DMG descargado para arrastrarla a mano. Ganchos de prueba: `--state update.force=1` (banda con la última release), `update.auto=1` (lanza la actualización) y `update.target=/ruta/CAOBA.app` (sustituye esa copia en lugar de la app en ejecución, sin relanzar).
+
 ### Releases
 
 `Tools/make-release.sh` lee la versión de `MARKETING_VERSION` en `project.yml`, pasa los tests del motor, genera el proyecto, compila en Release un **binario universal** (`ARCHS="arm64 x86_64"`), lo firma ad hoc (sin Developer ID todavía), crea `dist/CAOBA-<versión>.dmg` con `hdiutil` y, con `--publish`, crea la etiqueta `v<versión>`, la sube y publica la release en GitHub con `gh` y notas generadas de los commits. Para subir de versión: cambiar `MARKETING_VERSION` (y `CaobaCoreInfo.version`) y volver a lanzar el script. El DMG ocupa unos 12 MB con exiftool incluido.
+
+**Firma Developer ID y notarización** (cuando haya cuenta de desarrollador): exportar el certificado «Developer ID Application» al llavero, guardar un perfil de notarización con `xcrun notarytool store-credentials caoba --apple-id <correo> --team-id <EQUIPO> --password <contraseña de app>` y lanzar el script con las variables `CAOBA_SIGN_IDENTITY="Developer ID Application: Nombre (EQUIPO)"` y `CAOBA_NOTARY_PROFILE=caoba`. El script firma con hardened runtime y timestamp, envía el DMG a Apple, espera el resultado y grapa el ticket. Sin esas variables sigue firmando ad hoc.
 
 ### Capturas de pantalla
 

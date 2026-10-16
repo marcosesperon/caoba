@@ -51,16 +51,38 @@ struct DonationSheet: View {
 struct UpdateBanner: View {
     @Environment(AppState.self) private var appState
     let update: VersionCheck.Release
+    @State private var updater = Updater.shared
 
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.down.circle.fill")
                 .foregroundStyle(Color.accentColor)
-            Text("Nueva versión \(update.version) disponible")
-                .font(.callout)
+            switch updater.phase {
+            case .downloading(let fraction):
+                Text("Descargando CAOBA \(update.version)…").font(.callout)
+                ProgressView(value: fraction).frame(width: 140)
+                Button("Cancelar") { updater.cancel() }.controlSize(.small)
+            case .verifying:
+                Text("Comprobando la descarga…").font(.callout)
+                ProgressView().controlSize(.small)
+            case .installing:
+                Text("Instalando…").font(.callout)
+                ProgressView().controlSize(.small)
+            case .relaunching:
+                Text("Reiniciando CAOBA…").font(.callout)
+            case .manual(let message), .failed(let message):
+                Text(message).font(.callout).lineLimit(2)
+                Button("Abrir en el navegador") { appState.openExternal(update.url) }.controlSize(.small)
+            case .idle:
+                Text("Nueva versión \(update.version) disponible").font(.callout)
+            }
             Spacer()
-            Button("Descargar") { appState.openExternal(update.url) }
+            if case .idle = updater.phase {
+                Button(update.dmg != nil ? "Actualizar ahora" : "Descargar") {
+                    if update.dmg != nil { updater.update(to: update) } else { appState.openExternal(update.url) }
+                }
                 .controlSize(.small)
+            }
             Button { appState.dismissUpdateBanner() } label: {
                 Image(systemName: "xmark")
                     .font(.caption.weight(.semibold))

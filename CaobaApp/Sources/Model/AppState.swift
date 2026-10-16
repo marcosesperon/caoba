@@ -217,6 +217,18 @@ final class AppState {
         // Para pruebas: `--state presets.export=/ruta.json` e `--state presets.import=/ruta.json`.
         if let path = launchState["presets.export"] { try? PresetStore.shared.exportData().write(to: URL(fileURLWithPath: path)) }
         if let path = launchState["presets.import"], let data = try? Data(contentsOf: URL(fileURLWithPath: path)) { _ = try? PresetStore.shared.importData(data) }
+        // Para probar la actualización: `--state update.target=/ruta/CAOBA.app` sustituye esa copia
+        // (en lugar de la app en ejecución) por el DMG de la última release y no relanza.
+        if let target = launchState["update.target"] {
+            Updater.shared.testTarget = URL(fileURLWithPath: target)
+        }
+        // `--state update.force=1` enseña la banda con la última release aunque no sea más nueva,
+        // y `update.auto=1` lanza la actualización al momento.
+        if launchState["update.force"] != nil, let latest = await VersionCheck.fetchLatest() {
+            availableUpdate = latest
+            showUpdateBanner = true
+            if launchState["update.auto"] != nil { Updater.shared.update(to: latest) }
+        }
         // Para capturar la banda y la hoja sin esperar a que exista una versión nueva ni a los 7 días.
         if let version = launchState["demo.update"] {
             availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba/releases/latest")!)
@@ -351,12 +363,21 @@ enum RecentFolders {
 enum VersionCheck {
     struct Release: Equatable {
         var version: String
+        /// Página de la release.
         var url: URL
+        /// El DMG adjunto, si lo hay.
+        var dmg: URL?
     }
 
     static let releasesAPI = URL(string: "https://api.github.com/repos/marcosesperon/caoba/releases/latest")!
 
     static func fetchNewerRelease(than current: String) async -> Release? {
+        guard let latest = await fetchLatest(), isNewer(latest.version, than: current) else { return nil }
+        return latest
+    }
+
+    /// Última release publicada, sea más nueva o no.
+    static func fetchLatest() async -> Release? {
         var request = URLRequest(url: releasesAPI)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 10
@@ -365,7 +386,10 @@ enum VersionCheck {
               let tag = json["tag_name"] as? String,
               let html = (json["html_url"] as? String).flatMap(URL.init(string:)) else { return nil }
         let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-        return isNewer(latest, than: current) ? Release(version: latest, url: html) : nil
+        let assets = json["assets"] as? [[String: Any]] ?? []
+        let dmg = assets.first { ($0["name"] as? String)?.lowercased().hasSuffix(".dmg") == true }
+            .flatMap { $0["browser_download_url"] as? String }.flatMap(URL.init(string:))
+        return Release(version: latest, url: html, dmg: dmg)
     }
 
     static func isNewer(_ candidate: String, than current: String) -> Bool {

@@ -5176,6 +5176,116 @@
           }
         }
       }
+    },
+    "Actualizar ahora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update now"
+          }
+        }
+      }
+    },
+    "Descargando CAOBA %@…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading CAOBA %@…"
+          }
+        }
+      }
+    },
+    "Comprobando la descarga…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking the download…"
+          }
+        }
+      }
+    },
+    "Instalando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing…"
+          }
+        }
+      }
+    },
+    "Reiniciando CAOBA…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restarting CAOBA…"
+          }
+        }
+      }
+    },
+    "Abrir en el navegador" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in the browser"
+          }
+        }
+      }
+    },
+    "La release no tiene un DMG adjunto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The release has no DMG attached."
+          }
+        }
+      }
+    },
+    "No se puede sustituir la app desde aquí. Se ha abierto el DMG: arrastra CAOBA a Aplicaciones." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app cannot be replaced from here. The DMG has been opened: drag CAOBA to Applications."
+          }
+        }
+      }
+    },
+    "El DMG trae la versión " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The DMG contains version "
+          }
+        }
+      }
+    },
+    ", no la " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", not "
+          }
+        }
+      }
+    },
+    "La firma de la app descargada no verifica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The downloaded app's signature does not verify."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
