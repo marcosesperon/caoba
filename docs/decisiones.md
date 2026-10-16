@@ -419,3 +419,45 @@ En todos los sitios donde se presentan proporciones (16:9, 9:16, 4:5, 5:4, 3:2, 
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Composición de collages según el contenido de las fotos
+
+### 1. La petición tal como se ha entendido
+Al componer secuencias de collages (en Collage y en los collages del Slideshow, que comparten editor), añadir un reparto **según el contenido** de las fotos, además del aleatorio actual:
+
+- En la hoja de «Componer» aparece un selector «Reparto: Aleatorio / Según el contenido» y, con el segundo, una casilla «Permitir reordenar fotos» (desactivada por defecto). Se respetan las plantillas permitidas marcadas en esa misma hoja.
+- Al pulsar Componer con «Según el contenido», la app analiza cada foto marcada (caras y sujeto principal con Vision, sobre miniatura, con progreso y cancelable; el resultado se guarda en memoria para no repetirlo).
+- De cada foto se obtiene: orientación, caja del sujeto (unión de caras o, si no hay, de objetos salientes), tamaño del sujeto respecto al encuadre y número de caras.
+- Para cada grupo de fotos consecutivas (orden de la lista), el algoritmo elige entre las plantillas permitidas la que mejor puntúa, decidiendo también cuántas fotos van en el grupo (1 a 9, lo que permitan las plantillas) y qué foto va en cada celda. Puntúa: cuánto del sujeto sobrevive al recorte de la celda, si la orientación casa, caras y sujetos grandes en celdas grandes, y penaliza fotos de grupo en celdas pequeñas. Si una foto no tiene nada detectable, cuenta solo la orientación (como ahora).
+- Con «Permitir reordenar fotos», el algoritmo puede intercambiar fotos entre collages cercanos para mejorar el encaje.
+- El resultado es la misma secuencia editable de siempre, con los puntos de foco ya puestos a partir del análisis (no hace falta «Ajustar foco» después), y se puede retocar celda a celda como hasta ahora.
+- El reparto aleatorio sigue igual.
+
+*Confirmación: «dale» (16-10-2026). Plan aprobado: «adelante».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Dónde vive la función: selector «Reparto: Aleatorio / Según el contenido» en la hoja de Componer, o botón nuevo?** R: 1, el selector en la hoja de Componer.
+**P2. ¿Mantener el orden de las fotos o permitir reordenar?** R: mantener el orden por defecto, con una casilla «Permitir reordenar fotos» en la hoja.
+**P3. ¿Decide el algoritmo cuántas fotos van en cada collage o se fija un tamaño?** R: 1, lo decide el algoritmo entre las plantillas permitidas (el filtro «Fotos» acota si hace falta).
+
+### 3. Fuentes analizadas
+- `FocusDetector` (caras y saliencia con Vision; solo devolvía un punto), `CropGeometry.rect(in:ratio:focus:)` (el recorte real del render), `CollageRenderer.group` y `assignByAspect` (esta última existía pero no la usaba la app), `CollageSequenceEditor`, `TemplatePickerSheet` y `SlideshowDocument.compose` (los dos sitios donde se compone), `AppState` (orden de ficheros).
+
+### 4. Decisiones
+- **Modelo sin cambios**: la secuencia sigue siendo «plantillas en orden, fotos consumidas en orden de la lista». El reparto por contenido decide un **nuevo orden de las fotos marcadas** (dentro de cada grupo, y entre grupos si se permite reordenar) y la app lo aplica a la lista con `reorderCheckedFiles`, dejando las no marcadas donde estaban. Así las tarjetas, el arrastre y el editor de foco funcionan igual que antes.
+- **Detector**: `FocusResult` lleva ahora la caja del sujeto (unión de caras o de objetos salientes); el punto sigue igual, así que nada de lo existente cambia. El análisis usa el modo «Caras» (caras y, si no hay, saliencia) y comparte caché con «Ajustar foco».
+- **Puntuación foto‑celda** (`ContentComposer.score`): con sujeto, 70 % cuánto sujeto sobrevive al recorte de la celda (mismo cálculo que el render) y 30 % orientación; sin sujeto, solo orientación. Más 0,3 × importancia × tamaño relativo de la celda; −0,4 × (1 − tamaño) si hay 3 o más caras; −0,15 × (1 − importancia) × tamaño para no regalar la celda grande a una foto sin interés. La proporción real de una celda es la de la celda por la del lienzo.
+- **Reparto**: programación dinámica sobre la posición en la lista, maximizando la suma de puntuaciones; así el tamaño de cada grupo lo decide el contenido y el óptimo es exacto manteniendo el orden. Asignación foto‑celda exhaustiva hasta 5 fotos y voraz (celdas grandes primero) de 6 a 9. Las fotos que no quepan quedan fuera al final, penalizadas para que solo pase si no hay otra.
+- **Reordenar**: búsqueda local de intercambios de una foto entre collages vecinos (siguiente y el de después) mientras suba la puntuación, máximo 6 pasadas, y al final cada grupo vuelve a elegir plantilla de su tamaño.
+- **Interfaz**: `ComposeModeControls` (selector «Reparto» y casilla) compartido por las dos hojas; progreso «Analizando X de N fotos…» con Cancelar en la fila de botones del editor; cancelar deja todo como estaba. Las hojas crecen 60 puntos para los controles.
+- Ganchos de captura/prueba: `collage.compose=content` abre la hoja en ese modo, `collage.autocompose=content` (+ `collage.reorder=1`) compone con todas las plantillas de 2 a 4 fotos, y `capture.sheets=1` incluye las hojas en la captura.
+
+### 5. Alternativas descartadas
+- Guardar el orden de fotos dentro de cada `SequenceItem`: obligaba a cambiar `rows(from:)`, el arrastre de tarjetas y el editor de foco; reordenar la lista es más simple y el usuario ve lo que ha pasado.
+- Asignación foto‑celda con el método húngaro: exacto para cualquier tamaño, pero con 5 fotos las permutaciones son 120 y de 6 a 9 el voraz por celdas grandes es suficiente.
+- Búsqueda global con reordenación libre entre todas las fotos: coste combinatorio y el usuario pidió respetar el orden por defecto; el intercambio entre vecinos mejora lo que importa sin desordenar el reportaje.
+- Usar `assignByAspect` existente: solo mira proporción; se deja como está por si se usa en otro sitio.
+
+### 6. Pendiente de comprobar
+- Afinar pesos con reportajes reales (paisajes, detalles) y ver si el análisis sobre RAW resulta lento en carpetas grandes.
+

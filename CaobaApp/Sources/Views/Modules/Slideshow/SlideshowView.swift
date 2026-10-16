@@ -81,9 +81,12 @@ struct SlideshowView: View {
         .sheet(item: $expandedFraming) { url in KenBurnsFramingSheet(doc: doc, photo: url) }
         .sheet(isPresented: $showComposePicker) {
             TemplatePickerSheet(title: "Componer secuencia",
-                                subtitle: "Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(doc.files.count) fotos marcadas.",
+                                subtitle: doc.composeMode == .random
+                                    ? "Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(doc.files.count) fotos marcadas."
+                                    : "Elige qué plantillas pueden usarse. Se analizarán las \(doc.files.count) fotos marcadas para dar a cada grupo la plantilla que mejor le encaje.",
                                 templates: { CollageTemplates.filter(photos: $0, aspectLabel: $1, includeOverlap: true) },
-                                selection: $doc.selectedTemplates, confirmTitle: "Componer") {
+                                selection: $doc.selectedTemplates, confirmTitle: "Componer",
+                                composeMode: $doc.composeMode, allowReorder: $doc.allowReorder) {
                 doc.compose()
             }
         }
@@ -182,8 +185,12 @@ struct SourceTab: View {
                     .fixedSize()
                     .disabled(doc.sequence.isEmpty || doc.isAssigning)
                     Button("Vaciar") { doc.sequence = []; doc.selection = .none }.disabled(doc.sequence.isEmpty)
-                    Text("\(doc.rows.reduce(0) { $0 + $1.files.count }) de \(doc.files.count) fotos asignadas · \(doc.rows.count) collages")
-                        .font(.caption).foregroundStyle(.secondary)
+                    if let progress = doc.composeProgress {
+                        ComposeProgressView(progress: progress) { doc.cancelCompose() }
+                    } else {
+                        Text("\(doc.rows.reduce(0) { $0 + $1.files.count }) de \(doc.files.count) fotos asignadas · \(doc.rows.count) collages")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 Spacer()
             }
@@ -227,6 +234,9 @@ struct TemplatePickerSheet: View {
     /// Si hay título de confirmación se eligen varias; si no, un clic elige una.
     let confirmTitle: LocalizedStringKey?
     var onPick: ((CollageTemplate) -> Void)? = nil
+    /// Solo en Componer: selector de reparto y casilla de reordenar.
+    var composeMode: Binding<ComposeMode>? = nil
+    var allowReorder: Binding<Bool>? = nil
     let onConfirm: () -> Void
 
     @State private var photosFilter: Int?
@@ -238,6 +248,9 @@ struct TemplatePickerSheet: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title).font(.headline)
             Text(subtitle).font(.callout).foregroundStyle(.secondary)
+            if let composeMode, let allowReorder {
+                ComposeModeControls(mode: composeMode, allowReorder: allowReorder)
+            }
             TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
             TemplatePicker(templates: visible, selected: confirmTitle == nil ? [] : selection) { template in
                 if let onPick { onPick(template); return }
@@ -259,7 +272,7 @@ struct TemplatePickerSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 720, height: 560)
+        .frame(width: 720, height: composeMode == nil ? 560 : 620)
     }
 }
 

@@ -109,6 +109,15 @@ final class AppState {
         files.move(fromOffsets: source, toOffset: destination)
     }
 
+    /// Reordena las fotos marcadas según `order` dejando las no marcadas en su sitio.
+    /// Lo usa el reparto por contenido, que decide el orden de las fotos de cada collage.
+    func reorderCheckedFiles(to order: [URL]) {
+        let position = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+        let checkedSlots = files.indices.filter { !excludedNames.contains(files[$0].name) }
+        let sortedChecked = checkedSlots.map { files[$0] }.sorted { (position[$0.url] ?? Int.max) < (position[$1.url] ?? Int.max) }
+        for (slot, file) in zip(checkedSlots, sortedChecked) { files[slot] = file }
+    }
+
     /// Aplica un orden guardado (por nombre); los ficheros no listados van al final.
     func applyOrder(names: [String]) {
         let index = Dictionary(uniqueKeysWithValues: names.enumerated().map { ($1, $0) })
@@ -229,7 +238,7 @@ final class AppState {
                 window.makeFirstResponder(sink)
                 try? await Task.sleep(for: .milliseconds(300))
             }
-            Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil)
+            Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil || launchState["capture.sheets"] != nil)
             NSApp.terminate(nil)
         }
     }

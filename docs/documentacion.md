@@ -159,6 +159,16 @@ Cuatro planes, todos devuelven `[RenameEntry]` (original → nombre nuevo) con c
 - `render(row, options)` compone un collage; `generate(rows:options:outputFolder:)` escribe `collage.jpg` o `collage_01.jpg`, `collage_02.jpg`…
 - Las fotos se decodifican ya reducidas al tamaño de su celda (`PhotoLoader`) para no cargar originales de 50 MP enteros.
 
+### Reparto por contenido (`PhotoProfile`, `ContentComposer`)
+
+Al componer una secuencia de collages, además del reparto aleatorio, se puede pedir «Según el contenido»: la app analiza cada foto marcada (caras y, si no hay, objetos salientes, con Vision sobre una miniatura y con caché) y el motor decide, para cada grupo de fotos consecutivas, qué plantilla permitida les sienta mejor, cuántas fotos entran en el grupo y qué foto va en cada celda.
+
+- `PhotoProfile`: proporción, caja del sujeto (normalizada, origen arriba‑izquierda) y número de caras. `focusPoint` es el centro del sujeto y se usa como foco del recorte.
+- `ContentComposer.score(photo:cell:in:)`: cuánto del sujeto sobrevive al recorte de la celda (mismo recorte que el render) y si casa la orientación, con bonificación por poner caras y sujetos grandes en celdas grandes y penalización por meter grupos (3 o más caras) en celdas pequeñas.
+- `ContentComposer.compose(profiles:templates:allowReorder:)`: programación dinámica sobre la posición manteniendo el orden; con `allowReorder` intercambia fotos entre collages vecinos mientras mejore. Devuelve `ComposedRow` (plantilla, índice de foto por celda, focos) y las fotos sobrantes.
+
+En la app (`ContentComposition`) el resultado se convierte en un nuevo orden de las fotos marcadas (`AppState.reorderCheckedFiles`) y una secuencia con el foco ya puesto. Es una propuesta: luego se edita igual que cualquier secuencia. Para probarlo desde línea de comandos: `--state collage.autocompose=content` (y `collage.reorder=1`); para capturar la hoja, `--state collage.compose=content --state capture.sheets=1`.
+
 ### Contact Sheet (`ContactSheetRenderer`, `ContactSheetOptions`)
 
 | Opción | Valores |

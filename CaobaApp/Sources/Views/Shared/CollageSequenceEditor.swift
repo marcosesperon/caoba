@@ -4,6 +4,7 @@ import CaobaCore
 /// Editor de secuencia de collages compartido por Collage y Slideshow:
 /// Componer, Añadir, Ajustar foco, tarjetas reordenables y editor de enfoque.
 struct CollageSequenceEditor: View {
+    @Environment(AppState.self) private var appState
     @Binding var sequence: [SequenceItem]
     @Binding var selectedTemplates: Set<String>
     let files: [URL]
@@ -16,6 +17,11 @@ struct CollageSequenceEditor: View {
     @State private var showAddPicker = false
     @State private var editingIndex: Int?
     @State private var isAdjustingFocus = false
+    @State private var composeMode: ComposeMode = .random
+    @State private var allowReorder = false
+    @State private var composeProgress: ComposeProgress?
+    @State private var composeTask: Task<Void, Never>?
+    @State private var autoComposed = false
     private let detector = FocusDetector()
 
     /// Filas con las fotos repartidas en orden.
@@ -47,6 +53,9 @@ struct CollageSequenceEditor: View {
                 .disabled(sequence.isEmpty || isAdjustingFocus)
                 Button("Vaciar") { sequence = [] }.disabled(sequence.isEmpty)
                 if isAdjustingFocus { ProgressView().controlSize(.small) }
+                if let composeProgress {
+                    ComposeProgressView(progress: composeProgress) { composeTask?.cancel() }
+                }
             }
             Text("\(assignedCount) de \(files.count) fotos asignadas · \(rows.count) collages")
                 .font(.caption).foregroundStyle(.secondary)
@@ -79,7 +88,14 @@ struct CollageSequenceEditor: View {
             }
             .frame(height: 120)
         }
-        .onChange(of: files) { prune() }
+        .onChange(of: files) { prune(); autoComposeIfRequested() }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state collage.compose=content` abre la hoja en ese modo.
+            if let mode = appState.launchState["collage.compose"].flatMap(ComposeMode.init(rawValue:)) {
+                composeMode = mode
+                showComposePicker = true
+            }
+        }
         .sheet(isPresented: $showComposePicker) { composeSheet }
         .sheet(isPresented: $showAddPicker) { addSheet }
         .sheet(item: Binding(get: { editingIndex.map { EditorTarget(index: $0) } }, set: { editingIndex = $0?.index })) { target in
@@ -90,8 +106,11 @@ struct CollageSequenceEditor: View {
     private var composeSheet: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Componer secuencia").font(.headline)
-            Text("Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(files.count) fotos marcadas.")
+            Text(composeMode == .random
+                 ? "Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(files.count) fotos marcadas."
+                 : "Elige qué plantillas pueden usarse. Se analizarán las \(files.count) fotos marcadas para dar a cada grupo la plantilla que mejor le encaje.")
                 .font(.callout).foregroundStyle(.secondary)
+            ComposeModeControls(mode: $composeMode, allowReorder: $allowReorder)
             TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
             TemplatePicker(templates: visibleTemplates, selected: selectedTemplates) { template in
                 if selectedTemplates.contains(template.id) { selectedTemplates.remove(template.id) } else { selectedTemplates.insert(template.id) }
@@ -109,7 +128,7 @@ struct CollageSequenceEditor: View {
             }
         }
         .padding(20)
-        .frame(width: 720, height: 560)
+        .frame(width: 720, height: 620)
     }
 
     private var addSheet: some View {
@@ -131,8 +150,44 @@ struct CollageSequenceEditor: View {
 
     private func compose() {
         let templates = selectedTemplates.compactMap(CollageTemplates.template(id:))
-        let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
-        sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
+        guard composeMode == .content else {
+            let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
+            sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
+            return
+        }
+        composeByContent(templates: templates)
+    }
+
+    /// Analiza las fotos y reparte según su contenido; reordena la lista de la app
+    /// con el orden que decida el reparto y deja la secuencia con el foco puesto.
+    private func composeByContent(templates: [CollageTemplate]) {
+        composeTask?.cancel()
+        let snapshot = files
+        composeProgress = ComposeProgress(done: 0, total: snapshot.count)
+        composeTask = Task {
+            defer { composeProgress = nil; composeTask = nil }
+            do {
+                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: allowReorder, detector: detector) { done in
+                    composeProgress = ComposeProgress(done: done, total: snapshot.count)
+                }
+                appState.reorderCheckedFiles(to: result.order)
+                sequence = result.sequence
+            } catch {
+                // Cancelado: se deja todo como estaba.
+            }
+        }
+    }
+
+    /// Para pruebas desde línea de comandos: `--state collage.autocompose=content`
+    /// (y `collage.reorder=1`) compone con todas las plantillas de 2 a 4 fotos en cuanto hay fotos.
+    private func autoComposeIfRequested() {
+        guard !autoComposed, !files.isEmpty,
+              let mode = appState.launchState["collage.autocompose"].flatMap(ComposeMode.init(rawValue:)) else { return }
+        autoComposed = true
+        selectedTemplates = Set(CollageTemplates.all.filter { !$0.overlap && (2...4).contains($0.photos) }.map(\.id))
+        composeMode = mode
+        allowReorder = appState.launchState["collage.reorder"] == "1"
+        compose()
     }
 
     private func prune() {

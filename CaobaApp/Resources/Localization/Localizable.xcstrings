@@ -4,6 +4,9 @@
     "" : {
 
     },
+    " · " : {
+
+    },
     "— Marcos Esperón" : {
 
     },
@@ -1380,6 +1383,16 @@
         }
       }
     },
+    "Cuadrado, Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Square, Instagram"
+          }
+        }
+      }
+    },
     "Curva" : {
       "localizations" : {
         "en" : {
@@ -2175,6 +2188,26 @@
         }
       }
     },
+    "Foto clásica horizontal (15×10)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classic landscape photo (6×4)"
+          }
+        }
+      }
+    },
+    "Foto clásica vertical (10×15)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classic portrait photo (4×6)"
+          }
+        }
+      }
+    },
     "Foto: %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2426,11 +2459,22 @@
       }
     },
     "Horizontal · Feed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Landscape · Feed"
+          }
+        }
+      }
+    },
+    "Horizontal · Publicación apaisada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landscape · Landscape post"
           }
         }
       }
@@ -3349,6 +3393,16 @@
         }
       }
     },
+    "Panorámica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panoramic"
+          }
+        }
+      }
+    },
     "Parámetros no válidos: %@" : {
       "localizations" : {
         "en" : {
@@ -3581,6 +3635,26 @@
         }
       }
     },
+    "Publicación apaisada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landscape post"
+          }
+        }
+      }
+    },
+    "Publicación de Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instagram post"
+          }
+        }
+      }
+    },
     "Pulsa Componer o Añadir para empezar." : {
       "localizations" : {
         "en" : {
@@ -3743,6 +3817,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resize"
+          }
+        }
+      }
+    },
+    "Reels, Shorts, TikTok, Stories" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reels, Shorts, TikTok, Stories"
           }
         }
       }
@@ -4222,6 +4306,16 @@
         }
       }
     },
+    "Tira vertical" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertical strip"
+          }
+        }
+      }
+    },
     "Título" : {
       "localizations" : {
         "en" : {
@@ -4279,6 +4373,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "After previous"
+          }
+        }
+      }
+    },
+    "TV, YouTube" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV, YouTube"
           }
         }
       }
@@ -4387,6 +4491,7 @@
       }
     },
     "Vertical · Feed de Instagram" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4397,11 +4502,32 @@
       }
     },
     "Vertical · Historias, Reels, TikTok" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Portrait · Stories, Reels, TikTok"
+          }
+        }
+      }
+    },
+    "Vertical · Publicación de Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portrait · Instagram post"
+          }
+        }
+      }
+    },
+    "Vertical · Reels, Shorts, TikTok, Stories" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portrait · Reels, Shorts, TikTok, Stories"
           }
         }
       }
@@ -4532,122 +4658,52 @@
         }
       }
     },
-    "TV, YouTube" : {
+    "Reparto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TV, YouTube"
+            "value" : "Layout"
           }
         }
       }
     },
-    "Reels, Shorts, TikTok, Stories" : {
+    "Según el contenido" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reels, Shorts, TikTok, Stories"
+            "value" : "By content"
           }
         }
       }
     },
-    "Publicación de Instagram" : {
+    "Permitir reordenar fotos" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instagram post"
+            "value" : "Allow reordering photos"
           }
         }
       }
     },
-    "Publicación apaisada" : {
+    "Analizando %lld de %lld fotos…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Landscape post"
+            "value" : "Analyzing %lld of %lld photos…"
           }
         }
       }
     },
-    "Foto clásica horizontal (15×10)" : {
+    "Elige qué plantillas pueden usarse. Se analizarán las %lld fotos marcadas para dar a cada grupo la plantilla que mejor le encaje." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Classic landscape photo (6×4)"
-          }
-        }
-      }
-    },
-    "Foto clásica vertical (10×15)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Classic portrait photo (4×6)"
-          }
-        }
-      }
-    },
-    "Cuadrado, Instagram" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Square, Instagram"
-          }
-        }
-      }
-    },
-    "Panorámica" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Panoramic"
-          }
-        }
-      }
-    },
-    "Tira vertical" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical strip"
-          }
-        }
-      }
-    },
-    "Vertical · Reels, Shorts, TikTok, Stories" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Portrait · Reels, Shorts, TikTok, Stories"
-          }
-        }
-      }
-    },
-    "Vertical · Publicación de Instagram" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Portrait · Instagram post"
-          }
-        }
-      }
-    },
-    "Horizontal · Publicación apaisada" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Landscape · Landscape post"
+            "value" : "Choose which templates may be used. The %lld checked photos will be analyzed to give each group the template that fits it best."
           }
         }
       }

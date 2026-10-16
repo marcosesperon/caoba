@@ -159,6 +159,10 @@ final class SlideshowDocument {
     // Collages
     var sequence: [SequenceItem] = []
     var selectedTemplates: Set<String> = []
+    var composeMode: ComposeMode = .random
+    var allowReorder = false
+    var composeProgress: ComposeProgress?
+    private var composeTask: Task<Void, Never>?
     var reveal = 1.5
     var hold = 3.0
     var csBackground: CanvasBackground = .white
@@ -389,10 +393,31 @@ final class SlideshowDocument {
 
     func compose() {
         let templates = selectedTemplates.compactMap(CollageTemplates.template(id:))
-        let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
-        sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
         selection = .none
+        guard composeMode == .content else {
+            let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
+            sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
+            return
+        }
+        // Según el contenido: analiza, reordena la lista de la app y deja el foco puesto.
+        composeTask?.cancel()
+        let snapshot = files
+        composeProgress = ComposeProgress(done: 0, total: snapshot.count)
+        composeTask = Task {
+            defer { composeProgress = nil; composeTask = nil }
+            do {
+                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: allowReorder, detector: detector) { done in
+                    self.composeProgress = ComposeProgress(done: done, total: snapshot.count)
+                }
+                app.reorderCheckedFiles(to: result.order)
+                sequence = result.sequence
+            } catch {
+                // Cancelado: se deja todo como estaba.
+            }
+        }
     }
+
+    func cancelCompose() { composeTask?.cancel() }
 
     func addTemplate(_ template: CollageTemplate) {
         let item = SequenceItem(templateID: template.id, focusPoints: Array(repeating: nil, count: template.photos))

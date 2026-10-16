@@ -12,12 +12,21 @@ public enum FocusMode: String, Sendable, Codable, CaseIterable {
     case faces
 }
 
-/// Resultado de la detección: punto normalizado (0-1, origen arriba-izquierda)
-/// y si se encontraron caras.
+/// Resultado de la detección: punto normalizado (0-1, origen arriba-izquierda),
+/// si se encontraron caras y, cuando se sabe, la caja que engloba al sujeto
+/// (todas las caras o todos los objetos salientes).
 public struct FocusResult: Sendable, Equatable {
     public var point: CGPoint
     public var hasFaces: Bool
     public var faceCount: Int
+    public var subject: CGRect?
+
+    public init(point: CGPoint, hasFaces: Bool, faceCount: Int, subject: CGRect? = nil) {
+        self.point = point
+        self.hasFaces = hasFaces
+        self.faceCount = faceCount
+        self.subject = subject
+    }
 
     public static let center = FocusResult(point: CGPoint(x: 0.5, y: 0.5), hasFaces: false, faceCount: 0)
 }
@@ -62,18 +71,19 @@ public actor FocusDetector {
 
     /// Vision devuelve rectángulos normalizados con origen abajo-izquierda;
     /// nosotros trabajamos con origen arriba-izquierda, así que invertimos la Y.
-    private static func center(of boxes: [CGRect]) -> CGPoint? {
+    /// Devuelve la caja que engloba todas las cajas, ya volteada.
+    private static func union(of boxes: [CGRect]) -> CGRect? {
         guard let first = boxes.first else { return nil }
         let union = boxes.dropFirst().reduce(first) { $0.union($1) }
-        return CGPoint(x: union.midX, y: 1 - union.midY)
+        return CGRect(x: union.minX, y: 1 - union.maxY, width: union.width, height: union.height)
     }
 
     private static func faces(_ image: CGImage) -> FocusResult? {
         let request = VNDetectFaceRectanglesRequest()
         let handler = VNImageRequestHandler(cgImage: image, orientation: .up)
         guard (try? handler.perform([request])) != nil, let faces = request.results, !faces.isEmpty,
-              let point = center(of: faces.map(\.boundingBox)) else { return nil }
-        return FocusResult(point: point, hasFaces: true, faceCount: faces.count)
+              let box = union(of: faces.map(\.boundingBox)) else { return nil }
+        return FocusResult(point: CGPoint(x: box.midX, y: box.midY), hasFaces: true, faceCount: faces.count, subject: box)
     }
 
     /// Saliencia: primero "objectness" (dónde está el sujeto), que localiza
@@ -90,7 +100,8 @@ public actor FocusDetector {
             if total > 0 {
                 let x = objects.reduce(0.0) { $0 + Double($1.confidence) * $1.boundingBox.midX } / total
                 let y = objects.reduce(0.0) { $0 + Double($1.confidence) * $1.boundingBox.midY } / total
-                return FocusResult(point: CGPoint(x: x, y: 1 - y), hasFaces: false, faceCount: 0)
+                return FocusResult(point: CGPoint(x: x, y: 1 - y), hasFaces: false, faceCount: 0,
+                                   subject: union(of: objects.map(\.boundingBox)))
             }
         }
         let attention = VNGenerateAttentionBasedSaliencyImageRequest()
