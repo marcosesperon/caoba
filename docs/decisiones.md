@@ -267,7 +267,7 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 - Probar el DMG en un Mac Intel real.
-- Publicar la primera release `v3.0.0` cuando el usuario lo indique; comprobar que la landing enlaza el DMG.
+- ~~Publicar la primera release `v3.0.0` cuando el usuario lo indique~~ Publicada el 16-10-2026 (`CAOBA-3.0.0.dmg`, 12 MB, binario universal); la API de GitHub ya la devuelve como última release, así que la landing enlaza el DMG.
 
 ## 2026-10-16 — Landing sin referencias a la versión anterior y con capturas de la app
 
