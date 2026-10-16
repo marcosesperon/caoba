@@ -5760,6 +5760,126 @@
           }
         }
       }
+    },
+    "Entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In"
+          }
+        }
+      }
+    },
+    "Mostrar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show"
+          }
+        }
+      }
+    },
+    "Toda la foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whole photo"
+          }
+        }
+      }
+    },
+    "Unos segundos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A few seconds"
+          }
+        }
+      }
+    },
+    "Igual que la entrada (inversa)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as the entry (reversed)"
+          }
+        }
+      }
+    },
+    "Ninguna (se queda)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None (stays)"
+          }
+        }
+      }
+    },
+    "Hacia abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downwards"
+          }
+        }
+      }
+    },
+    "Hacia arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upwards"
+          }
+        }
+      }
+    },
+    "Hacia la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To the right"
+          }
+        }
+      }
+    },
+    "Hacia la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To the left"
+          }
+        }
+      }
+    },
+    "Máquina de escribir (se borra)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Typewriter (erased)"
+          }
+        }
+      }
+    },
+    "Segundos mostrándose" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds on screen"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

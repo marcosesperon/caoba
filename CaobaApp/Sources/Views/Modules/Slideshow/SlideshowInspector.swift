@@ -147,7 +147,7 @@ struct ExtrasTab: View {
                         }
                         LabeledSlider(title: "Duración", value: $doc.titleDuration, in: 1...15, step: 0.5) { Text("\(doc.titleDuration, specifier: "%.1f") s") }
                     } else {
-                        LabeledSlider(title: "Segundos visible", value: $doc.titleOverlaySeconds, in: 1...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
+                        LabeledSlider(title: "Segundos mostrándose", value: $doc.titleOverlaySeconds, in: 1...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
                     }
                 }
                 Toggle("Cierre al final (pantalla propia)", isOn: $doc.closingEnabled)
@@ -165,7 +165,7 @@ struct ExtrasTab: View {
                 Text("Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector.")
                     .font(.caption).foregroundStyle(.secondary)
                 if !doc.captionPattern.isEmpty || !doc.itemCaptions.isEmpty {
-                    TextStyleEditor(title: "Estilo de los pies", style: $doc.captionStyle)
+                    TextStyleEditor(title: "Estilo de los pies", style: $doc.captionStyle, showsHold: true)
                 }
             }
             OptionGroup(title: "Portada y créditos") {
@@ -300,6 +300,29 @@ func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
 struct TextStyleEditor: View {
     let title: LocalizedStringKey
     @Binding var style: TextStyle
+    /// Solo en los pies: elegir si se muestran toda la foto o unos segundos.
+    var showsHold = false
+
+    @ViewBuilder
+    private func animationPicker(_ selection: Binding<TextAnimation>, exit: Bool) -> some View {
+        Picker("", selection: selection) {
+            if exit {
+                Text("Igual que la entrada (inversa)").tag(TextAnimation.mirror)
+                Text("Ninguna (se queda)").tag(TextAnimation.none)
+            } else {
+                Text("Ninguna").tag(TextAnimation.none)
+            }
+            Text("Fundido").tag(TextAnimation.fade)
+            Text(exit ? "Hacia abajo" : "Desde abajo").tag(TextAnimation.slideUp)
+            Text(exit ? "Hacia arriba" : "Desde arriba").tag(TextAnimation.slideDown)
+            Text(exit ? "Hacia la derecha" : "Desde la derecha").tag(TextAnimation.slideLeft)
+            Text(exit ? "Hacia la izquierda" : "Desde la izquierda").tag(TextAnimation.slideRight)
+            Text("Zoom").tag(TextAnimation.zoom)
+            Text(exit ? "Máquina de escribir (se borra)" : "Máquina de escribir").tag(TextAnimation.typewriter)
+            Text("Aleatorio").tag(TextAnimation.random)
+        }
+        .frame(maxWidth: 240).labelsHidden()
+    }
 
     private var colorBinding: Binding<Color> {
         Binding(get: { Color(red: style.color.red, green: style.color.green, blue: style.color.blue) },
@@ -343,23 +366,41 @@ struct TextStyleEditor: View {
                 }
                 .pickerStyle(.segmented).fixedSize().labelsHidden()
             }
-            LabeledRow("Animación") {
-                // `$style.animation` chocaría con `Binding.animation(_:)` de SwiftUI.
-                Picker("", selection: Binding(get: { style.animation }, set: { style.animation = $0 })) {
-                    Text("Ninguna").tag(TextAnimation.none)
-                    Text("Fundido").tag(TextAnimation.fade)
-                    Text("Desde abajo").tag(TextAnimation.slideUp)
-                    Text("Desde arriba").tag(TextAnimation.slideDown)
-                    Text("Desde la derecha").tag(TextAnimation.slideLeft)
-                    Text("Desde la izquierda").tag(TextAnimation.slideRight)
-                    Text("Zoom").tag(TextAnimation.zoom)
-                    Text("Máquina de escribir").tag(TextAnimation.typewriter)
-                    Text("Aleatorio").tag(TextAnimation.random)
+            // `$style.animation` chocaría con `Binding.animation(_:)` de SwiftUI: bindings explícitos.
+            LabeledRow("Entrada") {
+                HStack {
+                    animationPicker(Binding(get: { style.animation }, set: { style.animation = $0 }), exit: false)
+                    if style.animation != .none {
+                        Text("en").foregroundStyle(.secondary)
+                        Slider(value: $style.animationDuration, in: 0.25...3, step: 0.25).frame(width: 120)
+                        Text("\(style.animationDuration, specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                    }
                 }
-                .frame(maxWidth: 220).labelsHidden()
             }
-            if style.animation != .none {
-                LabeledSlider(title: "Duración animación", value: $style.animationDuration, in: 0.25...2, step: 0.25) { Text("\(style.animationDuration, specifier: "%.2f") s") }
+            if showsHold {
+                LabeledRow("Mostrar") {
+                    HStack {
+                        Picker("", selection: Binding(get: { style.holdSeconds == nil }, set: { style.holdSeconds = $0 ? nil : 3 })) {
+                            Text("Toda la foto").tag(true)
+                            Text("Unos segundos").tag(false)
+                        }
+                        .pickerStyle(.segmented).fixedSize().labelsHidden()
+                        if let hold = style.holdSeconds {
+                            Slider(value: Binding(get: { hold }, set: { style.holdSeconds = $0 }), in: 0.5...30, step: 0.5).frame(width: 120)
+                            Text("\(hold, specifier: "%.1f") s").monospacedDigit().frame(width: 52)
+                        }
+                    }
+                }
+            }
+            LabeledRow("Salida") {
+                HStack {
+                    animationPicker(Binding(get: { style.exitAnimation }, set: { style.exitAnimation = $0 }), exit: true)
+                    if style.resolvedExit != .none {
+                        Text("en").foregroundStyle(.secondary)
+                        Slider(value: $style.exitDuration, in: 0.25...3, step: 0.25).frame(width: 120)
+                        Text("\(style.exitDuration, specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                    }
+                }
             }
         }
     }

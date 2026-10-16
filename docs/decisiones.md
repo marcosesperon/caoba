@@ -960,3 +960,26 @@ Animación de entrada y salida para los textos del vídeo:
 ### 6. Pendiente de comprobar
 - Ver si la máquina de escribir conviene que sea por palabras en títulos largos.
 
+## 2026-10-16 — Entrada, tiempo mostrándose y salida de los textos por separado
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* La animación del texto debe poder indicarse en varios tiempos (lo que tarda en entrar, lo que se muestra y lo que tarda en salir), y la salida ha de poder ser distinta de la entrada: que la máquina de escribir se quede escrita (sin salida) o se vaya difuminada.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `TextStyle`, `TextPhase`, `VideoWriter` y `TextStyleEditor` tal como quedaron en la petición anterior.
+
+### 4. Decisiones
+- `TextStyle` gana `exitAnimation` (`mirror` = la inversa de la entrada, por defecto; `none` = el texto se queda; o cualquiera de las demás, incluida «Aleatorio») y `exitDuration`, y `holdSeconds` (`nil` = hasta el final de la foto o tarjeta). Decodificación tolerante: estilos guardados sin estos campos quedan como antes (salida inversa con la misma duración).
+- `TextPhase.at(_:total:style:entry:exit:)` calcula entrada y salida con sus duraciones propias; si no caben en el total se acortan a partes iguales. `TextPhase.totalDuration(style:hold:)` = entrada + muestra + salida.
+- Escritor: en la salida se usa `resolvedExit`; la máquina de escribir como salida borra letra a letra. El pie con «Unos segundos» se va antes de que acabe la foto; con «Toda la foto», al final como hasta ahora. El título superpuesto: «Segundos mostrándose» es el tiempo entre entrada y salida (antes era el total).
+- Editor de estilo: filas «Entrada» (animación y segundos), «Mostrar» (solo en pies: toda la foto o unos segundos) y «Salida» (igual que la entrada, ninguna, fundido, hacia abajo/arriba/derecha/izquierda, zoom, máquina de escribir que se borra, aleatorio, y segundos).
+
+### 5. Alternativas descartadas
+- Un único tiempo para todo: era justo la limitación señalada.
+
+### 6. Pendiente de comprobar
+Nada.
+

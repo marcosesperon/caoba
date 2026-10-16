@@ -60,7 +60,7 @@ struct TextOverlayTests {
     @Test("El título superpuesto entra y sale con su animación, respetando desfase y retardo")
     func overlayPhase() {
         var style = TextStyle.title
-        style.animation = .fade; style.animationDuration = 1
+        style.animation = .fade; style.animationDuration = 1; style.exitDuration = 1
         let overlay = TextOverlay(lines: ["Hola"], style: style, duration: 4)
         #expect(overlay.opacity(at: 0) == 0)
         #expect(abs(overlay.opacity(at: 0.5) - 0.5) < 1e-9)
@@ -77,6 +77,26 @@ struct TextOverlayTests {
         // Animación más larga que la mitad del texto: se acorta para que entrada y salida quepan.
         let short = TextPhase.at(1, total: 1, animation: .fade, duration: 5)
         #expect(short?.progress == 0 && short?.exiting == true)
+    }
+
+    @Test("Entrada y salida independientes: tiempos distintos, salida ninguna y tiempo de muestra")
+    func separateEntryAndExit() {
+        var style = TextStyle(animation: .typewriter, animationDuration: 2, exitAnimation: .fade, exitDuration: 0.5)
+        // Total 6 s: entra 0–2, se muestra 2–5,5, sale 5,5–6.
+        #expect(TextPhase.at(1, total: 6, style: style) == TextPhase(progress: 0.5, exiting: false))
+        #expect(TextPhase.at(3, total: 6, style: style) == TextPhase(progress: 1, exiting: false))
+        #expect(TextPhase.at(5.75, total: 6, style: style) == TextPhase(progress: 0.5, exiting: true))
+        #expect(style.resolvedExit == .fade)
+        // Salida ninguna: el texto se queda hasta el final.
+        style.exitAnimation = .none
+        #expect(TextPhase.at(5.9, total: 6, style: style) == TextPhase(progress: 1, exiting: false))
+        // Inversa: la salida usa la animación de entrada.
+        style.exitAnimation = .mirror
+        #expect(style.resolvedExit == .typewriter)
+        // Si no caben entrada y salida, se reparten a partes iguales.
+        let tight = TextStyle(animation: .fade, animationDuration: 3, exitAnimation: .fade, exitDuration: 3)
+        #expect(TextPhase.at(1, total: 2, style: tight) == TextPhase(progress: 1, exiting: false) || TextPhase.at(1, total: 2, style: tight)?.progress == 1)
+        #expect(abs(TextPhase.totalDuration(style: tight, hold: 4) - 10) < 1e-9)
     }
 
     @Test("La máquina de escribir dibuja menos y el deslizamiento mueve el bloque")

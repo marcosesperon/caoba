@@ -34,6 +34,8 @@ public enum TextAnimation: String, Sendable, Codable, CaseIterable {
     case none, fade, slideUp, slideDown, slideLeft, slideRight, zoom, typewriter
     /// Solo en la app: se resuelve a una concreta al generar.
     case random
+    /// Solo para la salida: la inversa de la entrada.
+    case mirror
 
     /// Candidatas para «Aleatorio».
     public static let randomPool: [TextAnimation] = [.fade, .slideUp, .slideDown, .slideLeft, .slideRight, .zoom, .typewriter]
@@ -49,12 +51,18 @@ public struct TextStyle: Sendable, Equatable, Codable {
     public var color: RGBColor
     public var anchor: TextAnchor
     public var backdrop: TextBackdrop
-    /// Animación de entrada (la salida es la inversa) y lo que dura cada una.
+    /// Entrada: animación y lo que dura.
     public var animation: TextAnimation
     public var animationDuration: Double
+    /// Salida: animación (`mirror` = la inversa de la entrada; `none` = el texto se queda) y lo que dura.
+    public var exitAnimation: TextAnimation
+    public var exitDuration: Double
+    /// Segundos mostrándose entre entrada y salida; `nil` = hasta el final de la foto o la tarjeta.
+    public var holdSeconds: Double?
 
     public init(fontName: String? = nil, bold: Bool = false, sizePercent: Double = 4, color: RGBColor = RGBColor(red: 1, green: 1, blue: 1),
-                anchor: TextAnchor = .bottomLeft, backdrop: TextBackdrop = .shadow, animation: TextAnimation = .none, animationDuration: Double = 0.6) {
+                anchor: TextAnchor = .bottomLeft, backdrop: TextBackdrop = .shadow, animation: TextAnimation = .none, animationDuration: Double = 0.6,
+                exitAnimation: TextAnimation = .mirror, exitDuration: Double = 0.6, holdSeconds: Double? = nil) {
         self.fontName = fontName
         self.bold = bold
         self.sizePercent = sizePercent
@@ -63,9 +71,15 @@ public struct TextStyle: Sendable, Equatable, Codable {
         self.backdrop = backdrop
         self.animation = animation
         self.animationDuration = animationDuration
+        self.exitAnimation = exitAnimation
+        self.exitDuration = exitDuration
+        self.holdSeconds = holdSeconds
     }
 
-    private enum CodingKeys: String, CodingKey { case fontName, bold, sizePercent, color, anchor, backdrop, animation, animationDuration }
+    /// Animación de salida ya resuelta (sin `mirror`).
+    public var resolvedExit: TextAnimation { exitAnimation == .mirror ? animation : exitAnimation }
+
+    private enum CodingKeys: String, CodingKey { case fontName, bold, sizePercent, color, anchor, backdrop, animation, animationDuration, exitAnimation, exitDuration, holdSeconds }
 
     /// Los campos de animación pueden faltar en estilos guardados antes de existir.
     public init(from decoder: Decoder) throws {
@@ -78,6 +92,9 @@ public struct TextStyle: Sendable, Equatable, Codable {
         backdrop = try c.decodeIfPresent(TextBackdrop.self, forKey: .backdrop) ?? .shadow
         animation = try c.decodeIfPresent(TextAnimation.self, forKey: .animation) ?? .none
         animationDuration = try c.decodeIfPresent(Double.self, forKey: .animationDuration) ?? 0.6
+        exitAnimation = try c.decodeIfPresent(TextAnimation.self, forKey: .exitAnimation) ?? .mirror
+        exitDuration = try c.decodeIfPresent(Double.self, forKey: .exitDuration) ?? animationDuration
+        holdSeconds = try c.decodeIfPresent(Double.self, forKey: .holdSeconds)
     }
 
     public static let title = TextStyle(fontName: "Doto", bold: true, sizePercent: 9, anchor: .center, backdrop: .shadow, animation: .fade)
@@ -89,16 +106,31 @@ public struct TextPhase: Sendable, Equatable {
     public var progress: Double
     public var exiting: Bool
 
-    /// Fase en el segundo `t` de un texto que dura `total` con animaciones de `animation` segundos
-    /// al principio y al final. `nil` si no se ve.
-    /// `entry` y `exit` permiten saltarse una de las dos (un pie que continúa en el paso siguiente de un collage).
-    public static func at(_ t: Double, total: Double, animation: TextAnimation, duration: Double, entry: Bool = true, exit: Bool = true) -> TextPhase? {
+    /// Fase en el segundo `t` de un texto que dura `total`, con la entrada y la salida del estilo.
+    /// `nil` si no se ve. `entry` y `exit` permiten saltarse una de las dos (un pie que continúa
+    /// en el paso siguiente de un collage). Si no caben las dos, se acortan a partes iguales.
+    public static func at(_ t: Double, total: Double, style: TextStyle, entry: Bool = true, exit: Bool = true) -> TextPhase? {
         guard t >= 0, t <= total else { return nil }
-        guard animation != .none, duration > 0 else { return TextPhase(progress: 1, exiting: false) }
-        let a = min(duration, total / 2)
-        if entry, t < a { return TextPhase(progress: t / a, exiting: false) }
-        if exit, t > total - a { return TextPhase(progress: (total - t) / a, exiting: true) }
+        var entryTime = (entry && style.animation != .none) ? max(0, style.animationDuration) : 0
+        var exitTime = (exit && style.resolvedExit != .none) ? max(0, style.exitDuration) : 0
+        if entryTime + exitTime > total {
+            let scale = total / (entryTime + exitTime)
+            entryTime *= scale
+            exitTime *= scale
+        }
+        if entryTime > 0, t < entryTime { return TextPhase(progress: t / entryTime, exiting: false) }
+        if exitTime > 0, t > total - exitTime { return TextPhase(progress: (total - t) / exitTime, exiting: true) }
         return TextPhase(progress: 1, exiting: false)
+    }
+
+    /// Compatibilidad: una sola animación y duración para entrada y salida.
+    public static func at(_ t: Double, total: Double, animation: TextAnimation, duration: Double, entry: Bool = true, exit: Bool = true) -> TextPhase? {
+        at(t, total: total, style: TextStyle(animation: animation, animationDuration: duration, exitAnimation: .mirror, exitDuration: duration), entry: entry, exit: exit)
+    }
+
+    /// Cuánto se ve en total un texto con `hold` segundos mostrándose (más entrada y salida).
+    public static func totalDuration(style: TextStyle, hold: Double) -> Double {
+        (style.animation != .none ? style.animationDuration : 0) + hold + (style.resolvedExit != .none ? style.exitDuration : 0)
     }
 }
 
@@ -124,7 +156,7 @@ public struct TextOverlay: Sendable, Equatable {
 
     /// Fase de la animación en el segundo `local` desde que empieza la foto.
     public func phase(at local: Double) -> TextPhase? {
-        TextPhase.at(local + offset - delay, total: duration, animation: style.animation, duration: style.animationDuration)
+        TextPhase.at(local + offset - delay, total: duration, style: style)
     }
 
     /// Opacidad equivalente (para quien solo quiera un fundido).
@@ -175,7 +207,7 @@ public enum TextRenderer {
         let w = Double(canvas.width), h = Double(canvas.height)
         var result = image
         switch animation {
-        case .none, .random, .typewriter:
+        case .none, .random, .mirror, .typewriter:
             return image
         case .fade:
             break

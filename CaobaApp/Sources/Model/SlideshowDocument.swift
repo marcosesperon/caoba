@@ -352,9 +352,9 @@ final class SlideshowDocument {
 
     /// «Aleatorio» se convierte en una animación concreta al generar.
     private func resolved(_ style: TextStyle, generator: inout some RandomNumberGenerator) -> TextStyle {
-        guard style.animation == .random else { return style }
         var copy = style
-        copy.animation = TextAnimation.randomPool.randomElement(using: &generator) ?? .fade
+        if copy.animation == .random { copy.animation = TextAnimation.randomPool.randomElement(using: &generator) ?? .fade }
+        if copy.exitAnimation == .random { copy.exitAnimation = TextAnimation.randomPool.randomElement(using: &generator) ?? .fade }
         return copy
     }
 
@@ -767,8 +767,9 @@ final class SlideshowDocument {
         case .overlay where !lines.isEmpty && !photos.isEmpty:
             let group = max(1, min(firstGroup, photos.count))
             let available = photos[0..<group].reduce(0) { $0 + $1.duration }
-            let total = min(titleOverlaySeconds, available)
             let style = resolved(titleStyle, generator: &generator)
+            // «Segundos visible» es el tiempo mostrándose; la entrada y la salida van aparte.
+            let total = min(TextPhase.totalDuration(style: style, hold: titleOverlaySeconds), available)
             var offset = 0.0
             for i in 0..<group {
                 photos[i].overlay = TextOverlay(lines: lines, style: style, duration: total, offset: offset)
@@ -788,6 +789,7 @@ final class SlideshowDocument {
                 photos[i].captionAnimation = current
             }
         }
+        _ = generator
     }
 
     /// Portada o créditos como foto del vídeo, con su transición resuelta.
@@ -806,6 +808,7 @@ final class SlideshowDocument {
         spec.defaultTransitionDuration = transitionDuration
         spec.captionStyle = captionStyle
         if spec.captionStyle.animation == .random { spec.captionStyle.animation = .fade }   // las fotos llevan la suya resuelta
+        if spec.captionStyle.exitAnimation == .random { spec.captionStyle.exitAnimation = TextAnimation.randomPool.randomElement() ?? .fade }
         return spec
     }
 

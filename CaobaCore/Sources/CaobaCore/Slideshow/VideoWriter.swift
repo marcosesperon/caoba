@@ -157,20 +157,23 @@ public final class VideoWriter {
         // Pie y título van dentro del fotograma de la foto: las transiciones los arrastran con ella.
         // El pie entra al empezar la foto y sale antes de que empiece la transición a la siguiente.
         if let caption = captionLayer(for: index) {
-            let animation = photo.captionAnimation ?? spec.captionStyle.animation
-            if let phase = TextPhase.at(local, total: photo.duration, animation: animation, duration: spec.captionStyle.animationDuration,
-                                        entry: photo.captionEntry, exit: photo.captionExit) {
-                frame = animatedLayer(caption, lines: [photo.caption ?? ""], style: spec.captionStyle, animation: animation, phase: phase, key: "c\(index)").composited(over: frame)
+            var style = spec.captionStyle
+            if let own = photo.captionAnimation { style.animation = own }
+            // Con tiempo de muestra propio el pie se va antes; si no, dura toda la foto.
+            let total = style.holdSeconds.map { min(photo.duration, TextPhase.totalDuration(style: style, hold: $0)) } ?? photo.duration
+            if let phase = TextPhase.at(local, total: total, style: style, entry: photo.captionEntry, exit: photo.captionExit) {
+                frame = animatedLayer(caption, lines: [photo.caption ?? ""], style: style, phase: phase, key: "c\(index)").composited(over: frame)
             }
         }
         if let overlay = photo.overlay, let layer = overlayLayer(for: index), let phase = overlay.phase(at: local) {
-            frame = animatedLayer(layer, lines: overlay.lines, style: overlay.style, animation: overlay.style.animation, phase: phase, key: "o\(index)").composited(over: frame)
+            frame = animatedLayer(layer, lines: overlay.lines, style: overlay.style, phase: phase, key: "o\(index)").composited(over: frame)
         }
         return frame
     }
 
-    /// Capa en su punto de animación; la máquina de escribir vuelve a dibujar con los caracteres que tocan.
-    private func animatedLayer(_ layer: TextLayer, lines: [String], style: TextStyle, animation: TextAnimation, phase: TextPhase, key: String) -> CIImage {
+    /// Capa en su punto de animación (entrada o salida); la máquina de escribir vuelve a dibujar con los caracteres que tocan.
+    private func animatedLayer(_ layer: TextLayer, lines: [String], style: TextStyle, phase: TextPhase, key: String) -> CIImage {
+        let animation = phase.exiting ? style.resolvedExit : style.animation
         guard animation == .typewriter, phase.progress < 0.999 else {
             return TextRenderer.animated(layer, animation: animation, phase: phase, canvas: size)
         }
