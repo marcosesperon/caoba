@@ -129,8 +129,7 @@ enum TimelineSelection: Equatable {
     case none
     case cover
     case credits
-    case title
-    case closing
+    case text(UUID)
     case photo(String)
     case track(UUID)
     case collage(UUID)
@@ -143,9 +142,8 @@ struct TimelineItem: Identifiable, Equatable {
         case credits(URL)
         case photo(URL)
         case collage(CollageRow)
-        /// Tarjeta de título o de cierre (texto sobre fondo de color).
-        case title
-        case closing
+        /// Tarjeta de texto: pantalla propia o texto superpuesto al elemento siguiente.
+        case text(TextCard)
     }
 
     var id: String
@@ -161,15 +159,15 @@ struct TimelineItem: Identifiable, Equatable {
         case .credits: return .credits
         case .photo(let url): return .photo(url.lastPathComponent)
         case .collage(let row): return .collage(row.id)
-        case .title: return .title
-        case .closing: return .closing
+        case .text(let card): return .text(card.id)
         }
     }
+
+    var isText: Bool { kind.isTextKind }
 }
 
-/// Cómo entra el título en el vídeo.
-enum TitleMode: String, Codable, CaseIterable {
-    case none, card, overlay
+extension TimelineItem.Kind {
+    var isTextKind: Bool { if case .text = self { return true } else { return false } }
 }
 
 /// Estado y lógica de la pantalla de Slideshow. Las vistas solo pintan y
@@ -200,23 +198,9 @@ final class SlideshowDocument {
     var itemTransitions: [String: TransitionChoice] = [:]
     var itemTransitionDurations: [String: Double] = [:]
     // Texto
-    var titleMode: TitleMode = .none
-    var titleText = ""
-    var subtitleText = ""
-    var titleBackground: CanvasBackground = .black
-    var titleDuration = 4.0
-    /// Segundos que el título se ve sobre la primera foto (modo superpuesto).
-    var titleOverlaySeconds = 4.0
-    var closingEnabled = false
-    var closingText = ""
-    var closingSubtitle = ""
-    var closingDuration = 4.0
-    /// Empalmes: el título se queda quieto mientras la tarjeta se funde con la primera foto
-    /// (y sale después sobre ella); el cierre aparece sobre la última foto y se mantiene al fundir a su tarjeta.
-    var titleCarryOver = false
-    var closingCarryOver = false
-    /// Segundos que el cierre se ve sobre la última foto antes de que acabe.
-    var closingOverlaySeconds = 3.0
+    /// Tarjetas de texto del timeline (título, cierre, títulos de sección…).
+    var textCards: [TextCard] = []
+    /// Estilo por defecto de las tarjetas de texto (cada una puede llevar el suyo).
     var titleStyle: TextStyle = .title
     var captionStyle: TextStyle = .caption
     /// Patrón de pie para todas las fotos; vacío = sin pies.
@@ -301,20 +285,74 @@ final class SlideshowDocument {
 
     /// Elementos del timeline en orden, sin tiempos todavía.
     private var orderedKinds: [(id: String, kind: TimelineItem.Kind, duration: Double)] {
-        var result: [(String, TimelineItem.Kind, Double)] = []
-        if titleMode == .card { result.append(("title", .title, titleDuration)) }
-        if let coverURL { result.append(("cover", .cover(coverURL), coverDuration)) }
+        var base: [(String, TimelineItem.Kind, Double)] = []
+        if let coverURL { base.append(("cover", .cover(coverURL), coverDuration)) }
         switch mode {
         case .photos:
-            for url in files { result.append((url.lastPathComponent, .photo(url), duration(of: url))) }
+            for url in files { base.append((url.lastPathComponent, .photo(url), duration(of: url))) }
         case .collage:
             for row in rows {
-                result.append((row.id.uuidString, .collage(row), CollageSlideshow.duration(of: row, options: collageOptions)))
+                base.append((row.id.uuidString, .collage(row), CollageSlideshow.duration(of: row, options: collageOptions)))
             }
         }
-        if let creditsURL { result.append(("credits", .credits(creditsURL), creditsDuration)) }
-        if closingEnabled { result.append(("closing", .closing, closingDuration)) }
+        if let creditsURL { base.append(("credits", .credits(creditsURL), creditsDuration)) }
+        // Las tarjetas de texto se intercalan ante el elemento al que están ancladas;
+        // las que estén ante un elemento que ya no existe van al final.
+        let knownIds = Set(base.map(\.0))
+        func cards(at anchor: String) -> [(String, TimelineItem.Kind, Double)] {
+            textCards.filter { $0.anchor == anchor }.map { ($0.id.uuidString, .text($0), $0.background == nil ? 0 : $0.duration) }
+        }
+        var result = cards(at: TextCard.startAnchor)
+        for element in base {
+            result.append(contentsOf: cards(at: element.0))
+            result.append(element)
+        }
+        result.append(contentsOf: textCards.filter { $0.anchor != TextCard.startAnchor && !knownIds.contains($0.anchor) }
+            .map { ($0.id.uuidString, .text($0), $0.background == nil ? 0 : $0.duration) })
         return result
+    }
+
+    // MARK: - Tarjetas de texto
+
+    func textCard(_ id: UUID) -> TextCard? { textCards.first { $0.id == id } }
+
+    func updateTextCard(_ card: TextCard) {
+        guard let i = textCards.firstIndex(where: { $0.id == card.id }) else { return }
+        textCards[i] = card
+    }
+
+    /// Nueva tarjeta ante el elemento seleccionado (si lo hay) o al final; queda seleccionada.
+    @discardableResult
+    func addTextCard() -> UUID {
+        var card = TextCard(text: L("Título"), anchor: TextCard.endAnchor)
+        if let item = items.first(where: { $0.selection == selection }) {
+            // Ante el elemento seleccionado; si es otra tarjeta, en su mismo sitio.
+            if case .text(let selected) = item.kind { card.anchor = selected.anchor } else { card.anchor = item.id }
+        }
+        textCards.append(card)
+        selection = .text(card.id)
+        return card.id
+    }
+
+    func removeTextCard(_ id: UUID) {
+        textCards.removeAll { $0.id == id }
+        if selection == .text(id) { selection = .none }
+    }
+
+    /// Coloca la tarjeta ante un elemento del timeline (foto, collage, portada o créditos).
+    func moveTextCard(_ id: UUID, beforeElement elementId: String) {
+        guard let i = textCards.firstIndex(where: { $0.id == id }) else { return }
+        textCards[i].anchor = elementId
+        textCards.append(textCards.remove(at: i))   // la última ante ese elemento
+    }
+
+    /// Coloca la tarjeta justo antes de otra tarjeta (mismo ancla, delante de ella).
+    func moveTextCard(_ id: UUID, beforeCard targetId: UUID) {
+        guard id != targetId, let from = textCards.firstIndex(where: { $0.id == id }), let target = textCards.first(where: { $0.id == targetId }) else { return }
+        var card = textCards.remove(at: from)
+        card.anchor = target.anchor
+        let to = textCards.firstIndex(where: { $0.id == targetId }) ?? textCards.count
+        textCards.insert(card, at: to)
     }
 
     // MARK: - Texto
@@ -349,8 +387,8 @@ final class SlideshowDocument {
 
     /// Fondo liso de una tarjeta de título o cierre como imagen temporal; el texto
     /// va aparte, como texto superpuesto, para poder animarlo.
-    private func renderCardBackground() throws -> URL {
-        let image = try TextRenderer.card(lines: [], style: titleStyle, background: titleBackground.fill, canvas: format.size)
+    private func renderCardBackground(_ background: CanvasBackground) throws -> URL {
+        let image = try TextRenderer.card(lines: [], style: titleStyle, background: background.fill, canvas: format.size)
         let url = try TempFiles.makeFileURL(extension: "jpg")
         try ImageWriter.write(image, to: url, encoding: ImageEncoding(format: .jpeg, quality: 95))
         return url
@@ -366,12 +404,12 @@ final class SlideshowDocument {
 
     /// Tarjeta de título o cierre: fondo liso y el texto entrando cuando la tarjeta ya está en pantalla
     /// (tras su transición de entrada) y saliendo antes de que la tarjeta se vaya.
-    private func textCard(lines: [String], duration: Double, id: String, style: TextStyle, delayed: Bool, generator: inout some RandomNumberGenerator) throws -> SlideshowPhoto {
+    private func textCardPhoto(lines: [String], duration: Double, id: String, background: CanvasBackground, style: TextStyle, delayed: Bool, generator: inout some RandomNumberGenerator) throws -> SlideshowPhoto {
         let entry = entryDuration(for: id)
         let delay = (delayed && entry < duration) ? entry : 0
         // Sin salida, el texto debe seguir mientras la tarjeta se funde con lo siguiente: se alarga más que cualquier transición.
         let extra = style.resolvedExit == .none ? Self.carryOverExtra : 0
-        return SlideshowPhoto(url: try renderCardBackground(), duration: duration,
+        return SlideshowPhoto(url: try renderCardBackground(background), duration: duration,
                               transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entry,
                               overlay: TextOverlay(lines: lines, style: style, duration: duration - delay + extra, delay: delay))
     }
@@ -398,8 +436,6 @@ final class SlideshowDocument {
         }
     }
 
-    private var titleLines: [String] { [titleText, subtitleText].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
-    private var closingLines: [String] { [closingText, closingSubtitle].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
 
     /// Transición de entrada de un elemento (propia o por defecto).
     func transitionChoice(for id: String) -> TransitionChoice { itemTransitions[id] ?? transitionChoice }
@@ -490,8 +526,8 @@ final class SlideshowDocument {
         switch item.kind {
         case .cover: coverDuration = value
         case .credits: creditsDuration = value
-        case .title: titleDuration = value
-        case .closing: closingDuration = value
+        case .text(let card):
+            if var updated = textCard(card.id) { updated.duration = value; updateTextCard(updated) }
         case .photo(let url): photoDurations[url.lastPathComponent] = value
         case .collage(let row):
             // La duración total de un collage se ajusta a través de su "mantener":
@@ -550,7 +586,7 @@ final class SlideshowDocument {
         let entries = orderedKinds
         let items: [RhythmItem] = entries.map { entry in
             switch entry.kind {
-            case .cover, .credits, .title, .closing:
+            case .cover, .credits, .text:
                 return RhythmItem(fixedDuration: entry.duration)
             case .photo(let url):
                 let own = photoDurations[url.lastPathComponent] != nil && !rhythmItems.contains(entry.id)
@@ -572,7 +608,7 @@ final class SlideshowDocument {
             case .collage(let row):
                 let fixed = CollageSlideshow.emptyFrameSeconds + reveal * Double(row.template.photos)
                 if let i = sequence.firstIndex(where: { $0.id == row.id }) { sequence[i].hold = max(0, ((duration - fixed) * 100).rounded() / 100) }
-            case .cover, .credits, .title, .closing:
+            case .cover, .credits, .text:
                 break
             }
             rhythmItems.insert(entry.id)
@@ -743,8 +779,7 @@ final class SlideshowDocument {
         case .none: break
         case .cover: coverURL = nil; selection = .none
         case .credits: creditsURL = nil; selection = .none
-        case .title: titleMode = .none; selection = .none
-        case .closing: closingEnabled = false; selection = .none
+        case .text(let id): removeTextCard(id)
         case .photo(let name): if let url = files.first(where: { $0.lastPathComponent == name }) { toggleExcluded(url) }; selection = .none
         case .track(let id): removeTrack(id)
         case .collage(let id): removeCollage(id)
@@ -761,7 +796,8 @@ final class SlideshowDocument {
 
     // MARK: - Generación
 
-    private func makePhotos(limit: Int? = nil) -> [SlideshowPhoto] {
+    /// Fotos del vídeo (modo fotos) y, en paralelo, el id del elemento del timeline al que pertenece cada una.
+    private func makePhotos(limit: Int? = nil) -> (photos: [SlideshowPhoto], owners: [String]) {
         var generator = SystemRandomNumberGenerator()
         var list = files
         if let limit { list = Array(list.prefix(limit)) }
@@ -779,68 +815,78 @@ final class SlideshowDocument {
                                   transition: resolvedTransition(for: name, generator: &generator), transitionDuration: entryDuration(for: name),
                                   caption: caption(for: name, index: index + 1, total: list.count, info: infos.indices.contains(index) ? infos[index] : nil))
         }
-        if let coverURL { photos.insert(coverPhoto(coverURL, duration: coverDuration, id: "cover", generator: &generator), at: 0) }
-        if let creditsURL { photos.append(coverPhoto(creditsURL, duration: creditsDuration, id: "credits", generator: &generator)) }
-        return photos
+        var owners = list.map(\.lastPathComponent)
+        if let coverURL { photos.insert(coverPhoto(coverURL, duration: coverDuration, id: "cover", generator: &generator), at: 0); owners.insert("cover", at: 0) }
+        if let creditsURL { photos.append(coverPhoto(creditsURL, duration: creditsDuration, id: "credits", generator: &generator)); owners.append("credits") }
+        return (photos, owners)
     }
 
-    /// Tarjetas de título y cierre y título superpuesto, sobre la lista ya montada (fotos o collages).
-    /// `firstGroup`: cuántas fotos forman el primer elemento (los pasos del primer collage), para que el
-    /// título superpuesto los abarque todos seguidos.
-    private func applyText(to photos: inout [SlideshowPhoto], firstGroup: Int, lastGroup: Int, generator: inout some RandomNumberGenerator) throws {
-        let lines = titleLines
-        let style = resolved(titleStyle, generator: &generator)
-        switch titleMode {
-        case .none:
-            break
-        case .card where !lines.isEmpty:
-            let carry = titleCarryOver && !photos.isEmpty
-            // Con empalme, el texto no sale de la tarjeta: sigue quieto mientras se funde con la primera foto.
-            let card = try textCard(lines: lines, duration: titleDuration, id: "title", style: self.style(style, entry: true, exit: !carry), delayed: true, generator: &generator)
-            if carry {
-                let group = max(1, min(firstGroup, photos.count))
-                let available = photos[0..<group].reduce(0) { $0 + $1.duration }
-                let continued = self.style(style, entry: false, exit: true)
-                let total = min(TextPhase.totalDuration(style: continued, hold: titleOverlaySeconds), available)
-                spread(TextOverlay(lines: lines, style: continued, duration: total), over: &photos, range: 0..<group)
-            }
-            photos.insert(card, at: 0)
-        case .overlay where !lines.isEmpty && !photos.isEmpty:
-            let group = max(1, min(firstGroup, photos.count))
-            let available = photos[0..<group].reduce(0) { $0 + $1.duration }
-            // «Segundos mostrándose» es el tiempo entre la entrada y la salida.
-            let total = min(TextPhase.totalDuration(style: style, hold: titleOverlaySeconds), available)
-            spread(TextOverlay(lines: lines, style: style, duration: total), over: &photos, range: 0..<group)
-        default:
-            break
+    /// Tarjetas de texto sobre la lista ya montada (fotos o collages).
+    /// `owners[i]` es el id del elemento del timeline al que pertenece `photos[i]` (los pasos
+    /// de un collage comparten dueño). Devuelve la lista final con las tarjetas intercaladas.
+    private func applyText(to photos: [SlideshowPhoto], owners: [String], generator: inout some RandomNumberGenerator) throws -> [SlideshowPhoto] {
+        var photos = photos
+        // Rango de fotos de cada elemento.
+        var ranges: [String: Range<Int>] = [:]
+        for (i, owner) in owners.enumerated() {
+            if let r = ranges[owner] { ranges[owner] = r.lowerBound..<(i + 1) } else { ranges[owner] = i..<(i + 1) }
         }
-        if closingEnabled, !closingLines.isEmpty {
-            let carry = closingCarryOver && !photos.isEmpty
-            if carry {
-                // El cierre aparece sobre la última foto y se queda mientras esta se funde con su tarjeta.
-                let group = max(1, min(lastGroup, photos.count))
-                let range = (photos.count - group)..<photos.count
-                let available = photos[range].reduce(0) { $0 + $1.duration }
-                let starting = self.style(style, entry: true, exit: false)
-                let wanted = (starting.animation != .none ? starting.animationDuration : 0) + closingOverlaySeconds
-                let delay = max(0, available - wanted)
-                var overlay = TextOverlay(lines: closingLines, style: starting, duration: available - delay + Self.carryOverExtra, delay: delay)
-                // El desfase de cada paso se encadena; el retardo va contado desde el primero del grupo.
-                var offset = 0.0
-                for i in range { overlay.offset = offset; photos[i].overlay = overlay; offset += photos[i].duration }
+        let kinds = orderedKinds
+        func available(_ r: Range<Int>) -> Double { photos[r].reduce(0) { $0 + $1.duration } }
+
+        var cardPhotos: [UUID: SlideshowPhoto] = [:]
+        for (i, kind) in kinds.enumerated() {
+            guard case .text(let card) = kind.kind, !card.lines.isEmpty else { continue }
+            let style = resolved(card.style ?? titleStyle, generator: &generator)
+            let next = kinds[(i + 1)...].first { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
+            let previous = kinds[..<i].last { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
+            guard let background = card.background else {
+                // Sin pantalla propia: el texto va sobre el elemento siguiente (o el anterior si es la última).
+                guard let r = next ?? previous else { continue }
+                let total = min(TextPhase.totalDuration(style: style, hold: card.duration), available(r))
+                spread(TextOverlay(lines: card.lines, style: style, duration: total), over: &photos, range: r)
+                continue
             }
-            photos.append(try textCard(lines: closingLines, duration: closingDuration, id: "closing",
-                                       style: self.style(style, entry: !carry, exit: true), delayed: !carry, generator: &generator))
+            let carryNext = card.carryNext && next != nil
+            let carryPrevious = card.carryPrevious && previous != nil
+            cardPhotos[card.id] = try textCardPhoto(lines: card.lines, duration: card.duration, id: card.id.uuidString, background: background,
+                                                    style: self.style(style, entry: !carryPrevious, exit: !carryNext), delayed: !carryPrevious, generator: &generator)
+            if carryNext, let r = next {
+                // El texto no sale de la tarjeta: sigue quieto mientras se funde con el siguiente y sale después sobre él.
+                let continued = self.style(style, entry: false, exit: true)
+                let total = min(TextPhase.totalDuration(style: continued, hold: card.carryNextSeconds), available(r))
+                spread(TextOverlay(lines: card.lines, style: continued, duration: total), over: &photos, range: r)
+            }
+            if carryPrevious, let r = previous {
+                // El texto aparece sobre el anterior y se queda mientras este se funde con la tarjeta.
+                let starting = self.style(style, entry: true, exit: false)
+                let wanted = (starting.animation != .none ? starting.animationDuration : 0) + card.carryPreviousSeconds
+                let delay = max(0, available(r) - wanted)
+                spread(TextOverlay(lines: card.lines, style: starting, duration: available(r) - delay + Self.carryOverExtra, delay: delay), over: &photos, range: r)
+            }
+        }
+
+        // Lista final: cada elemento con sus fotos y cada tarjeta con pantalla en su sitio
+        // (en la vista previa solo entran las tarjetas pegadas a algún elemento incluido).
+        var result: [SlideshowPhoto] = []
+        for (i, kind) in kinds.enumerated() {
+            if case .text(let card) = kind.kind {
+                let next = kinds[(i + 1)...].first { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
+                let previous = kinds[..<i].last { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
+                if let photo = cardPhotos[card.id], next != nil || previous != nil { result.append(photo) }
+            } else if let r = ranges[kind.id] {
+                result.append(contentsOf: photos[r])
+            }
         }
         // Pies con animación aleatoria: una distinta por foto (o por collage: sus pasos comparten la del primero).
         if captionStyle.animation == .random {
             var current: TextAnimation?
-            for i in photos.indices where photos[i].caption != nil && photos[i].captionAnimation == nil {
-                if photos[i].captionEntry || current == nil { current = TextAnimation.randomPool.randomElement(using: &generator) }
-                photos[i].captionAnimation = current
+            for i in result.indices where result[i].caption != nil && result[i].captionAnimation == nil {
+                if result[i].captionEntry || current == nil { current = TextAnimation.randomPool.randomElement(using: &generator) }
+                result[i].captionAnimation = current
             }
         }
-        _ = generator
+        return result
     }
 
     /// Portada o créditos como foto del vídeo, con su transición resuelta.
@@ -883,7 +929,7 @@ final class SlideshowDocument {
         let mode = mode
         let fixedRows = rows
         let csOptions = collageOptions
-        let photoList = makePhotos(limit: preview ? 10 : nil)
+        let (photoList, photoOwners) = makePhotos(limit: preview ? 10 : nil)
         let coverURL = coverURL, creditsURL = creditsURL, coverDuration = coverDuration, creditsDuration = creditsDuration
         let baseSpec = makeSpec(output: output, preview: preview)
         // Transiciones de entrada de cada collage, portada y créditos, resueltas aquí (estado del documento).
@@ -892,26 +938,23 @@ final class SlideshowDocument {
         let coverEntry = (resolvedTransition(for: "cover", generator: &generator), entryDuration(for: "cover"))
         let creditsEntry = (resolvedTransition(for: "credits", generator: &generator), entryDuration(for: "credits"))
         let collageCaptions = fixedRows.enumerated().map { caption(for: $1.id.uuidString, index: $0 + 1, total: fixedRows.count, info: nil, name: $1.template.name) }
-        // Sin portada, el primer elemento de un vídeo de collages son todos los pasos del primer collage (y el último, los del último).
-        let firstGroup = (mode == .collage && coverURL == nil) ? (fixedRows.first.map { $0.template.photos + 1 } ?? 1) : 1
-        let lastGroup = (mode == .collage && creditsURL == nil) ? (fixedRows.last.map { $0.template.photos + 1 } ?? 1) : 1
-        // Título, cierre y título superpuesto se resuelven en el hilo principal cuando la lista está montada.
-        let textApplier: @Sendable ([SlideshowPhoto]) async throws -> [SlideshowPhoto] = { list in
+        // Las tarjetas de texto se resuelven en el hilo principal cuando la lista está montada.
+        let textApplier: @Sendable ([SlideshowPhoto], [String]) async throws -> [SlideshowPhoto] = { list, owners in
             try await MainActor.run {
-                var photos = list
                 var generator = SystemRandomNumberGenerator()
-                try self.applyText(to: &photos, firstGroup: firstGroup, lastGroup: lastGroup, generator: &generator)
-                return photos
+                return try self.applyText(to: list, owners: owners, generator: &generator)
             }
         }
         app.jobRunner.run(openURL: preview ? nil : output, quietOnSuccess: preview) { progress in
             var photos = photoList
+            var owners = photoOwners
             var frameDir: URL?
             if mode == .collage {
                 let dir = try TempFiles.makeJobDirectory(prefix: "csshow")
                 frameDir = dir
                 let limited = preview ? Array(fixedRows.prefix(3)) : fixedRows
                 photos = try await CollageSlideshow.makePhotos(rows: limited, options: csOptions, directory: dir, progress: progress)
+                owners = limited.flatMap { row in Array(repeating: row.id.uuidString, count: row.template.photos + 1) }
                 // El primer paso de cada collage entra con la transición del collage.
                 var index = 0
                 for (r, row) in limited.enumerated() where photos.indices.contains(index) {
@@ -931,10 +974,10 @@ final class SlideshowDocument {
                         step += 1
                     }
                 }
-                if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration, transition: coverEntry.0, transitionDuration: coverEntry.1), at: 0) }
-                if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration, transition: creditsEntry.0, transitionDuration: creditsEntry.1)) }
+                if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration, transition: coverEntry.0, transitionDuration: coverEntry.1), at: 0); owners.insert("cover", at: 0) }
+                if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration, transition: creditsEntry.0, transitionDuration: creditsEntry.1)); owners.append("credits") }
             }
-            photos = try await textApplier(photos)
+            photos = try await textApplier(photos, owners)
             defer { if let frameDir { TempFiles.remove(frameDir) } }
             var spec = baseSpec
             spec.photos = photos
@@ -963,9 +1006,7 @@ final class SlideshowDocument {
         var mode: Mode; var format: VideoFormat; var duration: Double
         var transition: TransitionChoice; var transitionDuration: Double; var itemTransitions: [String: TransitionChoice]; var itemTransitionDurations: [String: Double]
         var cover: URL?; var coverDuration: Double; var credits: URL?; var creditsDuration: Double
-        var titleMode: TitleMode; var titleText: String; var subtitleText: String; var titleBackground: CanvasBackground; var titleDuration: Double; var titleOverlaySeconds: Double
-        var closingEnabled: Bool; var closingText: String; var closingSubtitle: String; var closingDuration: Double
-        var titleCarryOver: Bool; var closingCarryOver: Bool; var closingOverlaySeconds: Double
+        var textCards: [TextCard]
         var titleStyle: TextStyle; var captionStyle: TextStyle; var captionPattern: String; var itemCaptions: [String: String]
         var watermark: URL?; var wmPosition: OverlayPosition; var wmSize: Double; var wmOpacity: Double
         var durations: [String: Double]
@@ -979,9 +1020,7 @@ final class SlideshowDocument {
         Snapshot(mode: mode, format: format, duration: durationPerPhoto, transition: transitionChoice, transitionDuration: transitionDuration,
                  itemTransitions: itemTransitions, itemTransitionDurations: itemTransitionDurations, cover: coverURL, coverDuration: coverDuration,
                  credits: creditsURL, creditsDuration: creditsDuration,
-                 titleMode: titleMode, titleText: titleText, subtitleText: subtitleText, titleBackground: titleBackground, titleDuration: titleDuration, titleOverlaySeconds: titleOverlaySeconds,
-                 closingEnabled: closingEnabled, closingText: closingText, closingSubtitle: closingSubtitle, closingDuration: closingDuration,
-                 titleCarryOver: titleCarryOver, closingCarryOver: closingCarryOver, closingOverlaySeconds: closingOverlaySeconds,
+                 textCards: textCards,
                  titleStyle: titleStyle, captionStyle: captionStyle, captionPattern: captionPattern, itemCaptions: itemCaptions,
                  watermark: watermarkURL, wmPosition: wmPosition, wmSize: wmSize, wmOpacity: wmOpacity,
                  durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
@@ -1012,10 +1051,7 @@ final class SlideshowDocument {
         p.durationPerPhoto = durationPerPhoto
         p.durations = photoDurations
         var text = SlideshowPreset.TextSection()
-        text.titleMode = titleMode.rawValue; text.title = titleText; text.subtitle = subtitleText; text.background = titleBackground.rawValue
-        text.titleDuration = titleDuration; text.overlaySeconds = titleOverlaySeconds
-        text.closingEnabled = closingEnabled; text.closingText = closingText; text.closingSubtitle = closingSubtitle; text.closingDuration = closingDuration
-        text.titleCarryOver = titleCarryOver; text.closingCarryOver = closingCarryOver; text.closingOverlaySeconds = closingOverlaySeconds
+        text.cards = textCards
         text.titleStyle = titleStyle; text.captionStyle = captionStyle; text.captionPattern = captionPattern; text.captions = itemCaptions
         p.text = text
         p.beatsPerCut = beatsPerCut
@@ -1082,14 +1118,28 @@ final class SlideshowDocument {
         if let d = preset.durationPerPhoto { durationPerPhoto = d }
         photoDurations = preset.durations ?? [:]
         if let t = preset.text {
-            titleMode = t.titleMode.flatMap(TitleMode.init(rawValue:)) ?? .none
-            titleText = t.title ?? ""; subtitleText = t.subtitle ?? ""
-            titleBackground = t.background.flatMap(CanvasBackground.init(rawValue:)) ?? .black
-            titleDuration = t.titleDuration ?? 4; titleOverlaySeconds = t.overlaySeconds ?? 4
-            closingEnabled = t.closingEnabled ?? false; closingText = t.closingText ?? ""; closingSubtitle = t.closingSubtitle ?? ""; closingDuration = t.closingDuration ?? 4
-            titleCarryOver = t.titleCarryOver ?? false; closingCarryOver = t.closingCarryOver ?? false; closingOverlaySeconds = t.closingOverlaySeconds ?? 3
             titleStyle = t.titleStyle ?? .title; captionStyle = t.captionStyle ?? .caption
             captionPattern = t.captionPattern ?? ""; itemCaptions = t.captions ?? [:]
+            if let cards = t.cards {
+                textCards = cards
+            } else {
+                // Proyectos anteriores: el título y el cierre fijos pasan a tarjetas al principio y al final.
+                var migrated: [TextCard] = []
+                let background = t.background.flatMap(CanvasBackground.init(rawValue:)) ?? .black
+                if let mode = t.titleMode, mode != "none", let title = t.title, !title.isEmpty {
+                    let isCard = mode == "card"
+                    migrated.append(TextCard(text: title, subtitle: t.subtitle ?? "", background: isCard ? background : nil,
+                                             duration: isCard ? (t.titleDuration ?? 4) : (t.overlaySeconds ?? 4),
+                                             carryNext: isCard && (t.titleCarryOver ?? false), carryNextSeconds: t.overlaySeconds ?? 4,
+                                             anchor: TextCard.startAnchor))
+                }
+                if t.closingEnabled == true, let closing = t.closingText, !closing.isEmpty {
+                    migrated.append(TextCard(text: closing, subtitle: t.closingSubtitle ?? "", background: background, duration: t.closingDuration ?? 4,
+                                             carryPrevious: t.closingCarryOver ?? false, carryPreviousSeconds: t.closingOverlaySeconds ?? 3,
+                                             anchor: TextCard.endAnchor))
+                }
+                textCards = migrated
+            }
         }
         beatsPerCut = preset.beatsPerCut
         rhythmItems = Set(preset.rhythmItems ?? [])
@@ -1173,9 +1223,7 @@ final class SlideshowDocument {
         mode = .photos; format = .landscape16x9; durationPerPhoto = 4; photoDurations = [:]
         transitionChoice = .kind(.crossfade); transitionDuration = SlideshowSpec.transitionSeconds; itemTransitions = [:]; itemTransitionDurations = [:]
         coverURL = nil; coverDuration = 4; creditsURL = nil; creditsDuration = 4
-        titleMode = .none; titleText = ""; subtitleText = ""; titleBackground = .black; titleDuration = 4; titleOverlaySeconds = 4
-        closingEnabled = false; closingText = ""; closingSubtitle = ""; closingDuration = 4
-        titleCarryOver = false; closingCarryOver = false; closingOverlaySeconds = 3
+        textCards = []
         titleStyle = .title; captionStyle = .caption; captionPattern = ""; itemCaptions = [:]
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true

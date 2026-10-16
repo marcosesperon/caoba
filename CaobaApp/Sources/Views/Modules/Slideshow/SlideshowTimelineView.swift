@@ -247,21 +247,24 @@ struct TimelineCard: View {
         case .credits: return String(localized: "Créditos")
         case .photo(let url): return url.lastPathComponent
         case .collage(let row): return row.template.name
-        case .title: return String(localized: "Título")
-        case .closing: return String(localized: "Cierre")
+        case .text: return String(localized: "Texto")
         }
     }
 
     @ViewBuilder
     private func thumbnail(size: CGSize) -> some View {
         switch item.kind {
-        case .title, .closing:
-            // Tarjeta de texto: el fondo elegido y el título en Doto.
-            let text = item.kind == .title ? doc.titleText : doc.closingText
+        case .text(let card):
+            // Tarjeta de texto: su fondo (o rayada si va superpuesta al siguiente) y el texto en Doto.
             ZStack {
-                Color(cgColor: doc.titleBackground.fill)
-                Text(text.isEmpty ? "…" : text).font(.caobaTitle(12)).lineLimit(2).multilineTextAlignment(.center)
-                    .foregroundStyle(Color(cgColor: doc.titleBackground.text)).padding(6)
+                if let background = card.background {
+                    Color(cgColor: background.fill)
+                } else {
+                    Color.secondary.opacity(0.25)
+                    Image(systemName: "textformat").font(.title2).foregroundStyle(.secondary).offset(y: -10)
+                }
+                Text(card.text.isEmpty ? "…" : card.text).font(.caobaTitle(12)).lineLimit(2).multilineTextAlignment(.center)
+                    .foregroundStyle(card.background.map { Color(cgColor: $0.text) } ?? .primary).padding(6)
             }
             .frame(width: size.width, height: size.height)
         case .cover(let url), .credits(let url):
@@ -290,11 +293,11 @@ struct TimelineCard: View {
             Button("Quitar portada") { doc.coverURL = nil }
         case .credits:
             Button("Quitar créditos") { doc.creditsURL = nil }
-        case .title:
-            Button("Quitar título") { doc.titleMode = .none }
-        case .closing:
-            Button("Quitar cierre") { doc.closingEnabled = false }
+        case .text(let card):
+            Button("Quitar texto", role: .destructive) { doc.removeTextCard(card.id) }
         }
+        Divider()
+        Button("Añadir texto antes") { doc.selection = item.selection; doc.addTextCard() }
     }
 }
 
@@ -303,13 +306,22 @@ private struct ReorderModifier: ViewModifier {
     @Bindable var doc: SlideshowDocument
     let item: TimelineItem
 
+    /// Una tarjeta de texto soltada sobre cualquier elemento se coloca delante de él.
+    private func dropText(_ payload: String) -> Bool {
+        guard payload.hasPrefix("text:"), let id = UUID(uuidString: String(payload.dropFirst(5))) else { return false }
+        if case .text(let card) = item.kind { doc.moveTextCard(id, beforeCard: card.id) } else { doc.moveTextCard(id, beforeElement: item.id) }
+        return true
+    }
+
     func body(content: Content) -> some View {
         switch item.kind {
         case .photo(let url):
             content
                 .draggable("photo:" + url.lastPathComponent)
                 .dropDestination(for: String.self) { items, _ in
-                    guard let payload = items.first, payload.hasPrefix("photo:") else { return false }
+                    guard let payload = items.first else { return false }
+                    if dropText(payload) { return true }
+                    guard payload.hasPrefix("photo:") else { return false }
                     doc.movePhoto(named: String(payload.dropFirst(6)), before: url.lastPathComponent)
                     return true
                 }
@@ -317,12 +329,19 @@ private struct ReorderModifier: ViewModifier {
             content
                 .draggable("collage:" + row.id.uuidString)
                 .dropDestination(for: String.self) { items, _ in
-                    guard let payload = items.first, payload.hasPrefix("collage:"), let id = UUID(uuidString: String(payload.dropFirst(8))) else { return false }
+                    guard let payload = items.first else { return false }
+                    if dropText(payload) { return true }
+                    guard payload.hasPrefix("collage:"), let id = UUID(uuidString: String(payload.dropFirst(8))) else { return false }
                     doc.moveCollage(id, before: row.id)
                     return true
                 }
+        case .text(let card):
+            content
+                .draggable("text:" + card.id.uuidString)
+                .dropDestination(for: String.self) { items, _ in items.first.map(dropText) ?? false }
         default:
             content
+                .dropDestination(for: String.self) { items, _ in items.first.map(dropText) ?? false }
         }
     }
 }

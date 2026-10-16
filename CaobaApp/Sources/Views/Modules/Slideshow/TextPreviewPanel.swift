@@ -5,15 +5,13 @@ import CaobaCore
 /// la primera foto), cierre y pie, renderizados con el motor a tamaño reducido.
 struct TextPreviewPanel: View {
     @Bindable var doc: SlideshowDocument
-    @State private var title: CGImage?
-    @State private var closing: CGImage?
+    @State private var cardImage: CGImage?
     @State private var caption: CGImage?
     @State private var captionText: String?
 
     /// Todo lo que cambia la vista previa, para recalcular solo cuando toca.
     private struct Key: Equatable {
-        var mode: TitleMode; var title: String; var subtitle: String; var background: CanvasBackground
-        var closingEnabled: Bool; var closingText: String; var closingSubtitle: String
+        var card: TextCard?; var cardPhoto: URL?
         var titleStyle: TextStyle; var captionStyle: TextStyle; var pattern: String
         var firstPhoto: URL?; var firstCaptionId: String?; var ownCaption: String?; var format: VideoFormat; var total: Int
         var templateName: String?
@@ -26,6 +24,26 @@ struct TextPreviewPanel: View {
         }
     }
 
+    /// La tarjeta seleccionada en el timeline o, si no, la primera.
+    private var previewCard: TextCard? {
+        if case .text(let id) = doc.selection, let card = doc.textCard(id) { return card }
+        return doc.items.first(where: \.isText).flatMap { if case .text(let c) = $0.kind { return c } else { return nil } }
+    }
+
+    /// Foto del elemento que sigue a la tarjeta (para las superpuestas).
+    private func photo(after card: TextCard) -> URL? {
+        let items = doc.items
+        guard let index = items.firstIndex(where: { $0.selection == .text(card.id) }) else { return firstPhoto }
+        for item in items[(index + 1)...] {
+            switch item.kind {
+            case .photo(let url), .cover(let url), .credits(let url): return url
+            case .collage(let row): return row.files.first
+            default: continue
+            }
+        }
+        return firstPhoto
+    }
+
     private var key: Key {
         let id: String?
         let total: Int
@@ -34,8 +52,8 @@ struct TextPreviewPanel: View {
         case .photos: id = doc.files.first?.lastPathComponent; total = doc.files.count; template = nil
         case .collage: id = doc.rows.first?.id.uuidString; total = doc.rows.count; template = doc.rows.first?.template.name
         }
-        return Key(mode: doc.titleMode, title: doc.titleText, subtitle: doc.subtitleText, background: doc.titleBackground,
-                   closingEnabled: doc.closingEnabled, closingText: doc.closingText, closingSubtitle: doc.closingSubtitle,
+        let card = previewCard
+        return Key(card: card, cardPhoto: card.flatMap { photo(after: $0) },
                    titleStyle: doc.titleStyle, captionStyle: doc.captionStyle, pattern: doc.captionPattern,
                    firstPhoto: firstPhoto, firstCaptionId: id, ownCaption: id.flatMap { doc.itemCaptions[$0] }, format: doc.format, total: total,
                    templateName: template)
@@ -44,15 +62,12 @@ struct TextPreviewPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Vista previa").font(.subheadline.weight(.semibold))
-            if doc.titleMode == .none, !doc.closingEnabled, captionText == nil {
-                Text("Activa un título, un cierre o un patrón de pie para ver cómo quedan sobre el vídeo.")
+            if previewCard == nil, captionText == nil {
+                Text("Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            if doc.titleMode != .none {
-                preview(title, label: doc.titleMode == .card ? "Título · pantalla propia" : "Título · sobre la primera foto")
-            }
-            if doc.closingEnabled {
-                preview(closing, label: "Cierre")
+            if let card = previewCard {
+                preview(cardImage, label: card.background == nil ? "Texto · sobre el siguiente" : "Texto · pantalla propia")
             }
             if let captionText {
                 preview(caption, label: "Pie: \(captionText)")
@@ -85,24 +100,24 @@ struct TextPreviewPanel: View {
             ? Renamer.gatherInfo(files: [key.firstPhoto!], pattern: key.pattern.replacingOccurrences(of: "{fecha}", with: "YYYY"), needsDates: key.pattern.contains("{fecha}")).first
             : nil
         let text = doc.caption(for: key.firstCaptionId ?? "", index: 1, total: max(1, key.total), info: sampleInfo, name: key.templateName)
-        let titleLines = [key.title, key.subtitle].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-        let closingLines = [key.closingText, key.closingSubtitle].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
-        let result = await Task.detached(priority: .userInitiated) { () -> (CGImage?, CGImage?, CGImage?) in
+        let result = await Task.detached(priority: .userInitiated) { () -> (CGImage?, CGImage?) in
             let photo = key.firstPhoto.flatMap { ThumbnailProvider.makeThumbnail(url: $0, maxPixelSize: 900) }
-            var titleImage: CGImage?
-            switch key.mode {
-            case .none: break
-            case .card: titleImage = try? TextRenderer.card(lines: titleLines, style: key.titleStyle, background: key.background.fill, canvas: canvas)
-            case .overlay: titleImage = Self.compose(photo: photo, layer: TextRenderer.layer(lines: titleLines, style: key.titleStyle, canvas: canvas), canvas: canvas)
+            var cardImage: CGImage?
+            if let card = key.card {
+                let style = card.style ?? key.titleStyle
+                if let background = card.background {
+                    cardImage = try? TextRenderer.card(lines: card.lines, style: style, background: background.fill, canvas: canvas)
+                } else {
+                    let under = key.cardPhoto.flatMap { ThumbnailProvider.makeThumbnail(url: $0, maxPixelSize: 900) } ?? photo
+                    cardImage = Self.compose(photo: under, layer: TextRenderer.layer(lines: card.lines, style: style, canvas: canvas), canvas: canvas)
+                }
             }
-            let closingImage = key.closingEnabled ? try? TextRenderer.card(lines: closingLines, style: key.titleStyle, background: key.background.fill, canvas: canvas) : nil
             let captionImage = text.flatMap { Self.compose(photo: photo, layer: TextRenderer.layer(lines: [$0], style: key.captionStyle, canvas: canvas), canvas: canvas) }
-            return (titleImage, closingImage, captionImage)
+            return (cardImage, captionImage)
         }.value
         guard !Task.isCancelled else { return }
-        title = result.0
-        closing = result.1
-        caption = result.2
+        cardImage = result.0
+        caption = result.1
         captionText = text
     }
 

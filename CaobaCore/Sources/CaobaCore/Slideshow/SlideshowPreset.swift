@@ -123,6 +123,8 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public var captionStyle: TextStyle?
         public var captionPattern: String?
         public var captions: [String: String]?
+        /// Nuevo: tarjetas de texto del timeline (sustituyen a título y cierre; los campos de arriba solo se leen para migrar).
+        public var cards: [TextCard]?
         public init() {}
     }
 

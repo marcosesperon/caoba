@@ -68,12 +68,24 @@ struct SlideshowView: View {
             if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
             // `--state text.demo=card|overlay`: título, cierre y pies de ejemplo; `slideshow.generate=/ruta.mp4` genera una vista previa ahí.
             if let demo = appState.launchState["text.demo"] {
-                doc.titleMode = demo == "overlay" ? .overlay : .card
-                doc.titleText = "Alex & Sofi"; doc.subtitleText = "Biar, julio de 2025"
-                // `text.carry=1`: empalmes del título y el cierre con fundidos de 1 s.
-                if appState.launchState["text.carry"] != nil {
-                    doc.titleCarryOver = true; doc.closingCarryOver = true; doc.titleDuration = 3; doc.closingDuration = 3
-                    doc.titleOverlaySeconds = 2; doc.closingOverlaySeconds = 2
+                let carry = appState.launchState["text.carry"] != nil
+                var title = TextCard(text: "Alex & Sofi", subtitle: "Biar, julio de 2025", background: demo == "overlay" ? nil : .black, duration: carry ? 3 : 4, anchor: TextCard.startAnchor)
+                title.carryNext = carry; title.carryNextSeconds = 2
+                var closing = TextCard(text: "Gracias", subtitle: "caobafoto.com", background: .black, duration: carry ? 3 : 4, anchor: TextCard.endAnchor)
+                closing.carryPrevious = carry; closing.carryPreviousSeconds = 2
+                doc.textCards = [title, closing]
+                // `text.section=1`: un título de sección superpuesto ante el tercer elemento (cuando haya fotos).
+                if appState.launchState["text.section"] != nil {
+                    Task {
+                        var attempts = 0
+                        while doc.items.filter({ !$0.isText }).count < 3 && attempts < 40 { try? await Task.sleep(for: .milliseconds(250)); attempts += 1 }
+                        guard let third = doc.items.filter({ !$0.isText }).dropFirst(2).first else { return }
+                        var section = TextCard(text: "Segunda parte", subtitle: "", background: nil, duration: 3, anchor: third.id)
+                        section.style = doc.titleStyle; section.style?.anchor = .bottomRight; section.style?.animation = .slideLeft; section.style?.animationDuration = 0.75
+                        doc.textCards.append(section)
+                    }
+                }
+                if carry {
                     doc.transitionChoice = .kind(.crossfade); doc.transitionDuration = 1; doc.itemTransitions = [:]
                     doc.titleStyle.animation = .fade; doc.titleStyle.animationDuration = 0.5; doc.titleStyle.exitAnimation = .fade; doc.titleStyle.exitDuration = 0.5
                 }
@@ -81,7 +93,6 @@ struct SlideshowView: View {
                     doc.titleStyle.animation = anim; doc.titleStyle.animationDuration = 1
                     doc.captionStyle.animation = anim; doc.captionStyle.animationDuration = 0.75
                 }
-                doc.closingEnabled = true; doc.closingText = "Gracias"; doc.closingSubtitle = "caobafoto.com"
                 doc.captionPattern = "{n} de {total} · {nombre}"
                 tab = .extras
             }
@@ -187,8 +198,7 @@ struct SlideshowView: View {
         case .none: return ""
         case .cover: return String(localized: "Portada")
         case .credits: return String(localized: "Créditos")
-        case .title: return String(localized: "Título")
-        case .closing: return String(localized: "Cierre")
+        case .text: return String(localized: "Texto")
         case .photo: return String(localized: "Foto")
         case .track: return String(localized: "Pista")
         case .collage(let id): return String(localized: "Collage \((doc.rows.firstIndex { $0.id == id } ?? 0) + 1)")

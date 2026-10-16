@@ -163,6 +163,49 @@ public struct TextOverlay: Sendable, Equatable {
     public func opacity(at local: Double) -> Double { phase(at: local)?.progress ?? 0 }
 }
 
+/// Tarjeta de texto del timeline: pantalla propia (con fondo) o texto superpuesto
+/// al elemento siguiente (sin fondo), con su estilo, duración, empalmes y posición.
+public struct TextCard: Identifiable, Sendable, Equatable, Codable {
+    public var id: UUID
+    public var text: String
+    public var subtitle: String
+    /// Fondo de la pantalla propia; `nil` = sin pantalla, el texto va sobre el elemento siguiente.
+    public var background: CanvasBackground?
+    /// Con fondo: lo que dura la tarjeta. Sin fondo: segundos mostrándose sobre el elemento siguiente.
+    public var duration: Double
+    /// Estilo propio; `nil` = el estilo de títulos del proyecto.
+    public var style: TextStyle?
+    /// Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente, y segundos sobre él.
+    public var carryNext: Bool
+    public var carryNextSeconds: Double
+    /// Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta, y segundos sobre él.
+    public var carryPrevious: Bool
+    public var carryPreviousSeconds: Double
+    /// Dónde va: "start" (antes de todo), "end" (al final) o el id del elemento ante el que se coloca.
+    public var anchor: String
+
+    public static let startAnchor = "start"
+    public static let endAnchor = "end"
+
+    public init(id: UUID = UUID(), text: String = "", subtitle: String = "", background: CanvasBackground? = .black, duration: Double = 4,
+                style: TextStyle? = nil, carryNext: Bool = false, carryNextSeconds: Double = 3, carryPrevious: Bool = false, carryPreviousSeconds: Double = 3,
+                anchor: String = TextCard.endAnchor) {
+        self.id = id
+        self.text = text
+        self.subtitle = subtitle
+        self.background = background
+        self.duration = duration
+        self.style = style
+        self.carryNext = carryNext
+        self.carryNextSeconds = carryNextSeconds
+        self.carryPrevious = carryPrevious
+        self.carryPreviousSeconds = carryPreviousSeconds
+        self.anchor = anchor
+    }
+
+    public var lines: [String] { [text, subtitle].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
+}
+
 /// Capa de texto ya dibujada, con el rectángulo del bloque (origen abajo-izquierda) y cuántos caracteres tiene.
 public struct TextLayer: Sendable {
     public var image: CGImage

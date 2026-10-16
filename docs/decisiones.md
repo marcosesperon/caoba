@@ -1006,3 +1006,41 @@ Ninguna (la propuesta iba en la respuesta a la pregunta del usuario).
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Tarjetas de texto en cualquier punto del timeline
+
+### 1. La petición tal como se ha entendido
+**Tarjetas de texto** como elemento del timeline del Slideshow, en sustitución del título y el cierre fijos (P1):
+
+- Un botón «Añadir texto» (en la pestaña «Portada y texto» y en el menú contextual del timeline) crea una tarjeta **antes del elemento seleccionado** o al final; las tarjetas se reordenan arrastrando como las fotos y los collages, y se quitan desde su inspector o el menú contextual.
+- Cada tarjeta tiene: texto y subtítulo; **fondo** (negro, blanco, gris, o **ninguno**: entonces no es pantalla propia sino texto superpuesto a la foto siguiente, lo que hoy es «sobre la primera foto»); duración; transición de entrada propia o por defecto; **estilo** propio partiendo del global de títulos (P2), con «Volver al estilo de títulos»; animaciones de entrada y salida con sus tiempos (del estilo); y los dos **empalmes**: «mantener el texto quieto mientras se funde con el elemento siguiente» (y segundos sobre él) y «empezar sobre el elemento anterior» (y segundos sobre él).
+- Pestaña «Portada y texto»: el grupo «Título» pasa a «Textos», con la lista de tarjetas (texto, posición en el timeline, duración) y «Añadir texto»; el estilo de títulos se queda como estilo por defecto de las tarjetas nuevas. Los pies de foto no cambian.
+- Inspector de la tarjeta (al seleccionarla en el timeline): todo lo anterior en un sitio, con el editor de estilo completo.
+- La vista previa de la derecha enseña la tarjeta seleccionada (o la primera) y el pie.
+- **Migración** de los proyectos guardados: el título en pantalla propia o sobre la primera foto se convierte en una tarjeta al principio (fondo de color o ninguno), y el cierre en una tarjeta al final, con sus empalmes y el estilo de títulos; nada se pierde.
+- El pie de foto no se aplica a las tarjetas de texto. Las tarjetas cuentan en el timeline, en el ritmo (como duración fija) y en la duración total como cualquier elemento.
+
+*Confirmación: «si» (16-10-2026). Plan aprobado: «dale».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Sustituir título y cierre por tarjetas de texto normales (con migración) o añadir las tarjetas manteniendo los fijos?** R: 1, sustituir.
+**P2. ¿Estilo por tarjeta partiendo del global, o un único estilo para todas?** R: 1, estilo por tarjeta partiendo del global de títulos.
+
+### 3. Fuentes analizadas
+- Todo lo de texto en `SlideshowDocument` (título y cierre fijos, `applyText`), `TimelineItem.Kind`, `TimelineSelection`, `ReorderModifier`, `ExtrasTab`, `TextCardInspector`, `TextPreviewPanel`, `SlideshowPreset.TextSection`.
+
+### 4. Decisiones
+- **`TextCard`** en el motor (codificable): texto, subtítulo, fondo opcional (`nil` = superpuesta al elemento siguiente), duración (con fondo, la de la tarjeta; sin fondo, segundos mostrándose), estilo propio opcional, empalmes `carryNext`/`carryPrevious` con sus segundos, y **ancla**: `start`, `end` o el id del elemento ante el que va. Las tarjetas cuyo ancla ya no existe van al final. Un timeline puede tener varias ante el mismo elemento (en el orden de la lista).
+- `orderedKinds` intercala las tarjetas; `TimelineItem.Kind.text(TextCard)` y `TimelineSelection.text(UUID)`. Duración, borrado, ritmo (fijo) y pestaña contextual las tratan como cualquier elemento. Arrastrar una tarjeta sobre un elemento la coloca ante él; sobre otra tarjeta, delante de ella. Menú contextual: «Quitar texto» y «Añadir texto antes».
+- **Generación**: `makePhotos` devuelve también el dueño (id de elemento) de cada foto, y en collages los pasos comparten dueño. `applyText(to:owners:)` localiza, para cada tarjeta, el rango de fotos del elemento siguiente y del anterior; con fondo emite la tarjeta (fondo liso y texto superpuesto con retardo) y aplica los empalmes sobre esos rangos; sin fondo pone el texto sobre el siguiente (o el anterior si es la última). Luego monta la lista final recorriendo el timeline. En la vista previa solo entran las tarjetas pegadas a algún elemento incluido.
+- **Interfaz**: grupo «Textos» en «Portada y texto» con la lista (texto, instante, tipo, duración), «Editar», quitar, «Añadir texto…» (ante lo seleccionado o al final) y el estilo de títulos como estilo por defecto; `TextCardInspector` con contenido, fondo (incluido «Ninguno · sobre el siguiente»), duración o segundos, transición, empalmes y «Estilo propio» con editor completo y «Volver al estilo de títulos». Tarjeta del timeline con su fondo, o rayada con icono si es superpuesta. Vista previa de la tarjeta seleccionada (o la primera) sobre la foto que le sigue.
+- **Migración**: al cargar un `.caoba` sin `cards`, el título fijo pasa a una tarjeta con ancla `start` (fondo o superpuesta según el modo, con su empalme) y el cierre a otra con ancla `end`; al guardar ya solo se escriben las tarjetas. `TitleMode` desaparece.
+- Probado con BOOK: título al inicio con empalme, «Segunda parte» superpuesto ante el tercer collage (entra deslizando desde la derecha abajo a la derecha) y cierre con empalme; `.caoba` con las tres tarjetas. Restaurado el `.caoba` de BOOK tras la prueba.
+
+### 5. Alternativas descartadas
+- Mantener título y cierre fijos además de las tarjetas: descartado en P1.
+- Guardar la posición como índice: se desordena al reordenar o quitar fotos; el ancla por id aguanta.
+
+### 6. Pendiente de comprobar
+- Las tarjetas superpuestas ocupan 0 s en el timeline y se ven como una tira estrecha; valorar darles un ancho mínimo mayor o un marcador.
+

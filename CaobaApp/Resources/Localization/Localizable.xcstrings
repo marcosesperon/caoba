@@ -5916,6 +5916,216 @@
           }
         }
       }
+    },
+    "Textos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texts"
+          }
+        }
+      }
+    },
+    "Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No text cards. Add a title at the start, a closing at the end or a section title anywhere on the timeline."
+          }
+        }
+      }
+    },
+    "sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "over the next one"
+          }
+        }
+      }
+    },
+    "pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "own screen"
+          }
+        }
+      }
+    },
+    "Añadir texto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text…"
+          }
+        }
+      }
+    },
+    "Añadir texto antes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text before"
+          }
+        }
+      }
+    },
+    "Quitar texto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove text"
+          }
+        }
+      }
+    },
+    "Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It is added before the element selected on the timeline, or at the end; you can drag it elsewhere afterwards."
+          }
+        }
+      }
+    },
+    "Estilo de títulos (por defecto para las tarjetas)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title style (default for the cards)"
+          }
+        }
+      }
+    },
+    "Ninguno · sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None · over the next one"
+          }
+        }
+      }
+    },
+    "Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the text still while the card fades into the next element"
+          }
+        }
+      }
+    },
+    "Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start the text over the previous element and keep it while fading to the card"
+          }
+        }
+      }
+    },
+    "Segundos sobre él" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over it"
+          }
+        }
+      }
+    },
+    "Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a background, the text is laid over the element that follows on the timeline (with the style's entry and exit)."
+          }
+        }
+      }
+    },
+    "Estilo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style"
+          }
+        }
+      }
+    },
+    "Estilo propio para esta tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own style for this card"
+          }
+        }
+      }
+    },
+    "Volver al estilo de títulos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the title style"
+          }
+        }
+      }
+    },
+    "Usa el estilo de títulos de la pestaña «Portada y texto»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the title style from the “Cover & text” tab."
+          }
+        }
+      }
+    },
+    "Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a text card or a caption pattern to see how they look on the video."
+          }
+        }
+      }
+    },
+    "Texto · sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text · over the next one"
+          }
+        }
+      }
+    },
+    "Texto · pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text · own screen"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

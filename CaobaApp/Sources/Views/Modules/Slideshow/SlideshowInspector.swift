@@ -14,8 +14,7 @@ struct SelectionTab: View {
                 Text("Selecciona una tarjeta o una pista en el timeline.").foregroundStyle(.secondary)
             case .cover: ImageSlotInspector(doc: doc, isCover: true)
             case .credits: ImageSlotInspector(doc: doc, isCover: false)
-            case .title: TextCardInspector(doc: doc, isClosing: false)
-            case .closing: TextCardInspector(doc: doc, isClosing: true)
+            case .text(let id): TextCardInspector(doc: doc, cardId: id)
             case .photo(let name):
                 if let url = doc.files.first(where: { $0.lastPathComponent == name }) {
                     PhotoInspector(doc: doc, url: url, expandedFraming: $expandedFraming)
@@ -123,50 +122,30 @@ struct ExtrasTab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            OptionGroup(title: "Título") {
-                LabeledRow("Modo") {
-                    Picker("", selection: $doc.titleMode) {
-                        Text("Sin título").tag(TitleMode.none)
-                        Text("Pantalla propia").tag(TitleMode.card)
-                        Text("Sobre la primera foto").tag(TitleMode.overlay)
-                    }
-                    .pickerStyle(.segmented).fixedSize()
-                    .labelsHidden()
+            OptionGroup(title: "Textos") {
+                if doc.textCards.isEmpty {
+                    Text("Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline.")
+                        .font(.callout).foregroundStyle(.secondary)
                 }
-                if doc.titleMode != .none {
-                    LabeledRow("Título") { TextField("", text: $doc.titleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-                    LabeledRow("Subtítulo") { TextField("", text: $doc.subtitleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-                    if doc.titleMode == .card {
-                        LabeledRow("Fondo") {
-                            Picker("", selection: $doc.titleBackground) {
-                                Text("Negro").tag(CanvasBackground.black)
-                                Text("Blanco").tag(CanvasBackground.white)
-                                Text("Gris").tag(CanvasBackground.gray)
+                ForEach(doc.items.filter(\.isText)) { item in
+                    if case .text(let card) = item.kind {
+                        HStack {
+                            Image(systemName: card.background == nil ? "textformat" : "rectangle.fill.on.rectangle.fill").foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(card.text.isEmpty ? "…" : card.text).lineLimit(1)
+                                Text("\(TimecodeField.format(item.start)) · \(card.background == nil ? String(localized: "sobre el siguiente") : String(localized: "pantalla propia")) · \(card.duration, specifier: "%.1f") s")
+                                    .font(.caption).foregroundStyle(.secondary)
                             }
-                            .fixedSize().labelsHidden()
+                            Spacer()
+                            Button("Editar") { doc.selection = .text(card.id) }.controlSize(.small)
+                            Button { doc.removeTextCard(card.id) } label: { Image(systemName: "minus.circle") }.buttonStyle(.borderless)
                         }
-                        LabeledSlider(title: "Duración", value: $doc.titleDuration, in: 1...15, step: 0.5) { Text("\(doc.titleDuration, specifier: "%.1f") s") }
-                        Toggle("Mantener el título quieto mientras la tarjeta se funde con la primera foto", isOn: $doc.titleCarryOver)
-                        if doc.titleCarryOver {
-                            LabeledSlider(title: "Segundos sobre la foto", value: $doc.titleOverlaySeconds, in: 0.5...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
-                        }
-                    } else {
-                        LabeledSlider(title: "Segundos mostrándose", value: $doc.titleOverlaySeconds, in: 1...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
                     }
                 }
-                Toggle("Cierre al final (pantalla propia)", isOn: $doc.closingEnabled)
-                if doc.closingEnabled {
-                    LabeledRow("Texto") { TextField("Gracias", text: $doc.closingText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-                    LabeledRow("Subtítulo") { TextField("", text: $doc.closingSubtitle).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-                    LabeledSlider(title: "Duración", value: $doc.closingDuration, in: 1...15, step: 0.5) { Text("\(doc.closingDuration, specifier: "%.1f") s") }
-                    Toggle("Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla", isOn: $doc.closingCarryOver)
-                    if doc.closingCarryOver {
-                        LabeledSlider(title: "Segundos sobre la foto", value: $doc.closingOverlaySeconds, in: 0.5...15, step: 0.5) { Text("\(doc.closingOverlaySeconds, specifier: "%.1f") s") }
-                    }
-                }
-                if doc.titleMode != .none || doc.closingEnabled {
-                    TextStyleEditor(title: "Estilo del título", style: $doc.titleStyle)
-                }
+                Button("Añadir texto…") { doc.addTextCard() }
+                Text("Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio.")
+                    .font(.caption).foregroundStyle(.secondary)
+                TextStyleEditor(title: "Estilo de títulos (por defecto para las tarjetas)", style: $doc.titleStyle)
             }
             OptionGroup(title: "Pies de foto") {
                 LabeledRow("Patrón") { TextField("", text: $doc.captionPattern).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
@@ -538,29 +517,57 @@ struct CaptionOverrideRow: View {
     }
 }
 
-/// Tarjeta de título o de cierre seleccionada.
+/// Tarjeta de texto seleccionada: texto, fondo, duración, transición, empalmes y estilo propio.
 struct TextCardInspector: View {
     @Bindable var doc: SlideshowDocument
-    let isClosing: Bool
+    let cardId: UUID
+
+    private var card: Binding<TextCard> {
+        Binding(get: { doc.textCard(cardId) ?? TextCard() }, set: { doc.updateTextCard($0) })
+    }
+
+    private var hasOwnStyle: Bool { doc.textCard(cardId)?.style != nil }
 
     var body: some View {
-        Text(isClosing ? "Cierre" : "Título").font(.headline)
-        OptionGroup(title: "Texto") {
-            LabeledRow(isClosing ? "Texto" : "Título") { TextField("", text: isClosing ? $doc.closingText : $doc.titleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-            LabeledRow("Subtítulo") { TextField("", text: isClosing ? $doc.closingSubtitle : $doc.subtitleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+        let c = card
+        Text("Texto").font(.headline)
+        OptionGroup(title: "Contenido") {
+            LabeledRow("Texto") { TextField("", text: c.text).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+            LabeledRow("Subtítulo") { TextField("", text: c.subtitle).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
             LabeledRow("Fondo") {
-                Picker("", selection: $doc.titleBackground) {
-                    Text("Negro").tag(CanvasBackground.black)
-                    Text("Blanco").tag(CanvasBackground.white)
-                    Text("Gris").tag(CanvasBackground.gray)
+                Picker("", selection: Binding<CanvasBackground?>(get: { c.wrappedValue.background }, set: { c.wrappedValue.background = $0 })) {
+                    Text("Ninguno · sobre el siguiente").tag(CanvasBackground?.none)
+                    Text("Negro").tag(CanvasBackground?.some(.black))
+                    Text("Blanco").tag(CanvasBackground?.some(.white))
+                    Text("Gris").tag(CanvasBackground?.some(.gray))
                 }
-                .fixedSize().labelsHidden()
+                .frame(maxWidth: 240).labelsHidden()
             }
-            LabeledSlider(title: "Duración", value: isClosing ? $doc.closingDuration : $doc.titleDuration, in: 1...15, step: 0.5) {
-                Text("\(isClosing ? doc.closingDuration : doc.titleDuration, specifier: "%.1f") s")
+            if c.wrappedValue.background != nil {
+                LabeledSlider(title: "Duración", value: c.duration, in: 1...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
+                TransitionOverrideRow(doc: doc, id: cardId.uuidString)
+                Toggle("Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente", isOn: c.carryNext)
+                if c.wrappedValue.carryNext {
+                    LabeledSlider(title: "Segundos sobre él", value: c.carryNextSeconds, in: 0.5...15, step: 0.5) { Text("\(c.wrappedValue.carryNextSeconds, specifier: "%.1f") s") }
+                }
+                Toggle("Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta", isOn: c.carryPrevious)
+                if c.wrappedValue.carryPrevious {
+                    LabeledSlider(title: "Segundos sobre él", value: c.carryPreviousSeconds, in: 0.5...15, step: 0.5) { Text("\(c.wrappedValue.carryPreviousSeconds, specifier: "%.1f") s") }
+                }
+            } else {
+                LabeledSlider(title: "Segundos mostrándose", value: c.duration, in: 0.5...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
+                Text("Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo).")
+                    .font(.caption).foregroundStyle(.secondary)
             }
-            TransitionOverrideRow(doc: doc, id: isClosing ? "closing" : "title")
-            Text("El estilo del texto se ajusta en la pestaña «Portada y texto».").font(.caption).foregroundStyle(.secondary)
+        }
+        OptionGroup(title: "Estilo") {
+            Toggle("Estilo propio para esta tarjeta", isOn: Binding(get: { hasOwnStyle }, set: { on in c.wrappedValue.style = on ? doc.titleStyle : nil }))
+            if hasOwnStyle {
+                TextStyleEditor(title: "", style: Binding(get: { c.wrappedValue.style ?? doc.titleStyle }, set: { c.wrappedValue.style = $0 }))
+                Button("Volver al estilo de títulos") { c.wrappedValue.style = nil }
+            } else {
+                Text("Usa el estilo de títulos de la pestaña «Portada y texto».").font(.caption).foregroundStyle(.secondary)
+            }
         }
     }
 }
