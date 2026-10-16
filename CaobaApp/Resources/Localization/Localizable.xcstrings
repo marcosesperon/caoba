@@ -651,7 +651,18 @@
         }
       }
     },
+    "Añadir texto después" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text after"
+          }
+        }
+      }
+    },
     "Añadir texto…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -738,6 +749,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Before"
+          }
+        }
+      }
+    },
+    "Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before or after the element selected on the timeline (with nothing selected, at the end); you can drag it elsewhere afterwards."
           }
         }
       }
@@ -5127,6 +5148,7 @@
       }
     },
     "Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6145,26 +6167,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zoom out"
-          }
-        }
-      }
-    },
-    "Añadir texto después" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add text after"
-          }
-        }
-      }
-    },
-    "Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Before or after the element selected on the timeline (with nothing selected, at the end); you can drag it elsewhere afterwards."
           }
         }
       }

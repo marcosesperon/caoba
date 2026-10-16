@@ -4,5 +4,5 @@ import Foundation
 /// comparar con la última release publicada en GitHub.
 public enum CaobaCoreInfo {
     /// Versión del motor. Se mantiene en sincronía con la de la app.
-    public static let version = "3.1.1"
+    public static let version = "3.2.0"
 }
