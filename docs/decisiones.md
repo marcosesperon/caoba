@@ -824,3 +824,23 @@ Ninguna.
 ### 6. Pendiente de comprobar
 - Que el estudio dé el visto bueno al relato antes de difundirlo.
 
+## 2026-10-16 — Historia de la landing más genérica
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* «No personalices tanto la historia»: casos que le podrían pasar a cualquier estudio de fotografía, manteniendo los enlaces a los servicios.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- La sección «La historia» recién escrita.
+
+### 4. Decisiones
+- Se quitan el lugar (Biar), la «noche de agosto», el «nosotros» y la invitación a visitar el estudio. El relato pasa a escenas en tercera persona que «le pasan a cualquier estudio», cada una enlazada al servicio correspondiente; el estudio aparece solo al final como autor («el que la hizo está en caobafoto.com»).
+
+### 5. Alternativas descartadas
+- Mantener la anécdota en primera persona: era justo lo que se pidió suavizar.
+
+### 6. Pendiente de comprobar
+Nada.
+
