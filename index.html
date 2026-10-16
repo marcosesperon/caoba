@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAOBA · Utilidades para fotógrafos</title>
+<meta name="description" content="CAOBA: app nativa para macOS con slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR y contador de disparos. Gratis y de código abierto.">
+<link rel="icon" href="assets/icon.png">
+<meta property="og:title" content="CAOBA · Utilidades para fotógrafos">
+<meta property="og:description" content="Slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR y shutter count. Nativa de macOS.">
+<meta property="og:image" content="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700;900&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Tokens: OLED negro, papel, rojo CAOBA ---------- */
+  :root {
+    --bg: #000000;
+    --bg-2: #0d0d0d;
+    --surface: #141414;
+    --line: #262626;
+    --ink: #f2f2f2;
+    --ink-2: #a3a3a3;
+    --ink-3: #6b6b6b;
+    --accent: #d71921;
+    --accent-ink: #ffffff;
+    --dot: rgba(255,255,255,.11);
+    --radius: 14px;
+    --display: "Doto", "IBM Plex Mono", monospace;
+    --body: "Fraunces", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f2ee; --bg-2: #ece9e3; --surface: #ffffff; --line: #dcd8d0;
+      --ink: #141414; --ink-2: #4f4a44; --ink-3: #8a847c; --dot: rgba(0,0,0,.12);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f2ee; --bg-2: #ece9e3; --surface: #ffffff; --line: #dcd8d0;
+    --ink: #141414; --ink-2: #4f4a44; --ink-3: #8a847c; --dot: rgba(0,0,0,.12);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--body); font-weight: 300; font-size: 18px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Trama de puntos: el motivo de la app */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1;
+    background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+    background-size: 16px 16px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25) 50%, rgba(0,0,0,.6));
+  }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+  /* ---------- Cabecera ---------- */
+  header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 78%, transparent); border-bottom: 1px solid var(--line); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand img { width: 30px; height: 30px; border-radius: 7px; }
+  .brand span { font-family: var(--display); font-weight: 900; letter-spacing: .08em; font-size: 20px; }
+  .nav nav { display: flex; gap: 22px; font-family: var(--mono); font-size: 13px; }
+  .nav nav a { text-decoration: none; color: var(--ink-2); }
+  .nav nav a:hover { color: var(--ink); }
+  .tools { display: flex; gap: 8px; }
+  .chip { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink-2); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .chip:hover { color: var(--ink); border-color: var(--ink-3); }
+  @media (max-width: 720px) { .nav nav { display: none; } }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: clamp(56px, 10vw, 120px) 0 48px; position: relative; }
+  .hero h1 {
+    font-family: var(--display); font-weight: 900; line-height: .9; margin: 0;
+    font-size: clamp(64px, 14vw, 180px); letter-spacing: .02em;
+    color: var(--ink);
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lede { max-width: 640px; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.35; margin: 28px 0 0; }
+  .hero .lede strong { font-weight: 600; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; align-items: center; }
+  .btn { font-family: var(--mono); font-size: 14px; text-decoration: none; padding: 14px 22px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--surface); transition: transform .18s cubic-bezier(.25,.1,.25,1), background .18s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary:hover { background: #b9141b; }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .hero .side { position: absolute; right: 0; top: clamp(56px, 10vw, 120px); width: 300px; display: none; }
+  @media (min-width: 1000px) { .hero .side { display: block; } }
+  .side .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; transform: rotate(-2deg); }
+  .side .card + .card { margin-top: 12px; transform: rotate(1.5deg) translateX(18px); }
+  .side .label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+  .side .big { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; margin-top: 6px; }
+  .side .big small { font-size: 16px; color: var(--ink-2); font-family: var(--mono); margin-left: 6px; }
+
+  /* Aparición escalonada al cargar */
+  .reveal { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.25,.1,.25,1) forwards; }
+  .reveal:nth-child(2) { animation-delay: .08s } .reveal:nth-child(3) { animation-delay: .16s } .reveal:nth-child(4) { animation-delay: .24s }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { animation: none; opacity: 1; transform: none; } .btn:hover { transform: none; } }
+
+  /* ---------- Secciones ---------- */
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+  .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 10px; }
+  h2 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 5vw, 56px); line-height: 1; margin: 0 0 14px; letter-spacing: .02em; }
+  .intro { max-width: 680px; color: var(--ink-2); margin: 0 0 36px; }
+
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .mod { grid-column: span 4; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 24px; position: relative; overflow: hidden; transition: border-color .18s; }
+  .mod:hover { border-color: var(--ink-3); }
+  .mod.wide { grid-column: span 8; }
+  .mod .n { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+  .mod h3 { font-family: var(--display); font-weight: 700; font-size: 26px; margin: 6px 0 10px; letter-spacing: .03em; }
+  .mod p { margin: 0; color: var(--ink-2); font-size: 16px; }
+  .mod ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
+  .mod li { margin: 4px 0; }
+  .mod .tag { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 999px; padding: 3px 9px; }
+  @media (max-width: 900px) { .mod, .mod.wide { grid-column: span 6; } }
+  @media (max-width: 600px) { .mod, .mod.wide { grid-column: span 12; } }
+
+  /* Razones */
+  .why { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 32px; }
+  .why div { border-top: 2px solid var(--ink); padding-top: 14px; }
+  .why b { font-family: var(--mono); font-weight: 500; font-size: 14px; display: block; margin-bottom: 6px; }
+  .why p { margin: 0; color: var(--ink-2); font-size: 16px; }
+  .num { font-family: var(--display); font-weight: 900; font-size: 64px; line-height: 1; color: var(--accent); }
+
+  /* Descarga */
+  .download { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 36px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; }
+  .download ol { margin: 14px 0 0; padding-left: 20px; color: var(--ink-2); }
+  .download .note { font-family: var(--mono); font-size: 12px; color: var(--ink-3); margin-top: 14px; }
+  .download code { font-family: var(--mono); font-size: 13px; background: var(--bg-2); padding: 2px 6px; border-radius: 6px; }
+  @media (max-width: 800px) { .download { grid-template-columns: 1fr; } }
+
+  footer { padding: 40px 0 60px; border-top: 1px solid var(--line); color: var(--ink-3); font-family: var(--mono); font-size: 12px; }
+  footer .row { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: center; }
+  footer a { color: var(--ink-2); }
+  footer img { height: 28px; opacity: .85; }
+
+  /* Idioma: se muestra solo el bloque del idioma activo */
+  [lang-es], [lang-en] { display: none; }
+  html[data-lang="es"] [lang-es] { display: revert; }
+  html[data-lang="en"] [lang-en] { display: revert; }
+  span[lang-es], span[lang-en], em[lang-es], em[lang-en] { display: none; }
+  html[data-lang="es"] span[lang-es], html[data-lang="es"] em[lang-es] { display: inline; }
+  html[data-lang="en"] span[lang-en], html[data-lang="en"] em[lang-en] { display: inline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#"><img src="assets/icon.png" alt=""><span>CAOBA</span></a>
+    <nav>
+      <a href="#modulos"><span lang-es>Módulos</span><span lang-en>Modules</span></a>
+      <a href="#porque"><span lang-es>Por qué</span><span lang-en>Why</span></a>
+      <a href="#descarga"><span lang-es>Descarga</span><span lang-en>Download</span></a>
+      <a href="https://github.com/marcosesperon/caoba-photo-utils">GitHub</a>
+    </nav>
+    <div class="tools">
+      <button class="chip" id="lang" type="button" aria-label="Language">EN</button>
+      <button class="chip" id="theme" type="button" aria-label="Tema"><span lang-es>Tema</span><span lang-en>Theme</span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1 class="reveal">CAO<em>BA</em></h1>
+    <p class="lede reveal">
+      <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR y contador de disparos. Nativa de macOS, gratis y de código abierto.</span>
+      <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes and shutter count. Native to macOS, free and open source.</span>
+    </p>
+    <div class="cta reveal">
+      <a class="btn primary" id="download-btn" href="https://github.com/marcosesperon/caoba-photo-utils/releases/latest">
+        <span lang-es>Descargar para macOS</span><span lang-en>Download for macOS</span>
+      </a>
+      <a class="btn" href="https://github.com/marcosesperon/caoba-photo-utils"><span lang-es>Ver el código</span><span lang-en>View the code</span></a>
+      <span class="meta" id="version-meta">macOS 14+ · Apple Silicon &amp; Intel</span>
+    </div>
+    <aside class="side reveal" aria-hidden="true">
+      <div class="card"><div class="label">Slideshow</div><div class="big">25<small>fps · H.264</small></div></div>
+      <div class="card"><div class="label">Collage</div><div class="big">570<small lang-es>plantillas</small><small lang-en>templates</small></div></div>
+    </aside>
+  </div>
+
+  <section id="modulos">
+    <div class="wrap">
+      <p class="kicker"><span lang-es>Nueve módulos, una carpeta</span><span lang-en>Nine modules, one folder</span></p>
+      <h2><span lang-es>Lo que hace</span><span lang-en>What it does</span></h2>
+      <p class="intro">
+        <span lang-es>Eliges una carpeta de fotos, marcas cuáles entran y cambias de módulo sin volver a empezar. La configuración se guarda en la propia carpeta y se restaura al volver.</span>
+        <span lang-en>Pick a folder of photos, check which ones are in, and switch modules without starting over. Settings are saved in the folder itself and restored when you come back.</span>
+      </p>
+      <div class="grid">
+        <article class="mod wide">
+          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
+          <div class="n">01</div><h3>Slideshow</h3>
+          <p><span lang-es>Fotos o collages a MP4, montados en un timeline como el de un editor de vídeo.</span><span lang-en>Photos or collages to MP4, arranged on a video-editor style timeline.</span></p>
+          <ul>
+            <li><span lang-es>Seis formatos: TV y YouTube, Historias y Reels, feed de Instagram, clásicos.</span><span lang-en>Six formats: TV and YouTube, Stories and Reels, Instagram feed, classics.</span></li>
+            <li><span lang-es>Ken Burns con editor de encuadre, previsualización y <b>detección de caras</b>.</span><span lang-en>Ken Burns with framing editor, preview and <b>face detection</b>.</span></li>
+            <li><span lang-es>Música arrastrable y recortable, crossfade, fundido de salida y normalización EBU R128.</span><span lang-en>Draggable, trimmable music, crossfade, fade-out and EBU R128 loudness.</span></li>
+            <li><span lang-es>Codificación por hardware, sin ffmpeg ni temporales en tus fotos.</span><span lang-en>Hardware encoding, no ffmpeg and no temp files among your photos.</span></li>
+          </ul>
+        </article>
+        <article class="mod">
+          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
+          <div class="n">02</div><h3>Collage</h3>
+          <p><span lang-es>570 plantillas de 1 a 9 fotos, editor de encuadre por celda y foco automático por saliencia o caras.</span><span lang-en>570 templates for 1 to 9 photos, per-cell framing editor and automatic focus by saliency or faces.</span></p>
+        </article>
+        <article class="mod">
+          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
+          <div class="n">03</div><h3>Contact Sheet</h3>
+          <p><span lang-es>Rejilla o masonry, título, numeración, borde y logo. Con estimación del tamaño final.</span><span lang-en>Grid or masonry, title, numbering, border and logo. With estimated output size.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">04</div><h3><span lang-es>Procesador</span><span lang-en>Processor</span></h3>
+          <p><span lang-es>Rotar, recortar, redimensionar, calidad y formato en una pasada. Entra RAW y HEIC; conserva EXIF, GPS y color.</span><span lang-en>Rotate, crop, resize, quality and format in one pass. RAW and HEIC in; EXIF, GPS and color preserved.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">05</div><h3><span lang-es>Marca de agua</span><span lang-en>Watermark</span></h3>
+          <p><span lang-es>Tu PNG suelto o en mosaico, con giro, opacidad y vista previa sobre cualquier foto.</span><span lang-en>Your PNG, single or tiled, with rotation, opacity and a preview on any photo.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">06</div><h3><span lang-es>Metadatos</span><span lang-en>Metadata</span></h3>
+          <p><span lang-es>Lee y escribe EXIF, incluido GPS con mapa, sin recomprimir la imagen.</span><span lang-en>Read and write EXIF, GPS with map included, without recompressing the image.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">07</div><h3><span lang-es>Renombrador</span><span lang-en>Renamer</span></h3>
+          <p><span lang-es>Patrones con fecha, cámara y contador; numeración corregida; buscar y reemplazar. Y <b>deshacer</b>.</span><span lang-en>Patterns with date, camera and counter; fixed numbering; search and replace. And <b>undo</b>.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">08</div><h3><span lang-es>Código QR</span><span lang-en>QR Code</span></h3>
+          <p><span lang-es>Texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento, con colores y logo.</span><span lang-en>Text, URL, WiFi, contact, email, phone, SMS, location or event, with colors and logo.</span></p>
+        </article>
+        <article class="mod">
+          <div class="n">09</div><h3>Shutter Count</h3>
+          <p><span lang-es>Disparos del obturador y vida útil estimada de tu cámara a partir de un JPG o RAW.</span><span lang-en>Shutter actuations and estimated life of your camera from a JPG or RAW.</span></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="porque">
+    <div class="wrap">
+      <p class="kicker"><span lang-es>Reescrita en Swift</span><span lang-en>Rewritten in Swift</span></p>
+      <h2><span lang-es>Por qué nativa</span><span lang-en>Why native</span></h2>
+      <div class="why">
+        <div><div class="num">30<small style="font-size:24px">MB</small></div><b><span lang-es>Diez veces más ligera</span><span lang-en>Ten times lighter</span></b><p><span lang-es>La versión anterior, en Electron, pesaba 300 MB. Esta usa los frameworks que ya vienen en macOS.</span><span lang-en>The previous Electron version weighed 300 MB. This one uses the frameworks already in macOS.</span></p></div>
+        <div><div class="num">GPU</div><b><span lang-es>Vídeo por hardware</span><span lang-en>Hardware video</span></b><p><span lang-es>Los fotogramas se componen en Core Image y se codifican con VideoToolbox. Sin esperar a ffmpeg.</span><span lang-en>Frames are composed in Core Image and encoded with VideoToolbox. No waiting for ffmpeg.</span></p></div>
+        <div><div class="num">0</div><b><span lang-es>Descargas ni cuentas</span><span lang-en>Downloads or accounts</span></b><p><span lang-es>Caras y saliencia con Vision, RAW y HEIC con ImageIO. Nada sale de tu Mac; solo se consulta si hay versión nueva.</span><span lang-en>Faces and saliency with Vision, RAW and HEIC with ImageIO. Nothing leaves your Mac; it only checks for a new version.</span></p></div>
+        <div><div class="num">↩︎</div><b><span lang-es>Pensada para no perder nada</span><span lang-en>Built so you lose nothing</span></b><p><span lang-es>Metadatos sin recomprimir, renombrado con deshacer y configuración guardada en cada carpeta.</span><span lang-en>Metadata without recompression, renaming with undo, and settings saved per folder.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="descarga">
+    <div class="wrap download">
+      <div>
+        <p class="kicker"><span lang-es>Gratis y de código abierto</span><span lang-en>Free and open source</span></p>
+        <h2><span lang-es>Descarga</span><span lang-en>Download</span></h2>
+        <ol>
+          <li><span lang-es>Baja el DMG de la última release.</span><span lang-en>Get the DMG from the latest release.</span></li>
+          <li><span lang-es>Arrastra <b>CAOBA</b> a Aplicaciones.</span><span lang-en>Drag <b>CAOBA</b> to Applications.</span></li>
+          <li><span lang-es>Si macOS avisa de que no puede comprobar el desarrollador: clic derecho → <b>Abrir</b> la primera vez.</span><span lang-en>If macOS says it cannot verify the developer: right-click → <b>Open</b> the first time.</span></li>
+        </ol>
+        <p class="note"><span lang-es>Requiere macOS 14 Sonoma o posterior. Versión para iPhone y iPad en preparación.</span><span lang-en>Requires macOS 14 Sonoma or later. iPhone and iPad version in the works.</span></p>
+      </div>
+      <div style="display:grid;gap:12px">
+        <a class="btn primary" href="https://github.com/marcosesperon/caoba-photo-utils/releases/latest" style="text-align:center"><span lang-es>Descargar la última versión</span><span lang-en>Download the latest version</span></a>
+        <a class="btn" href="https://github.com/marcosesperon/caoba-photo-utils" style="text-align:center">GitHub · <span lang-es>código y releases</span><span lang-en>code and releases</span></a>
+        <a class="btn" href="https://buymeacoffee.com/marcosesperon" style="text-align:center">☕ Buy me a coffee</a>
+        <p class="note" style="text-align:center"><span lang-es>Hecha por el estudio</span><span lang-en>Made by the studio</span> <a href="https://caobafoto.com/">caobafoto.com</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <img src="assets/logo.png" alt="CAOBA">
+    <div>
+      <a href="https://caobafoto.com/">caobafoto.com</a> ·
+      <a href="https://github.com/marcosesperon/caoba-photo-utils">GitHub</a> ·
+      <a href="https://github.com/marcosesperon/caoba-foto-utils"><span lang-es>Versión anterior (Electron)</span><span lang-en>Previous version (Electron)</span></a>
+    </div>
+    <div>© <span id="year"></span> CAOBA</div>
+  </div>
+</footer>
+
+<script>
+  // Idioma: el del navegador, guardado si el usuario lo cambia.
+  const root = document.documentElement;
+  const langBtn = document.getElementById('lang');
+  function setLang(l) { root.setAttribute('data-lang', l); root.lang = l; langBtn.textContent = l === 'es' ? 'EN' : 'ES'; try { localStorage.setItem('caoba-lang', l); } catch (e) {} }
+  let lang = 'es';
+  try { lang = localStorage.getItem('caoba-lang') || (navigator.language.startsWith('es') ? 'es' : 'en'); } catch (e) {}
+  setLang(lang);
+  langBtn.addEventListener('click', () => setLang(root.getAttribute('data-lang') === 'es' ? 'en' : 'es'));
+
+  // Tema: sigue al sistema salvo que el usuario lo fije.
+  const themeBtn = document.getElementById('theme');
+  try { const t = localStorage.getItem('caoba-theme'); if (t) root.setAttribute('data-theme', t); } catch (e) {}
+  themeBtn.addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') === 'dark' || (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = dark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('caoba-theme', next); } catch (e) {}
+  });
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Versión publicada: se consulta a GitHub; si no hay releases, se deja el texto genérico.
+  fetch('https://api.github.com/repos/marcosesperon/caoba-photo-utils/releases/latest')
+    .then(r => r.ok ? r.json() : null)
+    .then(rel => {
+      if (!rel || !rel.tag_name) return;
+      const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
+      if (dmg) document.getElementById('download-btn').href = dmg.browser_download_url;
+      document.getElementById('version-meta').textContent = rel.tag_name + ' · macOS 14+';
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>

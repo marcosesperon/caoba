@@ -220,3 +220,27 @@ R: Opción 1.
 
 ### 6. Pendiente de comprobar
 - Prueba manual: renombrar en sitio, deshacer, y deshacer dos operaciones seguidas.
+
+## 2026-10-16 — README y landing (GitHub Pages)
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo: la petición venía con la referencia y el alcance claros)*
+Reescribir `README.md` como explicación de la app tomando como referencia el README de CAOBA Foto Utils (Electron) y adaptándolo a la versión Swift, y crear `index.html` en la raíz como landing para GitHub Pages.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `README.md` de `caoba-foto-utils` (estructura, módulos, enlaces a caobafoto.com y Buy Me a Coffee, logo).
+
+### 4. Decisiones
+- README en español con la misma estructura que el antiguo (acerca de, 9 módulos, interfaz, tecnologías, uso) más instalación, diferencias con la versión Electron y nota sobre exiftool.
+- Landing en `index.html` en la raíz (GitHub Pages desde `main` / raíz), estática, sin dependencias salvo Google Fonts: estética de la app (OLED negro o papel claro, trama de puntos, Doto en titulares, rojo CAOBA), español e inglés con conmutador, tema claro/oscuro, y botón de descarga que consulta la última release en GitHub para enlazar el DMG directamente.
+- Logo e icono copiados a `assets/` para la landing y el README.
+
+### 5. Alternativas descartadas
+- Publicar Pages desde `docs/`: expondría la bitácora y la documentación interna como parte del sitio.
+- Capturas de pantalla en la landing: no hay capturas limpias todavía; se añadirán cuando haya una release.
+
+### 6. Pendiente de comprobar
+- Activar GitHub Pages (rama `main`, carpeta raíz) tras publicar el commit, y revisar la landing en móvil.
