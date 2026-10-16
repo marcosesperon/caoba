@@ -60,6 +60,7 @@ struct SlideshowView: View {
         .onAppear {
             // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
             if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
+            if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
         }
         .onChange(of: doc.snapshot) { doc.scheduleSave() }
         .onChange(of: doc.files) { doc.pruneSequence() }

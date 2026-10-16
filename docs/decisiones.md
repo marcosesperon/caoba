@@ -538,3 +538,24 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Proporción por defecto igual al formato del vídeo
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* En el Slideshow, al abrir «Añadir collage» o «Componer secuencia», el filtro «Proporción» debe partir de la proporción del formato de vídeo elegido (16:9, 9:16…), no de «Todas».
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `SlideshowDocument` (formato, filtros de las hojas, carga del preset y valores por defecto).
+
+### 4. Decisiones
+- Al cargar una carpeta sin ajustes de Componer guardados, y al reiniciar, los filtros de las dos hojas parten de la etiqueta del formato (`format.label`). Si hay ajustes guardados por carpeta, mandan ellos.
+- Si el usuario cambia el formato de vídeo y el filtro seguía siendo el del formato anterior, pasa al nuevo; si lo había cambiado a mano («Todas» u otra), se respeta.
+
+### 5. Alternativas descartadas
+- Forzar la proporción del vídeo cada vez que se abre la hoja: pisaría lo que el usuario eligió y lo guardado por carpeta.
+
+### 6. Pendiente de comprobar
+Nada.
+

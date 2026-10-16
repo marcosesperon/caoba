@@ -133,7 +133,13 @@ final class SlideshowDocument {
 
     // Vídeo
     var mode: Mode = .photos
-    var format: VideoFormat = .landscape16x9
+    var format: VideoFormat = .landscape16x9 {
+        didSet {
+            // Los filtros de proporción que seguían al formato anterior pasan al nuevo.
+            if composeSheet.filters.aspect == oldValue.label { composeSheet.filters.aspect = format.label }
+            if addFilters.aspect == oldValue.label { addFilters.aspect = format.label }
+        }
+    }
     var durationPerPhoto = 4.0
     var transition = true
     var coverURL: URL?
@@ -701,6 +707,7 @@ final class SlideshowDocument {
             csRadius = cs.borderRadius ?? 0
             csShadow = cs.shadowIntensity ?? 50
             composeSheet = ComposeSheetState(cs.compose)
+            if cs.compose == nil { composeSheet.filters.aspect = format.label }
             selectedTemplates = Set(cs.compose?.selectedTemplates ?? [])
             sequence = (cs.sequence ?? []).compactMap { id in
                 CollageTemplates.template(id: id).map { SequenceItem(templateID: $0.id, focusPoints: Array(repeating: nil, count: $0.photos)) }
@@ -739,6 +746,8 @@ final class SlideshowDocument {
         kbSettings = KenBurnsSettings(); kbChoices = [:]; kbPoints = [:]
         sequence = []; reveal = 1.5; hold = 3; csBackground = .white; csGap = 10; csRadius = 0; csShadow = 50
         composeSheet = ComposeSheetState(); selectedTemplates = []; addFilters = TemplateFilterState()
+        // Por defecto, plantillas de la proporción del vídeo.
+        composeSheet.filters.aspect = format.label; addFilters.aspect = format.label
         selection = .none
     }
 }
