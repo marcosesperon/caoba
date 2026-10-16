@@ -19,7 +19,7 @@ struct ProcessorView: View {
     @State private var compare: (before: CGImage, after: CGImage)?
     @State private var previewError: String?
 
-    enum CropPreset: String, CaseIterable, Identifiable {
+    enum CropPreset: String, CaseIterable, Identifiable, Codable {
         case square = "1:1", r4x5 = "4:5", r5x4 = "5:4", r3x2 = "3:2", r2x3 = "2:3", r16x9 = "16:9", r9x16 = "9:16", custom
         var id: String { rawValue }
         /// En el selector: "16:9 · TV, YouTube".
@@ -36,6 +36,19 @@ struct ProcessorView: View {
             case .custom: return nil
             }
         }
+    }
+
+    /// Ajustes actuales, para presets y para recordarlos entre sesiones.
+    private var settings: ProcessorSettings {
+        ProcessorSettings(autorotate: autorotate, cropEnabled: cropEnabled, cropPreset: cropPreset, customRatioW: customRatioW, customRatioH: customRatioH,
+                          cropAnchor: cropAnchor, resizeEnabled: resizeEnabled, maxDimension: maxDimension, quality: quality, keepFormat: keepFormat, outputFormat: outputFormat)
+    }
+
+    private func apply(_ s: ProcessorSettings) {
+        autorotate = s.autorotate; cropEnabled = s.cropEnabled; cropPreset = s.cropPreset
+        customRatioW = s.customRatioW; customRatioH = s.customRatioH; cropAnchor = s.cropAnchor
+        resizeEnabled = s.resizeEnabled; maxDimension = s.maxDimension; quality = s.quality
+        keepFormat = s.keepFormat; outputFormat = s.outputFormat
     }
 
     /// Operaciones tal como las entiende el motor.
@@ -55,7 +68,11 @@ struct ProcessorView: View {
     var body: some View {
         HSplitView {
             VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Procesador")
+                HStack {
+                    ModuleTitle(title: "Procesador")
+                    Spacer()
+                    PresetBar(module: .processor, current: settings, defaults: ProcessorSettings(), apply: apply)
+                }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         OptionGroup(title: "Operaciones") {
@@ -128,6 +145,17 @@ struct ProcessorView: View {
 
             FileListView().frame(minWidth: 320)
         }
+        .onAppear {
+            // Arranca como se dejó la última vez.
+            if let last = PresetStore.shared.last(.processor, as: ProcessorSettings.self) { apply(last) }
+            // Para pruebas: `--state processor.demo=1` guarda y aplica un preset de ejemplo.
+            if appState.launchState["processor.demo"] != nil {
+                var demo = ProcessorSettings(); demo.resizeEnabled = true; demo.maxDimension = 2048; demo.quality = 80
+                PresetStore.shared.save(demo, named: "Web 2048", module: .processor)
+                apply(demo)
+            }
+        }
+        .onChange(of: settings) { PresetStore.shared.saveLast(settings, module: .processor) }
         .sheet(isPresented: Binding(get: { compare != nil }, set: { if !$0 { compare = nil } })) {
             if let compare {
                 CompareSheet(before: compare.before, after: compare.after)

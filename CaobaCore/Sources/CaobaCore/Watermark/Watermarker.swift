@@ -22,7 +22,7 @@ public enum OverlayPosition: String, Sendable, Codable, CaseIterable {
 }
 
 /// Opciones de marca de agua.
-public struct WatermarkOptions: Sendable, Equatable {
+public struct WatermarkOptions: Sendable, Equatable, Codable {
     public enum Mode: String, Sendable, Codable, CaseIterable { case single, tiled }
     public enum SpacingUnit: String, Sendable, Codable, CaseIterable { case pixels = "px", percent }
 

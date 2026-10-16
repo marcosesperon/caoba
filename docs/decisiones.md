@@ -635,3 +635,41 @@ En el Slideshow, sincronizar los cambios de foto o collage con la música:
 ### 6. Pendiente de comprobar
 - Más canciones (tempos lentos, música sin percusión) para afinar el umbral de confianza y la preferencia por 120 ppm.
 
+## 2026-10-16 — Presets con nombre en Procesador, Marca de agua y Collage
+
+### 1. La petición tal como se ha entendido
+En Procesador, Marca de agua y Collage:
+
+- **Presets con nombre, globales de la app** (P1): un control «Preset» en la cabecera del módulo con un menú que lista los guardados, los aplica con un clic y ofrece «Guardar como…» (pide nombre; si ya existe, lo sustituye), «Actualizar con los ajustes actuales» y «Eliminar». Al tocar cualquier ajuste tras aplicar uno, el menú vuelve a mostrar «Sin preset» para dejar claro que lo actual ya no coincide.
+- **Qué guarda cada preset**: todos los ajustes del módulo. Procesador: autorrotar, recorte (proporción, personalizada, anclaje), redimensionado (lado mayor), calidad, formato. Marca de agua: ruta del PNG, modo, posición, tamaño, opacidad, espaciado. Collage: lado mayor, separación, fondo, esquinas, sombra, título, calidad y logo (ruta, posición, tamaño, opacidad). Si al aplicar un preset falta el fichero del PNG o del logo, se aplica el resto y se avisa.
+- **Última configuración recordada** (P2): cada uno de los tres módulos arranca con los ajustes con los que se cerró la última vez, aunque no sean un preset. Un botón «Valores por defecto» en el mismo menú permite volver a los de fábrica.
+- Todo se guarda en las preferencias de la app (globales, no en el `.caoba`).
+
+- **Exportar e importar** (añadido en la confirmación): en la ventana de Ajustes de la app, una sección «Presets» con «Exportar…» (guarda todos los presets de los tres módulos en un fichero JSON) e «Importar…» (lee un fichero y añade sus presets; si un nombre ya existe, se sustituye). Sirve para llevarlos a otro Mac o compartirlos.
+
+*Confirmación: «sí, en ajustes opciones para exportar e importar» (16-10-2026); incorporado. Plan aprobado: «adelante».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Presets globales de la app o por carpeta?** R: globales.
+**P2. ¿Solo presets con nombre o también recordar la última configuración de cada módulo?** R: 1, las dos cosas.
+
+### 3. Fuentes analizadas
+- Estado de `ProcessorView`, `WatermarkView` y `CollageView` (todo en `@State`, sin persistencia), `WatermarkOptions` (no era codificable), `SettingsView` (solo idioma y apariencia).
+
+### 4. Decisiones
+- **Ajustes como estructura** (`ProcessorSettings`, `WatermarkSettings`, `CollageSettings`, codificables): cada vista conserva sus `@State` y expone `settings` (calculado) y `apply(_:)`; así no se tocan los controles. Un `onChange(of: settings)` guarda la última configuración y `onAppear` la restaura, lo que también cubre el cambio de módulo (la vista se recrea).
+- **`PresetStore`** (`@Observable`, hilo principal): presets por módulo y última configuración en `UserDefaults` como JSON (`caoba.presets.<módulo>`, `caoba.lastSettings.<módulo>`); `version` cambia con cada escritura para que el menú se refresque. `Bundle` con los tres módulos para exportar e importar; al importar, los nombres repetidos se sustituyen.
+- **`PresetBar`** genérico: el nombre que muestra es el del preset cuyos ajustes **coinciden** con los actuales (si no coincide ninguno, «Sin preset»); «Actualizar» y «Eliminar» actúan sobre el último preset aplicado o guardado en la sesión. Guardar pide nombre con una alerta.
+- Rutas de PNG y logo dentro del preset; si faltan al aplicar, se aplica el resto y se avisa bajo el título en rojo CAOBA.
+- `CropPreset` del Procesador pasa a ser codificable; `WatermarkOptions` del motor también (todos sus campos ya lo eran).
+- Ajustes de la app: sección «Presets» con recuento, «Exportar…» (JSON ordenado y legible) e «Importar…», con mensaje de resultado. Ganchos de prueba `processor.demo=1`, `presets.export=`, `presets.import=`.
+- Probado: crear preset «Web 2048», reabrir la app y el Procesador arranca con él aplicado y marcado; exportar, borrar las preferencias e importar lo recupera.
+
+### 5. Alternativas descartadas
+- Reescribir las vistas para que tengan un único `@State` con la estructura: más limpio, pero obligaba a tocar todos los controles de tres módulos.
+- Mostrar en el menú el nombre del último aplicado aunque los ajustes hayan cambiado: el usuario pidió que se vea claro cuando ya no coincide.
+
+### 6. Pendiente de comprobar
+Nada.
+

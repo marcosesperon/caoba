@@ -41,7 +41,33 @@ struct CollageView: View {
     @State private var logoSize = 20.0
     @State private var logoOpacity = 80.0
 
+    @State private var presetWarning: String?
     private let detector = FocusDetector()
+
+    /// Ajustes de salida actuales, para presets y para recordarlos entre sesiones.
+    private var settings: CollageSettings {
+        CollageSettings(longestSide: longestSide, gap: gap, background: background, cornerRadius: cornerRadius, shadow: shadow, title: title, quality: quality,
+                        logoPath: logoURL?.path, logoPosition: logoPosition, logoSize: logoSize, logoOpacity: logoOpacity)
+    }
+
+    /// Aplica un preset; si su logo ya no existe, se aplica el resto y se avisa.
+    private func apply(_ s: CollageSettings) {
+        longestSide = s.longestSide; gap = s.gap; background = s.background; cornerRadius = s.cornerRadius
+        shadow = s.shadow; title = s.title; quality = s.quality
+        logoPosition = s.logoPosition; logoSize = s.logoSize; logoOpacity = s.logoOpacity
+        if let path = s.logoPath {
+            if FileManager.default.fileExists(atPath: path) {
+                logoURL = URL(fileURLWithPath: path)
+                presetWarning = nil
+            } else {
+                logoURL = nil
+                presetWarning = L("No se encuentra el logo: ") + (path as NSString).lastPathComponent
+            }
+        } else {
+            logoURL = nil
+            presetWarning = nil
+        }
+    }
 
     private var files: [URL] { appState.checkedFiles }
     private var rows: [CollageRow] { CollageSequenceEditor.rows(from: sequence, files: files) }
@@ -64,7 +90,14 @@ struct CollageView: View {
     var body: some View {
         HSplitView {
             VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Collage")
+                HStack {
+                    ModuleTitle(title: "Collage")
+                    Spacer()
+                    PresetBar(module: .collage, current: settings, defaults: CollageSettings(), apply: apply)
+                }
+                if let presetWarning {
+                    Text(presetWarning).font(.caption).foregroundStyle(Color.accentColor)
+                }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         LabeledRow("Plantillas") {
@@ -118,6 +151,7 @@ struct CollageView: View {
             FileListView(allowsReorder: true).frame(minWidth: 320)
         }
         .onAppear {
+            if let last = PresetStore.shared.last(.collage, as: CollageSettings.self) { apply(last) }
             loadFolderSettings()
             // Para capturas desde línea de comandos: `--state collage.tab=random` abre en "Aleatorias".
             if appState.launchState["collage.tab"] == "random" { mode = .random; photosFilter = 3 }
@@ -127,6 +161,7 @@ struct CollageView: View {
         .onChange(of: appState.configResetToken) { composeSheet = ComposeSheetState(); randomSelection = [] }
         .onChange(of: composeSheet) { saveFolderSettings() }
         .onChange(of: randomSelection) { saveFolderSettings() }
+        .onChange(of: settings) { PresetStore.shared.saveLast(settings, module: .collage) }
     }
 
     /// Restaura los ajustes de Componer guardados en el `.caoba` de la carpeta.

@@ -4866,6 +4866,186 @@
           }
         }
       }
+    },
+    "Sin presets guardados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No saved presets"
+          }
+        }
+      }
+    },
+    "Guardar como…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save as…"
+          }
+        }
+      }
+    },
+    "Actualizar «%@» con los ajustes actuales" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update “%@” with the current settings"
+          }
+        }
+      }
+    },
+    "Eliminar «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete “%@”"
+          }
+        }
+      }
+    },
+    "Valores por defecto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default values"
+          }
+        }
+      }
+    },
+    "Sin preset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preset"
+          }
+        }
+      }
+    },
+    "Nombre del preset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset name"
+          }
+        }
+      }
+    },
+    "Si ya existe un preset con ese nombre, se sustituye." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If a preset with that name already exists, it is replaced."
+          }
+        }
+      }
+    },
+    "No se encuentra el PNG de la marca: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The watermark PNG cannot be found: "
+          }
+        }
+      }
+    },
+    "No se encuentra el logo: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The logo cannot be found: "
+          }
+        }
+      }
+    },
+    "Presets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presets"
+          }
+        }
+      }
+    },
+    "%lld presets guardados (Procesador, Marca de agua y Collage)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld saved presets (Processor, Watermark and Collage)"
+          }
+        }
+      }
+    },
+    "Exportar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export…"
+          }
+        }
+      }
+    },
+    "Importar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import…"
+          }
+        }
+      }
+    },
+    "Exportados " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exported "
+          }
+        }
+      }
+    },
+    "Importados " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported "
+          }
+        }
+      }
+    },
+    " presets." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " presets."
+          }
+        }
+      }
+    },
+    "El fichero no es una exportación de presets de CAOBA." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is not a CAOBA presets export."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

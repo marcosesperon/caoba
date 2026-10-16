@@ -11,12 +11,40 @@ struct WatermarkView: View {
     @State private var preview: CGImage?
     @State private var previewTask: Task<Void, Never>?
 
+    @State private var presetWarning: String?
+
     private var canRun: Bool { watermarkURL != nil && !appState.checkedFiles.isEmpty }
+
+    private var settings: WatermarkSettings { WatermarkSettings(watermarkPath: watermarkURL?.path, options: options) }
+
+    /// Aplica un preset; si su PNG ya no existe, se aplica el resto y se avisa.
+    private func apply(_ s: WatermarkSettings) {
+        options = s.options
+        if let path = s.watermarkPath {
+            if FileManager.default.fileExists(atPath: path) {
+                watermarkURL = URL(fileURLWithPath: path)
+                presetWarning = nil
+            } else {
+                watermarkURL = nil
+                presetWarning = L("No se encuentra el PNG de la marca: ") + (path as NSString).lastPathComponent
+            }
+        } else {
+            watermarkURL = nil
+            presetWarning = nil
+        }
+    }
 
     var body: some View {
         HSplitView {
             VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Marca de agua")
+                HStack {
+                    ModuleTitle(title: "Marca de agua")
+                    Spacer()
+                    PresetBar(module: .watermark, current: settings, defaults: WatermarkSettings(), apply: apply)
+                }
+                if let presetWarning {
+                    Text(presetWarning).font(.caption).foregroundStyle(Color.accentColor)
+                }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         OptionGroup(title: "Imagen de la marca") {
@@ -96,9 +124,12 @@ struct WatermarkView: View {
             .frame(minWidth: 360)
         }
         .onAppear {
+            // Arranca como se dejó la última vez.
+            if let last = PresetStore.shared.last(.watermark, as: WatermarkSettings.self) { apply(last) }
             // Para capturas desde línea de comandos: `--state watermark.png=/ruta/marca.png`
             if let path = appState.launchState["watermark.png"] { watermarkURL = URL(fileURLWithPath: path) }
         }
+        .onChange(of: settings) { PresetStore.shared.saveLast(settings, module: .watermark) }
         .onChange(of: options) { schedulePreview() }
         .onChange(of: watermarkURL) { schedulePreview() }
         .onChange(of: previewIndex) { schedulePreview() }

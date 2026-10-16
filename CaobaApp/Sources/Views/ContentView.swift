@@ -113,10 +113,12 @@ struct ComingSoonView: View {
     }
 }
 
-/// Preferencias: idioma y apariencia.
+/// Preferencias: idioma, apariencia y presets.
 struct SettingsView: View {
     @AppStorage(Preferences.appearanceKey) private var appearance: Appearance = .system
     @AppStorage(Preferences.languageKey) private var language: AppLanguage = .system
+    @State private var store = PresetStore.shared
+    @State private var presetMessage: String?
 
     var body: some View {
         Form {
@@ -132,8 +134,47 @@ struct SettingsView: View {
                 }
                 .labelsHidden()
             }
+            Divider().padding(.vertical, 4)
+            LabeledRow("Presets") {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("\(store.totalCount) presets guardados (Procesador, Marca de agua y Collage)").font(.caption).foregroundStyle(.secondary)
+                    HStack {
+                        Button("Exportar…") { exportPresets() }.disabled(store.totalCount == 0)
+                        Button("Importar…") { importPresets() }
+                    }
+                    if let presetMessage {
+                        Text(presetMessage).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
         }
         .padding(20)
-        .frame(width: 360)
+        .frame(width: 420)
+    }
+
+    /// Todos los presets a un fichero JSON, para llevarlos a otro Mac o compartirlos.
+    private func exportPresets() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "CAOBA-presets.json"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try store.exportData().write(to: url)
+            presetMessage = L("Exportados ") + "\(store.totalCount)" + L(" presets.")
+        } catch {
+            presetMessage = JobRunner.describe(error)
+        }
+    }
+
+    private func importPresets() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.json]
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let count = try store.importData(Data(contentsOf: url))
+            presetMessage = L("Importados ") + "\(count)" + L(" presets.")
+        } catch {
+            presetMessage = L("El fichero no es una exportación de presets de CAOBA.")
+        }
     }
 }

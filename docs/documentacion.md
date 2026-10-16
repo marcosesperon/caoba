@@ -240,6 +240,10 @@ Fichero `.caoba` en la carpeta de fotos, mismo formato que la app antigua: `{ "v
 
 Secciones que escribe la app: `slideshow` (todo el preset del Slideshow, incluida `collage.compose` con los ajustes de la hoja Componer), `collage` (`CollageFolderSettings`: `compose` con reparto, reordenar, filtros de fotos / proporción / tipo y plantillas marcadas) y `renameHistory` (protegida: sobrevive a «Reiniciar»). Los ajustes de Componer se restauran al abrir la carpeta y se guardan al cambiar cualquiera de ellos, así la hoja aparece como se dejó. Para abrir la hoja desde línea de comandos tal como esté guardada: `--state collage.compose=open` o `--state slideshow.compose=open` (con `capture.sheets=1` para capturarla).
 
+### App: presets y última configuración
+
+Procesador, Marca de agua y Collage llevan un menú «Preset» junto al título: lista los presets guardados (globales de la app), los aplica, y ofrece «Guardar como…», «Actualizar», «Eliminar» y «Valores por defecto». El menú muestra el nombre del preset cuyos ajustes coinciden con los actuales; en cuanto se toca algo, «Sin preset». Cada módulo además arranca con la última configuración usada. Las rutas del PNG de la marca y del logo van dentro del preset; si faltan al aplicarlo, se avisa. En Ajustes, «Exportar…» e «Importar…» mueven todos los presets en un JSON. Claves: `caoba.presets.<módulo>` y `caoba.lastSettings.<módulo>`. Para probar desde línea de comandos: `--state processor.demo=1`, `--state presets.export=/ruta.json`, `--state presets.import=/ruta.json`.
+
 ### App: preferencias
 
 - Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.

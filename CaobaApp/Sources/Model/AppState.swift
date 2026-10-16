@@ -214,6 +214,9 @@ final class AppState {
         if let path = value(after: "--folder") {
             await selectSourceFolder(URL(fileURLWithPath: path))
         }
+        // Para pruebas: `--state presets.export=/ruta.json` e `--state presets.import=/ruta.json`.
+        if let path = launchState["presets.export"] { try? PresetStore.shared.exportData().write(to: URL(fileURLWithPath: path)) }
+        if let path = launchState["presets.import"], let data = try? Data(contentsOf: URL(fileURLWithPath: path)) { _ = try? PresetStore.shared.importData(data) }
         // Para capturar la banda y la hoja sin esperar a que exista una versión nueva ni a los 7 días.
         if let version = launchState["demo.update"] {
             availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba/releases/latest")!)
