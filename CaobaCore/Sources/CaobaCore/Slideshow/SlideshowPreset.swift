@@ -99,6 +99,8 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public var sequence: [String]?
         /// Nuevo: "mantener" propio por fila ("0", "1"...), en segundos.
         public var holdByRow: [String: Double]?
+        /// Nuevo: ajustes de la hoja «Componer secuencia».
+        public var compose: ComposeSettings?
         public init() {}
     }
 

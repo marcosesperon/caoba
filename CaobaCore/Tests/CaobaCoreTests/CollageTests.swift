@@ -14,6 +14,10 @@ struct CollageTemplatesTests {
         #expect(CollageTemplates.filter(photos: 2, aspectLabel: "16:9").isEmpty == false)
         #expect(CollageTemplates.template(id: "grid_2x2")?.cells.count == 4)
         #expect(CollageTemplates.aspectLabels.first == "3:1")
+        // Filtro por tipo: las superpuestas solo salen si se piden, y el tipo acota.
+        #expect(CollageTemplates.filter(includeOverlap: true, type: .overlap).count == 84)
+        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 570 - 84)
+        #expect(CollageTemplates.filter(includeOverlap: false, type: .overlap).isEmpty)
         // Todas las celdas dentro del lienzo.
         for t in all { for c in t.cells { #expect(c.x >= 0 && c.y >= 0 && c.x + c.w <= 1.0001 && c.y + c.h <= 1.0001) } }
     }

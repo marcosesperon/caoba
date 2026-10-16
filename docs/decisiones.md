@@ -461,3 +461,34 @@ Al componer secuencias de collages (en Collage y en los collages del Slideshow, 
 ### 6. Pendiente de comprobar
 - Afinar pesos con reportajes reales (paisajes, detalles) y ver si el análisis sobre RAW resulta lento en carpetas grandes.
 
+## 2026-10-16 — Ajustes de Componer guardados por carpeta y filtro por tipo de plantilla
+
+### 1. La petición tal como se ha entendido
+Dos mejoras en la hoja «Componer secuencia» (Collage y Slideshow):
+
+1. **Guardar los ajustes de la hoja por carpeta**, en el `.caoba`, para que al volver a entrar (en la misma sesión o en otra) aparezca como se dejó: reparto (aleatorio / según el contenido), «Permitir reordenar fotos», filtros de fotos, proporción y tipo, y las plantillas marcadas. Un juego para Collage (sección nueva `collage` del `.caoba`) y otro para Slideshow (dentro de su sección `slideshow`, que ya guarda la secuencia). Se guardan al pulsar Componer y también al cambiar la selección, y «Reiniciar» los borra como al resto de ajustes de la carpeta.
+2. **Filtro «Tipo»** en los filtros de plantillas del Slideshow (hojas Componer y Añadir): «Todas / Básicas / Superpuestas», para poder marcar «Todas las visibles» de un tipo concreto. En Collage no aparece porque ahí no se ofrecen las superpuestas.
+
+*Confirmación: «si» (16-10-2026). Plan aprobado: «adelante».*
+
+### 2. Preguntas y respuestas
+**P1. ¿Ajustes globales de la app o por carpeta en el `.caoba`?** R: 2, por carpeta.
+
+### 3. Fuentes analizadas
+- `SlideshowPreset` y `SlideshowDocument.makePreset/loadPresetIfNeeded` (el Slideshow ya guardaba la secuencia por carpeta con autoguardado), `CaobaConfig` (secciones del `.caoba`, `resetSettings` respeta solo `renameHistory`), `CollageView` (no guardaba nada por carpeta), `TemplateFilters` y `TemplatePickerSheet`.
+
+### 4. Decisiones
+- Un único tipo `ComposeSettings` (reparto, reordenar, filtros y plantillas marcadas, todo opcional) que el Slideshow guarda dentro de su sección `slideshow.collage.compose` y Collage en una sección nueva `collage.compose` del `.caoba` (`CollageFolderSettings`). Los `.caoba` antiguos siguen leyéndose.
+- En la app, el estado de la hoja (`ComposeSheetState`) vive en el padre (Collage: `CollageView`; Slideshow: `SlideshowDocument`) y la hoja lo recibe por binding; así se puede guardar y restaurar. En Collage las plantillas marcadas son las mismas de la pestaña «Aleatorias», como ya ocurría.
+- Guardado: Collage escribe la sección en cuanto cambia cualquier ajuste o la selección (con guarda para no escribir mientras se restaura o si la carpeta aún no es la cargada); Slideshow usa su autoguardado de 2 s con `didSet`. Al cambiar de carpeta se restaura lo de esa carpeta; «Reiniciar» (`configResetToken`) vuelve a los valores por defecto en pantalla además de borrar la sección.
+- Filtro «Tipo» (`CollageTemplates.TemplateType`: básicas / superpuestas) en `TemplateFilters`, solo donde se ofrecen las superpuestas (las dos hojas del Slideshow). El filtro de la hoja de Añadir del Slideshow tiene su propio estado y no se guarda.
+- Ganchos de captura: `collage.compose=open` y `slideshow.compose=open` abren la hoja tal como esté guardada.
+- Verificado con BOOK: componer por contenido con reordenar, cerrar la app, volver a abrir la hoja y aparece «Según el contenido», reordenar marcado y las 332 plantillas de 2 a 4 fotos seleccionadas; el `.caoba` tiene las dos secciones.
+
+### 5. Alternativas descartadas
+- Guardar en preferencias globales: el usuario prefirió por carpeta (P1).
+- Un selector de tipo también en Collage: allí no se ofrecen superpuestas, sería un filtro sin efecto.
+
+### 6. Pendiente de comprobar
+Nada.
+

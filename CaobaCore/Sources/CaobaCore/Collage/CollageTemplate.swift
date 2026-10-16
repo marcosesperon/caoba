@@ -86,12 +86,18 @@ public enum CollageTemplates {
         all.first { $0.id == id }
     }
 
-    /// Filtra por número de fotos, proporción y si se admiten overlap.
-    public static func filter(photos: Int? = nil, aspectLabel: String? = nil, includeOverlap: Bool = false) -> [CollageTemplate] {
+    /// Tipo de plantilla para filtrar: básicas (celdas en rejilla) o superpuestas (marco y sombra).
+    public enum TemplateType: String, Sendable, Codable, CaseIterable {
+        case basic, overlap
+    }
+
+    /// Filtra por número de fotos, proporción, si se admiten overlap y, opcionalmente, tipo.
+    public static func filter(photos: Int? = nil, aspectLabel: String? = nil, includeOverlap: Bool = false, type: TemplateType? = nil) -> [CollageTemplate] {
         all.filter { t in
             (includeOverlap || !t.overlap)
                 && (photos == nil || t.photos == photos)
                 && (aspectLabel == nil || t.aspectLabel == aspectLabel)
+                && (type == nil || (type == .overlap) == t.overlap)
         }
     }
 }

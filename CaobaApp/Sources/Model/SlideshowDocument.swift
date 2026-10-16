@@ -158,9 +158,11 @@ final class SlideshowDocument {
     var kbPoints: [String: KenBurnsPoints] = [:]
     // Collages
     var sequence: [SequenceItem] = []
-    var selectedTemplates: Set<String> = []
-    var composeMode: ComposeMode = .random
-    var allowReorder = false
+    var selectedTemplates: Set<String> = [] { didSet { if selectedTemplates != oldValue { scheduleSave() } } }
+    /// Reparto, reordenar y filtros de la hoja de Componer; se guardan en el preset de la carpeta.
+    var composeSheet = ComposeSheetState() { didSet { if composeSheet != oldValue { scheduleSave() } } }
+    /// Filtros de la hoja de Añadir (no se guardan).
+    var addFilters = TemplateFilterState()
     var composeProgress: ComposeProgress?
     private var composeTask: Task<Void, Never>?
     var reveal = 1.5
@@ -394,7 +396,7 @@ final class SlideshowDocument {
     func compose() {
         let templates = selectedTemplates.compactMap(CollageTemplates.template(id:))
         selection = .none
-        guard composeMode == .content else {
+        guard composeSheet.mode == .content else {
             let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
             sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
             return
@@ -406,7 +408,7 @@ final class SlideshowDocument {
         composeTask = Task {
             defer { composeProgress = nil; composeTask = nil }
             do {
-                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: allowReorder, detector: detector) { done in
+                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: composeSheet.allowReorder, detector: detector) { done in
                     self.composeProgress = ComposeProgress(done: done, total: snapshot.count)
                 }
                 app.reorderCheckedFiles(to: result.order)
@@ -643,6 +645,7 @@ final class SlideshowDocument {
             }
         }
         cs.focusPoints = focus
+        cs.compose = composeSheet.settings(selectedTemplates: selectedTemplates)
         p.collage = cs
         return p
     }
@@ -697,6 +700,8 @@ final class SlideshowDocument {
             csGap = cs.gap ?? 10
             csRadius = cs.borderRadius ?? 0
             csShadow = cs.shadowIntensity ?? 50
+            composeSheet = ComposeSheetState(cs.compose)
+            selectedTemplates = Set(cs.compose?.selectedTemplates ?? [])
             sequence = (cs.sequence ?? []).compactMap { id in
                 CollageTemplates.template(id: id).map { SequenceItem(templateID: $0.id, focusPoints: Array(repeating: nil, count: $0.photos)) }
             }
@@ -733,6 +738,7 @@ final class SlideshowDocument {
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true
         kbSettings = KenBurnsSettings(); kbChoices = [:]; kbPoints = [:]
         sequence = []; reveal = 1.5; hold = 3; csBackground = .white; csGap = 10; csRadius = 0; csShadow = 50
+        composeSheet = ComposeSheetState(); selectedTemplates = []; addFilters = TemplateFilterState()
         selection = .none
     }
 }

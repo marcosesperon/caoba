@@ -57,6 +57,10 @@ struct SlideshowView: View {
         }
         .onChange(of: appState.sourceFolder) { doc.loadPresetIfNeeded() }
         .onChange(of: appState.configResetToken) { doc.resetToDefaults() }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
+            if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
+        }
         .onChange(of: doc.snapshot) { doc.scheduleSave() }
         .onChange(of: doc.files) { doc.pruneSequence() }
         .onChange(of: appState.jobRunner.isRunning) { _, running in if !running { doc.jobFinished() } }
@@ -81,19 +85,21 @@ struct SlideshowView: View {
         .sheet(item: $expandedFraming) { url in KenBurnsFramingSheet(doc: doc, photo: url) }
         .sheet(isPresented: $showComposePicker) {
             TemplatePickerSheet(title: "Componer secuencia",
-                                subtitle: doc.composeMode == .random
+                                subtitle: doc.composeSheet.mode == .random
                                     ? "Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(doc.files.count) fotos marcadas."
                                     : "Elige qué plantillas pueden usarse. Se analizarán las \(doc.files.count) fotos marcadas para dar a cada grupo la plantilla que mejor le encaje.",
-                                templates: { CollageTemplates.filter(photos: $0, aspectLabel: $1, includeOverlap: true) },
+                                templates: { CollageTemplates.filter(photos: $0.photos, aspectLabel: $0.aspect, includeOverlap: true, type: $0.type) },
+                                filters: $doc.composeSheet.filters,
                                 selection: $doc.selectedTemplates, confirmTitle: "Componer",
-                                composeMode: $doc.composeMode, allowReorder: $doc.allowReorder) {
+                                composeMode: $doc.composeSheet.mode, allowReorder: $doc.composeSheet.allowReorder) {
                 doc.compose()
             }
         }
         .sheet(isPresented: $showAddPicker) {
             TemplatePickerSheet(title: "Añadir collage",
                                 subtitle: "Quedan \(doc.files.count - doc.rows.reduce(0) { $0 + $1.files.count }) fotos sin asignar.",
-                                templates: { photos, aspect in doc.visibleTemplatesForAdd.filter { (photos == nil || $0.photos == photos) && (aspect == nil || $0.aspectLabel == aspect) } },
+                                templates: { f in doc.visibleTemplatesForAdd.filter { (f.photos == nil || $0.photos == f.photos) && (f.aspect == nil || $0.aspectLabel == f.aspect) && (f.type == nil || (f.type == .overlap) == $0.overlap) } },
+                                filters: $doc.addFilters,
                                 selection: .constant([]), confirmTitle: nil, onPick: { doc.addTemplate($0); showAddPicker = false }) {}
         }
     }
@@ -229,7 +235,8 @@ struct TemplatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     let title: LocalizedStringKey
     let subtitle: String
-    let templates: (Int?, String?) -> [CollageTemplate]
+    let templates: (TemplateFilterState) -> [CollageTemplate]
+    @Binding var filters: TemplateFilterState
     @Binding var selection: Set<String>
     /// Si hay título de confirmación se eligen varias; si no, un clic elige una.
     let confirmTitle: LocalizedStringKey?
@@ -239,10 +246,7 @@ struct TemplatePickerSheet: View {
     var allowReorder: Binding<Bool>? = nil
     let onConfirm: () -> Void
 
-    @State private var photosFilter: Int?
-    @State private var aspectFilter: String?
-
-    private var visible: [CollageTemplate] { templates(photosFilter, aspectFilter) }
+    private var visible: [CollageTemplate] { templates(filters) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -251,7 +255,7 @@ struct TemplatePickerSheet: View {
             if let composeMode, let allowReorder {
                 ComposeModeControls(mode: composeMode, allowReorder: allowReorder)
             }
-            TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
+            TemplateFilters(filters: $filters, showType: true)
             TemplatePicker(templates: visible, selected: confirmTitle == nil ? [] : selection) { template in
                 if let onPick { onPick(template); return }
                 if selection.contains(template.id) { selection.remove(template.id) } else { selection.insert(template.id) }
@@ -272,7 +276,7 @@ struct TemplatePickerSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 720, height: composeMode == nil ? 560 : 620)
+        .frame(width: 720, height: composeMode == nil ? 600 : 660)
     }
 }
 

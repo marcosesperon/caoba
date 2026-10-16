@@ -7,6 +7,38 @@ enum ComposeMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Filtros de la cuadrícula de plantillas (fotos, proporción y tipo).
+struct TemplateFilterState: Equatable {
+    var photos: Int?
+    var aspect: String?
+    var type: CollageTemplates.TemplateType?
+}
+
+/// Estado de la hoja «Componer secuencia»: reparto, reordenar y filtros. Las
+/// plantillas marcadas van aparte porque Collage las comparte con «Aleatorias».
+struct ComposeSheetState: Equatable {
+    var mode: ComposeMode = .random
+    var allowReorder = false
+    var filters = TemplateFilterState()
+
+    init() {}
+
+    /// Desde lo guardado en el `.caoba` (lo que falte se queda por defecto).
+    init(_ saved: ComposeSettings?) {
+        guard let saved else { return }
+        mode = saved.mode.flatMap(ComposeMode.init(rawValue:)) ?? .random
+        allowReorder = saved.allowReorder ?? false
+        filters = TemplateFilterState(photos: saved.photosFilter, aspect: saved.aspectFilter,
+                                      type: saved.typeFilter.flatMap(CollageTemplates.TemplateType.init(rawValue:)))
+    }
+
+    /// Para guardar en el `.caoba`, junto con las plantillas marcadas.
+    func settings(selectedTemplates: Set<String>) -> ComposeSettings {
+        ComposeSettings(mode: mode.rawValue, allowReorder: allowReorder, photosFilter: filters.photos, aspectFilter: filters.aspect,
+                        typeFilter: filters.type?.rawValue, selectedTemplates: selectedTemplates.sorted())
+    }
+}
+
 /// Avance del análisis de fotos: cuántas van y cuántas hay.
 struct ComposeProgress: Equatable {
     var done: Int

@@ -22,6 +22,9 @@ struct CollageView: View {
     @State private var mode: TemplateSelectionMode = .sequential
     @State private var sequence: [SequenceItem] = []
     @State private var randomSelection: Set<String> = []
+    @State private var composeSheet = ComposeSheetState()
+    /// Carpeta cuyos ajustes están cargados; evita guardar mientras se restauran.
+    @State private var loadedFolder: URL?
     @State private var photosFilter: Int?
     @State private var aspectFilter: String?
     @State private var focusMode: FocusMode = .saliency
@@ -75,7 +78,7 @@ struct CollageView: View {
                         if mode == .random {
                             randomSection
                         } else {
-                            CollageSequenceEditor(sequence: $sequence, selectedTemplates: $randomSelection, files: files)
+                            CollageSequenceEditor(sequence: $sequence, selectedTemplates: $randomSelection, composeState: $composeSheet, files: files)
                         }
                         OptionGroup(title: "Salida") {
                             LabeledRow("Lado mayor") {
@@ -115,15 +118,38 @@ struct CollageView: View {
             FileListView(allowsReorder: true).frame(minWidth: 320)
         }
         .onAppear {
+            loadFolderSettings()
             // Para capturas desde línea de comandos: `--state collage.tab=random` abre en "Aleatorias".
             if appState.launchState["collage.tab"] == "random" { mode = .random; photosFilter = 3 }
             if let aspect = appState.launchState["collage.aspect"] { aspectFilter = aspect }
         }
+        .onChange(of: appState.sourceFolder) { loadFolderSettings() }
+        .onChange(of: appState.configResetToken) { composeSheet = ComposeSheetState(); randomSelection = [] }
+        .onChange(of: composeSheet) { saveFolderSettings() }
+        .onChange(of: randomSelection) { saveFolderSettings() }
+    }
+
+    /// Restaura los ajustes de Componer guardados en el `.caoba` de la carpeta.
+    private func loadFolderSettings() {
+        guard appState.sourceFolder != loadedFolder else { return }
+        loadedFolder = appState.sourceFolder
+        let saved = appState.sourceFolder.flatMap(CollageFolderSettings.load(from:))?.compose
+        composeSheet = ComposeSheetState(saved)
+        randomSelection = Set(saved?.selectedTemplates ?? [])
+    }
+
+    /// Guarda los ajustes de Componer en el `.caoba` de la carpeta (sección `collage`).
+    private func saveFolderSettings() {
+        guard let folder = appState.sourceFolder, folder == loadedFolder else { return }
+        let settings = CollageFolderSettings(compose: composeSheet.settings(selectedTemplates: randomSelection))
+        if (try? settings.save(in: folder)) != nil { appState.markFolderConfigSaved() }
     }
 
     private var randomSection: some View {
         OptionGroup(title: "Plantillas permitidas") {
-            TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
+            TemplateFilters(filters: Binding(
+                get: { TemplateFilterState(photos: photosFilter, aspect: aspectFilter) },
+                set: { photosFilter = $0.photos; aspectFilter = $0.aspect }))
             LabeledRow("Enfoque") {
                 Picker("", selection: $focusMode) {
                     Text("Centro").tag(FocusMode.center)

@@ -7,18 +7,16 @@ struct CollageSequenceEditor: View {
     @Environment(AppState.self) private var appState
     @Binding var sequence: [SequenceItem]
     @Binding var selectedTemplates: Set<String>
+    /// Reparto, reordenar y filtros de la hoja; el padre los guarda por carpeta.
+    @Binding var composeState: ComposeSheetState
     let files: [URL]
     /// Si se ofrecen las plantillas superpuestas (marco y sombra). Solo en el slideshow.
     var includeOverlap = false
 
-    @State private var photosFilter: Int?
-    @State private var aspectFilter: String?
     @State private var showComposePicker = false
     @State private var showAddPicker = false
     @State private var editingIndex: Int?
     @State private var isAdjustingFocus = false
-    @State private var composeMode: ComposeMode = .random
-    @State private var allowReorder = false
     @State private var composeProgress: ComposeProgress?
     @State private var composeTask: Task<Void, Never>?
     @State private var autoComposed = false
@@ -38,7 +36,7 @@ struct CollageSequenceEditor: View {
 
     var rows: [CollageRow] { Self.rows(from: sequence, files: files) }
     private var assignedCount: Int { rows.reduce(0) { $0 + $1.files.count } }
-    private var visibleTemplates: [CollageTemplate] { CollageTemplates.filter(photos: photosFilter, aspectLabel: aspectFilter, includeOverlap: includeOverlap) }
+    private var visibleTemplates: [CollageTemplate] { CollageTemplates.filter(photos: composeState.filters.photos, aspectLabel: composeState.filters.aspect, includeOverlap: includeOverlap, type: composeState.filters.type) }
 
     var body: some View {
         OptionGroup(title: "Secuencia") {
@@ -90,9 +88,10 @@ struct CollageSequenceEditor: View {
         }
         .onChange(of: files) { prune(); autoComposeIfRequested() }
         .onAppear {
-            // Para capturas desde línea de comandos: `--state collage.compose=content` abre la hoja en ese modo.
-            if let mode = appState.launchState["collage.compose"].flatMap(ComposeMode.init(rawValue:)) {
-                composeMode = mode
+            // Para capturas desde línea de comandos: `--state collage.compose=open` abre la hoja
+            // tal como esté guardada; con `content` o `random` fuerza además el modo.
+            if let value = appState.launchState["collage.compose"] {
+                if let mode = ComposeMode(rawValue: value) { composeState.mode = mode }
                 showComposePicker = true
             }
         }
@@ -106,12 +105,12 @@ struct CollageSequenceEditor: View {
     private var composeSheet: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Componer secuencia").font(.headline)
-            Text(composeMode == .random
+            Text(composeState.mode == .random
                  ? "Elige qué plantillas pueden usarse. Se repartirán al azar entre las \(files.count) fotos marcadas."
                  : "Elige qué plantillas pueden usarse. Se analizarán las \(files.count) fotos marcadas para dar a cada grupo la plantilla que mejor le encaje.")
                 .font(.callout).foregroundStyle(.secondary)
-            ComposeModeControls(mode: $composeMode, allowReorder: $allowReorder)
-            TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
+            ComposeModeControls(mode: $composeState.mode, allowReorder: $composeState.allowReorder)
+            TemplateFilters(filters: $composeState.filters, showType: includeOverlap)
             TemplatePicker(templates: visibleTemplates, selected: selectedTemplates) { template in
                 if selectedTemplates.contains(template.id) { selectedTemplates.remove(template.id) } else { selectedTemplates.insert(template.id) }
             }
@@ -128,14 +127,14 @@ struct CollageSequenceEditor: View {
             }
         }
         .padding(20)
-        .frame(width: 720, height: 620)
+        .frame(width: 720, height: includeOverlap ? 660 : 620)
     }
 
     private var addSheet: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Añadir collage").font(.headline)
             Text("Quedan \(files.count - assignedCount) fotos sin asignar.").font(.callout).foregroundStyle(.secondary)
-            TemplateFilters(photos: $photosFilter, aspect: $aspectFilter)
+            TemplateFilters(filters: $composeState.filters, showType: includeOverlap)
             TemplatePicker(templates: visibleTemplates.filter { $0.photos <= files.count - assignedCount }) { template in
                 sequence.append(SequenceItem(templateID: template.id, focusPoints: Array(repeating: nil, count: template.photos)))
                 showAddPicker = false
@@ -150,7 +149,7 @@ struct CollageSequenceEditor: View {
 
     private func compose() {
         let templates = selectedTemplates.compactMap(CollageTemplates.template(id:))
-        guard composeMode == .content else {
+        guard composeState.mode == .content else {
             let (grouped, _) = CollageRenderer.group(files: files, templates: templates, mode: .random)
             sequence = grouped.map { SequenceItem(templateID: $0.template.id, focusPoints: $0.focusPoints) }
             return
@@ -167,7 +166,7 @@ struct CollageSequenceEditor: View {
         composeTask = Task {
             defer { composeProgress = nil; composeTask = nil }
             do {
-                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: allowReorder, detector: detector) { done in
+                let result = try await ContentComposition.compose(files: snapshot, templates: templates, allowReorder: composeState.allowReorder, detector: detector) { done in
                     composeProgress = ComposeProgress(done: done, total: snapshot.count)
                 }
                 appState.reorderCheckedFiles(to: result.order)
@@ -185,8 +184,8 @@ struct CollageSequenceEditor: View {
               let mode = appState.launchState["collage.autocompose"].flatMap(ComposeMode.init(rawValue:)) else { return }
         autoComposed = true
         selectedTemplates = Set(CollageTemplates.all.filter { !$0.overlap && (2...4).contains($0.photos) }.map(\.id))
-        composeMode = mode
-        allowReorder = appState.launchState["collage.reorder"] == "1"
+        composeState.mode = mode
+        composeState.allowReorder = appState.launchState["collage.reorder"] == "1"
         compose()
     }
 

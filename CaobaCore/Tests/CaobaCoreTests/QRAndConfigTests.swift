@@ -143,3 +143,22 @@ struct ScannerTests {
         #expect(again === t)
     }
 }
+
+@Suite("CollageFolderSettings")
+struct CollageFolderSettingsTests {
+    @Test("La sección collage se guarda y se lee del .caoba sin tocar las demás")
+    func roundTrip() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("caoba-collage-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try CaobaConfig.writeSection("otra", value: ["x": 1], in: folder)
+        let settings = CollageFolderSettings(compose: ComposeSettings(mode: "content", allowReorder: true, photosFilter: 3, aspectFilter: "16:9", typeFilter: "basic", selectedTemplates: ["grid_2x2"]))
+        try settings.save(in: folder)
+        #expect(CollageFolderSettings.load(from: folder) == settings)
+        #expect(CaobaConfig.readSection("otra", as: [String: Int].self, from: folder) == ["x": 1])
+        // Reiniciar borra la sección.
+        CaobaConfig.resetSettings(in: folder)
+        #expect(CollageFolderSettings.load(from: folder) == nil)
+    }
+}
+

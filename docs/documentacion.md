@@ -228,6 +228,8 @@ Detalles de la app:
 
 Fichero `.caoba` en la carpeta de fotos, mismo formato que la app antigua: `{ "version": 1, "<seccion>": {...} }`. `readSection(_:as:from:)`, `writeSection(_:value:in:)` y `removeSection(_:in:)` con cualquier `Codable`; todas las escrituras pasan por un cerrojo para que dos módulos no se pisen. Hay **secciones protegidas** (`protectedSections`, hoy solo `renameHistory`): `hasSettings(in:)` no las cuenta como configuración y `resetSettings(in:)` (el botón Reiniciar) borra el resto y las conserva; si no queda nada, elimina el fichero. Secciones hoy: `slideshow` y `renameHistory`.
 
+Secciones que escribe la app: `slideshow` (todo el preset del Slideshow, incluida `collage.compose` con los ajustes de la hoja Componer), `collage` (`CollageFolderSettings`: `compose` con reparto, reordenar, filtros de fotos / proporción / tipo y plantillas marcadas) y `renameHistory` (protegida: sobrevive a «Reiniciar»). Los ajustes de Componer se restauran al abrir la carpeta y se guardan al cambiar cualquiera de ellos, así la hoja aparece como se dejó. Para abrir la hoja desde línea de comandos tal como esté guardada: `--state collage.compose=open` o `--state slideshow.compose=open` (con `capture.sheets=1` para capturarla).
+
 ### App: preferencias
 
 - Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.

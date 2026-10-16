@@ -151,14 +151,15 @@ struct TemplatePicker: View {
 
 /// Filtros comunes de plantillas.
 struct TemplateFilters: View {
-    @Binding var photos: Int?
-    @Binding var aspect: String?
+    @Binding var filters: TemplateFilterState
+    /// Selector «Tipo» (básicas / superpuestas): solo donde se ofrecen las superpuestas.
+    var showType = false
 
     var body: some View {
         // En dos filas: con el texto de uso ("9:16 · Reels, Shorts…") no caben las dos en una.
         VStack(alignment: .leading, spacing: 8) {
             LabeledRow("Fotos") {
-                Picker("", selection: $photos) {
+                Picker("", selection: $filters.photos) {
                     Text("Todas").tag(Int?.none)
                     ForEach(1...9, id: \.self) { Text("\($0)").tag(Int?.some($0)) }
                 }
@@ -166,12 +167,23 @@ struct TemplateFilters: View {
                 .labelsHidden()
             }
             LabeledRow("Proporción") {
-                Picker("", selection: $aspect) {
+                Picker("", selection: $filters.aspect) {
                     Text("Todas").tag(String?.none)
                     ForEach(CollageTemplates.aspectLabels, id: \.self) { AspectUsage.text(for: $0).tag(String?.some($0)) }
                 }
                 .frame(maxWidth: 320, alignment: .leading)
                 .labelsHidden()
+            }
+            if showType {
+                LabeledRow("Tipo") {
+                    Picker("", selection: $filters.type) {
+                        Text("Todas").tag(CollageTemplates.TemplateType?.none)
+                        Text("Básicas").tag(CollageTemplates.TemplateType?.some(.basic))
+                        Text("Superpuestas").tag(CollageTemplates.TemplateType?.some(.overlap))
+                    }
+                    .pickerStyle(.segmented).fixedSize()
+                    .labelsHidden()
+                }
             }
         }
     }
