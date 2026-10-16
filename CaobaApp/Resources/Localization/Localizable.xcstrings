@@ -4531,6 +4531,126 @@
           }
         }
       }
+    },
+    "TV, YouTube" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TV, YouTube"
+          }
+        }
+      }
+    },
+    "Reels, Shorts, TikTok, Stories" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reels, Shorts, TikTok, Stories"
+          }
+        }
+      }
+    },
+    "Publicación de Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instagram post"
+          }
+        }
+      }
+    },
+    "Publicación apaisada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landscape post"
+          }
+        }
+      }
+    },
+    "Foto clásica horizontal (15×10)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classic landscape photo (6×4)"
+          }
+        }
+      }
+    },
+    "Foto clásica vertical (10×15)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Classic portrait photo (4×6)"
+          }
+        }
+      }
+    },
+    "Cuadrado, Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Square, Instagram"
+          }
+        }
+      }
+    },
+    "Panorámica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panoramic"
+          }
+        }
+      }
+    },
+    "Tira vertical" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertical strip"
+          }
+        }
+      }
+    },
+    "Vertical · Reels, Shorts, TikTok, Stories" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portrait · Reels, Shorts, TikTok, Stories"
+          }
+        }
+      }
+    },
+    "Vertical · Publicación de Instagram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portrait · Instagram post"
+          }
+        }
+      }
+    },
+    "Horizontal · Publicación apaisada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landscape · Landscape post"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

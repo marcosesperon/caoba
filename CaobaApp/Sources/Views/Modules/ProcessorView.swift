@@ -22,7 +22,8 @@ struct ProcessorView: View {
     enum CropPreset: String, CaseIterable, Identifiable {
         case square = "1:1", r4x5 = "4:5", r5x4 = "5:4", r3x2 = "3:2", r2x3 = "2:3", r16x9 = "16:9", r9x16 = "9:16", custom
         var id: String { rawValue }
-        var title: LocalizedStringKey { self == .custom ? "Personalizado" : LocalizedStringKey(rawValue) }
+        /// En el selector: "16:9 · TV, YouTube".
+        var menuText: Text { self == .custom ? Text("Personalizado") : AspectUsage.text(for: rawValue) }
         var ratio: AspectRatio? {
             switch self {
             case .square: return .square
@@ -63,7 +64,7 @@ struct ProcessorView: View {
                             if cropEnabled {
                                 LabeledRow("Proporción") {
                                     Picker("", selection: $cropPreset) {
-                                        ForEach(CropPreset.allCases) { Text($0.title).tag($0) }
+                                        ForEach(CropPreset.allCases) { $0.menuText.tag($0) }
                                     }
                                     .labelsHidden()
                                 }

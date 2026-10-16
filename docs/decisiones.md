@@ -396,3 +396,26 @@ Tres cosas en la app de macOS, tomando como referencia la versión anterior:
 ### 6. Pendiente de comprobar
 - Que Pages sirva la landing en la URL nueva tras el push; publicar 3.0.2 cuando convenga para que la app lleve las URL nuevas.
 
+## 2026-10-16 — Texto de uso en las proporciones
+
+### 1. La petición tal como se ha entendido
+En todos los sitios donde se presentan proporciones (16:9, 9:16, 4:5, 5:4, 3:2, 2:3…) añadir un texto de ejemplo de uso (TV, Reels, Stories, publicación de Instagram…). Confirmada con la tabla de textos propuesta: «me valen, adelante».
+
+### 2. Preguntas y respuestas
+**P1. ¿Valen estos textos? (16:9 TV, YouTube · 9:16 Reels, Shorts, TikTok, Stories · 4:5 Publicación de Instagram · 5:4 Publicación apaisada · 3:2 / 2:3 Foto clásica horizontal/vertical · 1:1 Cuadrado, Instagram · 3:1, 2:1 Panorámica · 1:3 Tira vertical)** R: sí.
+
+### 3. Fuentes analizadas
+- `ProcessorView` (recorte), `TemplateViews` (filtro de plantillas y tarjetas), `SlideshowDocument` (formato de vídeo, que ya tenía texto de uso), `templates.json` (proporciones existentes: 16:9, 9:16, 4:5, 5:4, 3:2, 2:3, 1:1, 3:1, 2:1, 1:3).
+
+### 4. Decisiones
+- Un único sitio para los textos (`AspectUsage`): `hint(for:)` da el texto y `text(for:)` compone «16:9 · TV, YouTube». Lo usan el recorte del Procesador y el filtro «Proporción» de plantillas (Collage, Slideshow y editor de secuencia).
+- En las tarjetas de plantilla se mantiene «3 · 16:9» y el uso va en el tooltip, para no ensanchar la cuadrícula.
+- El formato de vídeo del Slideshow ya tenía texto; se unifican los términos con la tabla (Reels, Shorts, TikTok, Stories / Publicación de Instagram / Publicación apaisada).
+- Argumento de captura `collage.aspect=<etiqueta>` para ver el filtro con una proporción elegida.
+
+### 5. Alternativas descartadas
+- Texto de uso también en las tarjetas de plantilla: no cabe a 90 puntos sin partir en dos líneas.
+
+### 6. Pendiente de comprobar
+Nada.
+

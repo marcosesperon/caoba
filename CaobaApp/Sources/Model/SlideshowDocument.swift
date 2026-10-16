@@ -74,9 +74,9 @@ extension VideoFormat {
     var usageTitle: LocalizedStringKey {
         switch self {
         case .landscape16x9: return "Horizontal panorámico · TV, YouTube"
-        case .portrait9x16: return "Vertical · Historias, Reels, TikTok"
-        case .portrait4x5: return "Vertical · Feed de Instagram"
-        case .landscape5x4: return "Horizontal · Feed"
+        case .portrait9x16: return "Vertical · Reels, Shorts, TikTok, Stories"
+        case .portrait4x5: return "Vertical · Publicación de Instagram"
+        case .landscape5x4: return "Horizontal · Publicación apaisada"
         case .portrait2x3: return "Vertical clásico"
         case .landscape3x2: return "Horizontal clásico"
         }

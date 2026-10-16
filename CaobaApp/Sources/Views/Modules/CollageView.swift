@@ -117,6 +117,7 @@ struct CollageView: View {
         .onAppear {
             // Para capturas desde línea de comandos: `--state collage.tab=random` abre en "Aleatorias".
             if appState.launchState["collage.tab"] == "random" { mode = .random; photosFilter = 3 }
+            if let aspect = appState.launchState["collage.aspect"] { aspectFilter = aspect }
         }
     }
 

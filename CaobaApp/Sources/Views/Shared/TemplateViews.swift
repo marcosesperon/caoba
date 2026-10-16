@@ -140,7 +140,8 @@ struct TemplatePicker: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture { onPick(template) }
-                    .help(template.name)
+                    // La tarjeta es pequeña: el uso de la proporción va en el tooltip.
+                    .help(Text(template.name) + Text(" · ") + AspectUsage.text(for: template.aspectLabel))
                 }
             }
             .padding(8)
@@ -154,7 +155,8 @@ struct TemplateFilters: View {
     @Binding var aspect: String?
 
     var body: some View {
-        HStack {
+        // En dos filas: con el texto de uso ("9:16 · Reels, Shorts…") no caben las dos en una.
+        VStack(alignment: .leading, spacing: 8) {
             LabeledRow("Fotos") {
                 Picker("", selection: $photos) {
                     Text("Todas").tag(Int?.none)
@@ -166,9 +168,9 @@ struct TemplateFilters: View {
             LabeledRow("Proporción") {
                 Picker("", selection: $aspect) {
                     Text("Todas").tag(String?.none)
-                    ForEach(CollageTemplates.aspectLabels, id: \.self) { Text($0).tag(String?.some($0)) }
+                    ForEach(CollageTemplates.aspectLabels, id: \.self) { AspectUsage.text(for: $0).tag(String?.some($0)) }
                 }
-                .fixedSize()
+                .frame(maxWidth: 320, alignment: .leading)
                 .labelsHidden()
             }
         }
