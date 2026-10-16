@@ -3,6 +3,47 @@ import Observation
 import CaobaCore
 
 /// Efecto elegido para una foto en la interfaz: ninguno, al azar o uno concreto.
+/// Transición elegida para la entrada de un elemento: una concreta o «Aleatorio».
+enum TransitionChoice: Hashable, Codable {
+    case kind(TransitionKind)
+    case random
+
+    var rawValue: String {
+        switch self {
+        case .kind(let k): return k.rawValue
+        case .random: return "random"
+        }
+    }
+
+    init(rawValue: String) {
+        if rawValue == "random" { self = .random } else { self = TransitionKind(rawValue: rawValue).map { .kind($0) } ?? .kind(.crossfade) }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .random: return "Aleatorio"
+        case .kind(let k):
+            switch k {
+            case .crossfade: return "Fundido cruzado"
+            case .fadeToBlack: return "Fundido a negro"
+            case .cut: return "Corte seco"
+            case .slideLeft: return "Deslizar a la izquierda"
+            case .slideRight: return "Deslizar a la derecha"
+            case .slideUp: return "Deslizar hacia arriba"
+            case .slideDown: return "Deslizar hacia abajo"
+            case .zoomCross: return "Zoom cruzado"
+            case .wipeLeft: return "Barrido a la izquierda"
+            case .wipeRight: return "Barrido a la derecha"
+            }
+        }
+    }
+
+    /// El corte no tiene duración.
+    var hasDuration: Bool { self != .kind(.cut) }
+
+    static let all: [TransitionChoice] = TransitionKind.allCases.map { .kind($0) } + [.random]
+}
+
 enum EffectChoice: Hashable, Codable {
     case none, random
     case effect(KenBurnsEffect)
@@ -141,7 +182,11 @@ final class SlideshowDocument {
         }
     }
     var durationPerPhoto = 4.0
-    var transition = true
+    /// Transición por defecto y su duración; y las propias por elemento (nombre de foto, id de collage, "cover", "credits").
+    var transitionChoice: TransitionChoice = .kind(.crossfade)
+    var transitionDuration = SlideshowSpec.transitionSeconds
+    var itemTransitions: [String: TransitionChoice] = [:]
+    var itemTransitionDurations: [String: Double] = [:]
     var coverURL: URL?
     var coverDuration = 4.0
     var creditsURL: URL?
@@ -234,8 +279,26 @@ final class SlideshowDocument {
         return result
     }
 
+    /// Transición de entrada de un elemento (propia o por defecto).
+    func transitionChoice(for id: String) -> TransitionChoice { itemTransitions[id] ?? transitionChoice }
+
+    /// Duración de entrada efectiva de un elemento (0 si es un corte).
+    func entryDuration(for id: String) -> Double {
+        guard transitionChoice(for: id).hasDuration else { return 0 }
+        return itemTransitionDurations[id] ?? transitionDuration
+    }
+
+    /// Resuelve «Aleatorio» a una transición concreta.
+    func resolvedTransition(for id: String, generator: inout some RandomNumberGenerator) -> TransitionKind {
+        switch transitionChoice(for: id) {
+        case .kind(let k): return k
+        case .random: return TransitionKind.randomPool.randomElement(using: &generator) ?? .crossfade
+        }
+    }
+
     var timeline: SlideshowTimeline {
-        SlideshowTimeline(durations: orderedKinds.map(\.duration), transition: transition ? SlideshowSpec.transitionSeconds : 0)
+        let kinds = orderedKinds
+        return SlideshowTimeline(durations: kinds.map(\.duration), transitions: kinds.map { entryDuration(for: $0.id) })
     }
 
     var items: [TimelineItem] {
@@ -377,7 +440,7 @@ final class SlideshowDocument {
         }
         let target = mode == .collage ? CollageSlideshow.emptyFrameSeconds + reveal * 3 + hold : durationPerPhoto
         let durations = RhythmPlanner.plan(beats: beats, items: items, target: target, beatsPerCut: beatsPerCut,
-                                           transition: transition ? SlideshowSpec.transitionSeconds : 0)
+                                           entryTransitions: entries.map { entryDuration(for: $0.id) })
         for (entry, duration) in zip(entries, durations) where items[entries.firstIndex { $0.id == entry.id }!].fixedDuration == nil {
             switch entry.kind {
             case .photo(let url):
@@ -584,19 +647,29 @@ final class SlideshowDocument {
             case .random: effect = KenBurnsEffect.randomPool.randomElement(using: &generator)
             case .effect(let e): effect = e
             }
-            return SlideshowPhoto(url: url, duration: duration(of: url), kenBurns: effect, points: kbPoints[name])
+            return SlideshowPhoto(url: url, duration: duration(of: url), kenBurns: effect, points: kbPoints[name],
+                                  transition: resolvedTransition(for: name, generator: &generator), transitionDuration: entryDuration(for: name))
         }
-        if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration), at: 0) }
-        if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration)) }
+        if let coverURL { photos.insert(coverPhoto(coverURL, duration: coverDuration, id: "cover", generator: &generator), at: 0) }
+        if let creditsURL { photos.append(coverPhoto(creditsURL, duration: creditsDuration, id: "credits", generator: &generator)) }
         return photos
+    }
+
+    /// Portada o créditos como foto del vídeo, con su transición resuelta.
+    private func coverPhoto(_ url: URL, duration: Double, id: String, generator: inout some RandomNumberGenerator) -> SlideshowPhoto {
+        SlideshowPhoto(url: url, duration: duration, transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entryDuration(for: id))
     }
 
     private func makeSpec(output: URL, preview: Bool) -> SlideshowSpec {
         var audio = AudioOptions(tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist)
         if preview { audio.normalize = false }
-        return SlideshowSpec(photos: [], format: format, transition: transition,
-                             watermark: watermarkURL.map { VideoWatermark(url: $0, position: wmPosition, sizePercent: wmSize, opacity: wmOpacity) },
-                             audio: audio, kenBurns: kbSettings, output: output, preview: preview)
+        var spec = SlideshowSpec(photos: [], format: format, transition: transitionChoice.hasDuration,
+                                 watermark: watermarkURL.map { VideoWatermark(url: $0, position: wmPosition, sizePercent: wmSize, opacity: wmOpacity) },
+                                 audio: audio, kenBurns: kbSettings, output: output, preview: preview)
+        // Cada foto lleva ya su transición resuelta; esto cubre lo que no la tenga (p. ej. pasos de collage).
+        if case .kind(let k) = transitionChoice { spec.defaultTransition = k }
+        spec.defaultTransitionDuration = transitionDuration
+        return spec
     }
 
     func preview() {
@@ -617,6 +690,11 @@ final class SlideshowDocument {
         let photoList = makePhotos(limit: preview ? 10 : nil)
         let coverURL = coverURL, creditsURL = creditsURL, coverDuration = coverDuration, creditsDuration = creditsDuration
         let baseSpec = makeSpec(output: output, preview: preview)
+        // Transiciones de entrada de cada collage, portada y créditos, resueltas aquí (estado del documento).
+        var generator = SystemRandomNumberGenerator()
+        let collageEntries = fixedRows.map { (resolvedTransition(for: $0.id.uuidString, generator: &generator), entryDuration(for: $0.id.uuidString)) }
+        let coverEntry = (resolvedTransition(for: "cover", generator: &generator), entryDuration(for: "cover"))
+        let creditsEntry = (resolvedTransition(for: "credits", generator: &generator), entryDuration(for: "credits"))
         app.jobRunner.run(openURL: preview ? nil : output, quietOnSuccess: preview) { progress in
             var photos = photoList
             var frameDir: URL?
@@ -625,8 +703,15 @@ final class SlideshowDocument {
                 frameDir = dir
                 let limited = preview ? Array(fixedRows.prefix(3)) : fixedRows
                 photos = try await CollageSlideshow.makePhotos(rows: limited, options: csOptions, directory: dir, progress: progress)
-                if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration), at: 0) }
-                if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration)) }
+                // El primer paso de cada collage entra con la transición del collage.
+                var index = 0
+                for (r, row) in limited.enumerated() where photos.indices.contains(index) {
+                    photos[index].transition = collageEntries[r].0
+                    photos[index].transitionDuration = collageEntries[r].1
+                    index += row.template.photos + 1
+                }
+                if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration, transition: coverEntry.0, transitionDuration: coverEntry.1), at: 0) }
+                if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration, transition: creditsEntry.0, transitionDuration: creditsEntry.1)) }
             }
             defer { if let frameDir { TempFiles.remove(frameDir) } }
             var spec = baseSpec
@@ -653,7 +738,8 @@ final class SlideshowDocument {
 
     /// Todo lo que se guarda, en un valor comparable para detectar cambios.
     struct Snapshot: Equatable {
-        var mode: Mode; var format: VideoFormat; var duration: Double; var transition: Bool
+        var mode: Mode; var format: VideoFormat; var duration: Double
+        var transition: TransitionChoice; var transitionDuration: Double; var itemTransitions: [String: TransitionChoice]; var itemTransitionDurations: [String: Double]
         var cover: URL?; var coverDuration: Double; var credits: URL?; var creditsDuration: Double
         var watermark: URL?; var wmPosition: OverlayPosition; var wmSize: Double; var wmOpacity: Double
         var durations: [String: Double]
@@ -664,7 +750,8 @@ final class SlideshowDocument {
     }
 
     var snapshot: Snapshot {
-        Snapshot(mode: mode, format: format, duration: durationPerPhoto, transition: transition, cover: coverURL, coverDuration: coverDuration,
+        Snapshot(mode: mode, format: format, duration: durationPerPhoto, transition: transitionChoice, transitionDuration: transitionDuration,
+                 itemTransitions: itemTransitions, itemTransitionDurations: itemTransitionDurations, cover: coverURL, coverDuration: coverDuration,
                  credits: creditsURL, creditsDuration: creditsDuration, watermark: watermarkURL, wmPosition: wmPosition, wmSize: wmSize, wmOpacity: wmOpacity,
                  durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
                  kb: kbSettings, choices: kbChoices, points: kbPoints,
@@ -695,7 +782,11 @@ final class SlideshowDocument {
         p.durations = photoDurations
         p.beatsPerCut = beatsPerCut
         p.rhythmItems = rhythmItems.sorted()
-        p.useTransition = transition
+        p.useTransition = transitionChoice.hasDuration
+        p.transitionKind = transitionChoice.rawValue
+        p.transitionDuration = transitionDuration
+        p.transitionsByItem = itemTransitions.mapValues(\.rawValue)
+        p.transitionDurationsByItem = itemTransitionDurations
         p.cover = coverURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: coverDuration) }
         p.credits = creditsURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: creditsDuration) }
         p.watermark = watermarkURL.map { SlideshowPreset.Watermark(path: $0.path, position: wmPosition.rawValue, size: wmSize, opacity: wmOpacity) }
@@ -754,7 +845,15 @@ final class SlideshowDocument {
         photoDurations = preset.durations ?? [:]
         beatsPerCut = preset.beatsPerCut
         rhythmItems = Set(preset.rhythmItems ?? [])
-        if let t = preset.useTransition { transition = t }
+        if let kind = preset.transitionKind {
+            transitionChoice = TransitionChoice(rawValue: kind)
+            transitionDuration = preset.transitionDuration ?? SlideshowSpec.transitionSeconds
+            itemTransitions = (preset.transitionsByItem ?? [:]).mapValues(TransitionChoice.init(rawValue:))
+            itemTransitionDurations = preset.transitionDurationsByItem ?? [:]
+        } else if let t = preset.useTransition {
+            // Proyectos antiguos: interruptor activo → fundido de 1 s; apagado → corte.
+            transitionChoice = t ? .kind(.crossfade) : .kind(.cut)
+        }
         if let c = preset.cover, let path = c.path, FileManager.default.fileExists(atPath: path) { coverURL = URL(fileURLWithPath: path); coverDuration = c.duration ?? 4 }
         if let c = preset.credits, let path = c.path, FileManager.default.fileExists(atPath: path) { creditsURL = URL(fileURLWithPath: path); creditsDuration = c.duration ?? 4 }
         if let w = preset.watermark, let path = w.path, FileManager.default.fileExists(atPath: path) {
@@ -823,7 +922,8 @@ final class SlideshowDocument {
     }
 
     func resetToDefaults() {
-        mode = .photos; format = .landscape16x9; durationPerPhoto = 4; transition = true; photoDurations = [:]
+        mode = .photos; format = .landscape16x9; durationPerPhoto = 4; photoDurations = [:]
+        transitionChoice = .kind(.crossfade); transitionDuration = SlideshowSpec.transitionSeconds; itemTransitions = [:]; itemTransitionDurations = [:]
         coverURL = nil; coverDuration = 4; creditsURL = nil; creditsDuration = 4
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true

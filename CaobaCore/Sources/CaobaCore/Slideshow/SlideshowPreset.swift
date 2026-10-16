@@ -112,6 +112,12 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
     public var videoFormat: String?
     public var durationPerPhoto: Double?
     public var useTransition: Bool?
+    /// Nuevo: transición por defecto ("crossfade", "cut", "random"…) y su duración.
+    public var transitionKind: String?
+    public var transitionDuration: Double?
+    /// Nuevo: transición y duración propias por elemento (nombre de foto, id de collage, "cover", "credits").
+    public var transitionsByItem: [String: String]?
+    public var transitionDurationsByItem: [String: Double]?
     public var cover: ImageWithDuration?
     public var credits: ImageWithDuration?
     public var watermark: Watermark?

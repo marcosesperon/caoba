@@ -21,7 +21,7 @@ public enum SlideshowRenderer {
 
     private static func generateUnchecked(_ spec: SlideshowSpec, progress: ProgressHandler?) async throws -> URL {
         guard spec.photos.count >= 1 else { throw CaobaError.noFiles }
-        let timeline = SlideshowTimeline(durations: spec.photos.map(\.duration), transition: spec.transitionDuration)
+        let timeline = SlideshowTimeline(durations: spec.photos.map(\.duration), transitions: spec.entryTransitions)
         let jobDir = try TempFiles.makeJobDirectory(prefix: "slideshow")
         defer { TempFiles.remove(jobDir) }
 

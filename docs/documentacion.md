@@ -217,6 +217,10 @@ Detalles de la app:
 - Al cargar un `.caoba` v1, los efectos por índice se traducen a nombres usando el `fileOrder` guardado, y el inicio de pista "en la foto N" se convierte a segundos del vídeo (`startTime`). Las duraciones propias se guardan en `durations` por nombre de fichero.
 - La vista previa usa las primeras 10 fotos (o 3 collages), media resolución, sin normalizar el audio, y se reproduce en una ventana de la app.
 
+### Transiciones (`TransitionKind`, `Transitions`)
+
+Cada foto entra con una transición: fundido cruzado, fundido a negro, corte, deslizar (izquierda, derecha, arriba, abajo), zoom cruzado o barrido (izquierda, derecha). `SlideshowPhoto.transition` / `transitionDuration` la fijan por foto; `SlideshowSpec.defaultTransition` / `defaultTransitionDuration` valen para las que no la traen (`transition: false` en el spec equivale a corte por defecto). `SlideshowTimeline(durations:transitions:)` lleva la duración de entrada de cada foto y `Transitions.compose(from:to:kind:progress:size:)` compone el fotograma. En los collages del vídeo, el primer paso entra con la transición del collage y la aparición de cada foto con un fundido suave. En la app: pestaña Vídeo (por defecto y duración 0,25–2 s, con «Aleatorio») e inspectores de foto, collage, portada y créditos (propias). Se guardan en el preset (`transitionKind`, `transitionDuration`, `transitionsByItem`, `transitionDurationsByItem`); los proyectos antiguos migran desde `useTransition`.
+
 ### Ritmo de la música (`BeatDetector`, `RhythmPlanner`)
 
 Opcional, bajo el botón «Ajustar al ritmo» de la pestaña Música del Slideshow: sin pulsarlo nada cambia.

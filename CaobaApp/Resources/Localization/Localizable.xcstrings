@@ -5046,6 +5046,136 @@
           }
         }
       }
+    },
+    "Transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition"
+          }
+        }
+      }
+    },
+    "Duración transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition length"
+          }
+        }
+      }
+    },
+    "Fundido cruzado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crossfade"
+          }
+        }
+      }
+    },
+    "Fundido a negro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade to black"
+          }
+        }
+      }
+    },
+    "Corte seco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard cut"
+          }
+        }
+      }
+    },
+    "Deslizar a la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide left"
+          }
+        }
+      }
+    },
+    "Deslizar a la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide right"
+          }
+        }
+      }
+    },
+    "Deslizar hacia arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide up"
+          }
+        }
+      }
+    },
+    "Deslizar hacia abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide down"
+          }
+        }
+      }
+    },
+    "Zoom cruzado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cross zoom"
+          }
+        }
+      }
+    },
+    "Barrido a la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wipe left"
+          }
+        }
+      }
+    },
+    "Barrido a la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wipe right"
+          }
+        }
+      }
+    },
+    "Por defecto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

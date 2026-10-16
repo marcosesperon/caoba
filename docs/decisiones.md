@@ -673,3 +673,42 @@ En Procesador, Marca de agua y Collage:
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Transiciones en el Slideshow
+
+### 1. La petición tal como se ha entendido
+Transiciones entre fotos en el Slideshow, además del fundido cruzado actual:
+
+- **Juego** (P1): fundido cruzado, fundido a negro, corte seco, deslizar (izquierda, derecha, arriba, abajo), zoom cruzado y barrido (izquierda, derecha). Más «Aleatorio», que elige una distinta en cada cambio, como en los efectos Ken Burns.
+- **Por defecto y por foto**: en la pestaña Vídeo se elige la transición y la duración por defecto; en el inspector de cada foto (y de cada collage) se puede fijar otra transición y otra duración para la entrada de ese elemento. El actual interruptor «Fundido entre fotos (1 s)» se sustituye por el selector; «Corte seco» equivale a apagarlo.
+- **Duración** (P2): global de 0,25 a 2 s, y por foto. «Corte seco» no tiene duración.
+- **Collages** (P3): la transición elegida se aplica entre collages; la aparición de cada foto dentro de un collage sigue siendo un fundido suave.
+- La transición se refiere a cómo **entra** cada elemento; la primera foto entra desde negro con su transición (o con corte). La sincronización con la música ya centra el cambio en la mitad de la transición y seguirá haciéndolo con la duración de cada una.
+- Todo se guarda en el `.caoba` con el resto del proyecto; los proyectos antiguos siguen igual (fundido 1 s si tenían el interruptor activo, corte seco si no).
+
+*Confirmación: «si» (16-10-2026). Plan aprobado: «adelante».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Juego de transiciones: fundido cruzado, fundido a negro, corte seco, deslizar (4 direcciones), zoom cruzado y barrido (2 direcciones)?** R: «me vale».
+**P2. ¿Duración de la transición ajustable global, o global y además por foto?** R: 2, global y por foto.
+**P3. ¿La transición elegida solo entre collages (aparición de fotos con fundido suave) o también entre los pasos de un collage?** R: 1, solo entre collages.
+
+### 3. Fuentes analizadas
+- `VideoWriter.composeFrame` (un `CIDissolveTransition` fijo), `SlideshowTimeline` (transición uniforme), `SlideshowSpec`/`SlideshowPhoto`, `CollageSlideshow.makePhotos` (pasos de aparición como fotos), `RhythmPlanner`, `SlideshowDocument` (interruptor `transition`, `makePhotos`, preset) y los inspectores.
+
+### 4. Decisiones
+- **`TransitionKind`** en el motor con diez casos; `SlideshowPhoto` lleva transición y duración de entrada opcionales y `SlideshowSpec` las de por defecto; `resolvedTransition(for:)` las combina. El `transition: Bool` antiguo se mantiene como atajo (false = corte), así los tests y llamadas previas siguen valiendo.
+- **Timeline por elemento**: `SlideshowTimeline(durations:transitions:)`; la foto i sigue visible mientras entra la i+1 durante la transición de la i+1; la duración total añade la de la última como antes. `entry(at:)` añade «desde negro» para la primera foto; `frame(at:)` conserva su forma.
+- **`Transitions.compose`** con Core Image: disolución; fundido a negro en dos mitades con `CIColorMatrix` sobre negro; deslizar como empuje (la nueva empuja a la anterior) con aceleración suave; zoom cruzado = la que sale crece un 25 % mientras se disuelve; barrido = recorte progresivo de la nueva sobre la anterior.
+- **Collages**: el primer paso (lienzo vacío) entra con la transición del collage; los pasos de aparición llevan siempre fundido de `min(1, reveal)` s, igual que antes.
+- **Ritmo**: `plan(…entryTransitions:)`: el centro del cambio i→i+1 es la mitad de la transición del i+1.
+- **App**: `TransitionChoice` (concreta o «Aleatorio») por defecto y por elemento (`itemTransitions`, `itemTransitionDurations` por nombre de foto, id de collage, «cover», «credits»); el aleatorio se resuelve al generar con el generador del sistema. Pestaña Vídeo: selector «Transición» y «Duración transición» (0,25–2 s, oculta con corte). `TransitionOverrideRow` compartido en los inspectores de foto, collage, portada y créditos. Preset con migración del interruptor antiguo (activo → fundido 1 s, apagado → corte); el encuadre Ken Burns usa la transición de la foto siguiente para su duración de segmento.
+- Tests: timeline por elemento, resolución del spec, cada transición en 0 / 0,5 / 1 con comprobación de píxeles, ritmo con entrada por elemento y un vídeo real generado con deslizamiento comprobado fotograma a fotograma con `AVAssetImageGenerator`.
+
+### 5. Alternativas descartadas
+- Filtros de transición de Core Image (`CISwipeTransition`, `CIPageCurl`…): menos control del aspecto y algunos requieren máscaras; con transformaciones y disolución se cubren las diez con el mismo aspecto en todas las plataformas.
+- Transición entre los pasos de un collage: descartada en P3.
+
+### 6. Pendiente de comprobar
+- Ver en un vídeo real largo si el zoom cruzado necesita más o menos crecimiento (25 %).
+

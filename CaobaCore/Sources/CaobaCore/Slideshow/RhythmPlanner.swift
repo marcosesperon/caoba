@@ -55,10 +55,16 @@ public enum RhythmPlanner {
     /// (centro de la transición) debe caer sobre un golpe: `d = golpe - transición/2 - t`.
     /// Sin golpes a la vista (no suena música) se usa el objetivo.
     public static func plan(beats: [VideoBeat], items: [RhythmItem], target: Double, beatsPerCut: Int?, transition: Double) -> [Double] {
+        plan(beats: beats, items: items, target: target, beatsPerCut: beatsPerCut, entryTransitions: Array(repeating: transition, count: items.count))
+    }
+
+    /// Con la transición de entrada de cada elemento: el cambio visual entre el
+    /// elemento i y el i+1 está en el centro de la transición del i+1.
+    public static func plan(beats: [VideoBeat], items: [RhythmItem], target: Double, beatsPerCut: Int?, entryTransitions: [Double]) -> [Double] {
         var durations: [Double] = []
         var t = 0.0
-        let half = transition / 2
-        for item in items {
+        for (index, item) in items.enumerated() {
+            let half = (index + 1 < entryTransitions.count ? entryTransitions[index + 1] : 0) / 2
             if let fixed = item.fixedDuration {
                 durations.append(fixed)
                 t += fixed

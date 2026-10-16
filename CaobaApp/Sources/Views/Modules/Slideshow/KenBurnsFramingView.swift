@@ -17,7 +17,12 @@ struct KenBurnsFramingView: View {
     private var name: String { url.lastPathComponent }
     private var choice: EffectChoice { doc.choice(for: url) }
     private var current: KenBurnsPoints { doc.kbPoints[name] ?? KenBurnsPoints() }
-    private var segmentDuration: Double { doc.duration(of: url) + (doc.transition ? SlideshowSpec.transitionSeconds : 0) }
+    /// La foto sigue en pantalla mientras entra la siguiente: su duración más esa transición.
+    private var segmentDuration: Double {
+        let files = doc.files
+        let next = files.firstIndex(of: url).flatMap { files.indices.contains($0 + 1) ? files[$0 + 1] : nil }
+        return doc.duration(of: url) + (next.map { doc.entryDuration(for: $0.lastPathComponent) } ?? 0)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {

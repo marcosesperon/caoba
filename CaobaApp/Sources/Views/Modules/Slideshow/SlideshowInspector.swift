@@ -61,7 +61,16 @@ struct VideoTab: View {
                         }
                     }
                 }
-                Toggle("Fundido entre fotos (1 s)", isOn: $doc.transition)
+                LabeledRow("Transición") {
+                    Picker("", selection: $doc.transitionChoice) {
+                        ForEach(TransitionChoice.all, id: \.self) { Text($0.title).tag($0) }
+                    }
+                    .frame(maxWidth: 260)
+                    .labelsHidden()
+                }
+                if doc.transitionChoice.hasDuration {
+                    LabeledSlider(title: "Duración transición", value: $doc.transitionDuration, in: 0.25...2, step: 0.25) { Text("\(doc.transitionDuration, specifier: "%.2f") s") }
+                }
             }
             if doc.mode == .photos {
                 OptionGroup(title: "Ken Burns") {
@@ -258,6 +267,39 @@ struct ImageSlotInspector: View {
                 Button("Quitar") { if isCover { doc.coverURL = nil } else { doc.creditsURL = nil }; doc.selection = .none }
             }
             LabeledSlider(title: "Duración", value: isCover ? $doc.coverDuration : $doc.creditsDuration, in: 1...30, step: 0.5) { Text("\(isCover ? doc.coverDuration : doc.creditsDuration, specifier: "%.1f") s") }
+            TransitionOverrideRow(doc: doc, id: isCover ? "cover" : "credits")
+        }
+    }
+}
+
+/// Transición y duración de entrada propias de un elemento («Por defecto» = las globales).
+struct TransitionOverrideRow: View {
+    @Bindable var doc: SlideshowDocument
+    let id: String
+
+    private var hasDuration: Bool { doc.transitionChoice(for: id).hasDuration }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            LabeledRow("Transición") {
+                Picker("", selection: Binding<TransitionChoice?>(get: { doc.itemTransitions[id] }, set: { doc.itemTransitions[id] = $0 })) {
+                    Text("Por defecto").tag(TransitionChoice?.none)
+                    ForEach(TransitionChoice.all, id: \.self) { Text($0.title).tag(TransitionChoice?.some($0)) }
+                }
+                .frame(maxWidth: 220)
+                .labelsHidden()
+            }
+            if hasDuration {
+                Text("Duración").foregroundStyle(.secondary)
+                Slider(value: Binding(get: { doc.entryDuration(for: id) }, set: { doc.itemTransitionDurations[id] = $0 }), in: 0.25...2, step: 0.25)
+                    .frame(maxWidth: 160)
+                Text("\(doc.entryDuration(for: id), specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                if doc.itemTransitionDurations[id] != nil {
+                    Button { doc.itemTransitionDurations[id] = nil } label: { Image(systemName: "arrow.uturn.backward") }
+                        .buttonStyle(.borderless).help("Volver a la duración global")
+                }
+            }
+            Spacer()
         }
     }
 }
@@ -295,6 +337,7 @@ struct PhotoInspector: View {
             }
             Spacer()
         }
+        TransitionOverrideRow(doc: doc, id: name)
         KenBurnsFramingView(doc: doc, url: url, compact: false)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
@@ -369,6 +412,7 @@ struct CollageInspector: View {
                 }
                 Button(role: .destructive) { doc.removeCollage(row.id) } label: { Label("Quitar", systemImage: "trash") }
             }
+            TransitionOverrideRow(doc: doc, id: row.id.uuidString)
             HStack(alignment: .top, spacing: 16) {
                 if showResult {
                     // Con las opciones de collage del vídeo, que son las que se usan al generar.

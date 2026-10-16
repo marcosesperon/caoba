@@ -108,15 +108,16 @@ public final class VideoWriter {
 
     /// Fotograma completo en el instante `t`.
     func composeFrame(at t: Double) throws -> CIImage {
-        guard let visible = timeline.frame(at: t) else { return black }
+        guard let visible = timeline.entry(at: t) else { return black }
         var frame = try photoFrame(index: visible.current, time: t)
-        if let next = visible.next {
+        if let next = visible.incoming {
+            // Transición de entrada de la foto que llega, sobre la que se va.
             let incoming = try photoFrame(index: next, time: t)
-            let dissolve = CIFilter.dissolveTransition()
-            dissolve.inputImage = frame
-            dissolve.targetImage = incoming
-            dissolve.time = Float(visible.progress)
-            frame = dissolve.outputImage ?? incoming
+            let kind = spec.resolvedTransition(for: next).kind
+            frame = Transitions.compose(from: frame, to: incoming, kind: kind, progress: visible.progress, size: size)
+        } else if visible.fromBlack {
+            let kind = spec.resolvedTransition(for: visible.current).kind
+            frame = Transitions.compose(from: nil, to: frame, kind: kind, progress: visible.progress, size: size)
         }
         if let watermarkImage {
             frame = watermarkImage.composited(over: frame)

@@ -133,6 +133,19 @@ public struct AudioOptions: Sendable, Equatable, Codable {
 }
 
 /// Una foto (o portada, o créditos) dentro del vídeo.
+/// Cómo entra cada foto en pantalla.
+public enum TransitionKind: String, Sendable, Codable, CaseIterable {
+    case crossfade, fadeToBlack, cut
+    case slideLeft, slideRight, slideUp, slideDown
+    case zoomCross
+    case wipeLeft, wipeRight
+
+    /// El corte no dura nada.
+    public var hasDuration: Bool { self != .cut }
+    /// Candidatas para «Aleatorio»: todas menos el corte.
+    public static let randomPool: [TransitionKind] = allCases.filter { $0 != .cut }
+}
+
 public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
     public var id: UUID
     public var url: URL
@@ -143,14 +156,21 @@ public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
     /// Puntos personalizados (efecto `custom`) o foco para efectos automáticos.
     public var points: KenBurnsPoints?
     public var easing: KenBurnsEasing?
+    /// Transición de entrada propia; `nil` = la del spec.
+    public var transition: TransitionKind?
+    /// Duración de esa transición; `nil` = la del spec.
+    public var transitionDuration: Double?
 
-    public init(id: UUID = UUID(), url: URL, duration: Double, kenBurns: KenBurnsEffect? = nil, points: KenBurnsPoints? = nil, easing: KenBurnsEasing? = nil) {
+    public init(id: UUID = UUID(), url: URL, duration: Double, kenBurns: KenBurnsEffect? = nil, points: KenBurnsPoints? = nil, easing: KenBurnsEasing? = nil,
+                transition: TransitionKind? = nil, transitionDuration: Double? = nil) {
         self.id = id
         self.url = url
         self.duration = max(0.1, duration)
         self.kenBurns = kenBurns
         self.points = points
         self.easing = easing
+        self.transition = transition
+        self.transitionDuration = transitionDuration
     }
 }
 
@@ -159,8 +179,11 @@ public struct SlideshowSpec: Sendable, Equatable {
     public var photos: [SlideshowPhoto]
     public var format: VideoFormat
     public var fps: Int
-    /// Fundido de 1 s entre fotos.
+    /// Atajo antiguo: con `false`, la transición por defecto es el corte.
     public var transition: Bool
+    /// Transición por defecto (si `transition` es true) y su duración.
+    public var defaultTransition: TransitionKind = .crossfade
+    public var defaultTransitionDuration: Double = SlideshowSpec.transitionSeconds
     public var watermark: VideoWatermark?
     public var audio: AudioOptions
     public var kenBurns: KenBurnsSettings
@@ -191,6 +214,18 @@ public struct SlideshowSpec: Sendable, Equatable {
     }
 
     public var transitionDuration: Double { transition ? Self.transitionSeconds : 0 }
+
+    /// Transición de entrada de la foto `index`, ya resuelta con los valores por defecto.
+    public func resolvedTransition(for index: Int) -> (kind: TransitionKind, duration: Double) {
+        guard photos.indices.contains(index) else { return (.cut, 0) }
+        let photo = photos[index]
+        let kind = photo.transition ?? (transition ? defaultTransition : .cut)
+        let duration = kind.hasDuration ? max(0, photo.transitionDuration ?? defaultTransitionDuration) : 0
+        return (kind, duration)
+    }
+
+    /// Duración de entrada de cada foto, para el timeline.
+    public var entryTransitions: [Double] { photos.indices.map { resolvedTransition(for: $0).duration } }
 }
 
 /// Línea de tiempo del vídeo: cuándo entra y sale cada foto.
@@ -205,21 +240,33 @@ public struct SlideshowTimeline: Sendable, Equatable {
     }
 
     public var segments: [Segment]
+    /// Transición uniforme (atajo antiguo); con transiciones por foto es la de la primera.
     public var transition: Double
+    /// Duración de entrada de cada foto.
+    public var transitions: [Double]
     public var totalDuration: Double
 
     /// Con transición, la foto i+1 empieza a entrar cuando a la i le queda
     /// exactamente la duración de la transición: igual que el `xfade` antiguo.
     public init(durations: [Double], transition: Double) {
-        self.transition = transition
+        self.init(durations: durations, transitions: Array(repeating: transition, count: durations.count))
+    }
+
+    /// Transición de entrada propia para cada foto: la foto i sigue visible
+    /// mientras entra la i+1 (durante `transitions[i+1]`).
+    public init(durations: [Double], transitions: [Double]) {
+        precondition(durations.count == transitions.count)
+        self.transition = transitions.first ?? 0
+        self.transitions = transitions
         var segments: [Segment] = []
         var start = 0.0
         for (i, d) in durations.enumerated() {
-            segments.append(Segment(photoIndex: i, start: start, end: start + d + transition))
+            let exit = i + 1 < transitions.count ? transitions[i + 1] : transitions[i]
+            segments.append(Segment(photoIndex: i, start: start, end: start + d + exit))
             start += d
         }
         self.segments = segments
-        totalDuration = durations.isEmpty ? 0 : start + transition
+        totalDuration = durations.isEmpty ? 0 : start + (transitions.last ?? 0)
     }
 
     /// Instante en que empieza la foto `index` (sin contar su fundido de entrada).
@@ -237,10 +284,20 @@ public struct SlideshowTimeline: Sendable, Equatable {
         var latest = 0
         for (i, s) in segments.enumerated() where s.start <= clamped { latest = i }
         // Si acaba de empezar y todavía está en su fundido de entrada, la anterior sigue visible debajo.
-        if transition > 0, latest > 0, clamped < segments[latest].start + transition {
-            return (latest - 1, latest, min(1, (clamped - segments[latest].start) / transition))
+        let entry = transitions[latest]
+        if entry > 0, latest > 0, clamped < segments[latest].start + entry {
+            return (latest - 1, latest, min(1, (clamped - segments[latest].start) / entry))
         }
         let current = latest
         return (current, nil, 0)
+    }
+
+    /// Como `frame(at:)`, pero indicando también si la primera foto está entrando desde negro.
+    public func entry(at t: Double) -> (current: Int, incoming: Int?, progress: Double, fromBlack: Bool)? {
+        guard let f = frame(at: t) else { return nil }
+        if f.next == nil, f.current == 0, transitions[0] > 0, min(max(0, t), totalDuration - 1e-9) < transitions[0] {
+            return (0, nil, min(1, max(0, t) / transitions[0]), true)
+        }
+        return (f.current, f.next, f.progress, false)
     }
 }

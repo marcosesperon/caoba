@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 import CaobaCore
 
 /// Pestañas de la parte superior de la pantalla.
-enum SlideshowTab: Hashable {
+enum SlideshowTab: String, Hashable {
     case photos, video, extras, music, inspector
 }
 
@@ -61,6 +61,8 @@ struct SlideshowView: View {
             // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
             if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
             if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
+            // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
+            if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
             // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
             if appState.launchState["slideshow.rhythm"] != nil {
                 Task { await autoAdjustToRhythm(doc) }

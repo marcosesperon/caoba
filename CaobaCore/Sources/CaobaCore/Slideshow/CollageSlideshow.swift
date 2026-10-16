@@ -55,7 +55,13 @@ public enum CollageSlideshow {
                 let image = try CollageRenderer.render(row, options: options.collage, visibleCells: visible)
                 let url = directory.appendingPathComponent(String(format: "page%03d_frame%02d.jpg", r, visible))
                 try ImageWriter.write(image, to: url, encoding: ImageEncoding(format: .jpeg, quality: 95))
-                photos.append(SlideshowPhoto(url: url, duration: durations[visible]))
+                // El primer paso (lienzo vacío) entra con la transición del collage;
+                // cada foto que aparece después, con un fundido suave.
+                if visible == 0 {
+                    photos.append(SlideshowPhoto(url: url, duration: durations[visible]))
+                } else {
+                    photos.append(SlideshowPhoto(url: url, duration: durations[visible], transition: .crossfade, transitionDuration: min(1, options.reveal)))
+                }
                 done += 1
             }
         }
