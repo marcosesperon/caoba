@@ -31,6 +31,7 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 - `LabeledRow("Etiqueta") { control }` y `LabeledSlider(title:value:in:step:display:)`: etiqueta en una columna fija de 130 puntos, para que todos los controles de la app empiecen alineados. Cualquier selector, campo, stepper o deslizador con etiqueta debe usar uno de los dos.
 - `TemplateView`, `CellPhotoView`, `TemplatePicker`, `TemplateFilters`: plantillas de collage y celdas con foto arrastrable.
 - `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
+- `CollageResultView(row:options:)`: el collage renderizado con el motor y las opciones reales, a resolución de pantalla (lado mayor 1600 px), en segundo plano; se recalcula al cambiar la fila o las opciones. `CollageViewModePicker` es el conmutador «Encuadre / Resultado» que la acompaña en el editor de foco de Collage y en el inspector de collage del Slideshow.
 
 ### Releases
 

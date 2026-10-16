@@ -78,7 +78,7 @@ struct CollageView: View {
                         if mode == .random {
                             randomSection
                         } else {
-                            CollageSequenceEditor(sequence: $sequence, selectedTemplates: $randomSelection, composeState: $composeSheet, files: files)
+                            CollageSequenceEditor(sequence: $sequence, selectedTemplates: $randomSelection, composeState: $composeSheet, files: files, options: options)
                         }
                         OptionGroup(title: "Salida") {
                             LabeledRow("Lado mayor") {
@@ -247,11 +247,15 @@ struct LogoOptionsGroup: View {
 /// dentro de su celda. Permite cambiar de collage y de plantilla.
 struct FocusEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @Binding var sequence: [SequenceItem]
     let rows: [CollageRow]
     @State var index: Int
+    /// Opciones reales de salida, para la vista «Resultado».
+    let options: CollageOptions
     var includeOverlap = false
     @State private var showTemplates = false
+    @State private var showResult = false
 
     private var row: CollageRow? { rows.indices.contains(index) ? rows[index] : nil }
     private var item: SequenceItem? { row.flatMap { r in sequence.first { $0.id == r.id } } }
@@ -262,21 +266,29 @@ struct FocusEditorSheet: View {
                 Button { index -= 1 } label: { Image(systemName: "chevron.left") }.disabled(index <= 0)
                 Text("Collage \(index + 1) de \(rows.count)").font(.headline)
                 Button { index += 1 } label: { Image(systemName: "chevron.right") }.disabled(index >= rows.count - 1)
+                CollageViewModePicker(showResult: $showResult).padding(.leading, 8)
                 Spacer()
-                Toggle("Cambiar plantilla", isOn: $showTemplates).toggleStyle(.button)
-                Button("Centrar celdas") { resetFocus() }
+                if !showResult {
+                    Toggle("Cambiar plantilla", isOn: $showTemplates).toggleStyle(.button)
+                    Button("Centrar celdas") { resetFocus() }
+                }
             }
             HStack(spacing: 12) {
                 if let row, let item {
-                    TemplateView(template: row.template, files: row.files, focusPoints: item.focusPoints, gap: 4) { cell, point in
-                        updateFocus(cell: cell, point: point)
+                    if showResult {
+                        CollageResultView(row: row, options: options)
+                            .background(Color(nsColor: .windowBackgroundColor))
+                    } else {
+                        TemplateView(template: row.template, files: row.files, focusPoints: item.focusPoints, gap: 4) { cell, point in
+                            updateFocus(cell: cell, point: point)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(nsColor: .windowBackgroundColor))
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(nsColor: .windowBackgroundColor))
                 } else {
                     ContentUnavailableView("Sin collage", systemImage: "square.grid.2x2")
                 }
-                if showTemplates, let row {
+                if showTemplates, !showResult, let row {
                     VStack(alignment: .leading) {
                         Text("Plantillas de \(row.template.photos) fotos").font(.callout).foregroundStyle(.secondary)
                         TemplatePicker(templates: CollageTemplates.filter(photos: row.template.photos, includeOverlap: includeOverlap), selected: [row.template.id]) { template in
@@ -286,12 +298,18 @@ struct FocusEditorSheet: View {
                     .frame(width: 240)
                 }
             }
-            Text("Arrastra cada foto para encuadrarla. Los encuadres manuales se conservan al usar «Ajustar foco».")
+            Text(showResult
+                 ? "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto."
+                 : "Arrastra cada foto para encuadrarla. Los encuadres manuales se conservan al usar «Ajustar foco».")
                 .font(.caption).foregroundStyle(.secondary)
             HStack { Spacer(); Button("Hecho") { dismiss() }.keyboardShortcut(.defaultAction) }
         }
         .padding(16)
         .frame(minWidth: 900, minHeight: 620)
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state collage.editor=result` abre en «Resultado».
+            if appState.launchState["collage.editor"] == "result" { showResult = true }
+        }
     }
 
     private func updateFocus(cell: Int, point: CGPoint) {

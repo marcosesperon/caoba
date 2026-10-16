@@ -10,6 +10,8 @@ struct CollageSequenceEditor: View {
     /// Reparto, reordenar y filtros de la hoja; el padre los guarda por carpeta.
     @Binding var composeState: ComposeSheetState
     let files: [URL]
+    /// Opciones reales de salida, para la vista «Resultado» del editor de foco.
+    let options: CollageOptions
     /// Si se ofrecen las plantillas superpuestas (marco y sombra). Solo en el slideshow.
     var includeOverlap = false
 
@@ -87,6 +89,7 @@ struct CollageSequenceEditor: View {
             .frame(height: 120)
         }
         .onChange(of: files) { prune(); autoComposeIfRequested() }
+        .onChange(of: sequence) { openEditorIfRequested() }
         .onAppear {
             // Para capturas desde línea de comandos: `--state collage.compose=open` abre la hoja
             // tal como esté guardada; con `content` o `random` fuerza además el modo.
@@ -98,7 +101,7 @@ struct CollageSequenceEditor: View {
         .sheet(isPresented: $showComposePicker) { composeSheet }
         .sheet(isPresented: $showAddPicker) { addSheet }
         .sheet(item: Binding(get: { editingIndex.map { EditorTarget(index: $0) } }, set: { editingIndex = $0?.index })) { target in
-            FocusEditorSheet(sequence: $sequence, rows: rows, index: target.index, includeOverlap: includeOverlap)
+            FocusEditorSheet(sequence: $sequence, rows: rows, index: target.index, options: options, includeOverlap: includeOverlap)
         }
     }
 
@@ -187,6 +190,12 @@ struct CollageSequenceEditor: View {
         composeState.mode = mode
         composeState.allowReorder = appState.launchState["collage.reorder"] == "1"
         compose()
+    }
+
+    /// Para capturas: `--state collage.editor=result` abre el editor del primer collage en cuanto hay secuencia.
+    private func openEditorIfRequested() {
+        guard appState.launchState["collage.editor"] != nil, editingIndex == nil, !rows.isEmpty else { return }
+        editingIndex = 0
     }
 
     private func prune() {

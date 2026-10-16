@@ -313,6 +313,7 @@ struct CollageInspector: View {
     @Bindable var doc: SlideshowDocument
     let row: CollageRow
     @State private var showTemplates = false
+    @State private var showResult = false
 
     private var itemIndex: Int? { doc.sequence.firstIndex { $0.id == row.id } }
 
@@ -320,7 +321,10 @@ struct CollageInspector: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 10) {
                 Text(row.template.name).font(.headline)
-                Text("· arrastra cada foto para encuadrarla").font(.caption).foregroundStyle(.secondary)
+                CollageViewModePicker(showResult: $showResult)
+                if !showResult {
+                    Text("· arrastra cada foto para encuadrarla").font(.caption).foregroundStyle(.secondary)
+                }
                 Spacer()
                 Text("Mantener").foregroundStyle(.secondary)
                 Slider(value: Binding(get: { row.hold ?? doc.hold }, set: { doc.setHold($0, for: row.id) }), in: 0...30, step: 0.5)
@@ -331,18 +335,25 @@ struct CollageInspector: View {
                         .buttonStyle(.borderless).help("Volver al valor global")
                 }
                 Divider().frame(height: 16)
-                Button { centerCells() } label: { Label("Centrar", systemImage: "scope") }
-                Toggle(isOn: $showTemplates) { Label("Cambiar", systemImage: "rectangle.3.group") }.toggleStyle(.button)
+                if !showResult {
+                    Button { centerCells() } label: { Label("Centrar", systemImage: "scope") }
+                    Toggle(isOn: $showTemplates) { Label("Cambiar", systemImage: "rectangle.3.group") }.toggleStyle(.button)
+                }
                 Button(role: .destructive) { doc.removeCollage(row.id) } label: { Label("Quitar", systemImage: "trash") }
             }
             HStack(alignment: .top, spacing: 16) {
-                TemplateView(template: row.template, files: row.files, focusPoints: row.focusPoints, gap: 3) { cell, point in
-                    guard let i = itemIndex, doc.sequence[i].focusPoints.indices.contains(cell) else { return }
-                    doc.sequence[i].focusPoints[cell] = point
-                    doc.sequence[i].manualCells.insert(cell)
+                if showResult {
+                    // Con las opciones de collage del vídeo, que son las que se usan al generar.
+                    CollageResultView(row: row, options: doc.collageOptions.collage)
+                } else {
+                    TemplateView(template: row.template, files: row.files, focusPoints: row.focusPoints, gap: 3) { cell, point in
+                        guard let i = itemIndex, doc.sequence[i].focusPoints.indices.contains(cell) else { return }
+                        doc.sequence[i].focusPoints[cell] = point
+                        doc.sequence[i].manualCells.insert(cell)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                if showTemplates {
+                if showTemplates, !showResult {
                     TemplatePicker(templates: CollageTemplates.filter(photos: row.template.photos, includeOverlap: true), selected: [row.template.id]) { template in
                         guard let i = itemIndex else { return }
                         doc.sequence[i].templateID = template.id

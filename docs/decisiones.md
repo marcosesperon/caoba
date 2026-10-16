@@ -559,3 +559,35 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Vista previa en grande de los collages
+
+### 1. La petición tal como se ha entendido
+En el editor de foco de los collages (Collage y Slideshow), añadir una vista «Resultado» que muestre el collage **renderizado con las opciones reales de salida** (separación, fondo, esquinas, sombra, título y logo en Collage; las de los collages del vídeo en Slideshow), a tamaño de pantalla, antes de generar nada:
+
+- Un conmutador «Encuadre / Resultado» en la cabecera del editor; las flechas de anterior y siguiente siguen funcionando en los dos modos.
+- El resultado se renderiza con el motor real pero a resolución de pantalla (lado mayor en torno a 1600 px), en segundo plano y con indicador mientras tarda; se vuelve a renderizar al cambiar de collage o al volver de «Encuadre» tras mover un encuadre o cambiar la plantilla.
+- Al volver a «Encuadre» se puede corregir sin cerrar nada. No hay edición directa sobre el resultado.
+- En el Slideshow, el editor recibe las opciones de collage del vídeo (fondo, separación, esquinas, sombra), que son las que se usan al generar.
+
+*Confirmación: «dale» (16-10-2026). Plan aprobado: «si».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Dentro del editor de foco (pestaña «Resultado») o en una hoja aparte?** R: 1, dentro del editor de foco.
+
+### 3. Fuentes analizadas
+- `FocusEditorSheet` (editor de foco de Collage), `CollageInspector` (el Slideshow no usa la hoja: edita el enfoque en su inspector), `CollageRenderer.render`, `CollageOptions` de cada módulo.
+
+### 4. Decisiones
+- Una vista reutilizable `CollageResultView(row:options:)` que renderiza con el motor real, en segundo plano, con el lado mayor limitado a 1600 px; se recalcula sola cuando cambian la fila (encuadres, plantilla, fotos) o las opciones, gracias a `.task(id:)` con esa clave, y mientras llega el nuevo se deja el anterior a la vista.
+- Conmutador «Encuadre / Resultado» (`CollageViewModePicker`) en la cabecera del editor de foco de Collage **y** en el inspector de collage del Slideshow, que es donde allí se edita el enfoque. En «Resultado» se ocultan los controles de edición (cambiar plantilla, centrar) y cambia el texto de ayuda.
+- Cada sitio pasa sus opciones reales: Collage las de su panel de salida (título y logo incluidos); Slideshow las de collage del vídeo (`collageOptions.collage`), que son las que se usan al generar.
+- Gancho de captura `collage.editor=result`: tras componer, abre el editor del primer collage en «Resultado».
+
+### 5. Alternativas descartadas
+- Hoja aparte de vista previa: descartada en P1.
+- Renderizar al tamaño final: innecesario para juzgar el resultado y mucho más lento con fotos de 6000 px.
+
+### 6. Pendiente de comprobar
+Nada.
+

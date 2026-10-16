@@ -4727,6 +4727,46 @@
           }
         }
       }
+    },
+    "Resultado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Result"
+          }
+        }
+      }
+    },
+    "Renderizando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rendering…"
+          }
+        }
+      }
+    },
+    "No se pudo renderizar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not render"
+          }
+        }
+      }
+    },
+    "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is how the collage will look with the current output options. Go back to “Framing” to fix any photo."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
