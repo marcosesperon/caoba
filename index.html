@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/icon.png">
 <meta property="og:title" content="CAOBA · Utilidades para fotógrafos">
 <meta property="og:description" content="Slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR y shutter count. Nativa de macOS.">
-<meta property="og:image" content="assets/icon.png">
+<meta property="og:image" content="https://marcosesperon.github.io/caoba-photo-utils/assets/screenshots/og.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700;900&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -93,6 +93,13 @@
   @media (min-width: 1000px) { .hero .side { display: block; } }
   .side .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; transform: rotate(-2deg); }
   .side .card + .card { margin-top: 12px; transform: rotate(1.5deg) translateX(18px); }
+
+  /* Captura grande de la app bajo el hero: marco fino, sombra larga y fundido al fondo */
+  .hero-shot { margin: 56px 0 0; position: relative; }
+  .hero-shot a { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #0d0d0d; box-shadow: 0 30px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04) inset; }
+  .hero-shot img { width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; }
+  .hero-shot figcaption { margin-top: 12px; font-family: var(--mono); font-size: 12px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .hero-shot figcaption b { color: var(--ink-2); font-weight: 500; }
   .side .label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
   .side .big { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; margin-top: 6px; }
   .side .big small { font-size: 16px; color: var(--ink-2); font-family: var(--mono); margin-left: 6px; }
@@ -118,7 +125,17 @@
   .mod p { margin: 0; color: var(--ink-2); font-size: 16px; }
   .mod ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
   .mod li { margin: 4px 0; }
-  .mod .tag { position: absolute; top: 18px; right: 18px; font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 999px; padding: 3px 9px; }
+  /* Captura dentro de cada tarjeta: sangra hasta los bordes y, en las estrechas,
+     se amplía y se desplaza (--x, --y) hacia la zona interesante de la ventana */
+  .mod .shot { margin: -22px -22px 18px; aspect-ratio: 16 / 10; overflow: hidden; display: block; border-bottom: 1px solid var(--line); background: #0d0d0d; position: relative; }
+  .mod .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; transition: transform .6s cubic-bezier(.25,.1,.25,1); }
+  .mod:not(.wide) .shot img { width: 200%; max-width: none; height: auto; transform: translate(var(--x, 0%), var(--y, 0%)); }
+  .mod .shot::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 -40px 40px -40px rgba(0,0,0,.6); pointer-events: none; }
+  .mod:hover .shot img { transform: translate(var(--x, 0%), var(--y, 0%)) scale(1.02); }
+  .mod.wide:hover .shot img { transform: scale(1.015); }
+  @media (max-width: 900px) { .mod:not(.wide) .shot img { width: 160%; } }
+  .mod .n { display: flex; justify-content: space-between; align-items: center; }
+  .mod .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 999px; padding: 3px 9px; }
   @media (max-width: 900px) { .mod, .mod.wide { grid-column: span 6; } }
   @media (max-width: 600px) { .mod, .mod.wide { grid-column: span 12; } }
 
@@ -186,6 +203,15 @@
       <div class="card"><div class="label">Slideshow</div><div class="big">25<small>fps · H.264</small></div></div>
       <div class="card"><div class="label">Collage</div><div class="big">570<small lang-es>plantillas</small><small lang-en>templates</small></div></div>
     </aside>
+    <figure class="hero-shot reveal">
+      <a href="assets/screenshots/slideshow.jpg" target="_blank" rel="noopener">
+        <img src="assets/screenshots/slideshow.jpg" width="1600" height="1000" alt="CAOBA: módulo Slideshow con el timeline de fotos, collages y pistas de música" fetchpriority="high">
+      </a>
+      <figcaption>
+        <span><b>Slideshow</b> · <span lang-es>collages y fotos en el timeline, dos pistas de música</span><span lang-en>collages and photos on the timeline, two music tracks</span></span>
+        <span>macOS 14 · <span lang-es>modo oscuro</span><span lang-en>dark mode</span></span>
+      </figcaption>
+    </figure>
   </div>
 
   <section id="modulos">
@@ -198,43 +224,48 @@
       </p>
       <div class="grid">
         <article class="mod wide">
-          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
-          <div class="n">01</div><h3>Slideshow</h3>
+          <a class="shot" href="assets/screenshots/slideshow.jpg" target="_blank" rel="noopener"><img src="assets/screenshots/slideshow.jpg" width="1600" height="1000" loading="lazy" alt="Slideshow: timeline con fotos, collages y música"></a>
+          <div class="n">01<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Slideshow</h3>
           <p><span lang-es>Fotos o collages a MP4, montados en un timeline como el de un editor de vídeo.</span><span lang-en>Photos or collages to MP4, arranged on a video-editor style timeline.</span></p>
           <ul>
             <li><span lang-es>Seis formatos: TV y YouTube, Historias y Reels, feed de Instagram, clásicos.</span><span lang-en>Six formats: TV and YouTube, Stories and Reels, Instagram feed, classics.</span></li>
             <li><span lang-es>Ken Burns con editor de encuadre, previsualización y <b>detección de caras</b>.</span><span lang-en>Ken Burns with framing editor, preview and <b>face detection</b>.</span></li>
             <li><span lang-es>Música arrastrable y recortable, crossfade, fundido de salida y normalización EBU R128.</span><span lang-en>Draggable, trimmable music, crossfade, fade-out and EBU R128 loudness.</span></li>
-            <li><span lang-es>Codificación por hardware, sin ffmpeg ni temporales en tus fotos.</span><span lang-en>Hardware encoding, no ffmpeg and no temp files among your photos.</span></li>
+            <li><span lang-es>Codificación por hardware, sin ficheros temporales entre tus fotos.</span><span lang-en>Hardware encoding, with no temp files among your photos.</span></li>
           </ul>
         </article>
         <article class="mod">
-          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
-          <div class="n">02</div><h3>Collage</h3>
+          <a class="shot" href="assets/screenshots/collage.jpg" target="_blank" rel="noopener" style="--x:-15%;--y:-24%"><img src="assets/screenshots/collage.jpg" width="1600" height="1000" loading="lazy" alt="Collage: plantillas de 3 fotos"></a>
+          <div class="n">02<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Collage</h3>
           <p><span lang-es>570 plantillas de 1 a 9 fotos, editor de encuadre por celda y foco automático por saliencia o caras.</span><span lang-en>570 templates for 1 to 9 photos, per-cell framing editor and automatic focus by saliency or faces.</span></p>
         </article>
         <article class="mod">
-          <span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span>
-          <div class="n">03</div><h3>Contact Sheet</h3>
+          <a class="shot" href="assets/screenshots/contact-sheet.jpg" target="_blank" rel="noopener" style="--x:-15%;--y:-12%"><img src="assets/screenshots/contact-sheet.jpg" width="1600" height="1000" loading="lazy" alt="Contact Sheet: disposición, etiquetas y logo"></a>
+          <div class="n">03<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Contact Sheet</h3>
           <p><span lang-es>Rejilla o masonry, título, numeración, borde y logo. Con estimación del tamaño final.</span><span lang-en>Grid or masonry, title, numbering, border and logo. With estimated output size.</span></p>
         </article>
         <article class="mod">
+          <a class="shot" href="assets/screenshots/processor.jpg" target="_blank" rel="noopener" style="--x:-15%;--y:-10%"><img src="assets/screenshots/processor.jpg" width="1600" height="1000" loading="lazy" alt="Procesador: operaciones y salida"></a>
           <div class="n">04</div><h3><span lang-es>Procesador</span><span lang-en>Processor</span></h3>
           <p><span lang-es>Rotar, recortar, redimensionar, calidad y formato en una pasada. Entra RAW y HEIC; conserva EXIF, GPS y color.</span><span lang-en>Rotate, crop, resize, quality and format in one pass. RAW and HEIC in; EXIF, GPS and color preserved.</span></p>
         </article>
         <article class="mod">
+          <a class="shot" href="assets/screenshots/watermark.jpg" target="_blank" rel="noopener" style="--x:-50%;--y:-13%"><img src="assets/screenshots/watermark.jpg" width="1600" height="1000" loading="lazy" alt="Marca de agua: vista previa sobre una foto"></a>
           <div class="n">05</div><h3><span lang-es>Marca de agua</span><span lang-en>Watermark</span></h3>
           <p><span lang-es>Tu PNG suelto o en mosaico, con giro, opacidad y vista previa sobre cualquier foto.</span><span lang-en>Your PNG, single or tiled, with rotation, opacity and a preview on any photo.</span></p>
         </article>
         <article class="mod">
+          <a class="shot" href="assets/screenshots/metadata.jpg" target="_blank" rel="noopener" style="--x:-50%;--y:-12%"><img src="assets/screenshots/metadata.jpg" width="1600" height="1000" loading="lazy" alt="Metadatos: ficha de la foto y edición"></a>
           <div class="n">06</div><h3><span lang-es>Metadatos</span><span lang-en>Metadata</span></h3>
           <p><span lang-es>Lee y escribe EXIF, incluido GPS con mapa, sin recomprimir la imagen.</span><span lang-en>Read and write EXIF, GPS with map included, without recompressing the image.</span></p>
         </article>
         <article class="mod">
+          <a class="shot" href="assets/screenshots/renamer.jpg" target="_blank" rel="noopener" style="--x:-50%;--y:-12%"><img src="assets/screenshots/renamer.jpg" width="1600" height="1000" loading="lazy" alt="Renombrador: vista previa de los nuevos nombres"></a>
           <div class="n">07</div><h3><span lang-es>Renombrador</span><span lang-en>Renamer</span></h3>
           <p><span lang-es>Patrones con fecha, cámara y contador; numeración corregida; buscar y reemplazar. Y <b>deshacer</b>.</span><span lang-en>Patterns with date, camera and counter; fixed numbering; search and replace. And <b>undo</b>.</span></p>
         </article>
         <article class="mod">
+          <a class="shot" href="assets/screenshots/qr.jpg" target="_blank" rel="noopener" style="--x:-50%;--y:-22%"><img src="assets/screenshots/qr.jpg" width="1600" height="1000" loading="lazy" alt="Código QR: generación con vista previa"></a>
           <div class="n">08</div><h3><span lang-es>Código QR</span><span lang-en>QR Code</span></h3>
           <p><span lang-es>Texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento, con colores y logo.</span><span lang-en>Text, URL, WiFi, contact, email, phone, SMS, location or event, with colors and logo.</span></p>
         </article>
@@ -248,11 +279,11 @@
 
   <section id="porque">
     <div class="wrap">
-      <p class="kicker"><span lang-es>Reescrita en Swift</span><span lang-en>Rewritten in Swift</span></p>
+      <p class="kicker"><span lang-es>Hecha para el Mac</span><span lang-en>Made for the Mac</span></p>
       <h2><span lang-es>Por qué nativa</span><span lang-en>Why native</span></h2>
       <div class="why">
-        <div><div class="num">30<small style="font-size:24px">MB</small></div><b><span lang-es>Diez veces más ligera</span><span lang-en>Ten times lighter</span></b><p><span lang-es>La versión anterior, en Electron, pesaba 300 MB. Esta usa los frameworks que ya vienen en macOS.</span><span lang-en>The previous Electron version weighed 300 MB. This one uses the frameworks already in macOS.</span></p></div>
-        <div><div class="num">GPU</div><b><span lang-es>Vídeo por hardware</span><span lang-en>Hardware video</span></b><p><span lang-es>Los fotogramas se componen en Core Image y se codifican con VideoToolbox. Sin esperar a ffmpeg.</span><span lang-en>Frames are composed in Core Image and encoded with VideoToolbox. No waiting for ffmpeg.</span></p></div>
+        <div><div class="num">30<small style="font-size:24px">MB</small></div><b><span lang-es>Ligera y rápida</span><span lang-en>Light and fast</span></b><p><span lang-es>Usa los frameworks que ya vienen en macOS: se instala en segundos y arranca al instante.</span><span lang-en>It uses the frameworks already in macOS: installs in seconds and opens instantly.</span></p></div>
+        <div><div class="num">GPU</div><b><span lang-es>Vídeo por hardware</span><span lang-en>Hardware video</span></b><p><span lang-es>Los fotogramas se componen en Core Image y se codifican con VideoToolbox.</span><span lang-en>Frames are composed in Core Image and encoded with VideoToolbox.</span></p></div>
         <div><div class="num">0</div><b><span lang-es>Descargas ni cuentas</span><span lang-en>Downloads or accounts</span></b><p><span lang-es>Caras y saliencia con Vision, RAW y HEIC con ImageIO. Nada sale de tu Mac; solo se consulta si hay versión nueva.</span><span lang-en>Faces and saliency with Vision, RAW and HEIC with ImageIO. Nothing leaves your Mac; it only checks for a new version.</span></p></div>
         <div><div class="num">↩︎</div><b><span lang-es>Pensada para no perder nada</span><span lang-en>Built so you lose nothing</span></b><p><span lang-es>Metadatos sin recomprimir, renombrado con deshacer y configuración guardada en cada carpeta.</span><span lang-en>Metadata without recompression, renaming with undo, and settings saved per folder.</span></p></div>
       </div>
@@ -286,8 +317,7 @@
     <img src="assets/logo.png" alt="CAOBA">
     <div>
       <a href="https://caobafoto.com/">caobafoto.com</a> ·
-      <a href="https://github.com/marcosesperon/caoba-photo-utils">GitHub</a> ·
-      <a href="https://github.com/marcosesperon/caoba-foto-utils"><span lang-es>Versión anterior (Electron)</span><span lang-en>Previous version (Electron)</span></a>
+      <a href="https://github.com/marcosesperon/caoba-photo-utils">GitHub</a>
     </div>
     <div>© <span id="year"></span> CAOBA</div>
   </div>

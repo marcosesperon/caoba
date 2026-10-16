@@ -114,6 +114,10 @@ struct CollageView: View {
 
             FileListView(allowsReorder: true).frame(minWidth: 320)
         }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state collage.tab=random` abre en "Aleatorias".
+            if appState.launchState["collage.tab"] == "random" { mode = .random; photosFilter = 3 }
+        }
     }
 
     private var randomSection: some View {

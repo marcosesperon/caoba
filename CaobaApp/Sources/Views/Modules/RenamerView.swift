@@ -131,6 +131,10 @@ struct RenamerView: View {
             }
             .frame(minWidth: 360)
         }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state renamer.pattern={fecha}_{n}`
+            if let initial = appState.launchState["renamer.pattern"] { pattern = initial }
+        }
         .onChange(of: mode) { schedulePlan() }
         .onChange(of: pattern) { schedulePlan() }
         .onChange(of: sortBy) { schedulePlan() }

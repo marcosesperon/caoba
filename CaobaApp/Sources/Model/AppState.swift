@@ -10,6 +10,9 @@ import CaobaCore
 final class AppState {
     // MARK: Navegación
     var currentModule: Module = .processor
+    /// Estado inicial pedido por línea de comandos con `--state clave=valor`
+    /// (solo para capturas: pestaña del Collage, texto del QR, PNG de la marca…).
+    var launchState: [String: String] = [:]
 
     // MARK: Carpeta de origen
     private(set) var sourceFolder: URL?
@@ -159,6 +162,86 @@ final class AppState {
         if panel.runModal() == .OK, let url = panel.url { destinationFolder = url }
     }
 
+    // MARK: - Argumentos de arranque
+
+    /// Para capturas y pruebas: `--folder <ruta>` abre una carpeta, `--module <id>`
+    /// elige la sección y `--window <ancho>x<alto>` fija el tamaño de la ventana.
+    func applyLaunchArguments(_ arguments: [String] = CommandLine.arguments) async {
+        func value(after flag: String) -> String? {
+            guard let i = arguments.firstIndex(of: flag), arguments.indices.contains(i + 1) else { return nil }
+            return arguments[i + 1]
+        }
+        // `--state clave=valor` (repetible) deja preparado un módulo con contenido.
+        // Va lo primero porque el módulo recordado puede estar ya en pantalla.
+        for (i, argument) in arguments.enumerated() where argument == "--state" && arguments.indices.contains(i + 1) {
+            let pair = arguments[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
+            if pair.count == 2 { launchState[pair[0]] = pair[1] }
+        }
+        if let size = value(after: "--window") {
+            let parts = size.lowercased().split(separator: "x").compactMap { Double($0) }
+            // La ventana tarda un instante en existir con su tamaño inicial.
+            try? await Task.sleep(for: .milliseconds(600))
+            if parts.count == 2, let window = NSApp.windows.first(where: { $0.isVisible }) {
+                let frame = window.frameRect(forContentRect: NSRect(x: 0, y: 0, width: parts[0], height: parts[1]))
+                window.setFrame(frame, display: true)
+                window.center()
+            }
+        }
+        if let id = value(after: "--module"), let module = Module(rawValue: id) {
+            currentModule = module
+        }
+        if let path = value(after: "--folder") {
+            await selectSourceFolder(URL(fileURLWithPath: path))
+        }
+        // `--screenshot <png>` guarda la ventana tras `--delay` segundos (8 por defecto) y cierra.
+        // Se dibuja la propia jerarquía de vistas, así no hace falta permiso de grabación de pantalla.
+        if let output = value(after: "--screenshot") {
+            let delay = value(after: "--delay").flatMap(Double.init) ?? 8
+            try? await Task.sleep(for: .seconds(delay))
+            // Una vista invisible se queda con el foco del teclado para que el
+            // primer control de la ventana no salga con el anillo rojo.
+            if let window = NSApp.windows.first(where: { $0.isVisible }), let content = window.contentView {
+                // La app tiene que estar delante: si no, la ventana sale con los controles apagados.
+                NSApp.activate(ignoringOtherApps: true)
+                window.makeKeyAndOrderFront(nil)
+                let sink = FocusSink(frame: .zero)
+                content.addSubview(sink)
+                window.makeFirstResponder(sink)
+                try? await Task.sleep(for: .milliseconds(300))
+            }
+            Self.captureMainWindow(to: URL(fileURLWithPath: output))
+            NSApp.terminate(nil)
+        }
+    }
+
+    /// Imagen de una ventana propia vía `CGWindowListCreateImage`. Está marcada como
+    /// obsoleta en macOS 14 pero sigue funcionando y, a diferencia de ScreenCaptureKit,
+    /// no pide permiso de grabación de pantalla; se resuelve por `dlsym` para no
+    /// arrastrar el aviso de obsolescencia en cada compilación.
+    private static func windowImage(of window: NSWindow) -> CGImage? {
+        typealias CreateImage = @convention(c) (CGRect, UInt32, UInt32, UInt32) -> Unmanaged<CGImage>?
+        guard let symbol = dlsym(dlopen(nil, RTLD_NOW), "CGWindowListCreateImage") else { return nil }
+        let create = unsafeBitCast(symbol, to: CreateImage.self)
+        let options: CGWindowListOption = .optionIncludingWindow
+        let imageOptions: CGWindowImageOption = [.boundsIgnoreFraming, .bestResolution]
+        return create(.null, options.rawValue, CGWindowID(window.windowNumber), imageOptions.rawValue)?.takeRetainedValue()
+    }
+
+    static func captureMainWindow(to url: URL) {
+        guard let window = NSApp.windows.first(where: { $0.isVisible }) else { return }
+        // Primero la imagen real de la ventana (incluye los fondos translúcidos);
+        // si el sistema no la da, se dibuja la jerarquía de vistas.
+        if let cg = Self.windowImage(of: window), cg.width > 10 {
+            let rep = NSBitmapImageRep(cgImage: cg)
+            try? rep.representation(using: .png, properties: [:])?.write(to: url)
+            return
+        }
+        guard let view = window.contentView?.superview ?? window.contentView,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: url)
+    }
+
     // MARK: - Versión
 
     func checkForUpdates() async {
@@ -231,4 +314,9 @@ enum VersionCheck {
         }
         return false
     }
+}
+
+/// Vista vacía que acepta el foco; solo se usa al hacer capturas desde línea de comandos.
+private final class FocusSink: NSView {
+    override var acceptsFirstResponder: Bool { true }
 }

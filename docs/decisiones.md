@@ -268,3 +268,30 @@ Ninguna.
 ### 6. Pendiente de comprobar
 - Probar el DMG en un Mac Intel real.
 - Publicar la primera release `v3.0.0` cuando el usuario lo indique; comprobar que la landing enlaza el DMG.
+
+## 2026-10-16 — Landing sin referencias a la versión anterior y con capturas de la app
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Quitar del README y de `index.html` cualquier referencia a la reescritura en Swift o a la versión anterior (Electron), y usar capturas de pantalla reales de la app en la landing, cargando la carpeta `~/Downloads/A&S` como carpeta de ejemplo.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `README.md` e `index.html` actuales; `AppState` (arranque de la app) y las vistas de los módulos para dejarlas con contenido.
+
+### 4. Decisiones
+- Las capturas las hace **la propia app** con argumentos de arranque (`--folder`, `--module`, `--window`, `--state`, `--screenshot`, `--delay`): `screencapture -l` necesita permiso de grabación de pantalla y fallaba; la app captura su propia ventana con `CGWindowListCreateImage` (resuelto por `dlsym` para no arrastrar el aviso de obsolescencia). Antes de capturar activa la app, pone el foco en una vista invisible (si no, el primer botón salía con el anillo rojo) y fija 1440×900, que en Retina da 2880×1800.
+- `--state clave=valor` deja módulos con contenido en pantalla (Collage en «Aleatorias» con plantillas de 3 fotos, QR con una URL, marca de agua con el logo de CAOBA, renombrador con un patrón de fecha). Son enganches de una línea en `onAppear` de cada vista.
+- En la landing: captura grande del Slideshow bajo el hero (con enlace a la imagen completa), y una captura al principio de cada tarjeta de módulo. En las tarjetas estrechas la imagen se amplía al 200 % y se desplaza con `--x`/`--y` a la zona interesante (formulario o vista previa). La imagen social (`og:image`) es también la captura del Slideshow.
+- Capturas guardadas en `assets/screenshots/` en JPEG a 1600 px (unos 200 KB cada una) para no cargar el repo con PNG de 2880 px.
+- Shutter Count no lleva captura: no hay ningún RAW con contador de disparos a mano y la pantalla vacía no aporta nada.
+
+### 5. Alternativas descartadas
+- `screencapture` o ScreenCaptureKit: requieren permiso de grabación de pantalla que no se puede conceder desde la terminal.
+- `cacheDisplay` de la vista raíz: dejaba la barra lateral en blanco (no pinta los fondos translúcidos); queda solo como respaldo.
+- Persistir el contenido de los módulos en `.caoba` para las capturas: solo el Slideshow guarda su estado por carpeta; añadir persistencia a los demás solo para esto era desproporcionado.
+
+### 6. Pendiente de comprobar
+- Revisar la landing publicada en Pages (móvil y tema claro) y repetir las capturas cuando cambie la interfaz; conseguir un RAW con contador para la captura de Shutter Count.
+

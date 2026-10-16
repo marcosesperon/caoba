@@ -36,6 +36,18 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 
 `Tools/make-release.sh` lee la versión de `MARKETING_VERSION` en `project.yml`, pasa los tests del motor, genera el proyecto, compila en Release un **binario universal** (`ARCHS="arm64 x86_64"`), lo firma ad hoc (sin Developer ID todavía), crea `dist/CAOBA-<versión>.dmg` con `hdiutil` y, con `--publish`, crea la etiqueta `v<versión>`, la sube y publica la release en GitHub con `gh` y notas generadas de los commits. Para subir de versión: cambiar `MARKETING_VERSION` (y `CaobaCoreInfo.version`) y volver a lanzar el script. El DMG ocupa unos 12 MB con exiftool incluido.
 
+### Capturas de pantalla
+
+La app admite argumentos de arranque pensados para generar las capturas de la landing (y para pruebas): `--folder <ruta>` abre una carpeta, `--module <id>` elige la sección (`slideshow`, `collage`, `contactSheet`, `processor`, `watermark`, `metadata`, `renamer`, `qr`, `shutterCount`), `--window <ancho>x<alto>` fija el tamaño de la ventana, `--state clave=valor` (repetible) deja un módulo con contenido (`collage.tab=random`, `qr.text=https://…`, `watermark.png=/ruta/marca.png`, `renamer.pattern={YYYY}-{MM}-{DD}_{n}`) y `--screenshot <salida.png>` guarda la ventana pasados `--delay` segundos (8 por defecto) y cierra la app. La captura se hace de la propia ventana, así que no pide permiso de grabación de pantalla, y sale a la resolución de la pantalla (en Retina, el doble del tamaño pedido). Ejemplo:
+
+```sh
+open -n build/DerivedData/Build/Products/Debug/CAOBA.app --args \
+  --folder "/ruta/a/las/fotos" --module slideshow --window 1440x900 \
+  --screenshot /tmp/slideshow.png --delay 10
+```
+
+Las capturas de la landing están en `assets/screenshots/` reducidas a 1600 px de ancho en JPEG.
+
 ### Reglas de la casa
 
 - Lo temporal va siempre al directorio temporal del sistema (`TempFiles`), nunca a la carpeta de fotos.

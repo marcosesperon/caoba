@@ -3,6 +3,7 @@ import CaobaCore
 
 /// Generador de códigos QR con nueve tipos de contenido y vista previa en vivo.
 struct QRView: View {
+    @Environment(AppState.self) private var appState
     enum ContentType: String, CaseIterable, Identifiable {
         case text, url, wifi, vcard, email, phone, sms, geo, event
         var id: String { rawValue }
@@ -152,7 +153,11 @@ struct QRView: View {
         }
         .onChange(of: content) { schedulePreview() }
         .onChange(of: options) { schedulePreview() }
-        .onAppear { schedulePreview() }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state qr.text=https://...`
+            if let initial = appState.launchState["qr.text"] { text = initial }
+            schedulePreview()
+        }
     }
 
     @ViewBuilder

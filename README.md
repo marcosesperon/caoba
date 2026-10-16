@@ -2,8 +2,6 @@
 
 **CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR y lectura del contador de disparos. Pensada para trabajar por carpetas y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
 
-Es la reescritura en Swift de [CAOBA Foto Utils](https://github.com/marcosesperon/caoba-foto-utils) (Electron): misma idea, más ligera y más rápida, y preparada para llegar a iPhone y iPad.
-
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/marcosesperon)
 [![Descargar](https://img.shields.io/badge/Descargar-macOS%2014%2B-D71921?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/marcosesperon/caoba-photo-utils/releases/latest)
 
@@ -46,7 +44,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 - **Música**: varias pistas con crossfade de 3 s, arrastrables sobre el timeline y con recorte Desde/Hasta estirando los bordes; repetición de la lista si el vídeo es más largo; fundido de salida; **normalización EBU R128** a -16 LUFS.
 - **Modo Collages**: cada collage aparece foto a foto, con tiempos de aparición y mantenimiento, y las 84 plantillas superpuestas (marco y sombra) además de las normales.
 - **Vista previa** en una ventana de la app con las primeras fotos a media resolución.
-- Codificación H.264 por **hardware** (VideoToolbox), sin ffmpeg ni fotogramas temporales en disco. La configuración se guarda en la carpeta (`.caoba`) y se restaura al volver, incluidos los ficheros de la versión anterior.
+- Codificación H.264 por **hardware** (VideoToolbox), sin fotogramas temporales en disco. La configuración se guarda en la carpeta (`.caoba`) y se restaura al volver.
 
 ### 🧩 Collage
 
@@ -124,7 +122,7 @@ Si macOS avisa de que no puede comprobar el desarrollador, abre la app con clic 
 
 ## 🛠️ Tecnologías
 
-- **Swift 6 y SwiftUI**: app nativa de macOS, preparada para iOS.
+- **Swift 6 y SwiftUI**: app nativa de macOS.
 - **ImageIO y Core Image**: decodificación (JPG, PNG, TIFF, HEIC, WebP, AVIF, RAW), escalado, composición y escritura con metadatos.
 - **AVFoundation y VideoToolbox**: codificación de vídeo por hardware, composición de audio y mezcla.
 - **Vision**: detección de caras y saliencia para encuadres automáticos.
@@ -132,7 +130,7 @@ Si macOS avisa de que no puede comprobar el desarrollador, abre la app con clic 
 - **exiftool** (Perl, distribución oficial) empaquetado solo para Shutter Count.
 - **XcodeGen** para el proyecto y **GitHub Actions** para la integración continua.
 
-El motor (`CaobaCore`) es un paquete Swift sin interfaz, con más de 90 tests, que comparten la app de macOS y la futura de iOS.
+El motor (`CaobaCore`) es un paquete Swift sin interfaz, con más de 90 tests, independiente de la app.
 
 ---
 
@@ -148,15 +146,4 @@ Tools/make-release.sh        # binario universal (Silicon + Intel) y DMG en dist
 Tools/make-release.sh --publish   # además etiqueta la versión y crea la release en GitHub
 ```
 
-Requiere Xcode 16 o superior. En `docs/` están el análisis de la app anterior, la comparativa Swift frente a Tauri, la bitácora de decisiones y la documentación del motor.
-
----
-
-## 🔁 Cambios respecto a CAOBA Foto Utils (Electron)
-
-- Instalador de unos **30 MB** frente a los 300 MB anteriores, y arranque inmediato.
-- Vídeo codificado por hardware, sin ffmpeg ni carpetas temporales dentro de tus fotos.
-- Detección de caras y HEIC/RAW de serie, sin TensorFlow ni modelos descargados.
-- Metadatos sin recomprimir el JPEG y con GPS editable.
-- Timeline del slideshow, duración y encuadre por foto, música arrastrable y recortable, y renombrado con deshacer.
-- Sin Windows: la versión Electron sigue disponible en [caoba-foto-utils](https://github.com/marcosesperon/caoba-foto-utils) para quien lo necesite.
+Requiere Xcode 16 o superior. En `docs/` están la bitácora de decisiones y la documentación del motor.

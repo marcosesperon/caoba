@@ -15,7 +15,10 @@ struct CaobaApp: App {
                 .environment(\.locale, language.locale)
                 .preferredColorScheme(appearance.colorScheme)
                 .frame(minWidth: 960, minHeight: 640)
-                .task { await appState.checkForUpdates() }
+                .task {
+                    await appState.applyLaunchArguments()
+                    await appState.checkForUpdates()
+                }
         }
         .defaultSize(width: 1200, height: 780)
         .commands {

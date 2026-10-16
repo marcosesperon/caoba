@@ -95,6 +95,10 @@ struct WatermarkView: View {
             }
             .frame(minWidth: 360)
         }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state watermark.png=/ruta/marca.png`
+            if let path = appState.launchState["watermark.png"] { watermarkURL = URL(fileURLWithPath: path) }
+        }
         .onChange(of: options) { schedulePreview() }
         .onChange(of: watermarkURL) { schedulePreview() }
         .onChange(of: previewIndex) { schedulePreview() }
