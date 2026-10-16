@@ -207,7 +207,7 @@ final class AppState {
         }
         // Para capturar la banda y la hoja sin esperar a que exista una versión nueva ni a los 7 días.
         if let version = launchState["demo.update"] {
-            availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba-photo-utils/releases/latest")!)
+            availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba/releases/latest")!)
             showUpdateBanner = true
         }
         if launchState["demo.donation"] != nil {
@@ -342,7 +342,7 @@ enum VersionCheck {
         var url: URL
     }
 
-    static let releasesAPI = URL(string: "https://api.github.com/repos/marcosesperon/caoba-photo-utils/releases/latest")!
+    static let releasesAPI = URL(string: "https://api.github.com/repos/marcosesperon/caoba/releases/latest")!
 
     static func fetchNewerRelease(than current: String) async -> Release? {
         var request = URLRequest(url: releasesAPI)

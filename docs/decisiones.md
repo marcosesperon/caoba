@@ -373,3 +373,26 @@ Tres cosas en la app de macOS, tomando como referencia la versión anterior:
 ### 6. Pendiente de comprobar
 - Ver la banda con una release real más nueva: publicada `v3.0.1` el 16-10-2026 con estos cambios (`CAOBA-3.0.1.dmg`, 11 MB); un CAOBA 3.0.0 instalado debería mostrarla al arrancar. Nota para el futuro: la compilación en Release reordena `Localizable.xcstrings`, así que conviene compilar y commitear antes de lanzar `--publish`, que exige el árbol limpio.
 
+## 2026-10-16 — Repositorio renombrado a `caoba`
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Cambiar el repositorio de `marcosesperon/caoba-photo-utils` a `marcosesperon/caoba`, y que la app actualice sus enlaces y la comprobación de versiones.
+
+### 2. Preguntas y respuestas
+**P1. ¿Lo renombro yo con `gh` y cambio las referencias?** R: «dale».
+
+### 3. Fuentes analizadas
+- Referencias al nombre antiguo: `AppState` (API de releases y enlace de la banda), `index.html` (enlaces, consulta de la release, `og:image`), `README.md` (insignia y enlace a la release).
+
+### 4. Decisiones
+- Renombrado con `gh repo rename caoba`; `gh` actualizó el remoto local. GitHub redirige el nombre antiguo en web, git y API, así que CAOBA 3.0.0 y 3.0.1 siguen encontrando las releases.
+- Todas las referencias pasan al nombre nuevo. La landing cambia de URL a `https://marcosesperon.github.io/caoba/` (Pages no redirige); se actualiza también la URL de inicio del repositorio.
+- La carpeta local sigue llamándose `caoba-photo-utils`: renombrarla no afecta a nada del proyecto y se puede hacer en cualquier momento desde Finder.
+- Las entradas anteriores de esta bitácora conservan el nombre antiguo: es un registro histórico.
+
+### 5. Alternativas descartadas
+- Dejar las URL antiguas confiando en la redirección: funciona, pero deja el nombre viejo en la app y la web para siempre.
+
+### 6. Pendiente de comprobar
+- Que Pages sirva la landing en la URL nueva tras el push; publicar 3.0.2 cuando convenga para que la app lleve las URL nuevas.
+

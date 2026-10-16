@@ -3,7 +3,7 @@
 **CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR y lectura del contador de disparos. Pensada para trabajar por carpetas y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/marcosesperon)
-[![Descargar](https://img.shields.io/badge/Descargar-macOS%2014%2B-D71921?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/marcosesperon/caoba-photo-utils/releases/latest)
+[![Descargar](https://img.shields.io/badge/Descargar-macOS%2014%2B-D71921?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/marcosesperon/caoba/releases/latest)
 
 ## 👥 Acerca de
 
@@ -112,7 +112,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 
 ## ⬇️ Instalación
 
-1. Descarga el DMG de la [última release](https://github.com/marcosesperon/caoba-photo-utils/releases/latest).
+1. Descarga el DMG de la [última release](https://github.com/marcosesperon/caoba/releases/latest).
 2. Arrastra **CAOBA** a Aplicaciones.
 3. Requiere **macOS 14 Sonoma** o posterior.
 
