@@ -142,8 +142,11 @@ struct ExtrasTab: View {
                         }
                     }
                 }
-                Button("Añadir texto…") { doc.addTextCard() }
-                Text("Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio.")
+                HStack {
+                    Button("Añadir texto antes") { doc.addTextCard() }
+                    Button("Añadir texto después") { doc.addTextCard(after: true) }
+                }
+                Text("Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio.")
                     .font(.caption).foregroundStyle(.secondary)
                 TextStyleEditor(title: "Estilo de títulos (por defecto para las tarjetas)", style: $doc.titleStyle)
             }

@@ -150,6 +150,16 @@
     "%@" : {
 
     },
+    "%@ · %@ · %.1f s" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$.1f s"
+          }
+        }
+      }
+    },
     "%@ (%@) · %lld×%lld" : {
       "localizations" : {
         "es" : {
@@ -440,6 +450,7 @@
       }
     },
     "Activa un título, un cierre o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -580,6 +591,16 @@
         }
       }
     },
+    "Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a text card or a caption pattern to see how they look on the video."
+          }
+        }
+      }
+    },
     "Añadir" : {
       "localizations" : {
         "en" : {
@@ -616,6 +637,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add track…"
+          }
+        }
+      }
+    },
+    "Añadir texto antes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text before"
+          }
+        }
+      }
+    },
+    "Añadir texto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text…"
           }
         }
       }
@@ -1319,6 +1360,7 @@
       }
     },
     "Cierre" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1329,6 +1371,7 @@
       }
     },
     "Cierre al final (pantalla propia)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2078,6 +2121,7 @@
       }
     },
     "El estilo del texto se ajusta en la pestaña «Portada y texto»." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2307,6 +2351,27 @@
         }
       }
     },
+    "Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start the closing over the last photo and keep it while fading to its screen"
+          }
+        }
+      }
+    },
+    "Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start the text over the previous element and keep it while fading to the card"
+          }
+        }
+      }
+    },
     "Empezar en" : {
 
     },
@@ -2500,6 +2565,16 @@
         }
       }
     },
+    "Estilo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Style"
+          }
+        }
+      }
+    },
     "Estilo de los pies" : {
       "localizations" : {
         "en" : {
@@ -2510,12 +2585,33 @@
         }
       }
     },
+    "Estilo de títulos (por defecto para las tarjetas)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title style (default for the cards)"
+          }
+        }
+      }
+    },
     "Estilo del título" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Title style"
+          }
+        }
+      }
+    },
+    "Estilo propio para esta tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own style for this card"
           }
         }
       }
@@ -2943,9 +3039,6 @@
           }
         }
       }
-    },
-    "Gracias" : {
-
     },
     "Gris" : {
       "localizations" : {
@@ -3495,6 +3588,27 @@
         }
       }
     },
+    "Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the text still while the card fades into the next element"
+          }
+        }
+      }
+    },
+    "Mantener el título quieto mientras la tarjeta se funde con la primera foto" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the title still while the card fades into the first photo"
+          }
+        }
+      }
+    },
     "Máquina de escribir" : {
       "localizations" : {
         "en" : {
@@ -3783,6 +3897,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "None"
+          }
+        }
+      }
+    },
+    "Ninguno · sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None · over the next one"
           }
         }
       }
@@ -4270,7 +4394,18 @@
         }
       }
     },
+    "pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "own screen"
+          }
+        }
+      }
+    },
     "Pantalla propia" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4680,6 +4815,7 @@
       }
     },
     "Quitar cierre" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4729,7 +4865,18 @@
         }
       }
     },
+    "Quitar texto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove text"
+          }
+        }
+      }
+    },
     "Quitar título" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4979,6 +5126,16 @@
         }
       }
     },
+    "Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It is added before the element selected on the timeline, or at the end; you can drag it elsewhere afterwards."
+          }
+        }
+      }
+    },
     "Secuencia" : {
       "localizations" : {
         "en" : {
@@ -5015,6 +5172,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seconds per photo"
+          }
+        }
+      }
+    },
+    "Segundos sobre él" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over it"
+          }
+        }
+      }
+    },
+    "Segundos sobre la foto" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over the photo"
           }
         }
       }
@@ -5171,6 +5349,16 @@
         }
       }
     },
+    "Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a background, the text is laid over the element that follows on the timeline (with the style's entry and exit)."
+          }
+        }
+      }
+    },
     "Sin fotos" : {
       "localizations" : {
         "en" : {
@@ -5231,7 +5419,18 @@
         }
       }
     },
+    "Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No text cards. Add a title at the start, a closing at the end or a section title anywhere on the timeline."
+          }
+        }
+      }
+    },
     "Sin título" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5281,7 +5480,18 @@
         }
       }
     },
+    "sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "over the next one"
+          }
+        }
+      }
+    },
     "Sobre la primera foto" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5425,6 +5635,36 @@
         }
       }
     },
+    "Texto · pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text · own screen"
+          }
+        }
+      }
+    },
+    "Texto · sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text · over the next one"
+          }
+        }
+      }
+    },
+    "Textos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texts"
+          }
+        }
+      }
+    },
     "Timeline" : {
       "localizations" : {
         "en" : {
@@ -5466,6 +5706,7 @@
       }
     },
     "Título · pantalla propia" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5476,6 +5717,7 @@
       }
     },
     "Título · sobre la primera foto" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5612,6 +5854,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URL"
+          }
+        }
+      }
+    },
+    "Usa el estilo de títulos de la pestaña «Portada y texto»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the title style from the “Cover & text” tab."
           }
         }
       }
@@ -5811,6 +6063,16 @@
         }
       }
     },
+    "Volver al estilo de títulos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the title style"
+          }
+        }
+      }
+    },
     "Volver al valor global" : {
       "localizations" : {
         "en" : {
@@ -5887,242 +6149,22 @@
         }
       }
     },
-    "Mantener el título quieto mientras la tarjeta se funde con la primera foto" : {
+    "Añadir texto después" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep the title still while the card fades into the first photo"
+            "value" : "Add text after"
           }
         }
       }
     },
-    "Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla" : {
+    "Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start the closing over the last photo and keep it while fading to its screen"
-          }
-        }
-      }
-    },
-    "Segundos sobre la foto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds over the photo"
-          }
-        }
-      }
-    },
-    "Textos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Texts"
-          }
-        }
-      }
-    },
-    "Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No text cards. Add a title at the start, a closing at the end or a section title anywhere on the timeline."
-          }
-        }
-      }
-    },
-    "sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "over the next one"
-          }
-        }
-      }
-    },
-    "pantalla propia" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "own screen"
-          }
-        }
-      }
-    },
-    "Añadir texto…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add text…"
-          }
-        }
-      }
-    },
-    "Añadir texto antes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add text before"
-          }
-        }
-      }
-    },
-    "Quitar texto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove text"
-          }
-        }
-      }
-    },
-    "Se añade antes del elemento seleccionado en el timeline, o al final; luego se puede arrastrar a otro sitio." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "It is added before the element selected on the timeline, or at the end; you can drag it elsewhere afterwards."
-          }
-        }
-      }
-    },
-    "Estilo de títulos (por defecto para las tarjetas)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title style (default for the cards)"
-          }
-        }
-      }
-    },
-    "Ninguno · sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "None · over the next one"
-          }
-        }
-      }
-    },
-    "Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keep the text still while the card fades into the next element"
-          }
-        }
-      }
-    },
-    "Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start the text over the previous element and keep it while fading to the card"
-          }
-        }
-      }
-    },
-    "Segundos sobre él" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds over it"
-          }
-        }
-      }
-    },
-    "Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo)." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Without a background, the text is laid over the element that follows on the timeline (with the style's entry and exit)."
-          }
-        }
-      }
-    },
-    "Estilo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Style"
-          }
-        }
-      }
-    },
-    "Estilo propio para esta tarjeta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Own style for this card"
-          }
-        }
-      }
-    },
-    "Volver al estilo de títulos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back to the title style"
-          }
-        }
-      }
-    },
-    "Usa el estilo de títulos de la pestaña «Portada y texto»." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the title style from the “Cover & text” tab."
-          }
-        }
-      }
-    },
-    "Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add a text card or a caption pattern to see how they look on the video."
-          }
-        }
-      }
-    },
-    "Texto · sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Text · over the next one"
-          }
-        }
-      }
-    },
-    "Texto · pantalla propia" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Text · own screen"
+            "value" : "Before or after the element selected on the timeline (with nothing selected, at the end); you can drag it elsewhere afterwards."
           }
         }
       }

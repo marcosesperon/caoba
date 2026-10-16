@@ -321,17 +321,41 @@ final class SlideshowDocument {
         textCards[i] = card
     }
 
-    /// Nueva tarjeta ante el elemento seleccionado (si lo hay) o al final; queda seleccionada.
+    /// Nueva tarjeta antes o después del elemento seleccionado (si lo hay) o al final; queda seleccionada.
     @discardableResult
-    func addTextCard() -> UUID {
+    func addTextCard(after: Bool = false) -> UUID {
         var card = TextCard(text: L("Título"), anchor: TextCard.endAnchor)
-        if let item = items.first(where: { $0.selection == selection }) {
-            // Ante el elemento seleccionado; si es otra tarjeta, en su mismo sitio.
-            if case .text(let selected) = item.kind { card.anchor = selected.anchor } else { card.anchor = item.id }
+        let list = items
+        if let index = list.firstIndex(where: { $0.selection == selection }) {
+            let item = list[index]
+            if after {
+                // Ante el siguiente elemento que no sea tarjeta; si no hay, al final.
+                card.anchor = list[(index + 1)...].first { !$0.isText }?.id ?? TextCard.endAnchor
+            } else if case .text(let selected) = item.kind {
+                card.anchor = selected.anchor   // en el mismo sitio que la tarjeta seleccionada
+            } else {
+                card.anchor = item.id
+            }
         }
-        textCards.append(card)
+        if after, case .text(let selected) = list.first(where: { $0.selection == selection })?.kind {
+            // Tras otra tarjeta: mismo ancla, justo detrás de ella.
+            card.anchor = selected.anchor
+            textCards.append(card)
+            moveTextCard(card.id, afterCard: selected.id)
+        } else {
+            textCards.append(card)
+        }
         selection = .text(card.id)
         return card.id
+    }
+
+    /// Coloca la tarjeta justo después de otra tarjeta (mismo ancla, detrás de ella).
+    func moveTextCard(_ id: UUID, afterCard targetId: UUID) {
+        guard id != targetId, let from = textCards.firstIndex(where: { $0.id == id }), let target = textCards.first(where: { $0.id == targetId }) else { return }
+        var card = textCards.remove(at: from)
+        card.anchor = target.anchor
+        let to = (textCards.firstIndex(where: { $0.id == targetId }) ?? textCards.count - 1) + 1
+        textCards.insert(card, at: min(to, textCards.count))
     }
 
     func removeTextCard(_ id: UUID) {

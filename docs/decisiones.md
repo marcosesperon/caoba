@@ -1041,6 +1041,8 @@ Nada.
 - Mantener título y cierre fijos además de las tarjetas: descartado en P1.
 - Guardar la posición como índice: se desordena al reordenar o quitar fotos; el ancla por id aguanta.
 
+- Añadido a petición del usuario («faltaría la opción de crear el texto después»): «Añadir texto después» en la pestaña y en el menú contextual; se ancla al siguiente elemento que no sea tarjeta (o al final) y, tras otra tarjeta, se coloca justo detrás de ella (`moveTextCard(_:afterCard:)`).
+
 ### 6. Pendiente de comprobar
 - Las tarjetas superpuestas ocupan 0 s en el timeline y se ven como una tira estrecha; valorar darles un ancho mínimo mayor o un marcador.
 

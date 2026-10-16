@@ -298,6 +298,7 @@ struct TimelineCard: View {
         }
         Divider()
         Button("Añadir texto antes") { doc.selection = item.selection; doc.addTextCard() }
+        Button("Añadir texto después") { doc.selection = item.selection; doc.addTextCard(after: true) }
     }
 }
 
