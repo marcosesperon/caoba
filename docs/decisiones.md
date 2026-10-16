@@ -783,3 +783,23 @@ Actualización dentro de la app y preparación de la firma:
 ### 6. Pendiente de comprobar
 Nada. Recordatorio: en cada release, escribir la sección nueva del changelog antes de lanzar el script.
 
+## 2026-10-16 — Landing: más explicación de cada módulo
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Ampliar en `index.html` la explicación de cada una de las nueve funcionalidades.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `index.html` (tarjetas de módulos, solo Slideshow tenía viñetas) y el changelog de la 3.1.0 para no dejar fuera lo nuevo.
+
+### 4. Decisiones
+- Cada tarjeta lleva ahora una frase de presentación y entre dos y seis viñetas en español e inglés, con las novedades recientes (transiciones, ajuste al ritmo, composición por contenido, vista «Resultado», presets, deshacer del renombrador, estimación de vida útil…). Mismo CSS: la cuadrícula aguanta porque las tarjetas crecen en alto.
+
+### 5. Alternativas descartadas
+- Una página aparte por módulo: más texto que mantener y la landing es de un vistazo.
+
+### 6. Pendiente de comprobar
+- Las capturas de la landing son anteriores a la 3.1.0 (en Vídeo aún sale el interruptor de fundido); conviene repetirlas cuando se publique la próxima versión.
+
