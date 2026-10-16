@@ -315,3 +315,25 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Botón de donativo en la landing
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Añadir un botón de donativo en la barra superior y entre los botones principales del hero de `index.html`.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `index.html` (ya tenía el enlace a Buy Me a Coffee en la sección de descarga).
+
+### 4. Decisiones
+- Mismo enlace en los tres sitios (`buymeacoffee.com/marcosesperon`), abre en pestaña nueva. En la barra va como chip junto a idioma y tema; en el hero como tercer botón tras «Descargar» y «Ver el código»; el de la sección de descarga se mantiene.
+- Icono de taza en SVG en línea en lugar del emoji: el emoji depende de la fuente del navegador y salía diminuto con la fuente monoespaciada.
+- En móvil el chip de la barra se queda solo con la taza para que quepa; la regla necesita más especificidad que las de idioma (`html[data-lang] ...`), si no estas ganan y el texto vuelve a aparecer.
+
+### 5. Alternativas descartadas
+- Un botón rojo (primario) para el donativo: el primario debe seguir siendo la descarga.
+
+### 6. Pendiente de comprobar
+Nada.
+
