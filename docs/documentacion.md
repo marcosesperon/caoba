@@ -1,0 +1,294 @@
+# Documentación de CAOBA (Swift)
+
+## 1. Introducción
+
+CAOBA es la reescritura nativa en Swift de *CAOBA Foto Utils* (Electron). La idea es sencilla: un **motor** que sabe hacer cosas con fotos y una **app** que solo pinta pantallas y llama al motor.
+
+- **`CaobaCore`** (`CaobaCore/`): paquete Swift sin nada de interfaz. Usa ImageIO, Core Image, Core Graphics, Vision y AVFoundation, que existen igual en macOS y en iOS. Todo lo que hace está cubierto por tests (`swift test`), con imágenes generadas en el propio test.
+- **App macOS** (`CaobaApp/`): SwiftUI con controles del sistema. Solo guarda estado de pantalla y delega en el motor.
+
+Estado actual: **fases (a), (b), (c) y (d)** terminadas en cuanto a código: todos los módulos de la app antigua están migrados en macOS. Queda la fase (e), iOS.
+
+### Cómo se trabaja
+
+```bash
+brew install xcodegen
+xcodegen generate                 # genera CAOBA.xcodeproj desde project.yml
+open CAOBA.xcodeproj              # desarrollar y ejecutar la app
+cd CaobaCore && swift test        # motor: tests sin abrir Xcode
+```
+
+Si Xcode no está seleccionado como toolchain activo (`xcode-select -p` apunta a Command Line Tools), basta con:
+
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destination 'platform=macOS' -derivedDataPath build/DerivedData build
+```
+
+### Componentes de interfaz comunes
+
+- `OptionGroup(title:)`: bloque de opciones con cabecera.
+- `LabeledRow("Etiqueta") { control }` y `LabeledSlider(title:value:in:step:display:)`: etiqueta en una columna fija de 130 puntos, para que todos los controles de la app empiecen alineados. Cualquier selector, campo, stepper o deslizador con etiqueta debe usar uno de los dos.
+- `TemplateView`, `CellPhotoView`, `TemplatePicker`, `TemplateFilters`: plantillas de collage y celdas con foto arrastrable.
+- `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
+
+### Reglas de la casa
+
+- Lo temporal va siempre al directorio temporal del sistema (`TempFiles`), nunca a la carpeta de fotos.
+- Los ficheros de salida se escriben primero en temporal y luego se mueven (`FileOperations.commit`), así nunca queda una foto a medias.
+- Los trabajos largos son `async`, informan por `ProgressHandler` y se cancelan con la cancelación normal de `Task` (lanzan `CaobaError.cancelled`).
+- Los errores del motor son casos de `CaobaError`; el texto para el usuario lo pone la app (`JobRunner.describe`).
+- Comentarios en español; nombres de tipos y funciones en inglés.
+
+---
+
+## 2. Parametrización
+
+### Formatos (`SupportedFormats`, `OutputFormat`)
+
+| | Lectura | Escritura |
+|---|---|---|
+| JPEG, PNG, TIFF, HEIC/HEIF | sí | sí |
+| WebP, AVIF | sí (macOS 13+) | no (decisión P9) |
+| RAW (NEF, CR2, CR3, ARW, ORF, RW2, RAF, DNG, PEF) | sí, pero solo donde se pida (`includeRaw`) | no |
+
+`OutputFormat.matching(extensionOf:)` decide el formato "mantener original": lo que no se puede escribir (WebP, AVIF, RAW) sale como JPEG.
+
+### Escaneo de carpeta (`FolderScanner`)
+
+- `scan(folder:sort:orientation:progress:)` → `[ScannedFile]` con URL, tamaño visible (ya girado por EXIF) y fecha de captura.
+- `sort`: `.name` (orden natural, "img2" antes que "img10") o `.date` (EXIF `DateTimeOriginal`, si no hay, fecha de creación del fichero).
+- `orientation`: `.all`, `.horizontal` (ancho ≥ alto), `.vertical`.
+- Ignora ocultos, lo que empieza por `_caoba_`, subcarpetas y extensiones no soportadas. No es recursivo.
+
+### Miniaturas (`ThumbnailProvider`)
+
+Actor con caché (`NSCache`, 2000 entradas) y concurrencia limitada al número de núcleos. Usa el thumbnail EXIF embebido si existe, y aplica la orientación. `thumbnail(for:maxPixelSize:)` devuelve un `CGImage` o `nil`.
+
+### Procesador (`ImageProcessor`, `ProcessingOperations`)
+
+| Opción | Valores | Notas |
+|---|---|---|
+| `autorotate` | Bool | Aplica la orientación EXIF y la pone a 1 en la salida |
+| `crop` | `(AspectRatio, CropAnchor)` | Anclas: center, top, bottom, left, right |
+| `resizeMaxDimension` | Int | Lado mayor; nunca amplía |
+| `quality` | 1-100 | Solo JPEG y HEIC |
+| `format` | `OutputFormat?` | `nil` = mantener |
+
+Modos de guardado (`SaveMode`): `.newCopy(outputFolder:)` (misma carpeta → sufijo `_processed`) o `.overwrite`. Al sobrescribir cambiando de formato se borra el original con la extensión antigua. EXIF, GPS y perfil de color viajan con la salida.
+
+### Marca de agua (`Watermarker`, `WatermarkOptions`)
+
+| Opción | Valores |
+|---|---|
+| `mode` | `.single` / `.tiled` |
+| `position` | topLeft, topRight, center, bottomLeft, bottomRight (padding 10 px) |
+| `sizePercent` | % del **lado corto** de la foto |
+| `opacity` | 0-100 |
+| `spacing` + `spacingUnit` | separación del mosaico en px o % del lado corto |
+| `rotation` | grados por repetición (mosaico) |
+
+La salida mantiene el formato del original (sufijo `_watermarked` si es copia en la misma carpeta).
+
+### Metadatos (`MetadataService`, `PhotoMetadata`, `MetadataEdit`)
+
+- `read(url)` devuelve artista, copyright, descripción, fecha, cámara, objetivo, dimensiones, ISO, exposición, f, focal, flash, software y GPS. Mira EXIF/TIFF primero y XMP de respaldo.
+- `write(edit, to:, stripOthers:)` escribe **sin recomprimir**. En `MetadataEdit`, `nil` = no tocar, cadena vacía = borrar. `gps`: `.some(nil)` borra, `.some(coord)` fija, `nil` no toca. `stripOthers` deja solo lo indicado.
+- `writeBatch` y `writePerFile` para lotes con progreso.
+- Cómo lo hace por dentro (importante si algo falla): ImageIO solo admite metadatos XMP en este camino; artista = `dc:creator`, descripción = `dc:description`, copyright = `dc:rights`, fecha = `photoshop:DateCreated`, GPS = `exif:GPSLatitude/Longitude`. Los tags EXIF/TIFF clásicos se actualizan si existían pero no se crean. Tras escribir se relee el fichero y, si no coincide, se lanza `metadataWriteFailed`.
+
+### Renombrador (`Renamer`)
+
+Cuatro planes, todos devuelven `[RenameEntry]` (original → nombre nuevo) con colisiones resueltas con `_2`, `_3`…:
+
+- `patternPlan(files:options:)` con `PatternRenameOptions`: patrón con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` (H/V/C) y tokens `YYYY MM DD hh mm ss`; orden por nombre o fecha; dígitos (0 = automático, mínimo 2) e inicio del contador; mayúsculas (`TextCase`); saneado (`SanitizeOptions`: acentos, espacios, especiales). Solo lee EXIF o dimensiones si el patrón los usa.
+- `autofixPlan(files:)`: `Foto-1` → `Foto-001` si todos comparten prefijo y sufijo.
+- `searchReplacePlan(files:search:replace:)` y `prefixSuffixPlan(files:prefix:suffix:)`.
+
+`execute(plan:saveMode:)`: `.newCopy` copia a la carpeta de salida; `.overwrite` renombra en sitio, pasando por nombres intermedios solo si algún nombre nuevo choca con uno viejo, y **registra la operación** en `RenameHistory`, que es la sección `renameHistory` del `.caoba` de la carpeta, para poder deshacerla. `RenameHistory.undoLast(in:)` devuelve los nombres anteriores de la última operación (saltando y avisando de los ficheros que ya no estén con el nombre nuevo) y la quita del registro; se puede repetir hacia atrás. En la app, el Renombrador muestra "Último renombrado: N archivos, fecha" con el botón Deshacer cuando la carpeta tiene historial.
+
+### QR (`QRContent`, `QRGenerator`, `QROptions`)
+
+- `QRContent` tiene los nueve tipos y `payload` da el texto: `WIFI:T:…;S:…;P:…;H:true;;`, vCard 3.0, `mailto:`, `tel:`, `sms:…?body=…`, `geo:lat,lon`, `VEVENT`.
+- `QROptions`: `size` (64-4096 px), `foreground`/`background` (`RGBColor`, con `init?(hex:)`), `correction` L/M/Q/H, `marginModules`, `logoPercent` (5-50).
+- `QRGenerator.make(text:options:logo:)` → `CGImage` nítido (sin interpolar); `png(...)` → `Data`. La app sube la corrección a Q cuando hay logo.
+
+### Plantillas de collage (`CollageTemplate`, `CollageTemplates`)
+
+- 570 plantillas (84 de ellas `overlap`, reservadas para el slideshow) en `Collage/templates.json`, exportadas tal cual de la app antigua con Node (`getTemplates()` ya deduplicado). Si hay que añadir plantillas, se edita ese JSON.
+- Cada plantilla: `id`, `name`, `photos`, `aspect` (`[16, 9]`), `overlap`, `cells` con `x y w h` normalizados (0-1).
+- `CollageTemplates.filter(photos:aspectLabel:includeOverlap:)`, `template(id:)`, `aspectLabels` (de más apaisada a más vertical). `canvasSize(longestSide:)` da el lienzo.
+
+### Punto de foco (`FocusDetector`, `FocusMode`)
+
+- Modos: `.center`, `.saliency`, `.faces`. Devuelve `FocusResult` con un punto normalizado (origen arriba-izquierda) y si hubo caras.
+- `.saliency` usa Vision "objectness" (dónde está el sujeto; centro ponderado por confianza) y, si no detecta objetos, el centroide del mapa de atención. Se eligió objectness porque la atención tiene sesgo al centro y localiza peor para recortar.
+- `.faces` usa el centro del rectángulo que engloba todas las caras; sin caras cae a saliencia.
+- Trabaja sobre una versión de 1024 px de la foto y cachea por fichero y modo. Es un `actor`; `FocusDetector.detect(image:mode:)` es la parte estática testeable.
+
+### Collage (`CollageRenderer`, `CollageOptions`, `CollageRow`)
+
+| Opción | Valores | Notas |
+|---|---|---|
+| `longestSide` | 100-15.000 px | Lado mayor del lienzo |
+| `gap` | px | Medio gap entre celdas vecinas, gap entero contra el borde |
+| `background` | white / black / gray | Color de texto y borde a juego |
+| `cornerRadius` | px | Máscara redondeada por celda |
+| `shadowIntensity` | 0-100 | Solo plantillas overlap (marco blanco + sombra) |
+| `title` | texto | Franja superior proporcional al ancho (5 %, mínimo 50 px). La app antigua usaba 50 px fijos, que en 3000 px era ilegible |
+| `logo` | `LogoOptions` | Posición, % del ancho, opacidad |
+
+- `group(files:templates:mode:)` reparte las fotos en filas consumiéndolas en orden: `.sequential` cicla las plantillas; `.random` elige al azar entre las que caben en lo que queda. Devuelve también cuántas fotos sobran.
+- `assignByAspect(photoAspects:cellAspects:)` empareja fotos y celdas por proporción (celdas más extremas primero). `reorderByAspect(row)` lo aplica a una fila.
+- `render(row, options)` compone un collage; `generate(rows:options:outputFolder:)` escribe `collage.jpg` o `collage_01.jpg`, `collage_02.jpg`…
+- Las fotos se decodifican ya reducidas al tamaño de su celda (`PhotoLoader`) para no cargar originales de 50 MP enteros.
+
+### Contact Sheet (`ContactSheetRenderer`, `ContactSheetOptions`)
+
+| Opción | Valores |
+|---|---|
+| `columns`, `thumbSize` | Columnas y lado de miniatura (grid) o ancho de columna (masonry) |
+| `layout` | grid (celdas con padding 10 px) o masonry (sin huecos, columna más corta) |
+| `cropMode` | contain (foto entera centrada) o cover (rellena la celda); masonry siempre rellena |
+| `showFilenames`, `showNumbering` | Etiqueta bajo la miniatura, acortada a 20-25 caracteres |
+| `title` | Franja de 40 px arriba |
+| `background`, `showBorder`, `borderWidth`, `logo`, `quality` | |
+
+`estimatedSize(fileCount:options:)` para avisar del tamaño antes de generar (solo grid); límite 30.000 px por lado. `render(files:options:)` y `generate(files:options:output:)`.
+
+### Slideshow (`SlideshowSpec`, `SlideshowRenderer`)
+
+**Cómo funciona por dentro.** El vídeo se escribe fotograma a fotograma con `AVAssetWriter` (H.264 por hardware, 25 fps, etiquetas de color BT.709). Cada fotograma se compone en Core Image: la foto escalada entera sobre negro (sin Ken Burns) o el recorte Ken Burns del instante (que llena el lienzo), el fundido con la siguiente foto (`CIDissolveTransition`) y la marca de agua. No se escriben fotogramas a disco ni hay límite de fotos. Si hay música, el vídeo se escribe primero sin audio en temporal y después `AudioMuxer` lo copia tal cual (sin recodificar) añadiendo la mezcla en AAC.
+
+| Pieza | Qué es |
+|---|---|
+| `VideoFormat` | Los seis formatos (`169_h`, `916_v`, `45_v`, `45_h`, `23_v`, `23_h`) con su resolución. Mismos identificadores que la app antigua |
+| `SlideshowPhoto` | Foto (o portada/créditos) con duración, efecto Ken Burns resuelto y puntos |
+| `SlideshowSpec` | Fotos, formato, fps, transición (fundido de 1 s), marca de agua, audio, ajustes Ken Burns, salida y modo preview (mitad de resolución) |
+| `SlideshowTimeline` | Cuándo entra y sale cada foto. Con transición, la foto i+1 empieza a entrar cuando a la i le queda 1 s, igual que el `xfade` antiguo: duración total = suma de duraciones + 1 s |
+| `VideoWriter` | Escritura de vídeo; `composeFrame(at:)` es la parte testeable píxel a píxel |
+| `AudioPlan` | Dónde empieza y acaba cada pista: automático (al acabar la anterior menos 3 s de crossfade) o en una foto; fundidos de entrada/salida y ganancia. Cada `AudioTrack` admite `trimStart` y `trimEnd` (segundos de la canción): se salta la intro, se corta en el "Hasta" y la última pista repite ese tramo hasta el final del vídeo. Con `loopPlaylist` (por defecto) y más de una pista, al acabar la lista se vuelve a la primera con crossfade |
+| `LoudnessMeter` | BS.1770-4: filtro K, bloques de 400 ms, gating absoluto y relativo. `measure(url:)` devuelve LUFS; `gain(from:to:)` la ganancia hacia -16 LUFS. Verificado con el tono de referencia de EBU Tech 3341 (-23 dBFS → -23 LUFS) |
+| `AudioMuxer` | `AVMutableComposition` + `AVMutableAudioMix` (rampas de volumen) → AAC 192 kbps; vídeo en passthrough |
+| `KenBurns` | Geometría: `cropRect(imageSize:targetSize:effect:t:intensity:focus:)` para los 10 efectos automáticos, `customCropRect` para inicio/fin con zoom, `progress(...)` con retardo, porcentaje y easing. Misma matemática que `kenburns.js` |
+| `CollageSlideshow` | Modo collage: renderiza cada collage con 0, 1, 2… fotos visibles en JPEG temporales y los convierte en `SlideshowPhoto` con duraciones (0,5 s el lienzo vacío, `reveal` por foto, `hold` al final) |
+| `SlideshowPreset` | Sección `slideshow` del `.caoba`, con las claves v1 de la app antigua más `kenBurns.byFile`/`pointsByFile` (por nombre de fichero, en vez de por índice) y `collage.sequence` |
+
+**Pantalla del Slideshow (rediseño de 16-10-2026).** Funciona como un editor de vídeo sencillo:
+- Pestañas arriba: **Fotos** (o Collages): modo, lista de fotos de la carpeta y "Asignar efectos" (o Componer, Añadir, Ajustar foco y Vaciar); **Vídeo**: formato, ritmo, fundido y Ken Burns global (o aspecto de los collages); **Portada y marca**: portada, créditos y marca de agua; **Música**: pistas y opciones. Al seleccionar algo en el timeline se abre una pestaña contextual (Foto, Pista, Collage, Portada o Créditos) y al deseleccionar se vuelve a la anterior.
+- Timeline a toda la anchura en la parte inferior, con cabecera (duración total y zoom) y regla de tiempo. Cada tarjeta (portada, foto o collage, créditos) tiene la anchura de su duración. Clic selecciona; arrastrar reordena; el asa del borde derecho estira la duración de esa foto (las fotos sin duración propia siguen el valor global); la casilla que aparece al pasar el ratón quita la foto del vídeo; Suprimir y flechas funcionan con el teclado.
+- Carriles de música bajo las tarjetas, en la misma escala: cada bloque se arrastra para fijar su inicio (con imán a los inicios de foto, al final de la pista anterior y al 0) y se estira por los bordes para el recorte Desde/Hasta. Las repeticiones de la lista se dibujan atenuadas. Al añadir una pista se coloca "tras la anterior".
+- Pestaña contextual: foto (efecto, duración, encuadre de inicio y fin con "Enfocar caras" y previsualización, botón Ampliar que abre lo mismo a tamaño grande); portada o créditos (imagen y duración); pista (inicio en el vídeo, Desde/Hasta, quitar); collage (encuadre por celda, cambio de plantilla, quitar).
+- Barra inferior con destino del vídeo, duración total, Vista previa y Generar vídeo.
+- Estado y lógica en `SlideshowDocument` (modelo `@Observable`); las vistas son `SlideshowView` (pestañas y barra de acción), `SlideshowTimelineView`, las pestañas de `SlideshowInspector.swift` (`SourceTab`, `VideoTab`, `ExtrasTab`, `MusicTab`, `SelectionTab`) y `KenBurnsFramingView`.
+
+Detalles de la app:
+- Los efectos y puntos Ken Burns se guardan **por nombre de fichero**, así excluir una foto no desalinea el resto (fallo conocido de la app antigua).
+- "Asignar efectos → Automático / Caras" elige zoom o barrido según la proporción de cada foto frente al vídeo y pone el foco con Vision.
+- Editar los puntos en el editor cambia el efecto a "Personalizado"; con los efectos automáticos el encuadre de Inicio marca el foco. El botón "Enfocar caras" del editor pone inicio y fin en las caras de esa foto.
+- En el modo Collages del Slideshow se ofrecen también las plantillas superpuestas (marco blanco y sombra); en el Collage estático no, igual que en la app antigua.
+- Al cargar un `.caoba` v1, los efectos por índice se traducen a nombres usando el `fileOrder` guardado, y el inicio de pista "en la foto N" se convierte a segundos del vídeo (`startTime`). Las duraciones propias se guardan en `durations` por nombre de fichero.
+- La vista previa usa las primeras 10 fotos (o 3 collages), media resolución, sin normalizar el audio, y se reproduce en una ventana de la app.
+
+### Shutter Count (`ShutterCountReader`, `ShutterLife`)
+
+- `read(url)` devuelve `ShutterCountResult` con la fuente usada, la cámara (marca, modelo, serie, firmware, objetivo), el obturador (disparos, mecánicos, vida útil estimada, porcentaje, si es estimación genérica) y datos de la foto.
+- **Con exiftool** (empaquetado en la app o instalado con Homebrew): lee los MakerNotes de todas las marcas, JPG y RAW. `locateExifTool()` busca primero `Resources/exiftool` dentro de la app (se lanza con `/usr/bin/perl -I lib`), luego `/opt/homebrew/bin/exiftool` y `/usr/local/bin/exiftool`.
+- **Sin exiftool**: ImageIO, que expone el contador solo para Nikon (`kCGImagePropertyMakerNikonShutterCount`); el resto de datos se leen igual y la vista avisa de la limitación.
+- `ShutterLife.expectancy(make:model:)`: tabla de unos 130 modelos (Nikon, Canon, Sony, Pentax) con estimación genérica por marca si no hay coincidencia.
+- **exiftool empaquetado**: `Tools/fetch-exiftool.sh` descarga la versión fijada (13.59) del espejo de SourceForge, comprueba la suma SHA-256 y la deja en `CaobaApp/Vendor/exiftool` (ignorado por git, unos 20 MB). El proyecto la copia como carpeta opcional a `Resources/exiftool`; si no está, la app se compila y funciona igual. La CI ejecuta el script antes de compilar. Requiere el Perl del sistema (`/usr/bin/perl`), presente en macOS.
+
+### Configuración por carpeta (`CaobaConfig`)
+
+Fichero `.caoba` en la carpeta de fotos, mismo formato que la app antigua: `{ "version": 1, "<seccion>": {...} }`. `readSection(_:as:from:)`, `writeSection(_:value:in:)` y `removeSection(_:in:)` con cualquier `Codable`; todas las escrituras pasan por un cerrojo para que dos módulos no se pisen. Hay **secciones protegidas** (`protectedSections`, hoy solo `renameHistory`): `hasSettings(in:)` no las cuenta como configuración y `resetSettings(in:)` (el botón Reiniciar) borra el resto y las conserva; si no queda nada, elimina el fichero. Secciones hoy: `slideshow` y `renameHistory`.
+
+### App: preferencias
+
+- Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.
+- Apariencia (`caoba.appearance`): sistema / claro / oscuro.
+- Carpetas recientes (`caoba.recentFolders`): máximo 5.
+- Aviso de versión: consulta `releases/latest` de GitHub y compara como semver.
+
+---
+
+## 3. Ejemplos de uso del motor
+
+```swift
+import CaobaCore
+
+// Escanear y procesar una carpeta
+let folder = URL(fileURLWithPath: "/Users/yo/Fotos/Boda")
+let files = try await FolderScanner().scan(folder: folder, sort: .date, orientation: .horizontal)
+let ops = ProcessingOperations(crop: (.r3x2, .center), resizeMaxDimension: 2048, quality: 85, format: .jpeg)
+let summary = try await ImageProcessor().process(
+    files: files.map(\.url), ops: ops,
+    saveMode: .newCopy(outputFolder: folder.appendingPathComponent("caoba")),
+    progress: { print($0.phase, $0.fraction ?? 0, $0.currentFile ?? "") }
+)
+print("\(summary.processed) procesadas, \(summary.failures.count) errores")
+
+// Marca de agua en mosaico
+let opts = WatermarkOptions(mode: .tiled, sizePercent: 15, opacity: 35, spacing: 20, spacingUnit: .percent, rotation: -30)
+_ = try await Watermarker().process(files: files.map(\.url), watermark: logoURL, options: opts, saveMode: .overwrite)
+
+// Metadatos sin recomprimir
+let edit = MetadataEdit(artist: "Marcos Esperón", copyright: "© CAOBA", gps: .some(GPSCoordinate(latitude: 42.88, longitude: -8.54)))
+try MetadataService.write(edit, to: files[0].url)
+print(MetadataService.read(files[0].url).artist ?? "-")
+
+// Renombrar con patrón y vista previa
+let plan = Renamer.patternPlan(files: files.map(\.url), options: PatternRenameOptions(pattern: "YYYY-MM-DD_boda_{n}", sortBy: .date))
+plan.forEach { print($0.oldName, "→", $0.newName) }
+_ = try await Renamer().execute(plan: plan, saveMode: .overwrite)
+
+// QR de WiFi con logo
+let qr = try QRGenerator.png(
+    text: QRContent.wifi(ssid: "Estudio", password: "secreta", security: .wpa, hidden: false).payload,
+    options: QROptions(size: 1024, foreground: RGBColor(hex: "#D71921")!, correction: .quartile),
+    logo: try ImageIOHelpers.loadImage(from: logoURL)
+)
+try qr.write(to: URL(fileURLWithPath: "/tmp/wifi.png"))
+
+// Collage: componer al azar con plantillas de 3 fotos en 3:2 y foco automático
+let templates = CollageTemplates.filter(photos: 3, aspectLabel: "3:2")
+var (rows, leftover) = CollageRenderer.group(files: files.map(\.url), templates: templates, mode: .random)
+let detector = FocusDetector()
+for i in rows.indices {
+    for (cell, url) in rows[i].files.enumerated() {
+        rows[i].focusPoints[cell] = await detector.focus(for: url, mode: .faces).point
+    }
+}
+let (collageSummary, outputs) = try await CollageRenderer.generate(
+    rows: rows, options: CollageOptions(longestSide: 3000, gap: 12, title: "Boda"),
+    outputFolder: folder.appendingPathComponent("collages"))
+
+// Contact sheet en masonry
+let sheetOptions = ContactSheetOptions(columns: 4, thumbSize: 300, layout: .masonry, showNumbering: true, title: "Selección")
+_ = try await ContactSheetRenderer.generate(files: files.map(\.url), options: sheetOptions, output: folder.appendingPathComponent("hoja.jpg"))
+
+// Slideshow con dos pistas, marca de agua y Ken Burns automático
+let detector = FocusDetector()
+var photos: [SlideshowPhoto] = []
+var rng = SystemRandomNumberGenerator()
+for file in files {
+    let aspect = file.size?.aspectRatio ?? 1
+    let effect = KenBurns.suggestedEffect(imageAspect: aspect, videoAspect: VideoFormat.landscape16x9.aspectRatio, generator: &rng)
+    let focus = await detector.focus(for: file.url, mode: .faces).point
+    photos.append(SlideshowPhoto(url: file.url, duration: 4, kenBurns: effect, points: KenBurnsPoints(startFocus: focus, endFocus: focus)))
+}
+let spec = SlideshowSpec(
+    photos: photos, format: .landscape16x9, transition: true,
+    watermark: VideoWatermark(url: logoURL, position: .bottomRight, sizePercent: 25, opacity: 70),
+    audio: AudioOptions(tracks: [AudioTrack(url: song1), AudioTrack(url: song2, startMode: .atPhoto(12))], fadeOut: true, normalize: true),
+    kenBurns: KenBurnsSettings(intensity: .normal, easing: .easeInOut, durationPercent: 60),
+    output: folder.appendingPathComponent("slideshow.mp4"))
+try await SlideshowRenderer.generate(spec) { print($0.phase, $0.fraction ?? 0) }
+
+// Shutter Count
+let analysis = try await ShutterCountReader.read(URL(fileURLWithPath: "/Users/yo/Fotos/DSC_0001.NEF"))
+print(analysis.camera.displayName ?? "-", analysis.shutter.count ?? 0, analysis.shutter.lifeExpectancy ?? 0, analysis.source)
+
+// Cancelar un trabajo
+let task = Task { try await ImageProcessor().process(files: urls, ops: ops, saveMode: .overwrite) }
+task.cancel()   // el motor lanza CaobaError.cancelled en la siguiente iteración
+```

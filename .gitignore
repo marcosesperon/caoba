@@ -1,0 +1,27 @@
+# Xcode / SwiftPM
+.build/
+*.xcodeproj/
+!project.yml
+xcuserdata/
+DerivedData/
+*.xcworkspace/xcuserdata/
+.swiftpm/
+Packages/
+
+# Salida de builds y empaquetado
+build/
+dist/
+*.dmg
+*.ipa
+*.app
+
+# macOS
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# ExifTool descargado por Tools/fetch-exiftool.sh
+CaobaApp/Vendor/

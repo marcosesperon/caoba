@@ -1,0 +1,81 @@
+# Definición del proyecto Xcode. Se genera con `xcodegen generate`; el
+# .xcodeproj no se versiona (está en .gitignore).
+name: CAOBA
+options:
+  bundleIdPrefix: com.marcosesperon
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  developmentLanguage: es
+
+packages:
+  CaobaCore:
+    path: CaobaCore
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "3.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_STRICT_CONCURRENCY: complete
+
+targets:
+  CAOBA:
+    type: application
+    platform: macOS
+    sources:
+      - path: CaobaApp/Sources
+      - path: CaobaApp/Resources
+      # exiftool (Perl) descargado por Tools/fetch-exiftool.sh. Se copia como
+      # carpeta dentro de Resources/exiftool; si no existe, la app se compila igual.
+      - path: CaobaApp/Vendor/exiftool
+        type: folder
+        buildPhase: resources
+        optional: true
+    dependencies:
+      - package: CaobaCore
+    info:
+      path: CaobaApp/Info.plist
+      properties:
+        CFBundleDisplayName: CAOBA
+        CFBundleName: CAOBA
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.photography
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: "© Marcos Esperón · CAOBA"
+        # Fuentes empaquetadas (Doto para títulos), relativo a Resources.
+        ATSApplicationFontsPath: "."
+        # Permite soltar carpetas y abrir carpetas desde el Finder.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Folder
+            CFBundleTypeRole: Viewer
+            LSItemContentTypes: [public.folder]
+            LSHandlerRank: Alternate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.marcosesperon.caoba
+        PRODUCT_NAME: CAOBA
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        # Sin sandbox (decisión P6): distribución fuera del App Store.
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        SWIFT_EMIT_LOC_STRINGS: YES
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        DEVELOPMENT_LANGUAGE: es
+
+schemes:
+  CAOBA:
+    build:
+      targets:
+        CAOBA: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: []

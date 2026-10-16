@@ -1,0 +1,49 @@
+name: CI
+
+# Compila el motor, pasa sus tests y compila la app de macOS (sin firmar).
+# La firma, notarización y el DMG llegarán cuando haya cuenta de desarrollador.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  core-tests:
+    name: CaobaCore tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Seleccionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+      - name: Tests del motor
+        working-directory: CaobaCore
+        run: swift test --parallel
+
+  app-build:
+    name: App macOS
+    runs-on: macos-15
+    needs: core-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Seleccionar Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+      - name: Instalar XcodeGen
+        run: brew install xcodegen
+      - name: Descargar exiftool
+        run: Tools/fetch-exiftool.sh
+      - name: Generar proyecto
+        run: xcodegen generate
+      - name: Compilar
+        run: |
+          xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Release \
+            -destination 'platform=macOS' -derivedDataPath build/DerivedData \
+            CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=NO build | xcbeautify || xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Release -destination 'platform=macOS' -derivedDataPath build/DerivedData CODE_SIGN_IDENTITY="-" CODE_SIGNING_ALLOWED=NO build
+      - name: Empaquetar .app
+        run: |
+          cd build/DerivedData/Build/Products/Release
+          zip -r -y "$GITHUB_WORKSPACE/CAOBA-macOS-unsigned.zip" CAOBA.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CAOBA-macOS-unsigned
+          path: CAOBA-macOS-unsigned.zip
