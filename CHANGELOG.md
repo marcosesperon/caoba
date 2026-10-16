@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.1.1 — 2026-10-16
+
+- **Novedades al actualizar**: la primera vez que se abre CAOBA tras una actualización aparece esta lista con lo que ha cambiado desde la versión anterior. También en el menú Ayuda → «Novedades de CAOBA».
+- Las notas de cada release en GitHub salen de este mismo registro.
+
 ## 3.1.0 — 2026-10-16
 
 - **Actualización dentro de la app**: la banda de versión nueva ofrece «Actualizar ahora», que descarga, comprueba, instala y relanza CAOBA sin pasar por el navegador.
