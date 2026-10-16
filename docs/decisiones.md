@@ -244,3 +244,27 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 - Activar GitHub Pages (rama `main`, carpeta raíz) tras publicar el commit, y revisar la landing en móvil.
+
+## 2026-10-16 — Releases en local
+
+### 1. La petición tal como se ha entendido
+*(modo directo)* Revisar si se generaban releases para Apple Silicon e Intel y, al comprobar que no había ninguna, crear un script local que compile el binario universal, cree el DMG y lo publique como release en GitHub. El usuario prefirió el script en local a un workflow de Actions, de momento.
+
+### 2. Preguntas y respuestas
+**P1. ¿Script local, o script más workflow?** R: Solo el script en local por ahora.
+
+### 3. Fuentes analizadas
+- `ci.yml` (compilaba solo la arquitectura del runner y sin releases) y el `release.yml` de la app Electron (dos DMG, uno por arquitectura).
+
+### 4. Decisiones
+- Un único DMG **universal** (`ARCHS="arm64 x86_64"`): en Swift no hay módulos nativos por arquitectura, así que no hacen falta dos instaladores como en Electron.
+- Firma ad hoc hasta tener Developer ID; el usuario abre con clic derecho → Abrir la primera vez (documentado en README y landing).
+- `Tools/make-release.sh` con `--publish` opcional: etiqueta `v<versión>`, `gh release create` con notas generadas. Verificado en local: 95 tests, binario `x86_64 arm64`, DMG de 12 MB que monta y arranca.
+
+### 5. Alternativas descartadas
+- Workflow de Actions para releases: aplazado; cuando se quiera, debe ejecutar este mismo script.
+- Dos DMG por arquitectura: innecesario con un binario universal.
+
+### 6. Pendiente de comprobar
+- Probar el DMG en un Mac Intel real.
+- Publicar la primera release `v3.0.0` cuando el usuario lo indique; comprobar que la landing enlaza el DMG.

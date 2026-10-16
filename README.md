@@ -144,6 +144,8 @@ Tools/fetch-exiftool.sh      # descarga exiftool para Shutter Count (opcional)
 xcodegen generate            # crea CAOBA.xcodeproj (no se versiona)
 open CAOBA.xcodeproj         # ⌘R para ejecutar
 cd CaobaCore && swift test   # tests del motor sin abrir Xcode
+Tools/make-release.sh        # binario universal (Silicon + Intel) y DMG en dist/
+Tools/make-release.sh --publish   # además etiqueta la versión y crea la release en GitHub
 ```
 
 Requiere Xcode 16 o superior. En `docs/` están el análisis de la app anterior, la comparativa Swift frente a Tauri, la bitácora de decisiones y la documentación del motor.

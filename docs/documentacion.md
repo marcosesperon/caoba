@@ -32,6 +32,10 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 - `TemplateView`, `CellPhotoView`, `TemplatePicker`, `TemplateFilters`: plantillas de collage y celdas con foto arrastrable.
 - `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
 
+### Releases
+
+`Tools/make-release.sh` lee la versión de `MARKETING_VERSION` en `project.yml`, pasa los tests del motor, genera el proyecto, compila en Release un **binario universal** (`ARCHS="arm64 x86_64"`), lo firma ad hoc (sin Developer ID todavía), crea `dist/CAOBA-<versión>.dmg` con `hdiutil` y, con `--publish`, crea la etiqueta `v<versión>`, la sube y publica la release en GitHub con `gh` y notas generadas de los commits. Para subir de versión: cambiar `MARKETING_VERSION` (y `CaobaCoreInfo.version`) y volver a lanzar el script. El DMG ocupa unos 12 MB con exiftool incluido.
+
 ### Reglas de la casa
 
 - Lo temporal va siempre al directorio temporal del sistema (`TempFiles`), nunca a la carpeta de fotos.
