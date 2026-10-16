@@ -70,6 +70,10 @@ struct SlideshowView: View {
             if let demo = appState.launchState["text.demo"] {
                 doc.titleMode = demo == "overlay" ? .overlay : .card
                 doc.titleText = "Alex & Sofi"; doc.subtitleText = "Biar, julio de 2025"
+                if let anim = appState.launchState["text.animation"].flatMap(TextAnimation.init(rawValue:)) {
+                    doc.titleStyle.animation = anim; doc.titleStyle.animationDuration = 1
+                    doc.captionStyle.animation = anim; doc.captionStyle.animationDuration = 0.75
+                }
                 doc.closingEnabled = true; doc.closingText = "Gracias"; doc.closingSubtitle = "caobafoto.com"
                 doc.captionPattern = "{n} de {total} · {nombre}"
                 tab = .extras

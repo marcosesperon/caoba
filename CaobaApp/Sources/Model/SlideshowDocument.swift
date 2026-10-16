@@ -341,12 +341,31 @@ final class SlideshowDocument {
         return f
     }()
 
-    /// Título o cierre renderizados como imagen temporal, para meterlos como foto del vídeo.
-    private func renderCard(lines: [String]) throws -> URL {
-        let image = try TextRenderer.card(lines: lines, style: titleStyle, background: titleBackground.fill, canvas: format.size)
+    /// Fondo liso de una tarjeta de título o cierre como imagen temporal; el texto
+    /// va aparte, como texto superpuesto, para poder animarlo.
+    private func renderCardBackground() throws -> URL {
+        let image = try TextRenderer.card(lines: [], style: titleStyle, background: titleBackground.fill, canvas: format.size)
         let url = try TempFiles.makeFileURL(extension: "jpg")
         try ImageWriter.write(image, to: url, encoding: ImageEncoding(format: .jpeg, quality: 95))
         return url
+    }
+
+    /// «Aleatorio» se convierte en una animación concreta al generar.
+    private func resolved(_ style: TextStyle, generator: inout some RandomNumberGenerator) -> TextStyle {
+        guard style.animation == .random else { return style }
+        var copy = style
+        copy.animation = TextAnimation.randomPool.randomElement(using: &generator) ?? .fade
+        return copy
+    }
+
+    /// Tarjeta de título o cierre: fondo liso y el texto entrando cuando la tarjeta ya está en pantalla
+    /// (tras su transición de entrada) y saliendo antes de que la tarjeta se vaya.
+    private func textCard(lines: [String], duration: Double, id: String, generator: inout some RandomNumberGenerator) throws -> SlideshowPhoto {
+        let entry = entryDuration(for: id)
+        let delay = entry < duration ? entry : 0
+        return SlideshowPhoto(url: try renderCardBackground(), duration: duration,
+                              transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entry,
+                              overlay: TextOverlay(lines: lines, style: resolved(titleStyle, generator: &generator), duration: duration - delay, delay: delay))
     }
 
     private var titleLines: [String] { [titleText, subtitleText].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
@@ -744,25 +763,30 @@ final class SlideshowDocument {
         case .none:
             break
         case .card where !lines.isEmpty:
-            let url = try renderCard(lines: lines)
-            photos.insert(SlideshowPhoto(url: url, duration: titleDuration, transition: resolvedTransition(for: "title", generator: &generator),
-                                         transitionDuration: entryDuration(for: "title")), at: 0)
+            photos.insert(try textCard(lines: lines, duration: titleDuration, id: "title", generator: &generator), at: 0)
         case .overlay where !lines.isEmpty && !photos.isEmpty:
             let group = max(1, min(firstGroup, photos.count))
             let available = photos[0..<group].reduce(0) { $0 + $1.duration }
             let total = min(titleOverlaySeconds, available)
+            let style = resolved(titleStyle, generator: &generator)
             var offset = 0.0
             for i in 0..<group {
-                photos[i].overlay = TextOverlay(lines: lines, style: titleStyle, duration: total, offset: offset)
+                photos[i].overlay = TextOverlay(lines: lines, style: style, duration: total, offset: offset)
                 offset += photos[i].duration
             }
         default:
             break
         }
         if closingEnabled, !closingLines.isEmpty {
-            let url = try renderCard(lines: closingLines)
-            photos.append(SlideshowPhoto(url: url, duration: closingDuration, transition: resolvedTransition(for: "closing", generator: &generator),
-                                         transitionDuration: entryDuration(for: "closing")))
+            photos.append(try textCard(lines: closingLines, duration: closingDuration, id: "closing", generator: &generator))
+        }
+        // Pies con animación aleatoria: una distinta por foto (o por collage: sus pasos comparten la del primero).
+        if captionStyle.animation == .random {
+            var current: TextAnimation?
+            for i in photos.indices where photos[i].caption != nil && photos[i].captionAnimation == nil {
+                if photos[i].captionEntry || current == nil { current = TextAnimation.randomPool.randomElement(using: &generator) }
+                photos[i].captionAnimation = current
+            }
         }
     }
 
@@ -781,6 +805,7 @@ final class SlideshowDocument {
         if case .kind(let k) = transitionChoice { spec.defaultTransition = k }
         spec.defaultTransitionDuration = transitionDuration
         spec.captionStyle = captionStyle
+        if spec.captionStyle.animation == .random { spec.captionStyle.animation = .fade }   // las fotos llevan la suya resuelta
         return spec
     }
 
@@ -839,11 +864,17 @@ final class SlideshowDocument {
                     photos[index].transitionDuration = collageEntries[r].1
                     index += row.template.photos + 1
                 }
-                // Pie de cada collage en todos sus pasos.
+                // Pie de cada collage en todos sus pasos: entra en el primero y sale en el último.
                 var step = 0
                 for (r, row) in limited.enumerated() {
                     let text = collageCaptions[r]
-                    for _ in 0...row.template.photos where photos.indices.contains(step) { photos[step].caption = text; step += 1 }
+                    let steps = row.template.photos + 1
+                    for k in 0..<steps where photos.indices.contains(step) {
+                        photos[step].caption = text
+                        photos[step].captionEntry = k == 0
+                        photos[step].captionExit = k == steps - 1
+                        step += 1
+                    }
                 }
                 if let coverURL { photos.insert(SlideshowPhoto(url: coverURL, duration: coverDuration, transition: coverEntry.0, transitionDuration: coverEntry.1), at: 0) }
                 if let creditsURL { photos.append(SlideshowPhoto(url: creditsURL, duration: creditsDuration, transition: creditsEntry.0, transitionDuration: creditsEntry.1)) }

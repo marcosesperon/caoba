@@ -343,6 +343,24 @@ struct TextStyleEditor: View {
                 }
                 .pickerStyle(.segmented).fixedSize().labelsHidden()
             }
+            LabeledRow("Animación") {
+                // `$style.animation` chocaría con `Binding.animation(_:)` de SwiftUI.
+                Picker("", selection: Binding(get: { style.animation }, set: { style.animation = $0 })) {
+                    Text("Ninguna").tag(TextAnimation.none)
+                    Text("Fundido").tag(TextAnimation.fade)
+                    Text("Desde abajo").tag(TextAnimation.slideUp)
+                    Text("Desde arriba").tag(TextAnimation.slideDown)
+                    Text("Desde la derecha").tag(TextAnimation.slideLeft)
+                    Text("Desde la izquierda").tag(TextAnimation.slideRight)
+                    Text("Zoom").tag(TextAnimation.zoom)
+                    Text("Máquina de escribir").tag(TextAnimation.typewriter)
+                    Text("Aleatorio").tag(TextAnimation.random)
+                }
+                .frame(maxWidth: 220).labelsHidden()
+            }
+            if style.animation != .none {
+                LabeledSlider(title: "Duración animación", value: $style.animationDuration, in: 0.25...2, step: 0.25) { Text("\(style.animationDuration, specifier: "%.2f") s") }
+            }
         }
     }
 }

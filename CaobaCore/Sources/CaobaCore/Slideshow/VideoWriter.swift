@@ -14,9 +14,10 @@ public final class VideoWriter {
     private let context: CIContext
     private var cache: [Int: CIImage] = [:]
     private var watermarkImage: CIImage?
-    /// Pies y títulos ya dibujados, por índice de foto.
-    private var captionLayers: [Int: CIImage] = [:]
-    private var overlayLayers: [Int: CIImage] = [:]
+    /// Pies y títulos ya dibujados, por índice de foto (y por caracteres visibles en la máquina de escribir).
+    private var captionLayers: [Int: TextLayer] = [:]
+    private var overlayLayers: [Int: TextLayer] = [:]
+    private var typewriterLayers: [String: TextLayer] = [:]
 
     public init(spec: SlideshowSpec, timeline: SlideshowTimeline) {
         self.spec = spec
@@ -129,6 +130,9 @@ public final class VideoWriter {
         for key in cache.keys where key < visible.current - 1 { cache.removeValue(forKey: key) }
         for key in captionLayers.keys where key < visible.current - 1 { captionLayers.removeValue(forKey: key) }
         for key in overlayLayers.keys where key < visible.current - 1 { overlayLayers.removeValue(forKey: key) }
+        if visible.current > 0 {
+            for key in typewriterLayers.keys where key.hasPrefix("c\(visible.current - 2)-") || key.hasPrefix("o\(visible.current - 2)-") { typewriterLayers.removeValue(forKey: key) }
+        }
         return frame.cropped(to: canvasRect)
     }
 
@@ -150,34 +154,46 @@ public final class VideoWriter {
         } else {
             frame = fit(image)
         }
-        // Pie fijo y título con fundido van dentro del fotograma de la foto: las transiciones los arrastran con ella.
+        // Pie y título van dentro del fotograma de la foto: las transiciones los arrastran con ella.
+        // El pie entra al empezar la foto y sale antes de que empiece la transición a la siguiente.
         if let caption = captionLayer(for: index) {
-            frame = caption.composited(over: frame)
-        }
-        if let overlay = photo.overlay, let layer = overlayLayer(for: index) {
-            let alpha = overlay.opacity(at: local)
-            if alpha > 0.001 {
-                let faded = alpha >= 0.999 ? layer : layer.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: CGFloat(alpha))])
-                frame = faded.composited(over: frame)
+            let animation = photo.captionAnimation ?? spec.captionStyle.animation
+            if let phase = TextPhase.at(local, total: photo.duration, animation: animation, duration: spec.captionStyle.animationDuration,
+                                        entry: photo.captionEntry, exit: photo.captionExit) {
+                frame = animatedLayer(caption, lines: [photo.caption ?? ""], style: spec.captionStyle, animation: animation, phase: phase, key: "c\(index)").composited(over: frame)
             }
+        }
+        if let overlay = photo.overlay, let layer = overlayLayer(for: index), let phase = overlay.phase(at: local) {
+            frame = animatedLayer(layer, lines: overlay.lines, style: overlay.style, animation: overlay.style.animation, phase: phase, key: "o\(index)").composited(over: frame)
         }
         return frame
     }
 
-    private func captionLayer(for index: Int) -> CIImage? {
+    /// Capa en su punto de animación; la máquina de escribir vuelve a dibujar con los caracteres que tocan.
+    private func animatedLayer(_ layer: TextLayer, lines: [String], style: TextStyle, animation: TextAnimation, phase: TextPhase, key: String) -> CIImage {
+        guard animation == .typewriter, phase.progress < 0.999 else {
+            return TextRenderer.animated(layer, animation: animation, phase: phase, canvas: size)
+        }
+        let count = Int((phase.progress * Double(layer.characters)).rounded())
+        let cacheKey = "\(key)-\(count)"
+        if let cached = typewriterLayers[cacheKey] { return CIImage(cgImage: cached.image) }
+        guard let partial = TextRenderer.render(lines: lines, style: style, canvas: size, visibleCharacters: count) else { return CIImage(cgImage: layer.image) }
+        typewriterLayers[cacheKey] = partial
+        return CIImage(cgImage: partial.image)
+    }
+
+    private func captionLayer(for index: Int) -> TextLayer? {
         if let cached = captionLayers[index] { return cached }
         guard let text = spec.photos[index].caption, !text.isEmpty,
-              let cg = TextRenderer.layer(lines: [text], style: spec.captionStyle, canvas: size) else { return nil }
-        let layer = CIImage(cgImage: cg)
+              let layer = TextRenderer.render(lines: [text], style: spec.captionStyle, canvas: size) else { return nil }
         captionLayers[index] = layer
         return layer
     }
 
-    private func overlayLayer(for index: Int) -> CIImage? {
+    private func overlayLayer(for index: Int) -> TextLayer? {
         if let cached = overlayLayers[index] { return cached }
         guard let overlay = spec.photos[index].overlay,
-              let cg = TextRenderer.layer(lines: overlay.lines, style: overlay.style, canvas: size) else { return nil }
-        let layer = CIImage(cgImage: cg)
+              let layer = TextRenderer.render(lines: overlay.lines, style: overlay.style, canvas: size) else { return nil }
         overlayLayers[index] = layer
         return layer
     }

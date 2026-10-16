@@ -923,3 +923,40 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Animaciones de los textos del vídeo
+
+### 1. La petición tal como se ha entendido
+Animación de entrada y salida para los textos del vídeo:
+
+- **Juego** (P1): fundido, deslizar desde abajo, arriba, izquierda o derecha, zoom (crece desde pequeño), máquina de escribir (las letras una a una) y ninguna (de golpe); más «Aleatorio». La salida es la inversa de la entrada (el deslizamiento vuelve por donde vino; la máquina de escribir se borra letra a letra).
+- **Dónde se elige**: en cada estilo de texto (título y pies) hay «Animación» y «Duración» (0,25–2 s). El cierre usa la del título.
+- **Cuándo**: el pie entra al empezar su foto y sale justo antes de que empiece la transición a la siguiente, así el cambio queda limpio. El título superpuesto entra al empezar y sale al cumplir sus segundos (sustituye al fundido fijo de ahora). En la pantalla propia del título y en el cierre, el texto se anima sobre el fondo de color: entra cuando la tarjeta ya está en pantalla y sale antes de que la tarjeta se vaya.
+- La vista previa de la derecha sigue mostrando el texto en su posición final (la animación se ve al generar).
+- Se guarda en el `.caoba` con el estilo; los proyectos de hoy quedan con fundido para el título superpuesto y ninguna animación para los pies, que es como se comportan ahora.
+
+*Confirmación: «adelante» (16-10-2026), tomado también como aprobación para hacerlo.*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Juego: fundido, deslizar (4 direcciones), zoom, máquina de escribir, ninguna, más aleatorio; duración 0,25–2 s por estilo?** R: sí.
+
+### 3. Fuentes analizadas
+- `TextRenderer` (capa estática), `VideoWriter` (composición del pie y del título con opacidad fija), `SlideshowDocument.applyText` (las tarjetas llevaban el texto horneado en la imagen).
+
+### 4. Decisiones
+- **`TextAnimation`** en el estilo (`animation`, `animationDuration`), con decodificación tolerante a estilos guardados sin esos campos. `TextPhase.at(t:total:animation:duration:)` da el punto de la animación: entrada en los primeros `duration` s, salida en los últimos, acortada a la mitad del total si no cabe.
+- **`TextRenderer.render`** devuelve la capa con el rectángulo del bloque y el número de caracteres; con `visibleCharacters` dibuja solo un prefijo manteniendo la posición del bloque completo (así la máquina de escribir no baila). **`TextRenderer.animated`** desplaza (20 % del lienzo), escala sobre el centro del bloque (30 % → 100 %) o atenúa la capa según la animación y el progreso; la salida reutiliza la misma fase al revés.
+- Escritor: el pie entra al empezar la foto y sale antes de `photo.duration` (justo antes de la transición al siguiente); el título superpuesto usa `TextOverlay.phase` con desfase (collages) y **retardo** (`delay`). La máquina de escribir se cachea por número de caracteres.
+- **Tarjetas** de título y cierre: ahora el fondo es una imagen lisa y el texto va como texto superpuesto con retardo igual a la transición de entrada de la tarjeta y duración hasta el final de la tarjeta; así entra cuando la tarjeta ya está y sale antes de que se vaya.
+- «Aleatorio» se resuelve al generar: una animación por tarjeta y por título, y para los pies una distinta por foto (`SlideshowPhoto.captionAnimation`).
+- Editor de estilo: «Animación» y «Duración animación» (0,25–2 s). La vista previa de la derecha sigue en reposo.
+- Gancho de prueba `text.animation=<tipo>` junto a `text.demo`.
+- Tras la prueba con BOOK (collages): el pie volvía a animarse en cada paso de aparición del collage. `SlideshowPhoto.captionEntry/captionExit` y `TextPhase.at(entry:exit:)`: en los pasos de un collage el pie entra solo en el primero y sale solo en el último; con «Aleatorio», todos los pasos de un collage comparten la animación.
+
+### 5. Alternativas descartadas
+- Animación distinta para entrada y salida: dobla los controles; la inversa queda natural y es lo habitual.
+- Hornear la animación en imágenes por fotograma: inviable en tiempo y memoria; se compone con Core Image al vuelo como las transiciones.
+
+### 6. Pendiente de comprobar
+- Ver si la máquina de escribir conviene que sea por palabras en títulos largos.
+

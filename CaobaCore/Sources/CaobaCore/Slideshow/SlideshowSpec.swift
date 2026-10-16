@@ -162,6 +162,11 @@ public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
     public var transitionDuration: Double?
     /// Pie fijo durante toda la foto (con el estilo de pies del spec).
     public var caption: String?
+    /// Animación del pie ya resuelta (sustituye a la del estilo del spec).
+    public var captionAnimation: TextAnimation?
+    /// Si el pie anima su entrada y su salida en esta foto (en los pasos de un collage solo el primero entra y el último sale).
+    public var captionEntry = true
+    public var captionExit = true
     /// Texto superpuesto unos segundos al empezar la foto (título sobre la primera foto).
     public var overlay: TextOverlay?
 

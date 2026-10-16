@@ -1,6 +1,7 @@
 import Testing
 import Foundation
 import CoreGraphics
+import CoreImage
 import AVFoundation
 @testable import CaobaCore
 
@@ -56,14 +57,52 @@ struct TextOverlayTests {
         #expect(lit(two) > lit(one))
     }
 
-    @Test("El título superpuesto entra y sale con fundido")
-    func overlayOpacity() {
-        let overlay = TextOverlay(lines: ["Hola"], style: .title, duration: 4, fade: 1)
+    @Test("El título superpuesto entra y sale con su animación, respetando desfase y retardo")
+    func overlayPhase() {
+        var style = TextStyle.title
+        style.animation = .fade; style.animationDuration = 1
+        let overlay = TextOverlay(lines: ["Hola"], style: style, duration: 4)
         #expect(overlay.opacity(at: 0) == 0)
         #expect(abs(overlay.opacity(at: 0.5) - 0.5) < 1e-9)
         #expect(overlay.opacity(at: 2) == 1)
         #expect(abs(overlay.opacity(at: 3.5) - 0.5) < 1e-9)
+        #expect(overlay.phase(at: 3.5)?.exiting == true)
         #expect(overlay.opacity(at: 5) == 0)
+        // Con retardo de 1 s, a los 0,5 s aún no se ve; sin animación, se ve entero todo el tiempo.
+        let delayed = TextOverlay(lines: ["Hola"], style: style, duration: 4, delay: 1)
+        #expect(delayed.phase(at: 0.5) == nil)
+        #expect(abs(delayed.opacity(at: 1.5) - 0.5) < 1e-9)
+        style.animation = .none
+        #expect(TextOverlay(lines: ["Hola"], style: style, duration: 4).opacity(at: 0.01) == 1)
+        // Animación más larga que la mitad del texto: se acorta para que entrada y salida quepan.
+        let short = TextPhase.at(1, total: 1, animation: .fade, duration: 5)
+        #expect(short?.progress == 0 && short?.exiting == true)
+    }
+
+    @Test("La máquina de escribir dibuja menos y el deslizamiento mueve el bloque")
+    func typewriterAndSlide() {
+        var style = TextStyle(sizePercent: 8, anchor: .center, backdrop: .none)
+        let full = TextRenderer.render(lines: ["Alex & Sofi"], style: style, canvas: canvas)!
+        let half = TextRenderer.render(lines: ["Alex & Sofi"], style: style, canvas: canvas, visibleCharacters: 4)!
+        let all = CGRect(x: 0, y: 0, width: 640, height: 360)
+        #expect(full.characters == 11)
+        #expect(opaquePixels(half.image, in: all) < opaquePixels(full.image, in: all) / 2)
+        #expect(half.block == full.block)
+        // Deslizar desde abajo a medio camino: el texto está más abajo que en su sitio.
+        style.animation = .slideUp
+        let ctx = CIContext()
+        func centroidY(_ image: CIImage) -> Double {
+            let cg = ctx.createCGImage(image, from: all)!
+            var sum = 0.0, n = 0.0
+            for y in stride(from: 0, to: 360, by: 2) { for x in stride(from: 0, to: 640, by: 2) where TestImages.pixel(cg, x: x, y: y).r > 100 { sum += Double(y); n += 1 } }
+            return n > 0 ? sum / n : -1
+        }
+        let settled = centroidY(TextRenderer.animated(full, animation: .slideUp, phase: TextPhase(progress: 1, exiting: false), canvas: canvas))
+        let moving = centroidY(TextRenderer.animated(full, animation: .slideUp, phase: TextPhase(progress: 0.5, exiting: false), canvas: canvas))
+        #expect(moving > settled + 10)   // CGImage: la Y crece hacia abajo
+        // Zoom a mitad: más pequeño (menos píxeles) que asentado.
+        let zoomed = ctx.createCGImage(TextRenderer.animated(full, animation: .zoom, phase: TextPhase(progress: 0.5, exiting: false), canvas: canvas), from: all)!
+        #expect(opaquePixels(zoomed, in: all) < opaquePixels(full.image, in: all))
     }
 
     @Test("Un vídeo con pie muestra texto en la zona del pie")
