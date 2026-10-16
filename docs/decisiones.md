@@ -902,3 +902,24 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Selector de fuente usable
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* El selector de fuente no servía para probar: el menú no enseñaba cada nombre con su tipografía, no se podía ir con las flechas viendo la vista previa y la única forma era pulsar el menú y elegir a ciegas.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `TextStyleEditor` (un `Picker` de menú con ~250 familias) y `TextPreviewPanel`.
+
+### 4. Decisiones
+- `FontField`: el nombre de la fuente actual en su propia tipografía, con flechas a los lados para pasar a la anterior o la siguiente (cíclico) mientras la vista previa de la derecha se actualiza. Al pulsarlo, un popover (`FontListPopover`) con buscador y una lista en la que cada familia va con su tipografía; la lista toma el foco, las flechas ↑↓ cambian la selección (y la vista previa) e Intro cierra. «Sistema» es la primera entrada.
+- La lista de familias (`NSFontManager` más Doto) se calcula una vez.
+
+### 5. Alternativas descartadas
+- `NSFontPanel` del sistema: elige fuente y tamaño a la vez y no se integra con el estilo propio; además no enseña la vista previa de la app.
+
+### 6. Pendiente de comprobar
+Nada.
+

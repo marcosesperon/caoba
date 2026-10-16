@@ -5640,6 +5640,46 @@
           }
         }
       }
+    },
+    "Fuente anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous font"
+          }
+        }
+      }
+    },
+    "Fuente siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next font"
+          }
+        }
+      }
+    },
+    "Buscar fuente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search font"
+          }
+        }
+      }
+    },
+    "Flechas ↑↓ para probar; Intro para cerrar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrows ↑↓ to try; Return to close."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -301,13 +301,6 @@ struct TextStyleEditor: View {
     let title: LocalizedStringKey
     @Binding var style: TextStyle
 
-    /// Familias instaladas más Doto, que va con la app.
-    private static let families: [String] = {
-        var names = Set(NSFontManager.shared.availableFontFamilies)
-        names.insert("Doto")
-        return names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
-    }()
-
     private var colorBinding: Binding<Color> {
         Binding(get: { Color(red: style.color.red, green: style.color.green, blue: style.color.blue) },
                 set: { new in
@@ -322,11 +315,7 @@ struct TextStyleEditor: View {
             Text(title).font(.subheadline.weight(.semibold)).padding(.top, 4)
             LabeledRow("Fuente") {
                 HStack {
-                    Picker("", selection: Binding(get: { style.fontName ?? "" }, set: { style.fontName = $0.isEmpty ? nil : $0 })) {
-                        Text("Sistema").tag("")
-                        ForEach(Self.families, id: \.self) { Text($0).tag($0) }
-                    }
-                    .frame(maxWidth: 220).labelsHidden()
+                    FontField(fontName: $style.fontName)
                     Toggle("Negrita", isOn: $style.bold)
                 }
             }
@@ -355,6 +344,94 @@ struct TextStyleEditor: View {
                 .pickerStyle(.segmented).fixedSize().labelsHidden()
             }
         }
+    }
+}
+
+/// Selector de fuente: el nombre en su propia tipografía, flechas para pasar a
+/// la anterior o la siguiente (viendo la vista previa) y una lista desplegable
+/// con buscador por la que se puede ir con las flechas del teclado.
+struct FontField: View {
+    @Binding var fontName: String?
+    @Environment(AppState.self) private var appState
+    @State private var showList = false
+
+    /// Familias instaladas más Doto, que va con la app. "" = sistema.
+    static let families: [String] = {
+        var names = Set(NSFontManager.shared.availableFontFamilies)
+        names.insert("Doto")
+        return [""] + names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }()
+
+    private var current: String { fontName ?? "" }
+
+    static func font(_ family: String, size: CGFloat) -> Font {
+        family.isEmpty ? .system(size: size) : .custom(family, size: size)
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Button { step(-1) } label: { Image(systemName: "chevron.left") }
+                .controlSize(.small).help("Fuente anterior")
+            Button { showList.toggle() } label: {
+                HStack {
+                    Text(current.isEmpty ? String(localized: "Sistema") : current)
+                        .font(Self.font(current, size: 13)).lineLimit(1).truncationMode(.tail)
+                    Spacer(minLength: 4)
+                    Image(systemName: "chevron.up.chevron.down").font(.caption2).foregroundStyle(.secondary)
+                }
+                .frame(width: 190)
+            }
+            .popover(isPresented: $showList, arrowEdge: .bottom) {
+                FontListPopover(fontName: $fontName, dismiss: { showList = false })
+            }
+            Button { step(1) } label: { Image(systemName: "chevron.right") }
+                .controlSize(.small).help("Fuente siguiente")
+        }
+        .onAppear {
+            // Para capturas: `--state text.fontpicker=1` abre la lista.
+            if appState.launchState["text.fontpicker"] != nil { showList = true }
+        }
+    }
+
+    private func step(_ delta: Int) {
+        let list = Self.families
+        guard let index = list.firstIndex(of: current) else { fontName = nil; return }
+        let next = list[(index + delta + list.count) % list.count]
+        fontName = next.isEmpty ? nil : next
+    }
+}
+
+/// Lista de fuentes con buscador: cada nombre en su tipografía; las flechas del
+/// teclado cambian la selección y la vista previa de fondo se actualiza al momento.
+struct FontListPopover: View {
+    @Binding var fontName: String?
+    let dismiss: () -> Void
+    @State private var filter = ""
+    @FocusState private var listFocused: Bool
+
+    private var filtered: [String] {
+        let query = filter.trimmingCharacters(in: .whitespaces)
+        return FontField.families.filter { query.isEmpty || $0.isEmpty || $0.localizedCaseInsensitiveContains(query) }
+    }
+
+    var body: some View {
+        VStack(spacing: 8) {
+            TextField("Buscar fuente", text: $filter).textFieldStyle(.roundedBorder)
+            List(selection: Binding<String?>(get: { fontName ?? "" }, set: { fontName = ($0 ?? "").isEmpty ? nil : $0 })) {
+                ForEach(filtered, id: \.self) { family in
+                    Text(family.isEmpty ? String(localized: "Sistema") : family)
+                        .font(FontField.font(family, size: 15))
+                        .lineLimit(1)
+                        .tag(String?.some(family))
+                }
+            }
+            .focused($listFocused)
+            .onKeyPress(.return) { dismiss(); return .handled }
+            Text("Flechas ↑↓ para probar; Intro para cerrar.").font(.caption).foregroundStyle(.secondary)
+        }
+        .padding(10)
+        .frame(width: 300, height: 420)
+        .onAppear { listFocused = true }
     }
 }
 
