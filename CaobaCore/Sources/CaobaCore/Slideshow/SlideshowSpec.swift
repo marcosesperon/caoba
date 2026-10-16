@@ -160,9 +160,13 @@ public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
     public var transition: TransitionKind?
     /// Duración de esa transición; `nil` = la del spec.
     public var transitionDuration: Double?
+    /// Pie fijo durante toda la foto (con el estilo de pies del spec).
+    public var caption: String?
+    /// Texto superpuesto unos segundos al empezar la foto (título sobre la primera foto).
+    public var overlay: TextOverlay?
 
     public init(id: UUID = UUID(), url: URL, duration: Double, kenBurns: KenBurnsEffect? = nil, points: KenBurnsPoints? = nil, easing: KenBurnsEasing? = nil,
-                transition: TransitionKind? = nil, transitionDuration: Double? = nil) {
+                transition: TransitionKind? = nil, transitionDuration: Double? = nil, caption: String? = nil, overlay: TextOverlay? = nil) {
         self.id = id
         self.url = url
         self.duration = max(0.1, duration)
@@ -171,6 +175,8 @@ public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
         self.easing = easing
         self.transition = transition
         self.transitionDuration = transitionDuration
+        self.caption = caption
+        self.overlay = overlay
     }
 }
 
@@ -184,6 +190,8 @@ public struct SlideshowSpec: Sendable, Equatable {
     /// Transición por defecto (si `transition` es true) y su duración.
     public var defaultTransition: TransitionKind = .crossfade
     public var defaultTransitionDuration: Double = SlideshowSpec.transitionSeconds
+    /// Estilo de los pies de foto (`SlideshowPhoto.caption`).
+    public var captionStyle: TextStyle = .caption
     public var watermark: VideoWatermark?
     public var audio: AudioOptions
     public var kenBurns: KenBurnsSettings

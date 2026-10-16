@@ -14,6 +14,8 @@ struct SelectionTab: View {
                 Text("Selecciona una tarjeta o una pista en el timeline.").foregroundStyle(.secondary)
             case .cover: ImageSlotInspector(doc: doc, isCover: true)
             case .credits: ImageSlotInspector(doc: doc, isCover: false)
+            case .title: TextCardInspector(doc: doc, isClosing: false)
+            case .closing: TextCardInspector(doc: doc, isClosing: true)
             case .photo(let name):
                 if let url = doc.files.first(where: { $0.lastPathComponent == name }) {
                     PhotoInspector(doc: doc, url: url, expandedFraming: $expandedFraming)
@@ -115,12 +117,57 @@ struct VideoTab: View {
     }
 }
 
-/// Pestaña Portada y marca: portada, créditos y marca de agua.
+/// Pestaña Portada y texto: título, pies, portada, créditos y marca de agua.
 struct ExtrasTab: View {
     @Bindable var doc: SlideshowDocument
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            OptionGroup(title: "Título") {
+                LabeledRow("Modo") {
+                    Picker("", selection: $doc.titleMode) {
+                        Text("Sin título").tag(TitleMode.none)
+                        Text("Pantalla propia").tag(TitleMode.card)
+                        Text("Sobre la primera foto").tag(TitleMode.overlay)
+                    }
+                    .pickerStyle(.segmented).fixedSize()
+                    .labelsHidden()
+                }
+                if doc.titleMode != .none {
+                    LabeledRow("Título") { TextField("", text: $doc.titleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                    LabeledRow("Subtítulo") { TextField("", text: $doc.subtitleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                    if doc.titleMode == .card {
+                        LabeledRow("Fondo") {
+                            Picker("", selection: $doc.titleBackground) {
+                                Text("Negro").tag(CanvasBackground.black)
+                                Text("Blanco").tag(CanvasBackground.white)
+                                Text("Gris").tag(CanvasBackground.gray)
+                            }
+                            .fixedSize().labelsHidden()
+                        }
+                        LabeledSlider(title: "Duración", value: $doc.titleDuration, in: 1...15, step: 0.5) { Text("\(doc.titleDuration, specifier: "%.1f") s") }
+                    } else {
+                        LabeledSlider(title: "Segundos visible", value: $doc.titleOverlaySeconds, in: 1...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
+                    }
+                }
+                Toggle("Cierre al final (pantalla propia)", isOn: $doc.closingEnabled)
+                if doc.closingEnabled {
+                    LabeledRow("Texto") { TextField("Gracias", text: $doc.closingText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                    LabeledRow("Subtítulo") { TextField("", text: $doc.closingSubtitle).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                    LabeledSlider(title: "Duración", value: $doc.closingDuration, in: 1...15, step: 0.5) { Text("\(doc.closingDuration, specifier: "%.1f") s") }
+                }
+                if doc.titleMode != .none || doc.closingEnabled {
+                    TextStyleEditor(title: "Estilo del título", style: $doc.titleStyle)
+                }
+            }
+            OptionGroup(title: "Pies de foto") {
+                LabeledRow("Patrón") { TextField("", text: $doc.captionPattern).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                Text("Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if !doc.captionPattern.isEmpty || !doc.itemCaptions.isEmpty {
+                    TextStyleEditor(title: "Estilo de los pies", style: $doc.captionStyle)
+                }
+            }
             OptionGroup(title: "Portada y créditos") {
                 slotRow(title: "Portada", url: $doc.coverURL, duration: $doc.coverDuration)
                 slotRow(title: "Créditos", url: $doc.creditsURL, duration: $doc.creditsDuration)
@@ -249,6 +296,131 @@ func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
     return panel.runModal() == .OK ? panel.url : nil
 }
 
+/// Editor de un estilo de texto: fuente, negrita, tamaño, color, posición y fondo.
+struct TextStyleEditor: View {
+    let title: LocalizedStringKey
+    @Binding var style: TextStyle
+
+    /// Familias instaladas más Doto, que va con la app.
+    private static let families: [String] = {
+        var names = Set(NSFontManager.shared.availableFontFamilies)
+        names.insert("Doto")
+        return names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }()
+
+    private var colorBinding: Binding<Color> {
+        Binding(get: { Color(red: style.color.red, green: style.color.green, blue: style.color.blue) },
+                set: { new in
+                    if let c = NSColor(new).usingColorSpace(.sRGB) {
+                        style.color = RGBColor(red: Double(c.redComponent), green: Double(c.greenComponent), blue: Double(c.blueComponent))
+                    }
+                })
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title).font(.subheadline.weight(.semibold)).padding(.top, 4)
+            LabeledRow("Fuente") {
+                HStack {
+                    Picker("", selection: Binding(get: { style.fontName ?? "" }, set: { style.fontName = $0.isEmpty ? nil : $0 })) {
+                        Text("Sistema").tag("")
+                        ForEach(Self.families, id: \.self) { Text($0).tag($0) }
+                    }
+                    .frame(maxWidth: 220).labelsHidden()
+                    Toggle("Negrita", isOn: $style.bold)
+                }
+            }
+            LabeledSlider(title: "Tamaño", value: $style.sizePercent, in: 1...20, step: 0.5) { Text("\(style.sizePercent, specifier: "%.1f") %") }
+            LabeledRow("Color") { ColorPicker("", selection: colorBinding, supportsOpacity: false).labelsHidden() }
+            LabeledRow("Posición") {
+                Picker("", selection: $style.anchor) {
+                    Text("Arriba izquierda").tag(TextAnchor.topLeft)
+                    Text("Arriba centro").tag(TextAnchor.top)
+                    Text("Arriba derecha").tag(TextAnchor.topRight)
+                    Text("Centro izquierda").tag(TextAnchor.left)
+                    Text("Centro").tag(TextAnchor.center)
+                    Text("Centro derecha").tag(TextAnchor.right)
+                    Text("Abajo izquierda").tag(TextAnchor.bottomLeft)
+                    Text("Abajo centro").tag(TextAnchor.bottom)
+                    Text("Abajo derecha").tag(TextAnchor.bottomRight)
+                }
+                .frame(maxWidth: 220).labelsHidden()
+            }
+            LabeledRow("Fondo") {
+                Picker("", selection: $style.backdrop) {
+                    Text("Nada").tag(TextBackdrop.none)
+                    Text("Sombra").tag(TextBackdrop.shadow)
+                    Text("Banda").tag(TextBackdrop.band)
+                }
+                .pickerStyle(.segmented).fixedSize().labelsHidden()
+            }
+        }
+    }
+}
+
+/// Pie propio de un elemento: patrón, texto propio o sin pie.
+struct CaptionOverrideRow: View {
+    @Bindable var doc: SlideshowDocument
+    let id: String
+
+    private enum Choice: Hashable { case pattern, own, none }
+    private var choice: Choice {
+        guard let own = doc.itemCaptions[id] else { return .pattern }
+        return own.isEmpty ? .none : .own
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            LabeledRow("Pie") {
+                Picker("", selection: Binding<Choice>(get: { choice }, set: { new in
+                    switch new {
+                    case .pattern: doc.itemCaptions[id] = nil
+                    case .own: if doc.itemCaptions[id]?.isEmpty ?? true { doc.itemCaptions[id] = " " }
+                    case .none: doc.itemCaptions[id] = ""
+                    }
+                })) {
+                    Text("Patrón").tag(Choice.pattern)
+                    Text("Propio").tag(Choice.own)
+                    Text("Sin pie").tag(Choice.none)
+                }
+                .pickerStyle(.segmented).fixedSize().labelsHidden()
+            }
+            if choice == .own {
+                TextField("", text: Binding(get: { doc.itemCaptions[id] ?? "" }, set: { doc.itemCaptions[id] = $0.isEmpty ? " " : $0 }))
+                    .textFieldStyle(.roundedBorder).frame(maxWidth: 300)
+            }
+            Spacer()
+        }
+    }
+}
+
+/// Tarjeta de título o de cierre seleccionada.
+struct TextCardInspector: View {
+    @Bindable var doc: SlideshowDocument
+    let isClosing: Bool
+
+    var body: some View {
+        Text(isClosing ? "Cierre" : "Título").font(.headline)
+        OptionGroup(title: "Texto") {
+            LabeledRow(isClosing ? "Texto" : "Título") { TextField("", text: isClosing ? $doc.closingText : $doc.titleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+            LabeledRow("Subtítulo") { TextField("", text: isClosing ? $doc.closingSubtitle : $doc.subtitleText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+            LabeledRow("Fondo") {
+                Picker("", selection: $doc.titleBackground) {
+                    Text("Negro").tag(CanvasBackground.black)
+                    Text("Blanco").tag(CanvasBackground.white)
+                    Text("Gris").tag(CanvasBackground.gray)
+                }
+                .fixedSize().labelsHidden()
+            }
+            LabeledSlider(title: "Duración", value: isClosing ? $doc.closingDuration : $doc.titleDuration, in: 1...15, step: 0.5) {
+                Text("\(isClosing ? doc.closingDuration : doc.titleDuration, specifier: "%.1f") s")
+            }
+            TransitionOverrideRow(doc: doc, id: isClosing ? "closing" : "title")
+            Text("El estilo del texto se ajusta en la pestaña «Portada y texto».").font(.caption).foregroundStyle(.secondary)
+        }
+    }
+}
+
 /// Portada o créditos seleccionados.
 struct ImageSlotInspector: View {
     @Bindable var doc: SlideshowDocument
@@ -338,6 +510,7 @@ struct PhotoInspector: View {
             Spacer()
         }
         TransitionOverrideRow(doc: doc, id: name)
+        CaptionOverrideRow(doc: doc, id: name)
         KenBurnsFramingView(doc: doc, url: url, compact: false)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
@@ -413,6 +586,7 @@ struct CollageInspector: View {
                 Button(role: .destructive) { doc.removeCollage(row.id) } label: { Label("Quitar", systemImage: "trash") }
             }
             TransitionOverrideRow(doc: doc, id: row.id.uuidString)
+            CaptionOverrideRow(doc: doc, id: row.id.uuidString)
             HStack(alignment: .top, spacing: 16) {
                 if showResult {
                     // Con las opciones de collage del vídeo, que son las que se usan al generar.

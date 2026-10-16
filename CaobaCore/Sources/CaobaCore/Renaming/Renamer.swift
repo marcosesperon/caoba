@@ -320,7 +320,7 @@ public struct Renamer: Sendable {
     }
 
     /// Lee de cada fichero solo lo que el patrón necesita.
-    static func gatherInfo(files: [URL], pattern: String, needsDates: Bool) -> [RenameSourceInfo] {
+    public static func gatherInfo(files: [URL], pattern: String, needsDates: Bool) -> [RenameSourceInfo] {
         let wantDate = needsDates || patternNeedsDate(pattern)
         let wantCamera = patternNeedsCamera(pattern)
         let wantSize = patternNeedsSize(pattern)

@@ -844,3 +844,40 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Texto sobre las fotos del Slideshow
+
+### 1. La petición tal como se ha entendido
+Texto en el vídeo del Slideshow, en dos piezas:
+
+- **Título** (P1, las dos opciones): un título y un subtítulo opcional que pueden ir **como pantalla propia** (tarjeta con fondo de color, duración y transición propias, como la portada de imagen; opcionalmente repetida al final como cierre con su propio texto, p. ej. «Gracias») o **sobre la primera foto o la portada**, superpuestos durante unos segundos y desapareciendo con un fundido. Un selector elige el modo.
+- **Pie por foto** (P2): un patrón global con texto libre y variables como las del renombrador (`{nombre}`, `{n}`, `{total}`, `{fecha}`, `{camara}`, `{objetivo}`…), que se aplica a todas las fotos; desde el inspector de cada foto se puede escribir un texto propio que sustituye al patrón, o dejarla sin pie. En modo Collages, el pie se aplica a cada collage con `{n}` y `{total}` de collages.
+- **Estilo** (P3, dos estilos): uno para el título y el cierre, otro para los pies. Cada uno con fuente (Doto, la del sistema o cualquiera instalada), tamaño relativo al alto del vídeo, color, posición (nueve posiciones), y sombra o banda semitransparente de fondo para que se lea sobre cualquier foto.
+- Los textos se dibujan en el render con Core Text y Core Image, sin ficheros intermedios; el timeline marca las tarjetas de título y cierre como el resto. Todo se guarda en el `.caoba`; los proyectos antiguos siguen igual (sin textos).
+
+*Confirmación: «si» (16-10-2026). Plan aprobado: «adelante».*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Título como pantalla propia o sobre la primera foto?** R: las dos opciones.
+**P2. ¿Pie por foto con patrón y variables más texto propio, o solo texto propio?** R: 1, patrón global con variables y texto propio por foto.
+**P3. ¿Dos estilos (título y pies) o uno común?** R: 1, dos estilos.
+
+### 3. Fuentes analizadas
+- `VideoWriter` (marca de agua como capa compuesta), `Drawing.drawText` (Core Text en hojas de contacto), `Renamer.expand` y `gatherInfo` (variables y datos de cada foto), `OverlayPosition` (solo cinco posiciones), modelo del timeline y preset.
+
+### 4. Decisiones
+- **Motor**: `TextAnchor` (nueve posiciones), `TextBackdrop` (nada, sombra, banda), `TextStyle` (familia o sistema, negrita, tamaño en % del alto, color, posición, fondo) y `TextOverlay` (líneas, estilo, segundos y fundido de 0,6 s). `TextRenderer.layer` dibuja una capa transparente con Core Text (primera línea al tamaño pedido, las demás al 55 %, márgenes del 5 % y 6 %, recorte con puntos suspensivos; banda negra al 45 % con esquinas, o sombra); `TextRenderer.card` la tarjeta con fondo. La fuente se usa solo si la familia existe de verdad (Core Text daría otra a escondidas); si no, la del sistema.
+- `SlideshowPhoto.caption` (pie fijo) y `.overlay` (título sobre la foto); `SlideshowSpec.captionStyle`. El escritor compone pie y título **dentro del fotograma de cada foto**, así las transiciones los arrastran; las capas se cachean por foto y se liberan con la foto.
+- **App**: título con tres modos; en «pantalla propia» y el cierre se renderizan a JPEG temporal con `TextRenderer.card` y entran como fotos del vídeo (tarjetas «Título» y «Cierre» en el timeline con inspector propio: texto, fondo, duración y transición); en «sobre la primera foto» el título se adjunta como `overlay` al primer elemento. Pies: patrón global con `{nombre} {n} {total} {fecha} {camara} {objetivo}` (reutiliza `Renamer.expand` y añade `{total}` y `{fecha}` en dd/MM/yyyy) y por elemento «Patrón / Propio / Sin pie» (cadena vacía = sin pie). En Collages el pie va en todos los pasos del collage con `{n}` y `{total}` de collages.
+- Dos estilos editables en «Portada y texto» (antes «Portada y marca»): fuente entre las instaladas más Doto, negrita, tamaño, color, posición y fondo. `CanvasBackground.fill/text` pasan a públicos para la tarjeta del timeline.
+- Preset: sección `text` con todo; proyectos antiguos sin textos. Ganchos de prueba `text.demo=card|overlay` y `slideshow.generate=/ruta.mp4`.
+- Tests: posiciones, banda, tarjeta, opacidad del título y un vídeo real con pie comprobado por fotogramas.
+- Tras la primera prueba con BOOK (vídeo de collages): el título superpuesto caía solo en el primer paso del collage (el lienzo vacío, 0,5 s). `TextOverlay` gana `offset` y el título se reparte entre todos los pasos del primer collage con su desfase, hasta `titleOverlaySeconds` o lo que dure el collage. Y los pies con variables vacías dejaban separadores colgando («1 de 10 ·»): en collages `{nombre}` es el nombre de la plantilla y se recortan los separadores sueltos.
+
+### 5. Alternativas descartadas
+- Dibujar los textos como capa global por encima de las transiciones: el pie saltaría de golpe en lugar de deslizarse o fundirse con su foto.
+- Usar `CIFilter` de texto (`CIAttributedTextImageGenerator`): no da control de truncado ni de banda; Core Text sí.
+
+### 6. Pendiente de comprobar
+- Una vista previa en vivo del estilo (hoy se ve al generar o en la tarjeta del timeline); podría añadirse un «Ver muestra» que renderice un fotograma.
+

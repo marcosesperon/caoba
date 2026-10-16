@@ -104,6 +104,26 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public init() {}
     }
 
+    /// Nuevo: título, cierre, pies y sus estilos.
+    public struct TextSection: Codable, Sendable, Equatable {
+        public var titleMode: String?
+        public var title: String?
+        public var subtitle: String?
+        public var background: String?
+        public var titleDuration: Double?
+        public var overlaySeconds: Double?
+        public var closingEnabled: Bool?
+        public var closingText: String?
+        public var closingSubtitle: String?
+        public var closingDuration: Double?
+        public var titleStyle: TextStyle?
+        public var captionStyle: TextStyle?
+        public var captionPattern: String?
+        public var captions: [String: String]?
+        public init() {}
+    }
+
+    public var text: TextSection?
     public var mode: String?
     public var sortMode: String?
     public var orientationFilter: String?

@@ -247,12 +247,23 @@ struct TimelineCard: View {
         case .credits: return String(localized: "Créditos")
         case .photo(let url): return url.lastPathComponent
         case .collage(let row): return row.template.name
+        case .title: return String(localized: "Título")
+        case .closing: return String(localized: "Cierre")
         }
     }
 
     @ViewBuilder
     private func thumbnail(size: CGSize) -> some View {
         switch item.kind {
+        case .title, .closing:
+            // Tarjeta de texto: el fondo elegido y el título en Doto.
+            let text = item.kind == .title ? doc.titleText : doc.closingText
+            ZStack {
+                Color(cgColor: doc.titleBackground.fill)
+                Text(text.isEmpty ? "…" : text).font(.caobaTitle(12)).lineLimit(2).multilineTextAlignment(.center)
+                    .foregroundStyle(Color(cgColor: doc.titleBackground.text)).padding(6)
+            }
+            .frame(width: size.width, height: size.height)
         case .cover(let url), .credits(let url):
             CellPhotoView(url: url, focus: CGPoint(x: 0.5, y: 0.5), size: size)
         case .photo(let url):
@@ -279,6 +290,10 @@ struct TimelineCard: View {
             Button("Quitar portada") { doc.coverURL = nil }
         case .credits:
             Button("Quitar créditos") { doc.creditsURL = nil }
+        case .title:
+            Button("Quitar título") { doc.titleMode = .none }
+        case .closing:
+            Button("Quitar cierre") { doc.closingEnabled = false }
         }
     }
 }

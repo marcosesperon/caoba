@@ -7,7 +7,7 @@ import CoreText
 public enum CanvasBackground: String, Sendable, Codable, CaseIterable {
     case white, black, gray
 
-    var fill: CGColor {
+    public var fill: CGColor {
         switch self {
         case .white: return CGColor(red: 1, green: 1, blue: 1, alpha: 1)
         case .black: return CGColor(red: 30 / 255, green: 30 / 255, blue: 30 / 255, alpha: 1)
@@ -15,7 +15,7 @@ public enum CanvasBackground: String, Sendable, Codable, CaseIterable {
         }
     }
 
-    var text: CGColor {
+    public var text: CGColor {
         switch self {
         case .white: return CGColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1)
         case .black: return CGColor(red: 0.93, green: 0.93, blue: 0.93, alpha: 1)

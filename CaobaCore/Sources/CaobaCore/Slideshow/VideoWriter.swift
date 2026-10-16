@@ -14,6 +14,9 @@ public final class VideoWriter {
     private let context: CIContext
     private var cache: [Int: CIImage] = [:]
     private var watermarkImage: CIImage?
+    /// Pies y títulos ya dibujados, por índice de foto.
+    private var captionLayers: [Int: CIImage] = [:]
+    private var overlayLayers: [Int: CIImage] = [:]
 
     public init(spec: SlideshowSpec, timeline: SlideshowTimeline) {
         self.spec = spec
@@ -122,8 +125,10 @@ public final class VideoWriter {
         if let watermarkImage {
             frame = watermarkImage.composited(over: frame)
         }
-        // Liberamos fotos que ya no van a volver a verse.
+        // Liberamos fotos (y sus textos) que ya no van a volver a verse.
         for key in cache.keys where key < visible.current - 1 { cache.removeValue(forKey: key) }
+        for key in captionLayers.keys where key < visible.current - 1 { captionLayers.removeValue(forKey: key) }
+        for key in overlayLayers.keys where key < visible.current - 1 { overlayLayers.removeValue(forKey: key) }
         return frame.cropped(to: canvasRect)
     }
 
@@ -137,12 +142,44 @@ public final class VideoWriter {
         let imageSize = PixelSize(width: Int(image.extent.width), height: Int(image.extent.height))
         let local = max(0, t - segment.start)
 
+        var frame: CIImage
         if photo.kenBurns != nil, photo.points?.fit != .contain,
            let crop = KenBurns.cropRect(for: photo, imageSize: imageSize, targetSize: size, time: local,
                                         segmentDuration: segment.duration, settings: spec.kenBurns) {
-            return fill(image, crop: crop)
+            frame = fill(image, crop: crop)
+        } else {
+            frame = fit(image)
         }
-        return fit(image)
+        // Pie fijo y título con fundido van dentro del fotograma de la foto: las transiciones los arrastran con ella.
+        if let caption = captionLayer(for: index) {
+            frame = caption.composited(over: frame)
+        }
+        if let overlay = photo.overlay, let layer = overlayLayer(for: index) {
+            let alpha = overlay.opacity(at: local)
+            if alpha > 0.001 {
+                let faded = alpha >= 0.999 ? layer : layer.applyingFilter("CIColorMatrix", parameters: ["inputAVector": CIVector(x: 0, y: 0, z: 0, w: CGFloat(alpha))])
+                frame = faded.composited(over: frame)
+            }
+        }
+        return frame
+    }
+
+    private func captionLayer(for index: Int) -> CIImage? {
+        if let cached = captionLayers[index] { return cached }
+        guard let text = spec.photos[index].caption, !text.isEmpty,
+              let cg = TextRenderer.layer(lines: [text], style: spec.captionStyle, canvas: size) else { return nil }
+        let layer = CIImage(cgImage: cg)
+        captionLayers[index] = layer
+        return layer
+    }
+
+    private func overlayLayer(for index: Int) -> CIImage? {
+        if let cached = overlayLayers[index] { return cached }
+        guard let overlay = spec.photos[index].overlay,
+              let cg = TextRenderer.layer(lines: overlay.lines, style: overlay.style, canvas: size) else { return nil }
+        let layer = CIImage(cgImage: cg)
+        overlayLayers[index] = layer
+        return layer
     }
 
     /// Recorte (origen arriba-izquierda) escalado para llenar el lienzo.

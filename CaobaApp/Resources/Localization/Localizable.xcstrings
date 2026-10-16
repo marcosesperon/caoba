@@ -7,8 +7,28 @@
     " · " : {
 
     },
+    " presets." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " presets."
+          }
+        }
+      }
+    },
     "— Marcos Esperón" : {
 
+    },
+    ", no la " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ", not "
+          }
+        }
+      }
     },
     "¡Gracias!" : {
       "localizations" : {
@@ -40,12 +60,32 @@
         }
       }
     },
+    "· %lld ppm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· %lld bpm"
+          }
+        }
+      }
+    },
     "· arrastra cada foto para encuadrarla" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "· drag each photo to frame it"
+          }
+        }
+      }
+    },
+    "· sin ritmo claro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· no clear beat"
           }
         }
       }
@@ -99,6 +139,9 @@
       }
     },
     "%.1f s" : {
+
+    },
+    "%.2f s" : {
 
     },
     "%@" : {
@@ -274,6 +317,16 @@
         }
       }
     },
+    "%lld presets guardados (Procesador, Marca de agua y Collage)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld saved presets (Processor, Watermark and Collage)"
+          }
+        }
+      }
+    },
     "%lld px" : {
       "localizations" : {
         "en" : {
@@ -285,6 +338,9 @@
       }
     },
     "%lld°" : {
+
+    },
+    "•" : {
 
     },
     "≈ %lld px de ancho; la altura depende de las fotos" : {
@@ -340,6 +396,16 @@
         }
       }
     },
+    "Abrir en el navegador" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in the browser"
+          }
+        }
+      }
+    },
     "Abrir en Google Maps" : {
       "localizations" : {
         "en" : {
@@ -360,6 +426,26 @@
         }
       }
     },
+    "Actualizar «%@» con los ajustes actuales" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update “%@” with the current settings"
+          }
+        }
+      }
+    },
+    "Actualizar ahora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update now"
+          }
+        }
+      }
+    },
     "Ahora no" : {
       "localizations" : {
         "en" : {
@@ -376,6 +462,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adjust the options to see the preview."
+          }
+        }
+      }
+    },
+    "Ajustar al ritmo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fit to the beat"
           }
         }
       }
@@ -451,6 +547,16 @@
         }
       }
     },
+    "Añade una pista de música para ajustar al ritmo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a music track to fit to the beat."
+          }
+        }
+      }
+    },
     "Añadir" : {
       "localizations" : {
         "en" : {
@@ -507,6 +613,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Analyzing audio…"
+          }
+        }
+      }
+    },
+    "Analizando la música…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzing the music…"
           }
         }
       }
@@ -762,6 +878,16 @@
         }
       }
     },
+    "Auto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        }
+      }
+    },
     "Automático" : {
       "localizations" : {
         "en" : {
@@ -798,6 +924,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Advanced"
+          }
+        }
+      }
+    },
+    "Barrido a la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wipe right"
+          }
+        }
+      }
+    },
+    "Barrido a la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wipe left"
           }
         }
       }
@@ -1252,6 +1398,16 @@
         }
       }
     },
+    "Comprobando la descarga…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking the download…"
+          }
+        }
+      }
+    },
     "Con cambios pendientes" : {
       "localizations" : {
         "en" : {
@@ -1393,6 +1549,16 @@
         }
       }
     },
+    "Corte seco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard cut"
+          }
+        }
+      }
+    },
     "Creadores" : {
       "localizations" : {
         "en" : {
@@ -1463,6 +1629,16 @@
         }
       }
     },
+    "Descargando CAOBA %@…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading CAOBA %@…"
+          }
+        }
+      }
+    },
     "Descargar" : {
       "localizations" : {
         "en" : {
@@ -1509,6 +1685,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undo"
+          }
+        }
+      }
+    },
+    "Deslizar a la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide right"
+          }
+        }
+      }
+    },
+    "Deslizar a la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide left"
+          }
+        }
+      }
+    },
+    "Deslizar hacia abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide down"
+          }
+        }
+      }
+    },
+    "Deslizar hacia arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Slide up"
           }
         }
       }
@@ -1637,6 +1853,16 @@
         }
       }
     },
+    "Duración transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition length"
+          }
+        }
+      }
+    },
     "Ease in" : {
 
     },
@@ -1682,6 +1908,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Effect"
+          }
+        }
+      }
+    },
+    "El DMG trae la versión " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The DMG contains version "
+          }
+        }
+      }
+    },
+    "El fichero no es una exportación de presets de CAOBA." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is not a CAOBA presets export."
           }
         }
       }
@@ -1866,6 +2112,16 @@
         }
       }
     },
+    "Eliminar «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete “%@”"
+          }
+        }
+      }
+    },
     "Eliminar el resto de metadatos" : {
       "localizations" : {
         "en" : {
@@ -1952,6 +2208,16 @@
     },
     "English" : {
 
+    },
+    "Entendido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        }
+      }
     },
     "Entera" : {
       "localizations" : {
@@ -2092,6 +2358,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "exiftool is not available: only the Nikon counter will be read. Run Tools/fetch-exiftool.sh and rebuild, or install it with Homebrew."
+          }
+        }
+      }
+    },
+    "Exportados " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exported "
+          }
+        }
+      }
+    },
+    "Exportar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export…"
           }
         }
       }
@@ -2279,6 +2565,26 @@
         }
       }
     },
+    "Fundido a negro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade to black"
+          }
+        }
+      }
+    },
+    "Fundido cruzado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crossfade"
+          }
+        }
+      }
+    },
     "Fundido de salida (3 s)" : {
       "localizations" : {
         "en" : {
@@ -2290,6 +2596,7 @@
       }
     },
     "Fundido entre fotos (1 s)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2379,6 +2686,16 @@
         }
       }
     },
+    "Golpes por foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beats per photo"
+          }
+        }
+      }
+    },
     "Gris" : {
       "localizations" : {
         "en" : {
@@ -2419,6 +2736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stage change for this photo"
+          }
+        }
+      }
+    },
+    "Guardar como…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save as…"
           }
         }
       }
@@ -2591,6 +2918,26 @@
         }
       }
     },
+    "Importados " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imported "
+          }
+        }
+      }
+    },
+    "Importar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import…"
+          }
+        }
+      }
+    },
     "Inicio" : {
       "localizations" : {
         "en" : {
@@ -2617,6 +2964,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start in video"
+          }
+        }
+      }
+    },
+    "Instalando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing…"
           }
         }
       }
@@ -2650,12 +3007,32 @@
     "L (7 %)" : {
 
     },
+    "La firma de la app descargada no verifica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The downloaded app's signature does not verify."
+          }
+        }
+      }
+    },
     "La imagen no se recomprime: solo cambian los metadatos." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The image is not recompressed: only the metadata changes."
+          }
+        }
+      }
+    },
+    "La release no tiene un DMG adjunto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The release has no DMG attached."
           }
         }
       }
@@ -3089,6 +3466,36 @@
         }
       }
     },
+    "No se encuentra el logo: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The logo cannot be found: "
+          }
+        }
+      }
+    },
+    "No se encuentra el PNG de la marca: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The watermark PNG cannot be found: "
+          }
+        }
+      }
+    },
+    "No se ha encontrado un ritmo claro en la música." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No clear beat was found in the music."
+          }
+        }
+      }
+    },
     "No se pudieron escribir los metadatos: %@" : {
       "localizations" : {
         "en" : {
@@ -3129,6 +3536,16 @@
         }
       }
     },
+    "No se puede sustituir la app desde aquí. Se ha abierto el DMG: arrastra CAOBA a Aplicaciones." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app cannot be replaced from here. The DMG has been opened: drag CAOBA to Applications."
+          }
+        }
+      }
+    },
     "Nombre" : {
       "localizations" : {
         "en" : {
@@ -3159,6 +3576,16 @@
         }
       }
     },
+    "Nombre del preset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preset name"
+          }
+        }
+      }
+    },
     "Nombres de archivo" : {
       "localizations" : {
         "en" : {
@@ -3185,6 +3612,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Normalize loudness (EBU R128, -16 LUFS)"
+          }
+        }
+      }
+    },
+    "Novedades de CAOBA" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new in CAOBA"
+          }
+        }
+      }
+    },
+    "Novedades desde la versión %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new since version %@"
           }
         }
       }
@@ -3288,6 +3735,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opacity"
+          }
+        }
+      }
+    },
+    "Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional: every photo or collage change lands on a beat of the music playing at that moment. Durations you set by hand are kept."
           }
         }
       }
@@ -3553,6 +4010,16 @@
         }
       }
     },
+    "Por defecto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
+    },
     "Portada" : {
       "localizations" : {
         "en" : {
@@ -3629,6 +4096,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparing…"
+          }
+        }
+      }
+    },
+    "Presets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presets"
           }
         }
       }
@@ -3900,6 +4377,16 @@
         }
       }
     },
+    "Reiniciando CAOBA…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restarting CAOBA…"
+          }
+        }
+      }
+    },
     "Reiniciar" : {
       "localizations" : {
         "en" : {
@@ -4030,6 +4517,16 @@
         }
       }
     },
+    "Ritmo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rhythm"
+          }
+        }
+      }
+    },
     "Salida" : {
       "localizations" : {
         "en" : {
@@ -4140,6 +4637,16 @@
         }
       }
     },
+    "Si ya existe un preset con ese nombre, se sustituye." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If a preset with that name already exists, it is replaced."
+          }
+        }
+      }
+    },
     "Simula el efecto con la duración real (%.1f s) y la curva elegida. Arrastra las fotos de Inicio y Fin para encuadrar; con el efecto «Personalizado» se usan esos dos puntos; con los demás, el encuadre de Inicio marca el foco." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4227,6 +4734,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No tracks. Add a song and place it by dragging its block in the timeline."
+          }
+        }
+      }
+    },
+    "Sin preset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preset"
+          }
+        }
+      }
+    },
+    "Sin presets guardados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No saved presets"
           }
         }
       }
@@ -4476,6 +5003,16 @@
         }
       }
     },
+    "Transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition"
+          }
+        }
+      }
+    },
     "Tras la anterior" : {
       "localizations" : {
         "en" : {
@@ -4579,6 +5116,16 @@
         }
       }
     },
+    "Valores por defecto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default values"
+          }
+        }
+      }
+    },
     "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha YYYY MM DD hh mm ss" : {
       "localizations" : {
         "en" : {
@@ -4595,6 +5142,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Speed"
+          }
+        }
+      }
+    },
+    "Versión %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
           }
         }
       }
@@ -4747,6 +5304,16 @@
         }
       }
     },
+    "Zoom cruzado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cross zoom"
+          }
+        }
+      }
+    },
     "Zoom in" : {
       "localizations" : {
         "en" : {
@@ -4767,562 +5334,262 @@
         }
       }
     },
-    "Ritmo" : {
+    "Portada y texto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rhythm"
+            "value" : "Cover & text"
           }
         }
       }
     },
-    "Golpes por foto" : {
+    "Cierre" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Beats per photo"
+            "value" : "Closing"
           }
         }
       }
     },
-    "Auto" : {
+    "Sin título" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auto"
+            "value" : "No title"
           }
         }
       }
     },
-    "Ajustar al ritmo" : {
+    "Pantalla propia" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fit to the beat"
+            "value" : "Own screen"
           }
         }
       }
     },
-    "Analizando la música…" : {
+    "Sobre la primera foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Analyzing the music…"
+            "value" : "Over the first photo"
           }
         }
       }
     },
-    "Añade una pista de música para ajustar al ritmo." : {
+    "Subtítulo" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add a music track to fit to the beat."
+            "value" : "Subtitle"
           }
         }
       }
     },
-    "No se ha encontrado un ritmo claro en la música." : {
+    "Segundos visible" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No clear beat was found in the music."
+            "value" : "Seconds visible"
           }
         }
       }
     },
-    "Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan." : {
+    "Cierre al final (pantalla propia)" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Optional: every photo or collage change lands on a beat of the music playing at that moment. Durations you set by hand are kept."
+            "value" : "Closing screen at the end"
           }
         }
       }
     },
-    "· %lld ppm" : {
+    "Estilo del título" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "· %lld bpm"
+            "value" : "Title style"
           }
         }
       }
     },
-    "· sin ritmo claro" : {
+    "Pies de foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "· no clear beat"
+            "value" : "Captions"
           }
         }
       }
     },
-    "Sin presets guardados" : {
+    "Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No saved presets"
+            "value" : "Empty = no captions. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Each photo or collage can have its own caption from its inspector."
           }
         }
       }
     },
-    "Guardar como…" : {
+    "Estilo de los pies" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save as…"
+            "value" : "Caption style"
           }
         }
       }
     },
-    "Actualizar «%@» con los ajustes actuales" : {
+    "Fuente" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Update “%@” with the current settings"
+            "value" : "Font"
           }
         }
       }
     },
-    "Eliminar «%@»" : {
+    "Negrita" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete “%@”"
+            "value" : "Bold"
           }
         }
       }
     },
-    "Valores por defecto" : {
+    "Arriba centro" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Default values"
+            "value" : "Top center"
           }
         }
       }
     },
-    "Sin preset" : {
+    "Centro izquierda" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No preset"
+            "value" : "Middle left"
           }
         }
       }
     },
-    "Nombre del preset" : {
+    "Centro derecha" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preset name"
+            "value" : "Middle right"
           }
         }
       }
     },
-    "Si ya existe un preset con ese nombre, se sustituye." : {
+    "Abajo centro" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If a preset with that name already exists, it is replaced."
+            "value" : "Bottom center"
           }
         }
       }
     },
-    "No se encuentra el PNG de la marca: " : {
+    "Nada" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The watermark PNG cannot be found: "
+            "value" : "None"
           }
         }
       }
     },
-    "No se encuentra el logo: " : {
+    "Banda" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The logo cannot be found: "
+            "value" : "Band"
           }
         }
       }
     },
-    "Presets" : {
+    "Pie" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Presets"
+            "value" : "Caption"
           }
         }
       }
     },
-    "%lld presets guardados (Procesador, Marca de agua y Collage)" : {
+    "Propio" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld saved presets (Processor, Watermark and Collage)"
+            "value" : "Own"
           }
         }
       }
     },
-    "Exportar…" : {
+    "Sin pie" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Export…"
+            "value" : "No caption"
           }
         }
       }
     },
-    "Importar…" : {
+    "El estilo del texto se ajusta en la pestaña «Portada y texto»." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Import…"
+            "value" : "The text style is set in the “Cover & text” tab."
           }
         }
       }
     },
-    "Exportados " : {
+    "Quitar título" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Exported "
+            "value" : "Remove title"
           }
         }
       }
     },
-    "Importados " : {
+    "Quitar cierre" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Imported "
-          }
-        }
-      }
-    },
-    " presets." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " presets."
-          }
-        }
-      }
-    },
-    "El fichero no es una exportación de presets de CAOBA." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The file is not a CAOBA presets export."
-          }
-        }
-      }
-    },
-    "Transición" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transition"
-          }
-        }
-      }
-    },
-    "Duración transición" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transition length"
-          }
-        }
-      }
-    },
-    "Fundido cruzado" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Crossfade"
-          }
-        }
-      }
-    },
-    "Fundido a negro" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fade to black"
-          }
-        }
-      }
-    },
-    "Corte seco" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hard cut"
-          }
-        }
-      }
-    },
-    "Deslizar a la izquierda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slide left"
-          }
-        }
-      }
-    },
-    "Deslizar a la derecha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slide right"
-          }
-        }
-      }
-    },
-    "Deslizar hacia arriba" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slide up"
-          }
-        }
-      }
-    },
-    "Deslizar hacia abajo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Slide down"
-          }
-        }
-      }
-    },
-    "Zoom cruzado" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cross zoom"
-          }
-        }
-      }
-    },
-    "Barrido a la izquierda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wipe left"
-          }
-        }
-      }
-    },
-    "Barrido a la derecha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wipe right"
-          }
-        }
-      }
-    },
-    "Por defecto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default"
-          }
-        }
-      }
-    },
-    "Actualizar ahora" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update now"
-          }
-        }
-      }
-    },
-    "Descargando CAOBA %@…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading CAOBA %@…"
-          }
-        }
-      }
-    },
-    "Comprobando la descarga…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Checking the download…"
-          }
-        }
-      }
-    },
-    "Instalando…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installing…"
-          }
-        }
-      }
-    },
-    "Reiniciando CAOBA…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restarting CAOBA…"
-          }
-        }
-      }
-    },
-    "Abrir en el navegador" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open in the browser"
-          }
-        }
-      }
-    },
-    "La release no tiene un DMG adjunto." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The release has no DMG attached."
-          }
-        }
-      }
-    },
-    "No se puede sustituir la app desde aquí. Se ha abierto el DMG: arrastra CAOBA a Aplicaciones." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The app cannot be replaced from here. The DMG has been opened: drag CAOBA to Applications."
-          }
-        }
-      }
-    },
-    "El DMG trae la versión " : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The DMG contains version "
-          }
-        }
-      }
-    },
-    ", no la " : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : ", not "
-          }
-        }
-      }
-    },
-    "La firma de la app descargada no verifica." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The downloaded app's signature does not verify."
-          }
-        }
-      }
-    },
-    "Novedades de CAOBA" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What's new in CAOBA"
-          }
-        }
-      }
-    },
-    "Novedades desde la versión %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "What's new since version %@"
-          }
-        }
-      }
-    },
-    "Versión %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version %@"
-          }
-        }
-      }
-    },
-    "Entendido" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it"
+            "value" : "Remove closing"
           }
         }
       }

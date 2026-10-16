@@ -61,6 +61,21 @@ struct SlideshowView: View {
             // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
             if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
             if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
+            // `--state text.demo=card|overlay`: título, cierre y pies de ejemplo; `slideshow.generate=/ruta.mp4` genera una vista previa ahí.
+            if let demo = appState.launchState["text.demo"] {
+                doc.titleMode = demo == "overlay" ? .overlay : .card
+                doc.titleText = "Alex & Sofi"; doc.subtitleText = "Biar, julio de 2025"
+                doc.closingEnabled = true; doc.closingText = "Gracias"; doc.closingSubtitle = "caobafoto.com"
+                doc.captionPattern = "{n} de {total} · {nombre}"
+                tab = .extras
+            }
+            if let path = appState.launchState["slideshow.generate"] {
+                Task {
+                    var attempts = 0
+                    while doc.files.isEmpty && attempts < 40 { try? await Task.sleep(for: .milliseconds(250)); attempts += 1 }
+                    doc.generateForTest(to: URL(fileURLWithPath: path))
+                }
+            }
             // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
             if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
             // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
@@ -138,7 +153,7 @@ struct SlideshowView: View {
         Picker("", selection: $tab) {
             Text(doc.mode == .photos ? "Fotos" : "Collages").tag(SlideshowTab.photos)
             Text("Vídeo").tag(SlideshowTab.video)
-            Text("Portada y marca").tag(SlideshowTab.extras)
+            Text("Portada y texto").tag(SlideshowTab.extras)
             Text("Música").tag(SlideshowTab.music)
             if doc.selection != .none {
                 Text(selectionTitle(doc)).tag(SlideshowTab.inspector)
@@ -156,6 +171,8 @@ struct SlideshowView: View {
         case .none: return ""
         case .cover: return String(localized: "Portada")
         case .credits: return String(localized: "Créditos")
+        case .title: return String(localized: "Título")
+        case .closing: return String(localized: "Cierre")
         case .photo: return String(localized: "Foto")
         case .track: return String(localized: "Pista")
         case .collage(let id): return String(localized: "Collage \((doc.rows.firstIndex { $0.id == id } ?? 0) + 1)")
