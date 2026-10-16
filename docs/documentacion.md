@@ -46,7 +46,7 @@ open -n build/DerivedData/Build/Products/Debug/CAOBA.app --args \
   --screenshot /tmp/slideshow.png --delay 10
 ```
 
-Las capturas de la landing están en `assets/screenshots/` reducidas a 1600 px de ancho en JPEG.
+Las capturas de la landing están en `assets/screenshots/` a tamaño real (2880×1800) en PNG y WebP: la página usa `<picture>` con WebP y PNG de respaldo, los enlaces a la imagen completa y la imagen social (`og:image`) van en PNG.
 
 ### Reglas de la casa
 
