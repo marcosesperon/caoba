@@ -4,6 +4,19 @@
     "" : {
 
     },
+    "— Marcos Esperón" : {
+
+    },
+    "¡Gracias!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you!"
+          }
+        }
+      }
+    },
     "· %@" : {
       "localizations" : {
         "en" : {
@@ -340,6 +353,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accepts JPG and RAW (NEF, CR2, CR3, ARW, DNG…). The shutter counter depends on the brand: Nikon, Sony and Pentax store it; most Canon models do not."
+          }
+        }
+      }
+    },
+    "Ahora no" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
           }
         }
       }
@@ -889,6 +912,26 @@
     "CAOBA" : {
 
     },
+    "CAOBA es gratuito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CAOBA is free"
+          }
+        }
+      }
+    },
+    "CAOBA es un proyecto completamente gratuito que se mantiene gracias a la dedicación y el trabajo continuo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CAOBA is a completely free project, kept alive by dedication and ongoing work."
+          }
+        }
+      }
+    },
     "caobafoto.com" : {
 
     },
@@ -998,6 +1041,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close"
+          }
+        }
+      }
+    },
+    "Cerrar aviso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
           }
         }
       }
@@ -1363,6 +1416,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Right"
+          }
+        }
+      }
+    },
+    "Descargar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download"
           }
         }
       }
@@ -2311,6 +2374,16 @@
         }
       }
     },
+    "Hacer donación" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donate"
+          }
+        }
+      }
+    },
     "Hasta" : {
       "localizations" : {
         "en" : {
@@ -3029,6 +3102,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New version %@"
+          }
+        }
+      }
+    },
+    "Nueva versión %@ disponible" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New version %@ available"
           }
         }
       }
@@ -3864,6 +3947,16 @@
         }
       }
     },
+    "Si te ha resultado útil y quieres apoyar el desarrollo de nuevas funcionalidades, considera hacer una pequeña donación." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If it has been useful to you and you want to support the development of new features, please consider a small donation."
+          }
+        }
+      }
+    },
     "Simula el efecto con la duración real (%.1f s) y la curva elegida. Arrastra las fotos de Inicio y Fin para encuadrar; con el efecto «Personalizado» se usan esos dos puntos; con los demás, el encuadre de Inicio marca el foco." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4435,96 +4528,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zoom out"
-          }
-        }
-      }
-    },
-    "Hacer donación" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Donate"
-          }
-        }
-      }
-    },
-    "Ahora no" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not now"
-          }
-        }
-      }
-    },
-    "Descargar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download"
-          }
-        }
-      }
-    },
-    "Cerrar aviso" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dismiss"
-          }
-        }
-      }
-    },
-    "CAOBA es gratuito" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CAOBA is free"
-          }
-        }
-      }
-    },
-    "CAOBA es un proyecto completamente gratuito que se mantiene gracias a la dedicación y el trabajo continuo." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CAOBA is a completely free project, kept alive by dedication and ongoing work."
-          }
-        }
-      }
-    },
-    "Si te ha resultado útil y quieres apoyar el desarrollo de nuevas funcionalidades, considera hacer una pequeña donación." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "If it has been useful to you and you want to support the development of new features, please consider a small donation."
-          }
-        }
-      }
-    },
-    "¡Gracias!" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thank you!"
-          }
-        }
-      }
-    },
-    "Nueva versión %@ disponible" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New version %@ available"
           }
         }
       }
