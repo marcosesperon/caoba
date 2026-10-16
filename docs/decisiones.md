@@ -371,5 +371,5 @@ Tres cosas en la app de macOS, tomando como referencia la versión anterior:
 - Botón amarillo de Buy Me a Coffee dentro de la app: en la app se mantiene el aspecto nativo; el amarillo se usa solo en la web.
 
 ### 6. Pendiente de comprobar
-- Ver la banda con una release real más nueva (de momento solo con `demo.update`).
+- Ver la banda con una release real más nueva: publicada `v3.0.1` el 16-10-2026 con estos cambios (`CAOBA-3.0.1.dmg`, 11 MB); un CAOBA 3.0.0 instalado debería mostrarla al arrancar. Nota para el futuro: la compilación en Release reordena `Localizable.xcstrings`, así que conviene compilar y commitear antes de lanzar `--publish`, que exige el árbol limpio.
 
