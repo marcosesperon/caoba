@@ -752,3 +752,34 @@ Actualización dentro de la app y preparación de la firma:
 ### 6. Pendiente de comprobar
 - Cuando haya cuenta de desarrollador: crear el certificado Developer ID Application, el perfil de `notarytool` y probar una release firmada y notarizada de principio a fin.
 
+## 2026-10-16 — Changelog y aviso de novedades tras actualizar
+
+### 1. La petición tal como se ha entendido
+- **`CHANGELOG.md`** en la raíz del repo, en español (P1), con una sección por versión («## 3.1.0 — 2026-10-16») y viñetas cortas en lenguaje de usuario. Se rellena en cada release (lo escribo yo al preparar cada versión y se revisa antes de publicar) y arranca con las versiones ya publicadas: 3.0.0, 3.0.1, 3.0.2, 3.0.3 y 3.1.0.
+- **Notas de la release en GitHub**: el script toma la sección de la versión del changelog como cuerpo de la release, en lugar de las notas generadas; si no hay sección, se niega a publicar.
+- **Aviso de novedades en la app**: el changelog va dentro de la app como recurso. Al arrancar, si la versión guardada como «última vista» existe y es menor que la actual, se abre una hoja «Novedades» con las secciones de todas las versiones entre esa y la actual (P2), y se guarda la actual. En una instalación nueva no sale nada: solo se guarda la versión. En el menú Ayuda, «Novedades de CAOBA» abre la misma hoja con todo el historial.
+- La hoja no interfiere con la de donativo ni con la banda de versión: si coinciden en el mismo arranque, primero las novedades y el donativo espera al siguiente.
+
+*Confirmación: «dale» (16-10-2026).*
+
+### 2. Preguntas y respuestas
+
+**P1. ¿Changelog solo en español o en español e inglés?** R: 1, solo en español.
+**P2. ¿Solo tras actualizar (con las versiones saltadas) y en el menú Ayuda, o también en la primera instalación?** R: 1, solo tras actualizar y en el menú Ayuda.
+
+### 3. Fuentes analizadas
+- Historial de commits (para redactar las secciones de 3.0.0 a 3.1.0), `Tools/make-release.sh` (notas generadas por `gh`, que salían vacías), `project.yml` (recursos), arranque de la app (`CaobaApp.swift`).
+
+### 4. Decisiones
+- `CHANGELOG.md` en la raíz, formato fijo: `## versión — fecha` y viñetas `- …` con negritas Markdown; cualquier otra línea se ignora al parsear. Incluido en la app como recurso vía `project.yml`.
+- `Changelog` (parser) y `WhatsNewSheet` (hoja con icono, título en Doto, secciones y viñetas con negritas). `AppState.checkWhatsNew()` compara `caoba.lastSeenVersion` con la versión actual y enseña las secciones intermedias; en instalación nueva solo guarda la versión. Si hay novedades, el donativo espera al siguiente arranque. «Novedades de CAOBA» en el menú Ayuda enseña todo.
+- Script: cuerpo de la release = sección de la versión en el changelog (con `awk`); sin sección no publica. Las notas de la 3.1.0 ya publicada se han sustituido a mano por las del changelog.
+- Gancho de prueba `demo.lastSeen=3.0.1`.
+
+### 5. Alternativas descartadas
+- Generar el changelog de los commits: los mensajes de commit hablan de código, no de lo que ve el usuario.
+- Mostrar las novedades también en la primera instalación: descartado en P2.
+
+### 6. Pendiente de comprobar
+Nada. Recordatorio: en cada release, escribir la sección nueva del changelog antes de lanzar el script.
+

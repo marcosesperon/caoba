@@ -46,6 +46,9 @@ final class AppState {
     var showUpdateBanner = false
     /// Hoja de donativo: al arrancar, como mucho cada 7 días.
     var showDonationPrompt = false
+    /// Hoja «Novedades»: tras actualizar, con las versiones que tocan; desde Ayuda, todas.
+    var whatsNewSections: [Changelog.Section]?
+    var whatsNewTitle: LocalizedStringKey = "Novedades de CAOBA"
     /// True cuando la app arranca solo para hacer una captura: sin hojas ni avisos.
     private(set) var isScreenshotMode = false
 
@@ -217,6 +220,13 @@ final class AppState {
         // Para pruebas: `--state presets.export=/ruta.json` e `--state presets.import=/ruta.json`.
         if let path = launchState["presets.export"] { try? PresetStore.shared.exportData().write(to: URL(fileURLWithPath: path)) }
         if let path = launchState["presets.import"], let data = try? Data(contentsOf: URL(fileURLWithPath: path)) { _ = try? PresetStore.shared.importData(data) }
+        // Para probar las novedades: `--state demo.lastSeen=3.0.1` simula esa última versión vista.
+        if let seen = launchState["demo.lastSeen"] {
+            UserDefaults.standard.set(seen, forKey: Preferences.lastSeenVersionKey)
+            isScreenshotMode = false
+            checkWhatsNew()
+            isScreenshotMode = arguments.contains("--screenshot")
+        }
         // Para probar la actualización: `--state update.target=/ruta/CAOBA.app` sustituye esa copia
         // (en lugar de la app en ejecución) por el DMG de la última release y no relanza.
         if let target = launchState["update.target"] {
@@ -253,7 +263,7 @@ final class AppState {
                 window.makeFirstResponder(sink)
                 try? await Task.sleep(for: .milliseconds(300))
             }
-            Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil || launchState["capture.sheets"] != nil)
+            Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil || launchState["demo.lastSeen"] != nil || launchState["capture.sheets"] != nil)
             NSApp.terminate(nil)
         }
     }
@@ -310,6 +320,28 @@ final class AppState {
             UserDefaults.standard.set(version, forKey: Preferences.updateDismissedVersionKey)
         }
         showUpdateBanner = false
+    }
+
+    /// Tras una actualización enseña las novedades de las versiones que se han
+    /// saltado; en una instalación nueva solo apunta la versión. Devuelve si se enseñó.
+    @discardableResult
+    func checkWhatsNew() -> Bool {
+        guard !isScreenshotMode else { return false }
+        let current = CaobaCoreInfo.version
+        let defaults = UserDefaults.standard
+        defer { defaults.set(current, forKey: Preferences.lastSeenVersionKey) }
+        guard let lastSeen = defaults.string(forKey: Preferences.lastSeenVersionKey), VersionCheck.isNewer(current, than: lastSeen) else { return false }
+        let sections = Changelog.bundled().sections(after: lastSeen, upTo: current)
+        guard !sections.isEmpty else { return false }
+        whatsNewTitle = "Novedades desde la versión \(lastSeen)"
+        whatsNewSections = sections
+        return true
+    }
+
+    /// Desde el menú Ayuda: todo el historial.
+    func showAllWhatsNew() {
+        whatsNewTitle = "Novedades de CAOBA"
+        whatsNewSections = Changelog.bundled().sections
     }
 
     /// Un segundo después de arrancar pide apoyo al proyecto, si nunca se hizo

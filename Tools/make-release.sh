@@ -82,6 +82,9 @@ if [ "$PUBLISH" = "1" ]; then
     git tag -a "$TAG" -m "CAOBA $VERSION"
     git push origin "$TAG"
   fi
-  gh release create "$TAG" "$DMG" --title "CAOBA $VERSION" --generate-notes
+  # Las notas salen de la seccion de esta version en CHANGELOG.md; sin seccion no se publica.
+  NOTES="$(awk -v v="$VERSION" '/^## /{p = ($2 == v)} p && !/^## /' CHANGELOG.md | sed '/^[[:space:]]*$/d')"
+  [ -n "$NOTES" ] || { echo "CHANGELOG.md no tiene seccion para $VERSION" >&2; exit 1; }
+  gh release create "$TAG" "$DMG" --title "CAOBA $VERSION" --notes "$NOTES"
   echo "Release publicada: $(gh release view "$TAG" --json url --jq .url)"
 fi

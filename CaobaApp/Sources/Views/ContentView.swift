@@ -45,6 +45,9 @@ struct ContentView: View {
         }
         .jobPresentation(appState.jobRunner)
         .sheet(isPresented: $state.showDonationPrompt) { DonationSheet() }
+        .sheet(isPresented: Binding(get: { appState.whatsNewSections != nil }, set: { if !$0 { appState.whatsNewSections = nil } })) {
+            WhatsNewSheet(sections: appState.whatsNewSections ?? [], title: appState.whatsNewTitle)
+        }
     }
 
     private func sidebarRow(_ module: Module) -> some View {

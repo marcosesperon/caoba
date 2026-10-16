@@ -17,7 +17,8 @@ struct CaobaApp: App {
                 .frame(minWidth: 960, minHeight: 640)
                 .task {
                     await appState.applyLaunchArguments()
-                    await appState.scheduleDonationPrompt()
+                    // Si hay novedades que enseñar, el donativo espera al siguiente arranque.
+                    if !appState.checkWhatsNew() { await appState.scheduleDonationPrompt() }
                     await appState.checkForUpdates()
                 }
         }
@@ -27,6 +28,9 @@ struct CaobaApp: App {
             CommandGroup(after: .newItem) {
                 Button("Abrir carpeta…") { appState.chooseSourceFolder() }
                     .keyboardShortcut("o")
+            }
+            CommandGroup(after: .help) {
+                Button("Novedades de CAOBA") { appState.showAllWhatsNew() }
             }
         }
 

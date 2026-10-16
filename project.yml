@@ -34,6 +34,9 @@ targets:
         type: folder
         buildPhase: resources
         optional: true
+      # El changelog va dentro de la app para la hoja de novedades.
+      - path: CHANGELOG.md
+        buildPhase: resources
     dependencies:
       - package: CaobaCore
     info:

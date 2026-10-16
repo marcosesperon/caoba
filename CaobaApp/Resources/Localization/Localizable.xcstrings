@@ -5286,6 +5286,46 @@
           }
         }
       }
+    },
+    "Novedades de CAOBA" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new in CAOBA"
+          }
+        }
+      }
+    },
+    "Novedades desde la versión %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new since version %@"
+          }
+        }
+      }
+    },
+    "Versión %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
+    },
+    "Entendido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

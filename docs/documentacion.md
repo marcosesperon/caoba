@@ -33,6 +33,10 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 - `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
 - `CollageResultView(row:options:)`: el collage renderizado con el motor y las opciones reales, a resolución de pantalla (lado mayor 1600 px), en segundo plano; se recalcula al cambiar la fila o las opciones. `CollageViewModePicker` es el conmutador «Encuadre / Resultado» que la acompaña en el editor de foco de Collage y en el inspector de collage del Slideshow.
 
+### Changelog y novedades (`Changelog`, `WhatsNewSheet`)
+
+`CHANGELOG.md` en la raíz del repo: una sección por versión (`## 3.1.0 — 2026-10-16`) con viñetas cortas en lenguaje de usuario, en español. Se incluye en la app como recurso. Al arrancar, si la versión guardada en `caoba.lastSeenVersion` es menor que la actual, se abre «Novedades» con las secciones de las versiones intermedias (en instalación nueva no sale nada); «Novedades de CAOBA» en el menú Ayuda enseña todo el historial. El script de release usa la sección de la versión como notas de la release y no publica si falta. **Antes de cada release hay que escribir la sección nueva.** Para probar: `--state demo.lastSeen=3.0.1`.
+
 ### Actualización dentro de la app (`Updater`)
 
 Cuando hay una versión nueva, la banda ofrece «Actualizar ahora»: descarga el DMG de la release (progreso y cancelación), le quita la cuarentena, lo monta, comprueba que trae `CAOBA.app` con la versión anunciada y firma válida, sustituye la app instalada (copia junto a la actual, intercambio y borrado de la antigua), quita la cuarentena a la copia, desmonta y relanza. Si la app no está en una carpeta escribible, o corre desde un DMG o desde la carpeta de compilación, abre el DMG descargado para arrastrarla a mano. Ganchos de prueba: `--state update.force=1` (banda con la última release), `update.auto=1` (lanza la actualización) y `update.target=/ruta/CAOBA.app` (sustituye esa copia en lugar de la app en ejecución, sin relanzar).
