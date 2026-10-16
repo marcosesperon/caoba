@@ -803,3 +803,24 @@ Ninguna.
 ### 6. Pendiente de comprobar
 - Las capturas de la landing son anteriores a la 3.1.0 (en Vídeo aún sale el interruptor de fundido); conviene repetirlas cuando se publique la próxima versión.
 
+## 2026-10-16 — Landing: la historia de CAOBA con enlaces al estudio
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Inventar en `index.html` una historia de por qué se desarrolló la app, con muchas referencias y enlaces a los servicios de caobafoto.com.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `sitemap.xml` de caobafoto.com (la portada bloquea a curl y a Chrome sin ventana con el reto de Cloudflare) y el título y la descripción de cada página de servicio: bodas, comuniones, colección Esencia (familias), colección Raíces (embarazo), colección Nido (recién nacidos en casa), seguimiento del primer año, mini colección Senda (cumpleaños), fotografía corporativa y de producto, inmuebles y alquiler vacacional, sesiones de Navidad, bonos regalo y contacto. Estudio en Biar, Alicante.
+
+### 4. Decisiones
+- Sección «La historia» entre el hero y los módulos, enlazada en la barra. Texto editorial a dos columnas en pantallas anchas, capitular en Doto rojo y enlaces subrayados en rojo CAOBA. Español e inglés con las reglas de idioma existentes (`<p lang-es>` / `<p lang-en>`).
+- El relato (inventado, como se pidió) ata cada módulo a un servicio real: slideshow a bodas y recién nacidos, collages a las familias de Esencia, hojas de contacto al seguimiento del primer año, Reels a los cumpleaños de Senda, lotes, marca de agua, renombrado y metadatos a corporativa e inmuebles, QR a comuniones, Navidad y bonos regalo, y Shutter Count a las temporadas de bodas. Sin nombres de personas.
+
+### 5. Alternativas descartadas
+- Resumir los servicios en una lista: se pidió una historia; la lista ya está en caobafoto.com.
+
+### 6. Pendiente de comprobar
+- Que el estudio dé el visto bueno al relato antes de difundirlo.
+
