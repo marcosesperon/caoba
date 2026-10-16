@@ -21,7 +21,8 @@ struct SlideshowTimelineView: View {
                     cards
                     lanes
                 }
-                .overlay(alignment: .topLeading) { videoEndMarker }
+                // Sin contenido no hay vídeo que termine: la marca sobra.
+                .overlay(alignment: .topLeading) { if doc.totalDuration > 0 { videoEndMarker } }
                 .padding(.vertical, 6)
                 .padding(.horizontal, 8)
                 .padding(.trailing, 60)

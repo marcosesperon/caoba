@@ -518,3 +518,23 @@ Ninguna.
 ### 6. Pendiente de comprobar
 - Si en reportajes reales sigue pareciendo repetitivo, subir `repeatPenalty` o ampliar `varietyWindow`.
 
+## 2026-10-16 — Marca «Fin del vídeo» solo cuando hay vídeo
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* En el timeline del Slideshow, sin fotos ni collages (duración 0:00) no tiene sentido mostrar la marca «Fin del vídeo» pegada al 0:00.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `SlideshowTimelineView.videoEndMarker`.
+
+### 4. Decisiones
+- La marca solo se dibuja cuando la duración total del vídeo es mayor que cero. Con pistas de música pero sin fotos tampoco aparece: no hay vídeo que termine.
+
+### 5. Alternativas descartadas
+- Mostrarla cuando haya pistas aunque no haya fotos: seguiría pegada al 0:00 sin aportar nada.
+
+### 6. Pendiente de comprobar
+Nada.
+
