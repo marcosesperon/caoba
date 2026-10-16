@@ -70,6 +70,13 @@ struct SlideshowView: View {
             if let demo = appState.launchState["text.demo"] {
                 doc.titleMode = demo == "overlay" ? .overlay : .card
                 doc.titleText = "Alex & Sofi"; doc.subtitleText = "Biar, julio de 2025"
+                // `text.carry=1`: empalmes del título y el cierre con fundidos de 1 s.
+                if appState.launchState["text.carry"] != nil {
+                    doc.titleCarryOver = true; doc.closingCarryOver = true; doc.titleDuration = 3; doc.closingDuration = 3
+                    doc.titleOverlaySeconds = 2; doc.closingOverlaySeconds = 2
+                    doc.transitionChoice = .kind(.crossfade); doc.transitionDuration = 1; doc.itemTransitions = [:]
+                    doc.titleStyle.animation = .fade; doc.titleStyle.animationDuration = 0.5; doc.titleStyle.exitAnimation = .fade; doc.titleStyle.exitDuration = 0.5
+                }
                 if let anim = appState.launchState["text.animation"].flatMap(TextAnimation.init(rawValue:)) {
                     doc.titleStyle.animation = anim; doc.titleStyle.animationDuration = 1
                     doc.captionStyle.animation = anim; doc.captionStyle.animationDuration = 0.75

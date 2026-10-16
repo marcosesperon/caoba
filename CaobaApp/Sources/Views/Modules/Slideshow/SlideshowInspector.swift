@@ -146,6 +146,10 @@ struct ExtrasTab: View {
                             .fixedSize().labelsHidden()
                         }
                         LabeledSlider(title: "Duración", value: $doc.titleDuration, in: 1...15, step: 0.5) { Text("\(doc.titleDuration, specifier: "%.1f") s") }
+                        Toggle("Mantener el título quieto mientras la tarjeta se funde con la primera foto", isOn: $doc.titleCarryOver)
+                        if doc.titleCarryOver {
+                            LabeledSlider(title: "Segundos sobre la foto", value: $doc.titleOverlaySeconds, in: 0.5...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
+                        }
                     } else {
                         LabeledSlider(title: "Segundos mostrándose", value: $doc.titleOverlaySeconds, in: 1...15, step: 0.5) { Text("\(doc.titleOverlaySeconds, specifier: "%.1f") s") }
                     }
@@ -155,6 +159,10 @@ struct ExtrasTab: View {
                     LabeledRow("Texto") { TextField("Gracias", text: $doc.closingText).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
                     LabeledRow("Subtítulo") { TextField("", text: $doc.closingSubtitle).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
                     LabeledSlider(title: "Duración", value: $doc.closingDuration, in: 1...15, step: 0.5) { Text("\(doc.closingDuration, specifier: "%.1f") s") }
+                    Toggle("Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla", isOn: $doc.closingCarryOver)
+                    if doc.closingCarryOver {
+                        LabeledSlider(title: "Segundos sobre la foto", value: $doc.closingOverlaySeconds, in: 0.5...15, step: 0.5) { Text("\(doc.closingOverlaySeconds, specifier: "%.1f") s") }
+                    }
                 }
                 if doc.titleMode != .none || doc.closingEnabled {
                     TextStyleEditor(title: "Estilo del título", style: $doc.titleStyle)

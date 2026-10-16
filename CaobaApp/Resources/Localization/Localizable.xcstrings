@@ -439,6 +439,16 @@
         }
       }
     },
+    "Activa un título, un cierre o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on a title, a closing or a caption pattern to see how they look on the video."
+          }
+        }
+      }
+    },
     "Actualizar «%@» con los ajustes actuales" : {
       "localizations" : {
         "en" : {
@@ -666,6 +676,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anchor"
+          }
+        }
+      }
+    },
+    "Animación" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation"
           }
         }
       }
@@ -1027,6 +1048,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search"
+          }
+        }
+      }
+    },
+    "Buscar fuente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search font"
           }
         }
       }
@@ -1752,6 +1783,46 @@
         }
       }
     },
+    "Desde abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From below"
+          }
+        }
+      }
+    },
+    "Desde arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From above"
+          }
+        }
+      }
+    },
+    "Desde la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From the right"
+          }
+        }
+      }
+    },
+    "Desde la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From the left"
+          }
+        }
+      }
+    },
     "Deshacer" : {
       "localizations" : {
         "en" : {
@@ -1902,6 +1973,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duration"
+          }
+        }
+      }
+    },
+    "Duración animación" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation length"
           }
         }
       }
@@ -2259,6 +2341,9 @@
         }
       }
     },
+    "en" : {
+
+    },
     "Encuadre" : {
       "localizations" : {
         "en" : {
@@ -2308,6 +2393,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Whole"
+          }
+        }
+      }
+    },
+    "Entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In"
           }
         }
       }
@@ -2555,6 +2650,16 @@
         }
       }
     },
+    "Flechas ↑↓ para probar; Intro para cerrar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrows ↑↓ to try; Return to close."
+          }
+        }
+      }
+    },
     "Focal" : {
       "localizations" : {
         "en" : {
@@ -2674,6 +2779,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Font"
+          }
+        }
+      }
+    },
+    "Fuente anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous font"
+          }
+        }
+      }
+    },
+    "Fuente siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next font"
+          }
+        }
+      }
+    },
+    "Fundido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade"
           }
         }
       }
@@ -2899,6 +3034,46 @@
         }
       }
     },
+    "Hacia abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downwards"
+          }
+        }
+      }
+    },
+    "Hacia arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upwards"
+          }
+        }
+      }
+    },
+    "Hacia la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To the right"
+          }
+        }
+      }
+    },
+    "Hacia la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To the left"
+          }
+        }
+      }
+    },
     "Hasta" : {
       "localizations" : {
         "en" : {
@@ -3000,6 +3175,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Language"
+          }
+        }
+      }
+    },
+    "Igual que la entrada (inversa)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as the entry (reversed)"
           }
         }
       }
@@ -3310,6 +3495,26 @@
         }
       }
     },
+    "Máquina de escribir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Typewriter"
+          }
+        }
+      }
+    },
+    "Máquina de escribir (se borra)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Typewriter (erased)"
+          }
+        }
+      }
+    },
     "Marca de agua" : {
       "localizations" : {
         "en" : {
@@ -3471,6 +3676,16 @@
         }
       }
     },
+    "Mostrar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show"
+          }
+        }
+      }
+    },
     "Mostrar en Finder" : {
       "localizations" : {
         "en" : {
@@ -3548,6 +3763,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "None"
+          }
+        }
+      }
+    },
+    "Ninguna (se queda)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None (stays)"
           }
         }
       }
@@ -4101,6 +4326,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Caption"
+          }
+        }
+      }
+    },
+    "Pie: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caption: %@"
           }
         }
       }
@@ -4764,6 +4999,16 @@
         }
       }
     },
+    "Segundos mostrándose" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds on screen"
+          }
+        }
+      }
+    },
     "Segundos por foto" : {
       "localizations" : {
         "en" : {
@@ -4775,6 +5020,7 @@
       }
     },
     "Segundos visible" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5219,6 +5465,36 @@
         }
       }
     },
+    "Título · pantalla propia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title · own screen"
+          }
+        }
+      }
+    },
+    "Título · sobre la primera foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title · over the first photo"
+          }
+        }
+      }
+    },
+    "Toda la foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whole photo"
+          }
+        }
+      }
+    },
     "Todas" : {
       "localizations" : {
         "en" : {
@@ -5316,6 +5592,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Single"
+          }
+        }
+      }
+    },
+    "Unos segundos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A few seconds"
           }
         }
       }
@@ -5601,282 +5887,32 @@
         }
       }
     },
-    "Activa un título, un cierre o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+    "Mantener el título quieto mientras la tarjeta se funde con la primera foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Turn on a title, a closing or a caption pattern to see how they look on the video."
+            "value" : "Keep the title still while the card fades into the first photo"
           }
         }
       }
     },
-    "Título · pantalla propia" : {
+    "Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Title · own screen"
+            "value" : "Start the closing over the last photo and keep it while fading to its screen"
           }
         }
       }
     },
-    "Título · sobre la primera foto" : {
+    "Segundos sobre la foto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Title · over the first photo"
-          }
-        }
-      }
-    },
-    "Pie: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caption: %@"
-          }
-        }
-      }
-    },
-    "Fuente anterior" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Previous font"
-          }
-        }
-      }
-    },
-    "Fuente siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next font"
-          }
-        }
-      }
-    },
-    "Buscar fuente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search font"
-          }
-        }
-      }
-    },
-    "Flechas ↑↓ para probar; Intro para cerrar." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrows ↑↓ to try; Return to close."
-          }
-        }
-      }
-    },
-    "Animación" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Animation"
-          }
-        }
-      }
-    },
-    "Fundido" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fade"
-          }
-        }
-      }
-    },
-    "Desde abajo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "From below"
-          }
-        }
-      }
-    },
-    "Desde arriba" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "From above"
-          }
-        }
-      }
-    },
-    "Desde la derecha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "From the right"
-          }
-        }
-      }
-    },
-    "Desde la izquierda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "From the left"
-          }
-        }
-      }
-    },
-    "Máquina de escribir" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Typewriter"
-          }
-        }
-      }
-    },
-    "Duración animación" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Animation length"
-          }
-        }
-      }
-    },
-    "Entrada" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In"
-          }
-        }
-      }
-    },
-    "Mostrar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show"
-          }
-        }
-      }
-    },
-    "Toda la foto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Whole photo"
-          }
-        }
-      }
-    },
-    "Unos segundos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A few seconds"
-          }
-        }
-      }
-    },
-    "Igual que la entrada (inversa)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Same as the entry (reversed)"
-          }
-        }
-      }
-    },
-    "Ninguna (se queda)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "None (stays)"
-          }
-        }
-      }
-    },
-    "Hacia abajo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downwards"
-          }
-        }
-      }
-    },
-    "Hacia arriba" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upwards"
-          }
-        }
-      }
-    },
-    "Hacia la derecha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To the right"
-          }
-        }
-      }
-    },
-    "Hacia la izquierda" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To the left"
-          }
-        }
-      }
-    },
-    "Máquina de escribir (se borra)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Typewriter (erased)"
-          }
-        }
-      }
-    },
-    "Segundos mostrándose" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds on screen"
+            "value" : "Seconds over the photo"
           }
         }
       }

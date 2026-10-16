@@ -211,6 +211,12 @@ final class SlideshowDocument {
     var closingText = ""
     var closingSubtitle = ""
     var closingDuration = 4.0
+    /// Empalmes: el título se queda quieto mientras la tarjeta se funde con la primera foto
+    /// (y sale después sobre ella); el cierre aparece sobre la última foto y se mantiene al fundir a su tarjeta.
+    var titleCarryOver = false
+    var closingCarryOver = false
+    /// Segundos que el cierre se ve sobre la última foto antes de que acabe.
+    var closingOverlaySeconds = 3.0
     var titleStyle: TextStyle = .title
     var captionStyle: TextStyle = .caption
     /// Patrón de pie para todas las fotos; vacío = sin pies.
@@ -360,12 +366,36 @@ final class SlideshowDocument {
 
     /// Tarjeta de título o cierre: fondo liso y el texto entrando cuando la tarjeta ya está en pantalla
     /// (tras su transición de entrada) y saliendo antes de que la tarjeta se vaya.
-    private func textCard(lines: [String], duration: Double, id: String, generator: inout some RandomNumberGenerator) throws -> SlideshowPhoto {
+    private func textCard(lines: [String], duration: Double, id: String, style: TextStyle, delayed: Bool, generator: inout some RandomNumberGenerator) throws -> SlideshowPhoto {
         let entry = entryDuration(for: id)
-        let delay = entry < duration ? entry : 0
+        let delay = (delayed && entry < duration) ? entry : 0
+        // Sin salida, el texto debe seguir mientras la tarjeta se funde con lo siguiente: se alarga más que cualquier transición.
+        let extra = style.resolvedExit == .none ? Self.carryOverExtra : 0
         return SlideshowPhoto(url: try renderCardBackground(), duration: duration,
                               transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entry,
-                              overlay: TextOverlay(lines: lines, style: resolved(titleStyle, generator: &generator), duration: duration - delay, delay: delay))
+                              overlay: TextOverlay(lines: lines, style: style, duration: duration - delay + extra, delay: delay))
+    }
+
+    /// Margen con el que se alarga un texto sin salida para que siga durante la transición al elemento siguiente.
+    private static let carryOverExtra = 5.0
+
+    /// Mismo estilo sin animación de entrada (el texto ya estaba) o sin salida (sigue en el siguiente elemento).
+    private func style(_ base: TextStyle, entry: Bool, exit: Bool) -> TextStyle {
+        var copy = base
+        if !entry { copy.animation = .none }
+        if !exit { copy.exitAnimation = .none }
+        return copy
+    }
+
+    /// Pone un texto superpuesto sobre un grupo de fotos consecutivas (los pasos de un collage), encadenando el desfase.
+    private func spread(_ overlay: TextOverlay, over photos: inout [SlideshowPhoto], range: Range<Int>) {
+        var offset = 0.0
+        for i in range {
+            var copy = overlay
+            copy.offset = offset
+            photos[i].overlay = copy
+            offset += photos[i].duration
+        }
     }
 
     private var titleLines: [String] { [titleText, subtitleText].filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty } }
@@ -757,29 +787,50 @@ final class SlideshowDocument {
     /// Tarjetas de título y cierre y título superpuesto, sobre la lista ya montada (fotos o collages).
     /// `firstGroup`: cuántas fotos forman el primer elemento (los pasos del primer collage), para que el
     /// título superpuesto los abarque todos seguidos.
-    private func applyText(to photos: inout [SlideshowPhoto], firstGroup: Int, generator: inout some RandomNumberGenerator) throws {
+    private func applyText(to photos: inout [SlideshowPhoto], firstGroup: Int, lastGroup: Int, generator: inout some RandomNumberGenerator) throws {
         let lines = titleLines
+        let style = resolved(titleStyle, generator: &generator)
         switch titleMode {
         case .none:
             break
         case .card where !lines.isEmpty:
-            photos.insert(try textCard(lines: lines, duration: titleDuration, id: "title", generator: &generator), at: 0)
+            let carry = titleCarryOver && !photos.isEmpty
+            // Con empalme, el texto no sale de la tarjeta: sigue quieto mientras se funde con la primera foto.
+            let card = try textCard(lines: lines, duration: titleDuration, id: "title", style: self.style(style, entry: true, exit: !carry), delayed: true, generator: &generator)
+            if carry {
+                let group = max(1, min(firstGroup, photos.count))
+                let available = photos[0..<group].reduce(0) { $0 + $1.duration }
+                let continued = self.style(style, entry: false, exit: true)
+                let total = min(TextPhase.totalDuration(style: continued, hold: titleOverlaySeconds), available)
+                spread(TextOverlay(lines: lines, style: continued, duration: total), over: &photos, range: 0..<group)
+            }
+            photos.insert(card, at: 0)
         case .overlay where !lines.isEmpty && !photos.isEmpty:
             let group = max(1, min(firstGroup, photos.count))
             let available = photos[0..<group].reduce(0) { $0 + $1.duration }
-            let style = resolved(titleStyle, generator: &generator)
-            // «Segundos visible» es el tiempo mostrándose; la entrada y la salida van aparte.
+            // «Segundos mostrándose» es el tiempo entre la entrada y la salida.
             let total = min(TextPhase.totalDuration(style: style, hold: titleOverlaySeconds), available)
-            var offset = 0.0
-            for i in 0..<group {
-                photos[i].overlay = TextOverlay(lines: lines, style: style, duration: total, offset: offset)
-                offset += photos[i].duration
-            }
+            spread(TextOverlay(lines: lines, style: style, duration: total), over: &photos, range: 0..<group)
         default:
             break
         }
         if closingEnabled, !closingLines.isEmpty {
-            photos.append(try textCard(lines: closingLines, duration: closingDuration, id: "closing", generator: &generator))
+            let carry = closingCarryOver && !photos.isEmpty
+            if carry {
+                // El cierre aparece sobre la última foto y se queda mientras esta se funde con su tarjeta.
+                let group = max(1, min(lastGroup, photos.count))
+                let range = (photos.count - group)..<photos.count
+                let available = photos[range].reduce(0) { $0 + $1.duration }
+                let starting = self.style(style, entry: true, exit: false)
+                let wanted = (starting.animation != .none ? starting.animationDuration : 0) + closingOverlaySeconds
+                let delay = max(0, available - wanted)
+                var overlay = TextOverlay(lines: closingLines, style: starting, duration: available - delay + Self.carryOverExtra, delay: delay)
+                // El desfase de cada paso se encadena; el retardo va contado desde el primero del grupo.
+                var offset = 0.0
+                for i in range { overlay.offset = offset; photos[i].overlay = overlay; offset += photos[i].duration }
+            }
+            photos.append(try textCard(lines: closingLines, duration: closingDuration, id: "closing",
+                                       style: self.style(style, entry: !carry, exit: true), delayed: !carry, generator: &generator))
         }
         // Pies con animación aleatoria: una distinta por foto (o por collage: sus pasos comparten la del primero).
         if captionStyle.animation == .random {
@@ -841,14 +892,15 @@ final class SlideshowDocument {
         let coverEntry = (resolvedTransition(for: "cover", generator: &generator), entryDuration(for: "cover"))
         let creditsEntry = (resolvedTransition(for: "credits", generator: &generator), entryDuration(for: "credits"))
         let collageCaptions = fixedRows.enumerated().map { caption(for: $1.id.uuidString, index: $0 + 1, total: fixedRows.count, info: nil, name: $1.template.name) }
-        // Sin portada, el primer elemento de un vídeo de collages son todos los pasos del primer collage.
+        // Sin portada, el primer elemento de un vídeo de collages son todos los pasos del primer collage (y el último, los del último).
         let firstGroup = (mode == .collage && coverURL == nil) ? (fixedRows.first.map { $0.template.photos + 1 } ?? 1) : 1
+        let lastGroup = (mode == .collage && creditsURL == nil) ? (fixedRows.last.map { $0.template.photos + 1 } ?? 1) : 1
         // Título, cierre y título superpuesto se resuelven en el hilo principal cuando la lista está montada.
         let textApplier: @Sendable ([SlideshowPhoto]) async throws -> [SlideshowPhoto] = { list in
             try await MainActor.run {
                 var photos = list
                 var generator = SystemRandomNumberGenerator()
-                try self.applyText(to: &photos, firstGroup: firstGroup, generator: &generator)
+                try self.applyText(to: &photos, firstGroup: firstGroup, lastGroup: lastGroup, generator: &generator)
                 return photos
             }
         }
@@ -913,6 +965,7 @@ final class SlideshowDocument {
         var cover: URL?; var coverDuration: Double; var credits: URL?; var creditsDuration: Double
         var titleMode: TitleMode; var titleText: String; var subtitleText: String; var titleBackground: CanvasBackground; var titleDuration: Double; var titleOverlaySeconds: Double
         var closingEnabled: Bool; var closingText: String; var closingSubtitle: String; var closingDuration: Double
+        var titleCarryOver: Bool; var closingCarryOver: Bool; var closingOverlaySeconds: Double
         var titleStyle: TextStyle; var captionStyle: TextStyle; var captionPattern: String; var itemCaptions: [String: String]
         var watermark: URL?; var wmPosition: OverlayPosition; var wmSize: Double; var wmOpacity: Double
         var durations: [String: Double]
@@ -928,6 +981,7 @@ final class SlideshowDocument {
                  credits: creditsURL, creditsDuration: creditsDuration,
                  titleMode: titleMode, titleText: titleText, subtitleText: subtitleText, titleBackground: titleBackground, titleDuration: titleDuration, titleOverlaySeconds: titleOverlaySeconds,
                  closingEnabled: closingEnabled, closingText: closingText, closingSubtitle: closingSubtitle, closingDuration: closingDuration,
+                 titleCarryOver: titleCarryOver, closingCarryOver: closingCarryOver, closingOverlaySeconds: closingOverlaySeconds,
                  titleStyle: titleStyle, captionStyle: captionStyle, captionPattern: captionPattern, itemCaptions: itemCaptions,
                  watermark: watermarkURL, wmPosition: wmPosition, wmSize: wmSize, wmOpacity: wmOpacity,
                  durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
@@ -961,6 +1015,7 @@ final class SlideshowDocument {
         text.titleMode = titleMode.rawValue; text.title = titleText; text.subtitle = subtitleText; text.background = titleBackground.rawValue
         text.titleDuration = titleDuration; text.overlaySeconds = titleOverlaySeconds
         text.closingEnabled = closingEnabled; text.closingText = closingText; text.closingSubtitle = closingSubtitle; text.closingDuration = closingDuration
+        text.titleCarryOver = titleCarryOver; text.closingCarryOver = closingCarryOver; text.closingOverlaySeconds = closingOverlaySeconds
         text.titleStyle = titleStyle; text.captionStyle = captionStyle; text.captionPattern = captionPattern; text.captions = itemCaptions
         p.text = text
         p.beatsPerCut = beatsPerCut
@@ -1032,6 +1087,7 @@ final class SlideshowDocument {
             titleBackground = t.background.flatMap(CanvasBackground.init(rawValue:)) ?? .black
             titleDuration = t.titleDuration ?? 4; titleOverlaySeconds = t.overlaySeconds ?? 4
             closingEnabled = t.closingEnabled ?? false; closingText = t.closingText ?? ""; closingSubtitle = t.closingSubtitle ?? ""; closingDuration = t.closingDuration ?? 4
+            titleCarryOver = t.titleCarryOver ?? false; closingCarryOver = t.closingCarryOver ?? false; closingOverlaySeconds = t.closingOverlaySeconds ?? 3
             titleStyle = t.titleStyle ?? .title; captionStyle = t.captionStyle ?? .caption
             captionPattern = t.captionPattern ?? ""; itemCaptions = t.captions ?? [:]
         }
@@ -1119,6 +1175,7 @@ final class SlideshowDocument {
         coverURL = nil; coverDuration = 4; creditsURL = nil; creditsDuration = 4
         titleMode = .none; titleText = ""; subtitleText = ""; titleBackground = .black; titleDuration = 4; titleOverlaySeconds = 4
         closingEnabled = false; closingText = ""; closingSubtitle = ""; closingDuration = 4
+        titleCarryOver = false; closingCarryOver = false; closingOverlaySeconds = 3
         titleStyle = .title; captionStyle = .caption; captionPattern = ""; itemCaptions = [:]
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true

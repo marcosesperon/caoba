@@ -983,3 +983,26 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Título y cierre empalmados con la foto contigua
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* Que el título en pantalla propia se quede quieto mientras la tarjeta se funde con la primera foto (y salga después sobre ella), y que el cierre aparezca sobre la última foto y se mantenga mientras esta se funde a su pantalla de texto. Confirmado: «si».
+
+### 2. Preguntas y respuestas
+Ninguna (la propuesta iba en la respuesta a la pregunta del usuario).
+
+### 3. Fuentes analizadas
+- `applyText`, `textCard` y `TextOverlay` (desfase y retardo).
+
+### 4. Decisiones
+- Dos interruptores en «Portada y texto»: «Mantener el título quieto mientras la tarjeta se funde con la primera foto» (con «Segundos sobre la foto», que reutiliza los segundos mostrándose) y «Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla» (con sus «Segundos sobre la foto»).
+- Por dentro: el mismo texto va en la tarjeta y en la foto contigua, y en el empalme no hay animación (la tarjeta sin salida y la foto sin entrada, o la foto sin salida y la tarjeta sin entrada), así durante el fundido las dos capas tienen el texto en el mismo sitio y no se mueve. En collages, el texto se reparte por los pasos del primer o último collage con el desfase encadenado; el cierre calcula su retardo para empezar «segundos» antes del final del último elemento.
+- Preset: `titleCarryOver`, `closingCarryOver`, `closingOverlaySeconds`. Gancho `text.carry=1`.
+- Primera prueba: durante el fundido el texto de la tarjeta se veía atenuado, porque el texto superpuesto acababa justo donde acababa la foto y el elemento que se va sigue visible toda la transición. Un texto sin salida se alarga 5 s de margen (`carryOverExtra`), más que cualquier transición, así sigue nítido hasta que la tarjeta desaparece del todo. Comprobado fotograma a fotograma en los dos empalmes.
+
+### 5. Alternativas descartadas
+- Hacer que el texto sea una capa global fuera de las fotos: rompería que las transiciones arrastren el pie con su foto.
+
+### 6. Pendiente de comprobar
+Nada.
+

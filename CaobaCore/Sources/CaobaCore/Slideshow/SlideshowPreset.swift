@@ -116,6 +116,9 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public var closingText: String?
         public var closingSubtitle: String?
         public var closingDuration: Double?
+        public var titleCarryOver: Bool?
+        public var closingCarryOver: Bool?
+        public var closingOverlaySeconds: Double?
         public var titleStyle: TextStyle?
         public var captionStyle: TextStyle?
         public var captionPattern: String?
