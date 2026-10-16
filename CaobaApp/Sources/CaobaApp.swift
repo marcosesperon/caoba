@@ -17,6 +17,7 @@ struct CaobaApp: App {
                 .frame(minWidth: 960, minHeight: 640)
                 .task {
                     await appState.applyLaunchArguments()
+                    await appState.scheduleDonationPrompt()
                     await appState.checkForUpdates()
                 }
         }

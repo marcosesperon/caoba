@@ -74,7 +74,8 @@
   a.chip { text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
   .coffee:hover { border-color: var(--accent); color: var(--ink); }
   .cup { flex: none; vertical-align: -2px; }
-  .btn.coffee { display: inline-flex; align-items: center; gap: 7px; }
+  .btn.coffee { display: inline-flex; align-items: center; gap: 7px; background: #ffdd00; color: #111; border-color: #ffdd00; }
+  .btn.coffee:hover { background: #f5d000; border-color: #f5d000; color: #111; }
   /* En móvil el chip de la barra se queda solo con la taza (más específico que las reglas de idioma) */
   @media (max-width: 720px) { html[data-lang] .nav a.chip.coffee span { display: none; } }
   @media (max-width: 720px) { .nav nav { display: none; } }
@@ -206,7 +207,6 @@
       <a class="btn primary" id="download-btn" href="https://github.com/marcosesperon/caoba-photo-utils/releases/latest">
         <span lang-es>Descargar para macOS</span><span lang-en>Download for macOS</span>
       </a>
-      <a class="btn" href="https://github.com/marcosesperon/caoba-photo-utils"><span lang-es>Ver el código</span><span lang-en>View the code</span></a>
       <a class="btn coffee" href="https://buymeacoffee.com/marcosesperon" target="_blank" rel="noopener"><svg class="cup" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 21h14"/><path d="M8 3.5v2M12 3.5v2"/></svg> <span lang-es>Invítame a un café</span><span lang-en>Buy me a coffee</span></a>
       <span class="meta" id="version-meta">macOS 14+ · Apple Silicon &amp; Intel</span>
     </div>

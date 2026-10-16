@@ -223,7 +223,9 @@ Fichero `.caoba` en la carpeta de fotos, mismo formato que la app antigua: `{ "v
 - Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.
 - Apariencia (`caoba.appearance`): sistema / claro / oscuro.
 - Carpetas recientes (`caoba.recentFolders`): máximo 5.
-- Aviso de versión: consulta `releases/latest` de GitHub y compara como semver.
+- Aviso de versión: al arrancar consulta `releases/latest` de GitHub y compara como semver. Si hay una más nueva, deja un enlace en el pie de la barra lateral y enseña una banda sobre el contenido con «Descargar» y cierre; al cerrarla se guarda esa versión en `caoba.update.dismissedVersion` y la banda no vuelve a salir hasta la siguiente versión (el enlace del pie sí se queda).
+- Donativo: botón «Hacer donación» en el pie de la barra lateral (abre Buy Me a Coffee) y una hoja al arrancar, un segundo después de abrir la app, en el primer arranque y luego como mucho cada 7 días (`caoba.donation.lastShown` guarda la última vez, en segundos desde 1970). Para verla sin esperar: borrar esa preferencia con `defaults delete com.marcosesperon.caoba caoba.donation.lastShown`.
+- Ni la hoja ni la banda salen cuando la app arranca en modo captura (`--screenshot`). Para capturarlas a propósito: `--state demo.donation=1` y `--state demo.update=3.1.0`.
 
 ---
 

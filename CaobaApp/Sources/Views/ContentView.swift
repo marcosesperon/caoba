@@ -21,6 +21,10 @@ struct ContentView: View {
             .safeAreaInset(edge: .bottom) { sidebarFooter }
         } detail: {
             VStack(spacing: 12) {
+                if appState.showUpdateBanner, let update = appState.availableUpdate {
+                    UpdateBanner(update: update)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 if appState.currentModule.usesSourceFolder {
                     SourceFolderBar()
                 }
@@ -35,10 +39,12 @@ struct ContentView: View {
                 DestinationBar(kind: appState.currentModule.destinationKind)
             }
             .padding(12)
+            .animation(.default, value: appState.showUpdateBanner)
             .navigationTitle("CAOBA")
             .navigationSubtitle(appState.currentModule.title)
         }
         .jobPresentation(appState.jobRunner)
+        .sheet(isPresented: $state.showDonationPrompt) { DonationSheet() }
     }
 
     private func sidebarRow(_ module: Module) -> some View {
@@ -79,9 +85,15 @@ struct ContentView: View {
                 Text("v\(CaobaCoreInfo.version)").font(.caption).foregroundStyle(.secondary)
             }
             Button {
-                appState.openExternal(URL(string: "https://caobafoto.com/")!)
+                appState.openExternal(AppState.websiteURL)
             } label: {
                 Text("caobafoto.com").font(.caption)
+            }
+            .buttonStyle(.link)
+            Button {
+                appState.openExternal(AppState.donationURL)
+            } label: {
+                Label("Hacer donación", systemImage: "cup.and.saucer").font(.caption)
             }
             .buttonStyle(.link)
         }

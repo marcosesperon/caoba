@@ -337,3 +337,39 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-16 — Donativo en la app y banda de versión nueva
+
+### 1. La petición tal como se ha entendido
+Tres cosas en la app de macOS, tomando como referencia la versión anterior:
+
+1. **Botón de donativo en el pie de la barra lateral**, bajo «caobafoto.com», que abre `buymeacoffee.com/marcosesperon` en el navegador. Texto «Hacer donación» con icono de taza, estilo nativo (enlace o botón discreto, no el amarillo de Buy Me a Coffee).
+2. **Diálogo de donativo al arrancar**, un segundo después de abrir la app, con la misma cadencia que la versión anterior: se muestra en el primer arranque y después como máximo **cada 7 días**. Textos adaptados de los antiguos («CAOBA es gratuito», «si te ha resultado útil… considera una pequeña donación», firma y enlace a caobafoto.com) en español e inglés; botones «Hacer donación» y «Ahora no». La fecha del último aviso se guarda en la preferencia ya reservada (`caoba.donation.lastShown`). No se muestra cuando la app arranca en modo captura (`--screenshot`).
+3. **Banda de versión nueva al arrancar**: la comprobación contra las releases de GitHub ya existe y deja un enlace en el pie de la barra lateral. Se añade además una banda fina sobre el contenido, «Nueva versión X.Y.Z disponible», con botón «Descargar» (abre la página de la release) y botón de cerrar. Una vez cerrada no vuelve a aparecer para esa misma versión (se guarda la versión descartada); el enlace del pie se mantiene siempre.
+
+*Confirmación: «confirmo, adelante con el plan pero aprovecha para quitar el botón principal de ver el código y poner el de donativo con fondo amarillo» (16-10-2026). Se añade por tanto, en la landing: quitar «Ver el código» del hero y poner el botón de donativo en amarillo Buy Me a Coffee.*
+
+### 2. Preguntas y respuestas
+**P1. ¿Cadencia del diálogo de donativo?** R: «manten» (la de la versión anterior: primer arranque y luego cada 7 días).
+**P2. ¿Basta el enlace del pie para la versión nueva o también aviso al arrancar?** R: también, con la banda al arrancar.
+
+### 3. Fuentes analizadas
+- App anterior: `assets/js/caoba.js` (diálogo cada 7 días guardando la fecha en `localStorage`, aviso flotante de versión durante 15 s) e `index.html` (botón en el pie de la barra lateral y textos del diálogo).
+- App nueva: `AppState` (ya existía `VersionCheck` con comparación semver y el enlace del pie), `Preferences` (clave del donativo ya reservada), `ContentView`.
+
+### 4. Decisiones
+- **Pie de la barra lateral**: botón enlace «Hacer donación» con icono de taza bajo «caobafoto.com», mismo estilo que ese enlace. Las URL de la web y del donativo son constantes de `AppState` para que pie y hoja compartan enlace.
+- **Hoja de donativo** (`DonationSheet`): hoja nativa con icono de la app, título en Doto, los dos párrafos adaptados de la antigua, firma, enlace a caobafoto.com y botones «Ahora no» / «Hacer donación» (principal, abre el navegador y cierra). La fecha se guarda **al mostrarla**, igual que antes, así «Ahora no» y cerrar cuentan igual. El enlace no es enfocable para que el foco inicial de la hoja no caiga en él con un anillo rojo.
+- **Banda de versión** (`UpdateBanner`): fila fina encima de la barra de carpeta con icono, «Nueva versión X disponible», «Descargar» y cierre; entra y sale con animación. Al cerrar se guarda la versión en `caoba.update.dismissedVersion`; la banda solo vuelve con una versión distinta. El enlace del pie se mantiene siempre.
+- Orden de arranque: argumentos de línea de comandos → hoja de donativo (espera 1 s) → comprobación de versión. En modo captura (`--screenshot`) no se enseña nada salvo que se pida con `demo.donation` / `demo.update`, que sirven para revisar las pantallas.
+- Para capturar la hoja hubo que pedir también las ventanas por encima de la principal (`optionOnScreenAboveWindow` dentro del marco de la ventana), porque una hoja es una ventana aparte.
+- Traducciones añadidas al final del catálogo sin reordenarlo (Xcode ordena con su propio criterio y regenerar el JSON producía un diff de todo el fichero).
+- **Landing**: el hero queda con «Descargar para macOS» (rojo) e «Invítame a un café» (amarillo `#FFDD00`, texto oscuro); «Ver el código» desaparece del hero pero GitHub sigue en la barra superior y en la sección de descarga.
+
+### 5. Alternativas descartadas
+- Aviso de versión flotante de 15 s como el antiguo: desaparece solo y se pierde; la banda se queda hasta que el usuario decide, y se recuerda por versión para no molestar.
+- Guardar la fecha del donativo solo al pulsar «Hacer donación»: la hoja saldría en cada arranque a quien no quiera donar.
+- Botón amarillo de Buy Me a Coffee dentro de la app: en la app se mantiene el aspecto nativo; el amarillo se usa solo en la web.
+
+### 6. Pendiente de comprobar
+- Ver la banda con una release real más nueva (de momento solo con `demo.update`).
+

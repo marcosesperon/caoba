@@ -6,6 +6,7 @@ enum Preferences {
     static let languageKey = "caoba.language"
     static let recentFoldersKey = "caoba.recentFolders"
     static let donationLastShownKey = "caoba.donation.lastShown"
+    static let updateDismissedVersionKey = "caoba.update.dismissedVersion"
 }
 
 /// Tema claro / oscuro / el del sistema.

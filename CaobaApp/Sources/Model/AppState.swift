@@ -40,8 +40,19 @@ final class AppState {
     let jobRunner = JobRunner()
     let thumbnails = ThumbnailProvider()
 
-    // MARK: Aviso de versión
+    // MARK: Aviso de versión y donativo
     private(set) var availableUpdate: VersionCheck.Release?
+    /// Banda «Nueva versión disponible»: se enseña hasta que el usuario la cierra (se recuerda por versión).
+    var showUpdateBanner = false
+    /// Hoja de donativo: al arrancar, como mucho cada 7 días.
+    var showDonationPrompt = false
+    /// True cuando la app arranca solo para hacer una captura: sin hojas ni avisos.
+    private(set) var isScreenshotMode = false
+
+    static let donationURL = URL(string: "https://buymeacoffee.com/marcosesperon")!
+    static let websiteURL = URL(string: "https://caobafoto.com/")!
+    /// Días entre dos avisos de donativo (la misma cadencia que la app antigua).
+    static let donationInterval: TimeInterval = 7 * 24 * 3600
 
     init() {
         recentFolders = RecentFolders.load()
@@ -171,6 +182,7 @@ final class AppState {
             guard let i = arguments.firstIndex(of: flag), arguments.indices.contains(i + 1) else { return nil }
             return arguments[i + 1]
         }
+        isScreenshotMode = arguments.contains("--screenshot")
         // `--state clave=valor` (repetible) deja preparado un módulo con contenido.
         // Va lo primero porque el módulo recordado puede estar ya en pantalla.
         for (i, argument) in arguments.enumerated() where argument == "--state" && arguments.indices.contains(i + 1) {
@@ -193,6 +205,14 @@ final class AppState {
         if let path = value(after: "--folder") {
             await selectSourceFolder(URL(fileURLWithPath: path))
         }
+        // Para capturar la banda y la hoja sin esperar a que exista una versión nueva ni a los 7 días.
+        if let version = launchState["demo.update"] {
+            availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba-photo-utils/releases/latest")!)
+            showUpdateBanner = true
+        }
+        if launchState["demo.donation"] != nil {
+            showDonationPrompt = true
+        }
         // `--screenshot <png>` guarda la ventana tras `--delay` segundos (8 por defecto) y cierra.
         // Se dibuja la propia jerarquía de vistas, así no hace falta permiso de grabación de pantalla.
         if let output = value(after: "--screenshot") {
@@ -209,7 +229,7 @@ final class AppState {
                 window.makeFirstResponder(sink)
                 try? await Task.sleep(for: .milliseconds(300))
             }
-            Self.captureMainWindow(to: URL(fileURLWithPath: output))
+            Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil)
             NSApp.terminate(nil)
         }
     }
@@ -218,20 +238,29 @@ final class AppState {
     /// obsoleta en macOS 14 pero sigue funcionando y, a diferencia de ScreenCaptureKit,
     /// no pide permiso de grabación de pantalla; se resuelve por `dlsym` para no
     /// arrastrar el aviso de obsolescencia en cada compilación.
-    private static func windowImage(of window: NSWindow) -> CGImage? {
+    private static func windowImage(of window: NSWindow, includingSheets: Bool) -> CGImage? {
         typealias CreateImage = @convention(c) (CGRect, UInt32, UInt32, UInt32) -> Unmanaged<CGImage>?
         guard let symbol = dlsym(dlopen(nil, RTLD_NOW), "CGWindowListCreateImage") else { return nil }
         let create = unsafeBitCast(symbol, to: CreateImage.self)
-        let options: CGWindowListOption = .optionIncludingWindow
+        var options: CGWindowListOption = .optionIncludingWindow
+        var bounds = CGRect.null
+        if includingSheets {
+            // Las hojas son ventanas aparte por encima de la principal: se piden las que
+            // están sobre ella dentro de su marco (coordenadas de pantalla con origen arriba).
+            options.insert(.optionOnScreenAboveWindow)
+            let screenHeight = NSScreen.screens.first?.frame.height ?? 0
+            let frame = window.frame
+            bounds = CGRect(x: frame.minX, y: screenHeight - frame.maxY, width: frame.width, height: frame.height)
+        }
         let imageOptions: CGWindowImageOption = [.boundsIgnoreFraming, .bestResolution]
-        return create(.null, options.rawValue, CGWindowID(window.windowNumber), imageOptions.rawValue)?.takeRetainedValue()
+        return create(bounds, options.rawValue, CGWindowID(window.windowNumber), imageOptions.rawValue)?.takeRetainedValue()
     }
 
-    static func captureMainWindow(to url: URL) {
+    static func captureMainWindow(to url: URL, includingSheets: Bool = false) {
         guard let window = NSApp.windows.first(where: { $0.isVisible }) else { return }
         // Primero la imagen real de la ventana (incluye los fondos translúcidos);
         // si el sistema no la da, se dibuja la jerarquía de vistas.
-        if let cg = Self.windowImage(of: window), cg.width > 10 {
+        if let cg = Self.windowImage(of: window, includingSheets: includingSheets), cg.width > 10 {
             let rep = NSBitmapImageRep(cgImage: cg)
             try? rep.representation(using: .png, properties: [:])?.write(to: url)
             return
@@ -246,6 +275,29 @@ final class AppState {
 
     func checkForUpdates() async {
         availableUpdate = await VersionCheck.fetchNewerRelease(than: CaobaCoreInfo.version)
+        guard let update = availableUpdate, !isScreenshotMode else { return }
+        // Si el usuario ya cerró la banda de esta versión, no se insiste; el enlace del pie se queda.
+        let dismissed = UserDefaults.standard.string(forKey: Preferences.updateDismissedVersionKey)
+        showUpdateBanner = dismissed != update.version
+    }
+
+    func dismissUpdateBanner() {
+        if let version = availableUpdate?.version {
+            UserDefaults.standard.set(version, forKey: Preferences.updateDismissedVersionKey)
+        }
+        showUpdateBanner = false
+    }
+
+    /// Un segundo después de arrancar pide apoyo al proyecto, si nunca se hizo
+    /// o han pasado al menos 7 días desde la última vez.
+    func scheduleDonationPrompt() async {
+        guard !isScreenshotMode else { return }
+        let lastShown = UserDefaults.standard.double(forKey: Preferences.donationLastShownKey)
+        let now = Date().timeIntervalSince1970
+        guard lastShown == 0 || now - lastShown >= Self.donationInterval else { return }
+        try? await Task.sleep(for: .seconds(1))
+        UserDefaults.standard.set(now, forKey: Preferences.donationLastShownKey)
+        showDonationPrompt = true
     }
 
     func openExternal(_ url: URL) {
