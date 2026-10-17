@@ -1172,3 +1172,26 @@ Cuando hay una versión nueva:
 
 ### 6. Pendiente de comprobar
 - Cómo se ven en rojo los estados de descarga, instalación y error (solo se capturó el estado inicial).
+
+## 2026-10-17 — Landing: la historia al final, después de la descarga
+
+### 1. La petición tal como se ha entendido
+Confirmada por el usuario («sí») el 2026-10-17.
+
+En `index.html`, la sección «La historia» (`#historia`), con el mismo contenido, pasa de estar detrás del hero a ir la última, después de «Descarga» y antes del pie. En la barra de arriba, el enlace «Historia» pasa también al final: Módulos · Por qué CAOBA · Descarga · Historia.
+
+### 2. Preguntas y respuestas
+- **¿El enlace «Historia» del menú también va al final?** → Sí, para que el menú siga el orden de la página.
+
+### 3. Fuentes analizadas
+- `index.html`: el orden de las secciones, el `<nav>` y el CSS de `.story` (no depende de la posición de la sección).
+
+### 4. Decisiones
+- Se mueve el bloque entero tal cual, sin tocar el texto ni las clases. Comprobado con una captura de Chrome sin interfaz: la historia queda entre «Descarga» y el pie.
+- El menú sigue el orden de la página.
+
+### 5. Alternativas descartadas
+- Dejar «Historia» la primera en el menú: el menú quedaría desordenado respecto a la página.
+
+### 6. Pendiente de comprobar
+Nada.
