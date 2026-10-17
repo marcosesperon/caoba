@@ -10,7 +10,8 @@ public enum CanvasBackground: String, Sendable, Codable, CaseIterable {
     public var fill: CGColor {
         switch self {
         case .white: return CGColor(red: 1, green: 1, blue: 1, alpha: 1)
-        case .black: return CGColor(red: 30 / 255, green: 30 / 255, blue: 30 / 255, alpha: 1)
+        // Negro puro: con un gris oscuro las tarjetas del pase no se funden con el negro de la pantalla.
+        case .black: return CGColor(red: 0, green: 0, blue: 0, alpha: 1)
         case .gray: return CGColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
         }
     }

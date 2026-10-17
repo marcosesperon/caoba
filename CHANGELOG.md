@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.5 — 2026-10-17
+
+- El fondo «Negro» es ahora negro de verdad: las tarjetas de texto del Slideshow, el Collage y la Contact Sheet salían en un gris muy oscuro.
+
 ## 3.3.4 — 2026-10-17
 
 - Arreglada la ventana de Ajustes, que desde la 3.3.0 salía descolocada (filas desplazadas y menús cortados) por el campo Autor.

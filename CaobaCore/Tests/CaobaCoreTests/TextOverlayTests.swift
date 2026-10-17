@@ -57,6 +57,14 @@ struct TextOverlayTests {
         #expect(lit(two) > lit(one))
     }
 
+    @Test("El fondo «Negro» es negro puro, en el color y en la tarjeta dibujada")
+    func pureBlack() throws {
+        #expect(CanvasBackground.black.fill.components?.prefix(3).allSatisfy { $0 == 0 } == true)
+        let image = try TextRenderer.card(lines: ["Título"], style: .title, background: CanvasBackground.black.fill, canvas: canvas)
+        let corner = TestImages.pixel(image, x: 5, y: 5)
+        #expect(corner.r == 0 && corner.g == 0 && corner.b == 0)
+    }
+
     @Test("El título superpuesto entra y sale con su animación, respetando desfase y retardo")
     func overlayPhase() {
         var style = TextStyle.title

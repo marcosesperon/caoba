@@ -1278,3 +1278,30 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-17 — El fondo «Negro» no es negro del todo
+
+### 1. La petición tal como se ha entendido
+En las tarjetas de texto del timeline, al elegir el fondo «Negro» el frame sale gris muy oscuro en lugar de negro. La causa es que `CanvasBackground.black` vale RGB 30/30/30 (#1E1E1E). Se quiere que «Negro» sea negro puro (0,0,0) en **todos** los sitios que lo usan: tarjetas de texto y fondo del pase, Collage y Contact Sheet. El color del texto por defecto sobre negro y el del borde no cambian.
+Confirmada por el usuario («sí, confirmado»).
+
+### 2. Preguntas y respuestas
+- **¿Dónde debe pasar a ser negro puro: en todos, solo en el pase o solo en las tarjetas de texto?** → En todos.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Drawing/Drawing.swift` (`CanvasBackground.fill`).
+- Usos de `.fill`: `TextOverlay.swift` (`TextRenderer.card`), `SlideshowDocument.swift` (`renderCardBackground`), `TextPreviewPanel.swift`, `SlideshowTimelineView.swift`, `CollageRenderer.swift`, `ContactSheetRenderer.swift`.
+
+### 4. Decisiones
+- Plan aprobado; release y publicación aprobadas («sí, con release y publica»).
+- `CanvasBackground.black.fill` pasa de RGB 30/30/30 a 0,0,0. El color del texto por defecto sobre negro y el del borde no cambian.
+- Test nuevo en `TextOverlayTests` («El fondo «Negro» es negro puro»): el color y la esquina de una tarjeta dibujada valen 0,0,0. Pasan los 127 tests del motor.
+- Comprobado en la app: vídeo generado con una tarjeta negra al principio; a los 2 s, el fondo de la tarjeta da 0,0,0.
+- Versión 3.3.5.
+
+### 5. Alternativas descartadas
+- Negro puro solo en el pase o solo en las tarjetas: descartado por el usuario; mejor que «Negro» signifique lo mismo en toda la app.
+- Oscurecer solo la previsualización: el gris salía también en el vídeo exportado, así que el fallo estaba en el color, no en la vista.
+
+### 6. Pendiente de comprobar
+- Con `--folder` en una carpeta nueva, `--state text.demo=card` no deja las tarjetas en el timeline: al cargar la carpeta se aplica el preset (o los valores por defecto) y las borra. Para comprobar el arreglo se metió la tarjeta a mano en el `.caoba` de la carpeta de prueba.
