@@ -1046,3 +1046,25 @@ Nada.
 ### 6. Pendiente de comprobar
 - Las tarjetas superpuestas ocupan 0 s en el timeline y se ven como una tira estrecha; valorar darles un ancho mínimo mayor o un marcador.
 
+## 2026-10-17 — Sección de descarga de la landing
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* En la parte inferior de `index.html`: el botón de descarga directo al DMG como el de arriba, ocultar el botón de GitHub, el botón de donativo igual que el de arriba, y en el tercer paso explicar el aviso de seguridad de macOS (sin certificado porque, al ser gratuita, no compensa pagar la licencia de desarrollador) y que la app es 100 % segura.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `index.html` (sección de descarga y el script que consulta la última release).
+
+### 4. Decisiones
+- Los dos botones de descarga llevan la clase `download-link` y el script apunta todos al DMG de la última release (comprobado: ambos enlazan `CAOBA-3.2.0.dmg`). Sin release, quedan en la página de releases.
+- Botón de GitHub quitado de la sección (sigue en la barra superior y en el pie). Botón de donativo amarillo con el mismo texto e icono que el del hero.
+- Paso 3 reescrito en los dos idiomas: por qué sale el aviso (sin certificado de Apple; gratuita, no compensa la licencia) y por qué es segura (código público, sin cuentas, nada sale del Mac, solo consulta si hay versión nueva).
+
+### 5. Alternativas descartadas
+- Ninguna.
+
+### 6. Pendiente de comprobar
+Nada.
+

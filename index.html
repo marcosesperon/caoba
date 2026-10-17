@@ -214,7 +214,7 @@
       <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes and shutter count. Native to macOS, free and open source.</span>
     </p>
     <div class="cta reveal">
-      <a class="btn primary" id="download-btn" href="https://github.com/marcosesperon/caoba/releases/latest">
+      <a class="btn primary download-link" id="download-btn" href="https://github.com/marcosesperon/caoba/releases/latest">
         <span lang-es>Descargar para macOS</span><span lang-en>Download for macOS</span>
       </a>
       <a class="btn coffee" href="https://buymeacoffee.com/marcosesperon" target="_blank" rel="noopener"><svg class="cup" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 21h14"/><path d="M8 3.5v2M12 3.5v2"/></svg> <span lang-es>Invítame a un café</span><span lang-en>Buy me a coffee</span></a>
@@ -379,14 +379,13 @@
         <ol>
           <li><span lang-es>Baja el DMG de la última release.</span><span lang-en>Get the DMG from the latest release.</span></li>
           <li><span lang-es>Arrastra <b>CAOBA</b> a Aplicaciones.</span><span lang-en>Drag <b>CAOBA</b> to Applications.</span></li>
-          <li><span lang-es>Si macOS avisa de que no puede comprobar el desarrollador: clic derecho → <b>Abrir</b> la primera vez.</span><span lang-en>If macOS says it cannot verify the developer: right-click → <b>Open</b> the first time.</span></li>
+          <li><span lang-es>La primera vez macOS avisará de que no puede comprobar el desarrollador: clic derecho sobre CAOBA → <b>Abrir</b>, y listo. El aviso sale porque la app no lleva certificado de Apple: al ser gratuita no compensa pagar la licencia de desarrollador. La app es <b>100&nbsp;% segura</b>: el código es público en GitHub, no pide cuentas ni envía nada fuera de tu Mac, y solo consulta si hay una versión nueva.</span><span lang-en>The first time, macOS will say it cannot verify the developer: right-click CAOBA → <b>Open</b>, and that is it. The warning appears because the app carries no Apple certificate: being free, the developer licence is not worth paying for. The app is <b>100&nbsp;% safe</b>: the code is public on GitHub, it asks for no accounts, sends nothing out of your Mac and only checks whether a new version exists.</span></li>
         </ol>
         <p class="note"><span lang-es>Requiere macOS 14 Sonoma o posterior. Versión para iPhone y iPad en preparación.</span><span lang-en>Requires macOS 14 Sonoma or later. iPhone and iPad version in the works.</span></p>
       </div>
       <div style="display:grid;gap:12px">
-        <a class="btn primary" href="https://github.com/marcosesperon/caoba/releases/latest" style="text-align:center"><span lang-es>Descargar la última versión</span><span lang-en>Download the latest version</span></a>
-        <a class="btn" href="https://github.com/marcosesperon/caoba" style="text-align:center">GitHub · <span lang-es>código y releases</span><span lang-en>code and releases</span></a>
-        <a class="btn" href="https://buymeacoffee.com/marcosesperon" style="text-align:center"><svg class="cup" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 21h14"/><path d="M8 3.5v2M12 3.5v2"/></svg> Buy me a coffee</a>
+        <a class="btn primary download-link" href="https://github.com/marcosesperon/caoba/releases/latest" style="text-align:center"><span lang-es>Descargar la última versión</span><span lang-en>Download the latest version</span></a>
+        <a class="btn coffee" href="https://buymeacoffee.com/marcosesperon" target="_blank" rel="noopener" style="justify-content:center"><svg class="cup" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M4 21h14"/><path d="M8 3.5v2M12 3.5v2"/></svg> <span lang-es>Invítame a un café</span><span lang-en>Buy me a coffee</span></a>
         <p class="note" style="text-align:center"><span lang-es>Hecha por el estudio</span><span lang-en>Made by the studio</span> <a href="https://caobafoto.com/">caobafoto.com</a></p>
       </div>
     </div>
@@ -432,7 +431,7 @@
     .then(rel => {
       if (!rel || !rel.tag_name) return;
       const dmg = (rel.assets || []).find(a => /\.dmg$/i.test(a.name));
-      if (dmg) document.getElementById('download-btn').href = dmg.browser_download_url;
+      if (dmg) document.querySelectorAll('.download-link').forEach(a => { a.href = dmg.browser_download_url; });
       document.getElementById('version-meta').textContent = rel.tag_name + ' · macOS 14+';
     })
     .catch(() => {});
