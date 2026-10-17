@@ -2,6 +2,12 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.2 — 2026-10-17
+
+- **Shutter Count con CR3 de Canon**: lee el contador de disparos de los RAW CR3 (por ejemplo, de la EOS R6 Mark II), el firmware y la vida útil del modelo exacto aunque la cámara se llame con nombre corto («R6m2»).
+- La app se abre en el último módulo que usaste.
+- El pie de la barra lateral junta «caobafoto.com» y «Donación» en una fila, en el rojo de la app.
+
 ## 3.3.1 — 2026-10-17
 
 - **Aviso de versión nueva más visible**: la banda de arriba pasa a rojo con el botón «Actualizar ahora» en blanco. Al cerrarla solo se oculta hasta la próxima vez que abras CAOBA.
