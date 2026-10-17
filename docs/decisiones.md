@@ -1195,3 +1195,38 @@ En `index.html`, la sección «La historia» (`#historia`), con el mismo conteni
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-17 — Pie de la barra lateral en una fila, recordar el último módulo y Shutter Count con CR3
+
+### 1. La petición tal como se ha entendido
+Confirmada por el usuario («sí») el 2026-10-17.
+
+1. **Pie de la barra lateral.** La fila «CAOBA · vX» no cambia. Debajo, en una sola fila, «caobafoto.com» a la izquierda y el icono del café con «Donación» a la derecha. Los dos enlaces en el rojo de la app (#D71921, el color de acento) en lugar del azul de enlace.
+2. **Recordar el último módulo.** Al abrir la app se entra en el último módulo de la barra lateral que se usó. La primera vez, el Procesador, como ahora. Las pestañas interiores no se recuerdan.
+3. **Shutter Count con CR3 de Canon.** Se lee el contador que guardan los CR3 (en el fichero de prueba, una Canon EOS R6 Mark II con 11.768 disparos, igual que en la app de Electron). Además, el firmware sale bien (1.6.0) y los modelos que Canon guarda con nombre corto («EOS R6m2», «R5m2»…) encuentran su vida útil en la tabla (R6 Mark II → 400.000) en lugar de la estimación genérica.
+4. Al terminar: versión 3.3.2, commit, push y release publicada.
+
+### 2. Preguntas y respuestas
+- **Además del contador, ¿se arreglan en el CR3 el firmware vacío y la vida útil «genérica» (la cámara se llama «EOS R6m2» y en la tabla figura «EOS R6 Mark II»)?** → Sí, los dos.
+- **¿Qué es «la última sección»: solo el módulo de la barra lateral o también la pestaña interior del Slideshow?** → Solo el módulo.
+- **Al terminar, ¿versión y release?** → Sí: 3.3.2, commit, push y release publicada en GitHub.
+
+### 3. Fuentes analizadas
+- `CaobaCore/ShutterCount/ShutterCountReader.swift` (CAOBA 3.3.1) y exiftool 13.59 (el que va en la app) sobre `R6V29159.CR3` (Canon EOS R6 Mark II, fichero local del usuario). Con `-fast2` no sale `ShutterCount`; sin esa opción o con `-fast` sale `[Track4] ShutterCount: 11768`.
+- `CaobaApp/Model/AppState.swift` (`currentModule`), `Model/Preferences.swift`, `Views/ContentView.swift` (`sidebarFooter`).
+
+### 4. Decisiones
+- `-fast` en lugar de `-fast2`: lee las pistas CTMD de los CR3 y tarda lo mismo (0,12 s frente a 0,15 s sin ninguna opción).
+- Firmware: se pide `CanonFirmwareVersion` y se quita el prefijo «Firmware Version».
+- Nombres cortos de Canon (`…m2` → `… mark ii`) solo en `ShutterLife`. En pantalla se sigue mostrando el nombre que guarda la cámara. Al revisarlo se vio que antes «canon eos r6m2» caía en la coincidencia parcial con un resultado que dependía del orden del diccionario (R6 con 300.000 o R con 200.000); ahora coincide exactamente con «canon eos r6 mark ii» (400.000).
+- Último módulo: `didSet` en `currentModule` sobre `caoba.lastModule`; no se guarda en modo captura. Comprobado: con `qr` guardado, la app arranca en Código QR.
+- Pie: `HStack` con `Spacer`, botones `.plain` y `Color.accentColor`. Comprobado con captura.
+- Prueba con el CR3 real en un test temporal que se borró después (fichero real del usuario, no se añade al repositorio): 11.768 disparos, firmware 1.6.0, 400.000 de vida útil y 2,94 % usado.
+
+### 5. Alternativas descartadas
+- Quitar `-fast` del todo: no aporta nada frente a `-fast` con estos ficheros y lee más.
+- Recordar también la pestaña interior del Slideshow: el usuario prefirió solo el módulo.
+- Añadir «canon eos r6m2» como clave más en la tabla: habría que duplicar cada modelo; la conversión cubre todos los «mN».
+
+### 6. Pendiente de comprobar
+- El texto de la pantalla vacía de Shutter Count dice que Canon «en la mayoría de modelos» no guarda el contador; con los CR3 sí lo guarda. Se deja como está (fuera de esta petición), avisado al usuario.

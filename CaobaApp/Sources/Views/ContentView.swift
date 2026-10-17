@@ -79,18 +79,23 @@ struct ContentView: View {
                 Spacer()
                 Text("v\(CaobaCoreInfo.version)").font(.caption).foregroundStyle(.secondary)
             }
-            Button {
-                appState.openExternal(AppState.websiteURL)
-            } label: {
-                Text("caobafoto.com").font(.caption)
+            // Web a la izquierda y donativo a la derecha, los dos en el rojo de la app.
+            HStack {
+                Button {
+                    appState.openExternal(AppState.websiteURL)
+                } label: {
+                    Text("caobafoto.com")
+                }
+                Spacer()
+                Button {
+                    appState.openExternal(AppState.donationURL)
+                } label: {
+                    Label("Donación", systemImage: "cup.and.saucer")
+                }
             }
-            .buttonStyle(.link)
-            Button {
-                appState.openExternal(AppState.donationURL)
-            } label: {
-                Label("Hacer donación", systemImage: "cup.and.saucer").font(.caption)
-            }
-            .buttonStyle(.link)
+            .font(.caption)
+            .buttonStyle(.plain)
+            .foregroundStyle(Color.accentColor)
         }
         .padding(10)
     }

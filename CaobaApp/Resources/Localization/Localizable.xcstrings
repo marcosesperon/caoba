@@ -50,6 +50,16 @@
         }
       }
     },
+    "Donación" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donate"
+          }
+        }
+      }
+    },
     "¡Gracias!" : {
       "localizations" : {
         "en" : {

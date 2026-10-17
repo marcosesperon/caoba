@@ -75,7 +75,7 @@ public enum ShutterCountReader {
     /// Tags que pedimos a exiftool (con `-n` los numéricos vienen sin formatear).
     static let exifToolTags = [
         "ShutterCount", "ImageCount", "ShutterCount2", "ShutterCount3", "MechanicalShutterCount",
-        "Make", "Model", "SerialNumber", "InternalSerialNumber", "FirmwareVersion", "Firmware",
+        "Make", "Model", "SerialNumber", "InternalSerialNumber", "FirmwareVersion", "CanonFirmwareVersion", "Firmware",
         "LensModel", "Lens", "LensID", "DateTimeOriginal", "ISO", "ExposureTime", "FNumber", "FocalLength",
         "ImageWidth", "ImageHeight", "ExifImageWidth", "ExifImageHeight",
     ]
@@ -93,7 +93,9 @@ public enum ShutterCountReader {
     static func runExifTool(_ location: ExifToolLocation, file: URL) async throws -> Data {
         let process = Process()
         process.executableURL = location.executable
-        process.arguments = location.arguments + ["-j", "-n", "-fast2", "-q"] + exifToolTags.map { "-" + $0 } + [file.path]
+        // `-fast` y no `-fast2`: los CR3 de Canon guardan el contador en una pista
+        // de datos (CTMD) que `-fast2` se salta.
+        process.arguments = location.arguments + ["-j", "-n", "-fast", "-q"] + exifToolTags.map { "-" + $0 } + [file.path]
         let output = Pipe()
         process.standardOutput = output
         process.standardError = Pipe()
@@ -139,7 +141,7 @@ public enum ShutterCountReader {
         let make = string("Make"), model = string("Model")
         var camera = ShutterCountResult.Camera(make: make, model: model, displayName: CameraName.combine(make: make, model: model))
         camera.serial = string("SerialNumber", "InternalSerialNumber")
-        camera.firmware = string("FirmwareVersion", "Firmware")
+        camera.firmware = cleanFirmware(string("FirmwareVersion", "CanonFirmwareVersion", "Firmware"))
         camera.lens = string("LensModel", "Lens", "LensID")
         let count = int("ShutterCount", "ImageCount", "ShutterCount2", "ShutterCount3")
         let shutter = makeShutter(count: count, mechanical: int("MechanicalShutterCount"), make: make, model: model)
@@ -147,6 +149,13 @@ public enum ShutterCountReader {
                                              fNumber: double("FNumber"), focalLength: double("FocalLength"),
                                              width: int("ImageWidth", "ExifImageWidth"), height: int("ImageHeight", "ExifImageHeight"))
         return ShutterCountResult(source: .exiftool, camera: camera, shutter: shutter, photo: photo)
+    }
+
+    /// Canon lo escribe como «Firmware Version 1.6.0»; nos quedamos con «1.6.0».
+    static func cleanFirmware(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let cleaned = text.replacingOccurrences(of: "^Firmware( Version)?\\s*", with: "", options: [.regularExpression, .caseInsensitive])
+        return cleaned.isEmpty ? text : cleaned
     }
 
     /// Respaldo con ImageIO: contador solo para Nikon.
@@ -224,9 +233,10 @@ public enum ShutterLife {
         let model = (model ?? "").trimmingCharacters(in: .whitespaces)
         guard !make.isEmpty || !model.isEmpty else { return (nil, true) }
         // "NIKON CORPORATION" + "NIKON Z 6" → "nikon z 6"; si el modelo ya lleva la marca, no se repite.
-        let combined = (CameraName.combine(make: make, model: model) ?? "").lowercased()
+        let raw = (CameraName.combine(make: make, model: model) ?? "").lowercased()
             .replacingOccurrences(of: " corporation", with: "")
             .replacingOccurrences(of: "nikon z ", with: "nikon z")
+        let combined = expandCanonShortName(raw)
         if let exact = byModel[combined] { return (exact, false) }
         for (key, value) in byModel where combined.contains(key) || key.contains(combined) { return (value, false) }
         let brand = make.lowercased() + " " + model.lowercased()
@@ -235,5 +245,13 @@ public enum ShutterLife {
         if brand.contains("sony") { return (200_000, true) }
         if brand.contains("pentax") { return (100_000, true) }
         return (nil, true)
+    }
+
+    /// Canon guarda algunos modelos con nombre corto: «canon eos r6m2» es la
+    /// «canon eos r6 mark ii» de la tabla (m2 → mark ii, m3 → mark iii…).
+    static func expandCanonShortName(_ name: String) -> String {
+        let roman = ["2": "ii", "3": "iii", "4": "iv", "5": "v"]
+        guard let match = name.firstMatch(of: /^(canon eos .*\d)m([2-5])$/), let mark = roman[String(match.2)] else { return name }
+        return "\(match.1) mark \(mark)"
     }
 }

@@ -9,7 +9,14 @@ import CaobaCore
 @Observable
 final class AppState {
     // MARK: Navegación
-    var currentModule: Module = .processor
+    /// Módulo activo. Arranca en el último usado y se recuerda al cambiar
+    /// (salvo en modo captura, para no pisar lo que tenga el usuario).
+    var currentModule: Module = Module(rawValue: UserDefaults.standard.string(forKey: Preferences.lastModuleKey) ?? "") ?? .processor {
+        didSet {
+            guard !isScreenshotMode else { return }
+            UserDefaults.standard.set(currentModule.rawValue, forKey: Preferences.lastModuleKey)
+        }
+    }
     /// Estado inicial pedido por línea de comandos con `--state clave=valor`
     /// (solo para capturas: pestaña del Collage, texto del QR, PNG de la marca…).
     var launchState: [String: String] = [:]

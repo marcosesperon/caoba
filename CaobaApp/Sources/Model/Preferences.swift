@@ -8,6 +8,7 @@ enum Preferences {
     static let donationLastShownKey = "caoba.donation.lastShown"
     static let lastSeenVersionKey = "caoba.lastSeenVersion"
     static let authorKey = "caoba.author"
+    static let lastModuleKey = "caoba.lastModule"
 
     /// Autor de Ajustes sin espacios sobrantes; nil si no se ha puesto.
     static var author: String? {

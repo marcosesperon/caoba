@@ -10,6 +10,8 @@ struct ShutterCountTests {
         #expect(ShutterLife.expectancy(make: "Canon", model: "Canon EOS R6") == (300_000, false))
         #expect(ShutterLife.expectancy(make: "SONY", model: "ILCE-7M4") == (300_000, false))
         #expect(ShutterLife.expectancy(make: "NIKON CORPORATION", model: "NIKON D999") == (150_000, true))
+        #expect(ShutterLife.expectancy(make: "Canon", model: "Canon EOS R6m2") == (400_000, false))
+        #expect(ShutterLife.expectancy(make: "Canon", model: "Canon EOS R5m2") == (500_000, false))
         #expect(ShutterLife.expectancy(make: "FUJIFILM", model: "X-T5").count == nil)
         #expect(ShutterLife.expectancy(make: nil, model: nil).count == nil)
     }
@@ -29,6 +31,19 @@ struct ShutterCountTests {
         #expect(result.shutter.lifeExpectancy == 200_000 && result.shutter.isEstimate == false)
         #expect(result.shutter.percentUsed == 24.11)
         #expect(result.photo.iso == 400 && result.photo.fNumber == 2.8 && result.photo.width == 6048)
+    }
+
+    @Test("Parseo del JSON de un CR3 de Canon: contador de la pista CTMD y firmware con prefijo")
+    func parseCanonCR3() throws {
+        let json = """
+        [{"SourceFile":"x.CR3","ShutterCount":12345,"Make":"Canon","Model":"Canon EOS R6m2","SerialNumber":111122223333,
+          "CanonFirmwareVersion":"Firmware Version 1.6.0","LensModel":"RF35mm F1.4 L VCM"}]
+        """
+        let result = try ShutterCountReader.parseExifToolJSON(Data(json.utf8))
+        #expect(result.shutter.count == 12345)
+        #expect(result.camera.firmware == "1.6.0")
+        #expect(result.camera.serial == "111122223333")
+        #expect(result.shutter.lifeExpectancy == 400_000 && result.shutter.isEstimate == false)
     }
 
     @Test("Respaldo con ImageIO sobre una foto sin MakerNote")
