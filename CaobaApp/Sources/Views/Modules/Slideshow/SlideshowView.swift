@@ -261,8 +261,10 @@ struct SourceTab: View {
                 }
                 Spacer()
             }
-            FileListView(allowsReorder: true)
+            // La lista va sin bloque propio: toda la pestaña (modo, acciones y lista) es un solo bloque.
+            FileListView(allowsReorder: true, framed: false)
         }
+        .caobaPanel()
     }
 }
 
@@ -285,9 +287,7 @@ struct SlideshowActionBar: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(!doc.canGenerate)
         }
-        .padding(10)
-        .background(Color(nsColor: .controlBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .caobaPanel()
     }
 }
 

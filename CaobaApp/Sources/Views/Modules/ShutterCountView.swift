@@ -53,10 +53,7 @@ struct ShutterCountView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button("Elegir foto…") { choose() }
         }
-        .padding(10)
-        .background(isTargeted ? Color.accentColor.opacity(0.15) : Color(nsColor: .controlBackgroundColor))
-        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(isTargeted ? Color.accentColor : .clear, lineWidth: 2))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .caobaDropPanel(isTargeted: isTargeted)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             guard let provider = providers.first else { return false }
             _ = provider.loadObject(ofClass: URL.self) { url, _ in

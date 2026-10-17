@@ -31,8 +31,7 @@ struct SlideshowTimelineView: View {
                 .onTapGesture { doc.selection = .none }
             }
         }
-        .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .caobaPanel(padding: 0, fill: Color(nsColor: .controlBackgroundColor).opacity(0.5))
         .overlay {
             if doc.items.isEmpty {
                 ContentUnavailableView(doc.mode == .photos ? "Sin fotos" : "Sin collages", systemImage: "film",

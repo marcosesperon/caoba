@@ -102,9 +102,7 @@ struct RenamerView: View {
                         Spacer()
                         Button("Deshacer") { undo() }
                     }
-                    .padding(8)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .caobaPanel(padding: 8)
                 }
                 HStack {
                     Text("\(plan.count) cambios").font(.callout).foregroundStyle(.secondary)
@@ -122,11 +120,14 @@ struct RenamerView: View {
                     TableColumn("Original") { Text($0.oldName) }
                     TableColumn("Nuevo nombre") { Text($0.newName) }
                 }
+                // Sin el fondo propio de la tabla, para que se vea el del bloque.
+                .scrollContentBackground(.hidden)
                 .overlay {
                     if plan.isEmpty {
                         ContentUnavailableView("Sin cambios", systemImage: "pencil.slash", description: Text("Ajusta las opciones para ver la vista previa."))
                     }
                 }
+                .caobaPanel(padding: 4)
                 FileListView().frame(minHeight: 160)
             }
             .frame(minWidth: 360)

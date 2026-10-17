@@ -20,16 +20,52 @@ struct ModuleTitle: View {
     }
 }
 
-/// Bloque de opciones con cabecera.
+/// Estilo de bloque de toda la app: fondo tenue, borde fino y esquinas redondeadas.
+/// Sirve para que cada grupo de controles se vea como una pieza y la ventana no
+/// parezca un montón de cosas sueltas.
+struct CaobaPanel: ViewModifier {
+    var padding: CGFloat = 10
+    /// Color del fondo; las barras lo cambian para resaltar (p. ej. al soltar una carpeta).
+    var fill: Color = Color(nsColor: .controlBackgroundColor)
+    /// Color del borde; por defecto el separador del sistema (se adapta a claro y oscuro).
+    var border: Color = Color(nsColor: .separatorColor)
+    var borderWidth: CGFloat = 1
+
+    func body(content: Content) -> some View {
+        content
+            .padding(padding)
+            .background(fill, in: RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(border, lineWidth: borderWidth))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+extension View {
+    /// Mete la vista en un bloque con el estilo común (ver `CaobaPanel`).
+    func caobaPanel(padding: CGFloat = 10, fill: Color = Color(nsColor: .controlBackgroundColor),
+                    border: Color = Color(nsColor: .separatorColor), borderWidth: CGFloat = 1) -> some View {
+        modifier(CaobaPanel(padding: padding, fill: fill, border: border, borderWidth: borderWidth))
+    }
+
+    /// Bloque común para las barras donde se suelta algo (carpeta, foto): al arrastrar
+    /// encima se tiñe de rojo y el borde se engorda, para que se vea que se puede soltar.
+    func caobaDropPanel(isTargeted: Bool) -> some View {
+        caobaPanel(fill: isTargeted ? Color.accentColor.opacity(0.15) : Color(nsColor: .controlBackgroundColor),
+                   border: isTargeted ? Color.accentColor : Color(nsColor: .separatorColor), borderWidth: isTargeted ? 2 : 1)
+    }
+}
+
+/// Bloque de opciones con cabecera: el título encima y los controles en un bloque.
 struct OptionGroup<Content: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var content: Content
 
     var body: some View {
-        GroupBox(label: Text(title).font(.headline)) {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title).font(.headline).padding(.leading, 4)
             VStack(alignment: .leading, spacing: 10) { content }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 4)
+                .caobaPanel()
         }
     }
 }

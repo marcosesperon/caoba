@@ -27,10 +27,11 @@ xcodebuild -project CAOBA.xcodeproj -scheme CAOBA -configuration Debug -destinat
 
 ### Componentes de interfaz comunes
 
-- `OptionGroup(title:)`: bloque de opciones con cabecera.
+- `.caobaPanel(padding:fill:border:borderWidth:)`: el estilo de bloque de toda la app (fondo tenue, borde de 1 px en el color de separador del sistema y esquinas de 8 px; se adapta solo a claro y oscuro). Cualquier grupo de controles, lista o barra va en uno, para que la ventana no parezca un montón de cosas sueltas. `.caobaDropPanel(isTargeted:)` es la variante de las barras donde se suelta algo (carpeta, foto): al arrastrar encima se tiñe de rojo y el borde se engorda. Ejemplo: `HStack { … }.caobaPanel()`.
+- `OptionGroup(title:)`: bloque de opciones con cabecera: el título encima y los controles en un `.caobaPanel()`.
 - `LabeledRow("Etiqueta") { control }` y `LabeledSlider(title:value:in:step:display:)`: etiqueta en una columna fija de 130 puntos, para que todos los controles de la app empiecen alineados. Cualquier selector, campo, stepper o deslizador con etiqueta debe usar uno de los dos.
 - `TemplateView`, `CellPhotoView`, `TemplatePicker`, `TemplateFilters`: plantillas de collage y celdas con foto arrastrable.
-- `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación.
+- `FileListView`: lista de fotos de la carpeta con casilla general, orden y filtro de orientación, en su propio bloque. Con `framed: false` va sin bloque, para quien ya la mete en uno (la pestaña Fotos/Collages del Slideshow, que es un solo bloque con el modo, las acciones y la lista).
 - `CollageResultView(row:options:)`: el collage renderizado con el motor y las opciones reales, a resolución de pantalla (lado mayor 1600 px), en segundo plano; se recalcula al cambiar la fila o las opciones. `CollageViewModePicker` es el conmutador «Encuadre / Resultado» que la acompaña en el editor de foco de Collage y en el inspector de collage del Slideshow.
 
 ### Changelog y novedades (`Changelog`, `WhatsNewSheet`)

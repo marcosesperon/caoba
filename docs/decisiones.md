@@ -1335,3 +1335,45 @@ Confirmada por el usuario («así»).
 
 ### 6. Pendiente de comprobar
 - La hoja de progreso no sale en las capturas de `--screenshot` (es una ventana aparte); por eso se comprobó con el `print`.
+
+## 2026-10-17 — Agrupar formularios y listas de fotos
+
+### 1. La petición tal como se ha entendido
+En varias pantallas los controles y las listas de fotos van sueltos por la ventana y parece todo desperdigado. Se quiere un único estilo de bloque en toda la app: **fondo tenue + borde fino de 1 px con esquinas redondeadas**, aplicado a:
+- Los grupos de opciones que ya existen (`OptionGroup`: Operaciones, Salida, Patrón, Textos…), que hoy solo tienen un fondo casi invisible.
+- La lista de fotos con su cabecera («3 de 3», Orden, Orientación), en todos los módulos que la usan.
+- La pestaña Fotos/Collages del Slideshow (fila Modo, botones Componer/Añadir/Ajustar foco/Vaciar y la lista).
+- La ficha de la foto en Metadatos (miniatura y datos EXIF).
+- La barra de carpeta de arriba, la de destino/acciones de abajo y el panel del Timeline, que ya tienen fondo y ganan el borde.
+
+Los bloques nuevos (lista, ficha) van sin título de cabecera. No cambia ningún comportamiento, solo el aspecto.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Hasta dónde llega la agrupación: toda la app, solo el Slideshow o solo las listas de fotos?** → Toda la app: la lista de fotos en todos los módulos, la pestaña Fotos/Collages del Slideshow y la ficha de Metadatos.
+- **¿Qué aspecto tienen los grupos: fondo tenue + borde fino, solo el fondo actual o solo borde?** → Fondo tenue + borde fino de 1 px con esquinas redondeadas, también en los grupos de opciones que ya existen.
+- **¿Los grupos nuevos (lista de fotos, ficha de Metadatos) llevan título de cabecera?** → Sin título: la lista ya tiene su cabecera y la ficha el nombre de la foto.
+- **¿La barra de carpeta, la de destino/acciones y el panel del Timeline llevan también el borde?** → Sí, a juego.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/Theme.swift` (`OptionGroup`), `FileListView.swift`, `SourceFolderBar.swift`, `DestinationBar.swift`.
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowView.swift` (pestaña Fotos/Collages, `SlideshowActionBar`), `SlideshowTimelineView.swift`, `MetadataView.swift`, `RenamerView.swift`.
+- Capturas de todos los módulos antes del cambio (`--screenshot`).
+
+### 4. Decisiones
+- Plan aprobado («dale»), incluida la tabla de vista previa del Renombrador.
+- Un solo modificador `.caobaPanel()` en `Theme.swift` (fondo `controlBackgroundColor`, borde `separatorColor` de 1 px, radio 8). Los colores del sistema se adaptan solos a claro y oscuro, sin mantener dos juegos. `OptionGroup` deja el `GroupBox` y usa el panel con el título encima, así cambian de golpe todos los grupos de opciones.
+- `FileListView` va en su propio bloque y quita el fondo de la `List` (`scrollContentBackground(.hidden)`) para no dejar un recuadro dentro de otro. Con `framed: false` va sin bloque: lo usa la pestaña Fotos/Collages del Slideshow, que es un solo bloque.
+- Ficha de Metadatos (miniatura, EXIF y mapa), tabla de vista previa y barra «Deshacer» del Renombrador, barras de carpeta y destino, barra de acciones del Slideshow y Timeline: todos con `.caobaPanel()`.
+- Fuera del plan, por coherencia: la barra «Elige o arrastra una foto» de Shutter Count, que es la misma pieza que la de carpeta. Las dos usan ahora `.caobaDropPanel(isTargeted:)` (al arrastrar: fondo rojo tenue y borde rojo de 2 px), así ese resaltado no está repetido.
+- Comprobado con capturas de los 9 módulos en oscuro y en claro (`-caoba.appearance light|dark` al arrancar, sin tocar las preferencias de la app instalada).
+- Versión 3.4.0: cambio visual en toda la app.
+- Cuenta de GitHub: el usuario pidió que figure su cuenta personal y no quede rastro de la de EDISA. Revisado: los 52 commits (autor y committer) son de `marcosesperon@gmail.com`, las 14 releases las publicó `marcosesperon` y es el único contribuidor; no hubo que reescribir nada.
+
+### 5. Alternativas descartadas
+- Mantener `GroupBox` y añadirle el borde con un `GroupBoxStyle`: el fondo y el relleno del `GroupBox` de macOS no se controlan bien y los bloques que no son `GroupBox` (lista, barras) no casarían al píxel. Un modificador propio sirve para todo.
+- Dejar la lista de fotos con su bloque dentro del bloque de la pestaña del Slideshow: un bloque dentro de otro recarga la vista.
+- Solo el Slideshow o solo las listas: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- Riesgo de que se cuele la cuenta de EDISA en el futuro: el email global de git es el de EDISA (este repo usa el personal en local) y `gh` tiene las dos cuentas iniciadas; el script de release publica con la activa.

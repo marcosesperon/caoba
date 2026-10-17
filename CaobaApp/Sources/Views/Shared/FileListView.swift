@@ -10,6 +10,8 @@ struct FileListView: View {
     var selection: Binding<URL?>? = nil
     /// Nombres que llevan un punto indicador (por ejemplo, con cambios pendientes).
     var markedNames: Set<String> = []
+    /// Con `false` la lista va sin bloque propio, para quien ya la mete en uno (pestaña Fotos del Slideshow).
+    var framed = true
     @State private var previewURL: URL?
 
     var body: some View {
@@ -43,6 +45,8 @@ struct FileListView: View {
                 }
             }
             .listStyle(.inset)
+            // Sin el fondo propio de la lista: así se ve el del bloque y no queda un recuadro dentro de otro.
+            .scrollContentBackground(.hidden)
             .overlay {
                 if appState.sourceFolder == nil {
                     ContentUnavailableView("Sin carpeta", systemImage: "folder", description: Text("Elige una carpeta de fotos arriba."))
@@ -51,6 +55,7 @@ struct FileListView: View {
                 }
             }
         }
+        .modifier(OptionalPanel(enabled: framed))
         .sheet(item: $previewURL) { url in PhotoPreviewSheet(url: url) }
     }
 
@@ -85,6 +90,14 @@ struct FileListView: View {
             }
             .fixedSize()
         }
+    }
+}
+
+/// Bloque común solo si se pide (la lista puede ir dentro de otro bloque).
+private struct OptionalPanel: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        if enabled { content.caobaPanel(padding: 8) } else { content }
     }
 }
 

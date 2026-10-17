@@ -62,30 +62,35 @@ struct MetadataView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     if let selected, let current {
-                        HStack(alignment: .top, spacing: 16) {
-                            ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 160)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(selected.lastPathComponent).font(.headline)
-                                infoRow("Cámara", current.camera)
-                                infoRow("Objetivo", current.lens)
-                                infoRow("Dimensiones", current.size.map { "\($0.width) × \($0.height)" })
-                                infoRow("ISO", current.iso.map(String.init))
-                                infoRow("Apertura", current.fNumber.map { "f/\($0.formatted())" })
-                                infoRow("Exposición", current.exposureTime.map(formatExposure))
-                                infoRow("Focal", current.focalLength.map { "\($0.formatted()) mm" })
-                                infoRow("Software", current.software)
+                        // Ficha de la foto (miniatura, datos y mapa) en un bloque.
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(alignment: .top, spacing: 16) {
+                                ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 160)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(selected.lastPathComponent).font(.headline)
+                                    infoRow("Cámara", current.camera)
+                                    infoRow("Objetivo", current.lens)
+                                    infoRow("Dimensiones", current.size.map { "\($0.width) × \($0.height)" })
+                                    infoRow("ISO", current.iso.map(String.init))
+                                    infoRow("Apertura", current.fNumber.map { "f/\($0.formatted())" })
+                                    infoRow("Exposición", current.exposureTime.map(formatExposure))
+                                    infoRow("Focal", current.focalLength.map { "\($0.formatted()) mm" })
+                                    infoRow("Software", current.software)
+                                }
+                                Spacer()
                             }
-                            Spacer()
-                        }
-                        if let gps = current.gps {
-                            MapSnippet(coordinate: CLLocationCoordinate2D(latitude: gps.latitude, longitude: gps.longitude))
-                                .frame(height: 180)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                            Button("Abrir en Google Maps") {
-                                appState.openExternal(URL(string: "https://www.google.com/maps?q=\(gps.latitude),\(gps.longitude)")!)
+                            if let gps = current.gps {
+                                MapSnippet(coordinate: CLLocationCoordinate2D(latitude: gps.latitude, longitude: gps.longitude))
+                                    .frame(height: 180)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                Button("Abrir en Google Maps") {
+                                    appState.openExternal(URL(string: "https://www.google.com/maps?q=\(gps.latitude),\(gps.longitude)")!)
+                                }
+                                .buttonStyle(.link)
                             }
-                            .buttonStyle(.link)
                         }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .caobaPanel()
                     } else {
                         ContentUnavailableView("Elige una foto", systemImage: "photo", description: Text("Selecciona un archivo de la lista para ver y editar sus metadatos."))
                             .frame(height: 220)

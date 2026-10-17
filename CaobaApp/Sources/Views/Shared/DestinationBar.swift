@@ -42,9 +42,7 @@ struct DestinationBar: View {
                     }
                 }
             }
-            .padding(10)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .caobaPanel()
         case .outputFolder:
             HStack(spacing: 12) {
                 Image(systemName: "folder.badge.plus").foregroundStyle(.secondary)
@@ -54,9 +52,7 @@ struct DestinationBar: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Elegir…") { appState.chooseDestinationFolder() }
             }
-            .padding(10)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .caobaPanel()
         case .file:
             HStack {
                 Image(systemName: "arrow.down.doc").foregroundStyle(.secondary)
@@ -65,9 +61,7 @@ struct DestinationBar: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Elegir…") { appState.chooseDestinationFile(contentTypes: appState.destinationFileTypes) }
             }
-            .padding(10)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .caobaPanel()
         }
     }
 }
