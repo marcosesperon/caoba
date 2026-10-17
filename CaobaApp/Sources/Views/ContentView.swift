@@ -137,15 +137,21 @@ struct SettingsView: View {
             }
             LabeledRow("Autor") {
                 VStack(alignment: .leading, spacing: 4) {
-                    TextField("Tu nombre o el de tu estudio", text: $author)
+                    // Sin etiqueta propia: dentro del Form, el título del TextField se va a la
+                    // columna de etiquetas, la ensancha y descoloca todas las filas.
+                    TextField("", text: $author, prompt: Text("Tu nombre o el de tu estudio"))
+                        .labelsHidden()
+                        .frame(width: 220)
                     Text("Se guarda en los vídeos del Slideshow y se propone como Artista en Metadatos.")
                         .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true) // que baje de línea en vez de cortarse
                 }
             }
             Divider().padding(.vertical, 4)
             LabeledRow("Presets") {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("\(store.totalCount) presets guardados (Procesador, Marca de agua y Collage)").font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     HStack {
                         Button("Exportar…") { exportPresets() }.disabled(store.totalCount == 0)
                         Button("Importar…") { importPresets() }

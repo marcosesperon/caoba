@@ -276,7 +276,7 @@ Procesador, Marca de agua y Collage llevan un menú «Preset» junto al título:
 - Autor (`caoba.author`): nombre del fotógrafo o estudio. Se guarda como autor en los vídeos del Slideshow (vacío = el vídeo sale sin autor) y, en Metadatos, se propone en «Artista» cuando la foto no trae uno; el botón «Usar mi autor» lo pone aunque la foto tenga otro. Nada se escribe en las fotos hasta pulsar «Escribir metadatos».
 - Aviso de versión: al arrancar consulta `releases/latest` de GitHub y compara como semver. Si hay una más nueva, enseña una banda roja (color de acento, texto blanco) sobre el contenido con «Actualizar ahora» o «Descargar» y cierre. La × solo la oculta hasta cerrar la app: en el siguiente arranque vuelve a salir mientras no se actualice. No hay enlace en la barra lateral.
 - Donativo: botón «Hacer donación» en el pie de la barra lateral (abre Buy Me a Coffee) y una hoja al arrancar, un segundo después de abrir la app, en el primer arranque y luego como mucho cada 7 días (`caoba.donation.lastShown` guarda la última vez, en segundos desde 1970). Para verla sin esperar: borrar esa preferencia con `defaults delete com.marcosesperon.caoba caoba.donation.lastShown`.
-- Ni la hoja ni la banda salen cuando la app arranca en modo captura (`--screenshot`). Para capturarlas a propósito: `--state demo.donation=1` y `--state demo.update=3.1.0`.
+- Ni la hoja ni la banda salen cuando la app arranca en modo captura (`--screenshot`). Para capturarlas a propósito: `--state demo.donation=1` y `--state demo.update=3.1.0`. Para capturar la ventana de Ajustes: `--state demo.settings=1` (la abre con el «Ajustes…» del menú, porque en macOS 14 SwiftUI no atiende `showSettingsWindow:`).
 
 ---
 

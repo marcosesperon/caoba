@@ -1255,3 +1255,26 @@ La frase sobre Canon («Canon, en la mayoría de modelos, no») cambia a «Canon
 
 ### 6. Pendiente de comprobar
 - Si los JPG de la serie R de Canon traen contador (solo se comprobaron JPG de réflex antiguas).
+
+## 2026-10-17 — Ajustes descolocados desde la 3.3.0
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: arreglo de un fallo)* El usuario pregunta qué le ha pasado a la ventana de Ajustes: filas desplazadas a la derecha, menús cortados y un campo de texto diminuto. Se le explicó la causa y el arreglo, y lo aprobó con release («sí, con release y publica»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Views/ContentView.swift` (`SettingsView`, cambiado en la 3.3.0) y `Views/Shared/Theme.swift` (`LabeledRow`).
+
+### 4. Decisiones
+- Causa: dentro de un `Form` de macOS, el título de un `TextField` se va a la columna de etiquetas. «Tu nombre o el de tu estudio» ensanchó esa columna y desplazó todas las filas. Arreglo: `TextField("", text:, prompt:)` + `.labelsHidden()` y ancho fijo de 220.
+- Las notas de Autor y Presets llevan `.fixedSize(horizontal: false, vertical: true)` para que bajen de línea en vez de cortarse con «…».
+- Nueva opción de captura `--state demo.settings=1`. En macOS 14, `showSettingsWindow:` no hace nada, así que se pulsa el elemento con atajo «,» del menú de la app. Se comprobó antes (reproduce el fallo) y después del arreglo.
+- Versión 3.3.4.
+
+### 5. Alternativas descartadas
+- Sustituir el `Form` por un `VStack`: el arreglo es de una línea y el `Form` funciona bien con controles sin etiqueta.
+
+### 6. Pendiente de comprobar
+Nada.

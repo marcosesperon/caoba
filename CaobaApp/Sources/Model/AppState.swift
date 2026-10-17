@@ -270,6 +270,20 @@ final class AppState {
                 window.makeFirstResponder(sink)
                 try? await Task.sleep(for: .milliseconds(300))
             }
+            // `--state demo.settings=1`: abre Ajustes y captura esa ventana en lugar de la principal.
+            if launchState["demo.settings"] != nil {
+                let main = NSApp.windows.first(where: { $0.isVisible })
+                // En macOS 14 SwiftUI no atiende `showSettingsWindow:`; se pulsa el «Ajustes…» (⌘,) del menú de la app.
+                if let appMenu = NSApp.mainMenu?.items.first?.submenu,
+                   let index = appMenu.items.firstIndex(where: { $0.keyEquivalent == "," }) {
+                    appMenu.performActionForItem(at: index)
+                }
+                try? await Task.sleep(for: .milliseconds(800))
+                let settings = NSApp.windows.first { $0.isVisible && $0 !== main && $0.frame.width > 100 }
+                Self.captureMainWindow(to: URL(fileURLWithPath: output), window: settings)
+                NSApp.terminate(nil)
+                return
+            }
             Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil || launchState["demo.lastSeen"] != nil || launchState["capture.sheets"] != nil)
             NSApp.terminate(nil)
         }
@@ -297,8 +311,8 @@ final class AppState {
         return create(bounds, options.rawValue, CGWindowID(window.windowNumber), imageOptions.rawValue)?.takeRetainedValue()
     }
 
-    static func captureMainWindow(to url: URL, includingSheets: Bool = false) {
-        guard let window = NSApp.windows.first(where: { $0.isVisible }) else { return }
+    static func captureMainWindow(to url: URL, includingSheets: Bool = false, window chosen: NSWindow? = nil) {
+        guard let window = chosen ?? NSApp.windows.first(where: { $0.isVisible }) else { return }
         // Primero la imagen real de la ventana (incluye los fondos translúcidos);
         // si el sistema no la da, se dibuja la jerarquía de vistas.
         if let cg = Self.windowImage(of: window, includingSheets: includingSheets), cg.width > 10 {

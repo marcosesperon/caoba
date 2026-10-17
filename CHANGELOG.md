@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.4 — 2026-10-17
+
+- Arreglada la ventana de Ajustes, que desde la 3.3.0 salía descolocada (filas desplazadas y menús cortados) por el campo Autor.
+
 ## 3.3.3 — 2026-10-17
 
 - Shutter Count explica bien qué cámaras guardan el contador: Canon lo guarda en los RAW CR3 (no en los JPG ni en los CR2 antiguos).
