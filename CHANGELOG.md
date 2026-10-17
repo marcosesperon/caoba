@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.3 — 2026-10-17
+
+- Shutter Count explica bien qué cámaras guardan el contador: Canon lo guarda en los RAW CR3 (no en los JPG ni en los CR2 antiguos).
+
 ## 3.3.2 — 2026-10-17
 
 - **Shutter Count con CR3 de Canon**: lee el contador de disparos de los RAW CR3 (por ejemplo, de la EOS R6 Mark II), el firmware y la vida útil del modelo exacto aunque la cámara se llame con nombre corto («R6m2»).

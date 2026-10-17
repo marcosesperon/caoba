@@ -1230,3 +1230,28 @@ Confirmada por el usuario («sí») el 2026-10-17.
 
 ### 6. Pendiente de comprobar
 - El texto de la pantalla vacía de Shutter Count dice que Canon «en la mayoría de modelos» no guarda el contador; con los CR3 sí lo guarda. Se deja como está (fuera de esta petición), avisado al usuario.
+
+## 2026-10-17 — Shutter Count: texto sobre Canon
+
+### 1. La petición tal como se ha entendido
+Confirmada por el usuario («sí, con release y publica») el 2026-10-17.
+
+La frase sobre Canon («Canon, en la mayoría de modelos, no») cambia a «Canon, en los RAW CR3 (los JPG y los CR2 antiguos no lo traen)», en español y en inglés, en dos sitios: la pantalla vacía de Shutter Count de la app y la tarjeta de Shutter Count de la landing (`index.html`).
+
+### 2. Preguntas y respuestas
+- **¿Qué texto se pone para Canon y dónde?** → «Nikon, Sony y Pentax lo guardan; Canon, en los RAW CR3 (los JPG y los CR2 antiguos no lo traen).» En la app y en la landing.
+- **¿Release o solo commit y push?** → Release 3.3.3 y publicar.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Views/Modules/ShutterCountView.swift`, `Localizable.xcstrings` e `index.html` (tarjeta de Shutter Count).
+- JPG de Canon EOS 60D y 5D Mark II en el Mac del usuario: ninguno trae contador con exiftool.
+
+### 4. Decisiones
+- En el `.xcstrings`, la clave es el texto en español: se sustituye la entrada (clave y traducción) en lugar de añadir una nueva y dejar la vieja huérfana.
+- Versión 3.3.3.
+
+### 5. Alternativas descartadas
+- Texto corto sin mencionar los JPG: no explica por qué un JPG de Canon sale sin contador.
+
+### 6. Pendiente de comprobar
+- Si los JPG de la serie R de Canon traen contador (solo se comprobaron JPG de réflex antiguas).

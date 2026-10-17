@@ -34,7 +34,7 @@ struct ShutterCountView: View {
                 }
             } else {
                 ContentUnavailableView("Elige una foto", systemImage: "camera.aperture",
-                                       description: Text("Acepta JPG y RAW (NEF, CR2, CR3, ARW, DNG…). El contador de disparos depende de la marca: Nikon, Sony y Pentax lo guardan; Canon, en la mayoría de modelos, no."))
+                                       description: Text("Acepta JPG y RAW (NEF, CR2, CR3, ARW, DNG…). El contador de disparos depende de la marca: Nikon, Sony y Pentax lo guardan; Canon, en los RAW CR3 (los JPG y los CR2 antiguos no lo traen)."))
             }
             Spacer()
             if !exifToolAvailable {
