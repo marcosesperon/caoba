@@ -1068,3 +1068,23 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+## 2026-10-17 — Landing: sección «Por qué CAOBA»
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo)* La sección «Por qué nativa» no decía mucho; rediseñarla. Propuesta aceptada («vale»): «Por qué CAOBA» con cuatro razones en lenguaje de usuario y una nota final que conecta con la historia.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- La sección existente (hablaba de Core Image, VideoToolbox, ImageIO).
+
+### 4. Decisiones
+- Cuatro bloques con el mismo CSS: «0 € · Gratis. De verdad», «100 % · Tus fotos no salen de tu Mac», «↩ · Pensada para no perder nada» y «14 MB · Rápida y ligera», cada uno con una frase sobre lo que gana el usuario; sin nombres de frameworks. Nota final en cursiva: hecha por un estudio para su propio trabajo. Enlace de la barra: «Por qué CAOBA». El dato de tamaño pasa de 30 a 14 MB (el DMG real).
+
+### 5. Alternativas descartadas
+- Mantener los datos técnicos (GPU, frameworks): es lo que no decía nada al fotógrafo.
+
+### 6. Pendiente de comprobar
+Nada.
+
