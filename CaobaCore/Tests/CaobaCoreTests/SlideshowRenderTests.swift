@@ -95,6 +95,40 @@ struct SlideshowRendererTests {
         return (duration, size, hasAudio)
     }
 
+    /// Etiquetas 3GPP del MP4 (las únicas que AVAssetWriter guarda en .mp4), como texto.
+    private func tags(_ url: URL) async throws -> [AVMetadataIdentifier: String] {
+        var result: [AVMetadataIdentifier: String] = [:]
+        for item in try await AVURLAsset(url: url).load(.metadata) {
+            guard let id = item.identifier, let value = try await item.load(.stringValue) else { continue }
+            result[id] = value
+        }
+        return result
+    }
+
+    @Test("Etiquetas del MP4 sin música: descripción y autor; sin autor no se escribe")
+    func metadataWithoutAudio() async throws {
+        let folder = try TestImages.makeTempFolder()
+        let photo = try TestImages.makePhoto(in: folder, name: "a.jpg", width: 800, height: 600)
+        let output = folder.appendingPathComponent("tags.mp4")
+        var spec = SlideshowSpec(photos: [SlideshowPhoto(url: photo, duration: 0.5)], format: .landscape16x9,
+                                 transition: false, output: output, preview: true)
+        spec.metadata = VideoMetadata(author: "  Ana Ficticia ", comment: "Creado con CAOBA — https://caobafoto.com")
+        try await SlideshowRenderer.generate(spec)
+
+        let written = try await tags(output)
+        #expect(written[.identifier3GPUserDataDescription] == "Creado con CAOBA — https://caobafoto.com")
+        #expect(written[.identifier3GPUserDataAuthor] == "Ana Ficticia")
+        #expect(written[.identifier3GPUserDataPerformer] == "Ana Ficticia")
+        #expect(written[AVMetadataIdentifier(rawValue: "uiso/date")] != nil)
+
+        spec.metadata = VideoMetadata(author: "   ", comment: "x")
+        try await SlideshowRenderer.generate(spec)
+        let empty = try await tags(output)
+        #expect(empty[.identifier3GPUserDataAuthor] == nil)
+        #expect(empty[.identifier3GPUserDataPerformer] == nil)
+        #expect(empty[.identifier3GPUserDataDescription] == "x")
+    }
+
     @Test("Vídeo con fundido, marca de agua y dos pistas de audio")
     func fullRender() async throws {
         let folder = try TestImages.makeTempFolder()
@@ -106,13 +140,14 @@ struct SlideshowRendererTests {
         try TestAudio.writeTone(to: track2, dbfs: -30, seconds: 4)
         let output = folder.appendingPathComponent("out.mp4")
 
-        let spec = SlideshowSpec(
+        var spec = SlideshowSpec(
             photos: photos.map { SlideshowPhoto(url: $0, duration: 1.5) },
             format: .landscape16x9, fps: 25, transition: true,
             watermark: VideoWatermark(url: wm, position: .bottomRight, sizePercent: 30, opacity: 80),
             audio: AudioOptions(tracks: [AudioTrack(url: track1), AudioTrack(url: track2)], fadeOut: true, normalize: true),
             output: output, preview: true
         )
+        spec.metadata = VideoMetadata(author: "Ana Ficticia", comment: "Made with CAOBA — https://caobafoto.com")
         let phases = PhaseCollector()
         try await SlideshowRenderer.generate(spec) { p in phases.insert(p.phase) }
 
@@ -120,6 +155,9 @@ struct SlideshowRendererTests {
         #expect(abs(result.duration - 5.5) < 0.1) // 3 × 1,5 + 1 de transición
         #expect(result.size == CGSize(width: 960, height: 540)) // preview a la mitad
         #expect(result.hasAudio)
+        let written = try await tags(output)
+        #expect(written[.identifier3GPUserDataDescription] == "Made with CAOBA — https://caobafoto.com")
+        #expect(written[.identifier3GPUserDataAuthor] == "Ana Ficticia")
         #expect(phases.seen.isSuperset(of: [.analyzingAudio, .encodingVideo, .mixingAudio]))
     }
 

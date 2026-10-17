@@ -65,6 +65,7 @@ public final class VideoWriter {
         ])
         guard writer.canAdd(input) else { throw CaobaError.cannotWriteImage("video input") }
         writer.add(input)
+        writer.metadata = spec.metadata.items()
         guard writer.startWriting() else { throw CaobaError.cannotWriteImage(writer.error?.localizedDescription ?? "startWriting") }
         writer.startSession(atSourceTime: .zero)
 

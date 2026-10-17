@@ -18,6 +18,8 @@ struct MetadataView: View {
     /// Ediciones pendientes por fichero (modo "solo esta foto").
     @State private var edits: [URL: MetadataEdit] = [:]
     @State private var form = FormFields()
+    /// Autor de Ajustes; se observa para que el botón «Usar mi autor» se active al momento.
+    @AppStorage(Preferences.authorKey) private var settingsAuthor = ""
 
     struct FormFields: Equatable {
         var artist = ""
@@ -98,7 +100,13 @@ struct MetadataView: View {
                             .pickerStyle(.segmented)
                             .labelsHidden()
                         }
-                        TextField("Artista", text: $form.artist)
+                        HStack {
+                            TextField("Artista", text: $form.artist)
+                            // Pone el autor de Ajustes aunque la foto ya traiga otro.
+                            Button("Usar mi autor") { form.artist = Preferences.author ?? form.artist }
+                                .disabled(settingsAuthor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                .help("Pone el autor de Ajustes en el campo Artista.")
+                        }
                         TextField("Copyright", text: $form.copyright)
                         TextField("Descripción", text: $form.description)
                         TextField("Fecha (AAAA:MM:DD hh:mm:ss)", text: $form.date)
@@ -157,6 +165,8 @@ struct MetadataView: View {
             let metadata = await Task.detached { MetadataService.read(url) }.value
             current = metadata
             form = FormFields(from: metadata)
+            // Foto sin artista: proponemos el autor de Ajustes (no se escribe hasta pulsar «Escribir metadatos»).
+            if form.artist.isEmpty, let author = Preferences.author { form.artist = author }
             // Si ya había un cambio pendiente para esta foto, lo mostramos.
             if let pending = edits[url] {
                 form.artist = pending.artist ?? form.artist

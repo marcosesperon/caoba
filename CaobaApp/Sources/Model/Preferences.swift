@@ -8,6 +8,13 @@ enum Preferences {
     static let donationLastShownKey = "caoba.donation.lastShown"
     static let updateDismissedVersionKey = "caoba.update.dismissedVersion"
     static let lastSeenVersionKey = "caoba.lastSeenVersion"
+    static let authorKey = "caoba.author"
+
+    /// Autor de Ajustes sin espacios sobrantes; nil si no se ha puesto.
+    static var author: String? {
+        let text = UserDefaults.standard.string(forKey: authorKey)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? nil : text
+    }
 }
 
 /// Tema claro / oscuro / el del sistema.

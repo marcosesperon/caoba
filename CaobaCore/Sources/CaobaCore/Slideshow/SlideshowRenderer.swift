@@ -52,7 +52,8 @@ public enum SlideshowRenderer {
         // 3. Mezcla con el audio.
         if !segments.isEmpty {
             try Task.checkCaobaCancellation()
-            try await AudioMuxer.mux(videoURL: videoOnly, segments: segments, totalDuration: timeline.totalDuration, output: spec.output, progress: progress)
+            try await AudioMuxer.mux(videoURL: videoOnly, segments: segments, totalDuration: timeline.totalDuration, output: spec.output,
+                                     metadata: spec.metadata, progress: progress)
         }
         progress?(JobProgress(phase: .encodingVideo, fraction: 1))
         return spec.output

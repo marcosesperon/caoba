@@ -30,6 +30,26 @@
         }
       }
     },
+    "Autor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Author"
+          }
+        }
+      }
+    },
+    "Creado con CAOBA — https://caobafoto.com" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Made with CAOBA — https://caobafoto.com"
+          }
+        }
+      }
+    },
     "¡Gracias!" : {
       "localizations" : {
         "en" : {
@@ -4567,6 +4587,16 @@
         }
       }
     },
+    "Pone el autor de Ajustes en el campo Artista." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puts the author from Settings in the Artist field."
+          }
+        }
+      }
+    },
     "Por defecto" : {
       "localizations" : {
         "en" : {
@@ -5154,6 +5184,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "It is added before the element selected on the timeline, or at the end; you can drag it elsewhere afterwards."
+          }
+        }
+      }
+    },
+    "Se guarda en los vídeos del Slideshow y se propone como Artista en Metadatos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved in Slideshow videos and suggested as Artist in Metadata."
           }
         }
       }
@@ -5820,6 +5860,16 @@
         }
       }
     },
+    "Tu nombre o el de tu estudio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your name or your studio's"
+          }
+        }
+      }
+    },
     "TV, YouTube" : {
       "localizations" : {
         "en" : {
@@ -5886,6 +5936,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uses the title style from the “Cover & text” tab."
+          }
+        }
+      }
+    },
+    "Usar mi autor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use my author"
           }
         }
       }

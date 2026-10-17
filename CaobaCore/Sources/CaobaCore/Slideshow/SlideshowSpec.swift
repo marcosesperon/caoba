@@ -203,6 +203,8 @@ public struct SlideshowSpec: Sendable, Equatable {
     public var output: URL
     /// Mitad de resolución y bitrate bajo, para la vista previa.
     public var preview: Bool
+    /// Etiquetas del MP4 (software, comentario, autor).
+    public var metadata = VideoMetadata()
 
     public static let transitionSeconds = 1.0
 

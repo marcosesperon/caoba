@@ -207,6 +207,7 @@ En la app (`ContentComposition`) el resultado se convierte en un nuevo orden de 
 | `AudioPlan` | Dónde empieza y acaba cada pista: automático (al acabar la anterior menos 3 s de crossfade) o en una foto; fundidos de entrada/salida y ganancia. Cada `AudioTrack` admite `trimStart` y `trimEnd` (segundos de la canción): se salta la intro, se corta en el "Hasta" y la última pista repite ese tramo hasta el final del vídeo. Con `loopPlaylist` (por defecto) y más de una pista, al acabar la lista se vuelve a la primera con crossfade |
 | `LoudnessMeter` | BS.1770-4: filtro K, bloques de 400 ms, gating absoluto y relativo. `measure(url:)` devuelve LUFS; `gain(from:to:)` la ganancia hacia -16 LUFS. Verificado con el tono de referencia de EBU Tech 3341 (-23 dBFS → -23 LUFS) |
 | `AudioMuxer` | `AVMutableComposition` + `AVMutableAudioMix` (rampas de volumen) → AAC 192 kbps; vídeo en passthrough |
+| `VideoMetadata` | Etiquetas del MP4 (`spec.metadata`): descripción (la app pone «Creado con CAOBA — https://caobafoto.com», traducida), fecha de exportación y, si hay autor en Ajustes, autor e intérprete. Las escriben `VideoWriter` y `AudioMuxer`, así que van en todos los vídeos, con música o sin ella |
 | `KenBurns` | Geometría: `cropRect(imageSize:targetSize:effect:t:intensity:focus:)` para los 10 efectos automáticos, `customCropRect` para inicio/fin con zoom, `progress(...)` con retardo, porcentaje y easing. Misma matemática que `kenburns.js` |
 | `CollageSlideshow` | Modo collage: renderiza cada collage con 0, 1, 2… fotos visibles en JPEG temporales y los convierte en `SlideshowPhoto` con duraciones (0,5 s el lienzo vacío, `reveal` por foto, `hold` al final) |
 | `SlideshowPreset` | Sección `slideshow` del `.caoba`, con las claves v1 de la app antigua más `kenBurns.byFile`/`pointsByFile` (por nombre de fichero, en vez de por índice) y `collage.sequence` |
@@ -218,6 +219,8 @@ En la app (`ContentComposition`) el resultado se convierte en un nuevo orden de 
 - Pestaña contextual: foto (efecto, duración, encuadre de inicio y fin con "Enfocar caras" y previsualización, botón Ampliar que abre lo mismo a tamaño grande); portada o créditos (imagen y duración); pista (inicio en el vídeo, Desde/Hasta, quitar); collage (encuadre por celda, cambio de plantilla, quitar).
 - Barra inferior con destino del vídeo, duración total, Vista previa y Generar vídeo.
 - Estado y lógica en `SlideshowDocument` (modelo `@Observable`); las vistas son `SlideshowView` (pestañas y barra de acción), `SlideshowTimelineView`, las pestañas de `SlideshowInspector.swift` (`SourceTab`, `VideoTab`, `ExtrasTab`, `MusicTab`, `SelectionTab`) y `KenBurnsFramingView`.
+
+**Etiquetas del vídeo.** Un detalle que conviene saber: en un `.mp4`, `AVAssetWriter` solo guarda las etiquetas 3GPP (`dscp` descripción, `auth` autor, `perf` intérprete, `date`) y descarta sin avisar las demás (el software `©swr`/`©too`, los comentarios de iTunes…). Por eso no hay campo «Software» y el nombre de CAOBA con la web va en la descripción. Para verlas: `exiftool -G1 -a video.mp4 | grep UserData`.
 
 Detalles de la app:
 - Los efectos y puntos Ken Burns se guardan **por nombre de fichero**, así excluir una foto no desalinea el resto (fallo conocido de la app antigua).
@@ -267,6 +270,7 @@ Procesador, Marca de agua y Collage llevan un menú «Preset» junto al título:
 - Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.
 - Apariencia (`caoba.appearance`): sistema / claro / oscuro.
 - Carpetas recientes (`caoba.recentFolders`): máximo 5.
+- Autor (`caoba.author`): nombre del fotógrafo o estudio. Se guarda como autor en los vídeos del Slideshow (vacío = el vídeo sale sin autor) y, en Metadatos, se propone en «Artista» cuando la foto no trae uno; el botón «Usar mi autor» lo pone aunque la foto tenga otro. Nada se escribe en las fotos hasta pulsar «Escribir metadatos».
 - Aviso de versión: al arrancar consulta `releases/latest` de GitHub y compara como semver. Si hay una más nueva, deja un enlace en el pie de la barra lateral y enseña una banda sobre el contenido con «Descargar» y cierre; al cerrarla se guarda esa versión en `caoba.update.dismissedVersion` y la banda no vuelve a salir hasta la siguiente versión (el enlace del pie sí se queda).
 - Donativo: botón «Hacer donación» en el pie de la barra lateral (abre Buy Me a Coffee) y una hoja al arrancar, un segundo después de abrir la app, en el primer arranque y luego como mucho cada 7 días (`caoba.donation.lastShown` guarda la última vez, en segundos desde 1970). Para verla sin esperar: borrar esa preferencia con `defaults delete com.marcosesperon.caoba caoba.donation.lastShown`.
 - Ni la hoja ni la banda salen cuando la app arranca en modo captura (`--screenshot`). Para capturarlas a propósito: `--state demo.donation=1` y `--state demo.update=3.1.0`.

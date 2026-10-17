@@ -58,7 +58,8 @@ public enum AudioMuxer {
     }
 
     /// Escribe `output` con el vídeo de `videoURL` y la mezcla de `segments`.
-    public static func mux(videoURL: URL, segments: [AudioSegment], totalDuration: Double, output: URL, progress: ProgressHandler?) async throws {
+    public static func mux(videoURL: URL, segments: [AudioSegment], totalDuration: Double, output: URL,
+                           metadata: VideoMetadata = VideoMetadata(), progress: ProgressHandler?) async throws {
         TempFiles.remove(output)
         let videoAsset = AVURLAsset(url: videoURL)
         guard let videoTrack = try await videoAsset.loadTracks(withMediaType: .video).first else {
@@ -92,7 +93,7 @@ public enum AudioMuxer {
         audioInput.expectsMediaDataInRealTime = false
         writer.add(videoInput)
         writer.add(audioInput)
-        writer.metadata = [Self.authorMetadata()]
+        writer.metadata = metadata.items()
         guard writer.startWriting(), videoReader.startReading(), audioReader.startReading() else {
             throw CaobaError.cannotWriteImage(writer.error?.localizedDescription ?? "mux start")
         }
@@ -111,13 +112,6 @@ public enum AudioMuxer {
         guard writer.status == .completed else {
             throw CaobaError.cannotWriteImage(writer.error?.localizedDescription ?? "mux finish")
         }
-    }
-
-    static func authorMetadata() -> AVMetadataItem {
-        let item = AVMutableMetadataItem()
-        item.identifier = .commonIdentifierAuthor
-        item.value = "CAOBA" as NSString
-        return item
     }
 
     /// Copia muestras de los lectores a los escritores en una cola serie y avisa

@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.0 — 2026-10-17
+
+- **Autor en Ajustes**: un campo nuevo con tu nombre o el de tu estudio. Se guarda en los vídeos del Slideshow y, en Metadatos, se propone como Artista en las fotos que no tienen; el botón «Usar mi autor» lo pone aunque la foto ya traiga otro.
+- **Etiquetas en los vídeos del Slideshow**: todos los vídeos, con música o sin ella, llevan la descripción «Creado con CAOBA — https://caobafoto.com», la fecha de exportación y tu autor. Ya no aparece «CAOBA» como autor.
+
 ## 3.2.0 — 2026-10-16
 
 - **Texto sobre el vídeo**: tarjetas de texto en cualquier punto del timeline del Slideshow, para un título al principio, un cierre al final o un título de sección a mitad. Cada tarjeta puede ser pantalla propia con fondo de color o texto superpuesto a la foto siguiente, con su duración, transición y empalmes para que el texto se quede quieto mientras la tarjeta se funde con la foto de al lado.

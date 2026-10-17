@@ -928,6 +928,7 @@ final class SlideshowDocument {
         if case .kind(let k) = transitionChoice { spec.defaultTransition = k }
         spec.defaultTransitionDuration = transitionDuration
         spec.captionStyle = captionStyle
+        spec.metadata = VideoMetadata(author: Preferences.author, comment: L("Creado con CAOBA — https://caobafoto.com"))
         if spec.captionStyle.animation == .random { spec.captionStyle.animation = .fade }   // las fotos llevan la suya resuelta
         if spec.captionStyle.exitAnimation == .random { spec.captionStyle.exitAnimation = TextAnimation.randomPool.randomElement() ?? .fade }
         return spec

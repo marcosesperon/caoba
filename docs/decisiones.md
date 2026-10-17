@@ -1088,3 +1088,54 @@ Ninguna.
 ### 6. Pendiente de comprobar
 Nada.
 
+
+## 2026-10-17 — Slideshow: metadatos de CAOBA y URL en el vídeo exportado
+
+### 1. La petición tal como se ha entendido
+Confirmada por el usuario («sí») el 2026-10-17.
+
+Todo MP4 que exporta el slideshow, tenga música o no, lleva estas etiquetas fijas:
+- **Software/Encoder**: `CAOBA <versión>` (por ejemplo, `CAOBA 3.2.0`).
+- **Comentario/Descripción**: «Creado con CAOBA — https://caobafoto.com» (o «Made with CAOBA — https://caobafoto.com» si la app está en inglés).
+- **Fecha de creación**: el momento de la exportación.
+- **Autor**: el nombre que el usuario ponga en un nuevo campo «Autor» de los Ajustes. Si lo deja vacío, el vídeo sale sin autor. Desaparece el autor fijo «CAOBA» que se escribía hasta ahora.
+
+El slideshow no cambia: no hay casillas para quitar las etiquetas ni campos para editarlas.
+
+En el módulo Metadatos, el campo «Artista» propone el autor de los Ajustes solo cuando la foto no trae uno; si la foto ya tiene artista, se muestra el suyo. Junto al campo hay un botón «Usar mi autor» que pone el de los Ajustes aunque la foto tenga otro (desactivado si el campo de Ajustes está vacío). Nada se escribe hasta pulsar «Escribir metadatos».
+
+Queda fuera: el collage, la hoja de contactos y el resto de imágenes que genera CAOBA.
+
+### 2. Preguntas y respuestas
+- **¿Etiquetas fijas, desactivables o editables por el usuario?** → Fijas, sin cambios en la interfaz.
+- **El campo «Autor» (hoy «CAOBA»): ¿quitarlo o mantenerlo?** → Ni una cosa ni otra: el autor se configura en un campo de los ajustes de la app.
+- **Si el campo «Autor» de los ajustes está vacío, ¿qué se escribe?** → Nada: el vídeo sale sin autor. CAOBA sigue figurando como software y en el comentario.
+- **¿El campo «Autor» de los ajustes se usa solo en el vídeo o en más sitios?** → En el vídeo del slideshow y, además, como valor que propone el módulo Metadatos para el campo «Artista».
+- **En Metadatos, ¿cuándo se propone el autor de los ajustes?** → Solo si la foto no trae artista; si ya tiene uno, se muestra el suyo. Se escribe únicamente al pulsar «Escribir metadatos», como ahora.
+- **¿En qué idioma va el comentario con la web?** → En el de la app: «Creado con CAOBA — https://caobafoto.com» o «Made with CAOBA — https://caobafoto.com».
+- **¿Se añade también un botón «Usar mi autor» para forzarlo aunque la foto ya tenga artista?** (en la pregunta anterior era una opción excluyente; se retomó a petición del usuario) → Sí, las dos cosas: se propone si la foto no tiene artista y el botón lo fuerza. El botón se desactiva si el autor de los Ajustes está vacío.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Slideshow/VideoWriter.swift`, `SlideshowRenderer.swift`, `SlideshowSpec.swift` y `Audio/AudioMuxer.swift` (CAOBA 3.2.0): solo `AudioMuxer` escribía un metadato, autor «CAOBA», así que los vídeos sin música salían sin etiquetas.
+- `CaobaApp/Views/ContentView.swift` (`SettingsView`), `Model/Preferences.swift`, `Views/Modules/MetadataView.swift`, `Model/SlideshowDocument.swift`.
+- `Tools/make-release.sh` y `CHANGELOG.md` para la release.
+- Ficheros MP4 generados en las pruebas, revisados con el exiftool que va dentro de la app (`CaobaApp/Vendor/exiftool`).
+
+### 4. Decisiones
+- `VideoMetadata` (nuevo, en `SlideshowSpec.metadata`) monta las etiquetas, y la usan `VideoWriter` y `AudioMuxer`. Así todos los vídeos las llevan, tengan música o no.
+- La app envía el texto del comentario ya traducido con `L(…)`, porque el motor no sabe en qué idioma está la app.
+- **El campo «Software» (`CAOBA 3.3.0`) se quita del plan.** Probado con exiftool: en un `.mp4`, AVAssetWriter solo guarda las etiquetas 3GPP (`dscp`, `auth`, `perf`, `date`). Las de software se descartan en silencio en las cuatro variantes probadas: comunes (salen como `swre`, que nadie lee), iTunes (`©too`), datos de usuario de QuickTime (`©swr`) y `mdta`. Lo pedido se cumple igual, porque el nombre de CAOBA y la web van en la descripción.
+- Se escriben los identificadores 3GPP directamente, no los «comunes», porque el artista común no llegaba al fichero. El autor va como `auth` y como `perf` (intérprete), que es lo que muchos reproductores muestran como artista.
+- En Metadatos, el botón observa el autor con `@AppStorage`, para que se active nada más rellenarlo en Ajustes sin tener que reabrir el módulo.
+- Versión 3.3.0 (función nueva → sube el número menor).
+
+### 5. Alternativas descartadas
+- Editar las etiquetas desde el slideshow o poder desactivarlas: el usuario prefirió etiquetas fijas.
+- Mantener «CAOBA» como autor: CAOBA es la herramienta, no la autora de las fotos.
+- Escribir el software con exiftool después de generar el vídeo: el motor dependería del exiftool de la app y habría que reescribir un fichero grande solo por una etiqueta.
+- Exportar como `.mov` o `.m4v` para que entren las etiquetas de QuickTime/iTunes: cambia el tipo de fichero que el usuario espera y que admiten las redes.
+- Llevar el autor también a collage y hoja de contactos: fuera del alcance pedido.
+
+### 6. Pendiente de comprobar
+- Qué enseña el Finder (Obtener información) con un vídeo exportado de verdad: Spotlight no indexa la carpeta temporal de las pruebas.
+- Las redes sociales (YouTube, Instagram, WhatsApp) borran casi todas las etiquetas al subir el vídeo; solo se conservan en el fichero original.

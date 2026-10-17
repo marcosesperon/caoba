@@ -116,10 +116,11 @@ struct ComingSoonView: View {
     }
 }
 
-/// Preferencias: idioma, apariencia y presets.
+/// Preferencias: idioma, apariencia, autor y presets.
 struct SettingsView: View {
     @AppStorage(Preferences.appearanceKey) private var appearance: Appearance = .system
     @AppStorage(Preferences.languageKey) private var language: AppLanguage = .system
+    @AppStorage(Preferences.authorKey) private var author = ""
     @State private var store = PresetStore.shared
     @State private var presetMessage: String?
 
@@ -136,6 +137,13 @@ struct SettingsView: View {
                     ForEach(Appearance.allCases) { Text($0.title).tag($0) }
                 }
                 .labelsHidden()
+            }
+            LabeledRow("Autor") {
+                VStack(alignment: .leading, spacing: 4) {
+                    TextField("Tu nombre o el de tu estudio", text: $author)
+                    Text("Se guarda en los vídeos del Slideshow y se propone como Artista en Metadatos.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
             Divider().padding(.vertical, 4)
             LabeledRow("Presets") {
