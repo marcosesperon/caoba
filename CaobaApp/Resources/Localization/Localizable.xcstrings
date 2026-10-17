@@ -1492,6 +1492,16 @@
         }
       }
     },
+    "Collage %lld · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collage %lld · %@"
+          }
+        }
+      }
+    },
     "Collages" : {
       "localizations" : {
         "en" : {
@@ -5703,6 +5713,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text"
+          }
+        }
+      }
+    },
+    "Texto · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text · %@"
           }
         }
       }

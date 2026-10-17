@@ -169,6 +169,12 @@ public struct SlideshowPhoto: Sendable, Equatable, Identifiable {
     public var captionExit = true
     /// Texto superpuesto unos segundos al empezar la foto (título sobre la primera foto).
     public var overlay: TextOverlay?
+    /// Nombre que se enseña en el progreso; `nil` = el del fichero. Sirve para las
+    /// imágenes temporales (pasos de collage, fondos de tarjeta), cuyo fichero no dice nada.
+    public var label: String?
+
+    /// Lo que sale en el progreso mientras se codifica esta foto.
+    public var displayName: String { label ?? url.lastPathComponent }
 
     public init(id: UUID = UUID(), url: URL, duration: Double, kenBurns: KenBurnsEffect? = nil, points: KenBurnsPoints? = nil, easing: KenBurnsEasing? = nil,
                 transition: TransitionKind? = nil, transitionDuration: Double? = nil, caption: String? = nil, overlay: TextOverlay? = nil) {

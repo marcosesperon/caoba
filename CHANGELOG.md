@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.6 — 2026-10-17
+
+- Al generar el vídeo del Slideshow, el progreso ya no enseña nombres de ficheros temporales: en los collages sale «Collage 7 · plantilla» y en las tarjetas de texto, «Texto · » y su primera línea.
+
 ## 3.3.5 — 2026-10-17
 
 - El fondo «Negro» es ahora negro de verdad: las tarjetas de texto del Slideshow, el Collage y la Contact Sheet salían en un gris muy oscuro.

@@ -192,6 +192,19 @@ struct SlideshowRendererTests {
         #expect(!(corner.r < 10 && corner.g < 10 && corner.b < 10))
     }
 
+    @Test("El progreso de codificación enseña la etiqueta de la foto o, sin ella, el nombre del fichero")
+    func progressNames() async throws {
+        let folder = try TestImages.makeTempFolder()
+        let urls = try makePhotos(in: folder)
+        var photos = urls.prefix(2).map { SlideshowPhoto(url: $0, duration: 1) }
+        photos[1].label = "Collage 1 · Mosaico"
+        let spec = SlideshowSpec(photos: photos, format: .landscape16x9, transition: false,
+                                 output: folder.appendingPathComponent("p.mp4"), preview: true)
+        let names = NameCollector()
+        try await SlideshowRenderer.generate(spec) { p in if p.phase == .encodingVideo, let n = p.currentFile { names.insert(n) } }
+        #expect(names.seen == ["a.jpg", "Collage 1 · Mosaico"])
+    }
+
     @Test("Cancelar durante la codificación")
     func cancel() async throws {
         let folder = try TestImages.makeTempFolder()
@@ -211,6 +224,14 @@ final class PhaseCollector: @unchecked Sendable {
     private let lock = NSLock()
     func insert(_ phase: JobPhase) { lock.lock(); set.insert(phase); lock.unlock() }
     var seen: Set<JobPhase> { lock.lock(); defer { lock.unlock() }; return set }
+}
+
+/// Recoge los nombres de fichero del progreso desde cualquier hilo.
+final class NameCollector: @unchecked Sendable {
+    private var set: Set<String> = []
+    private let lock = NSLock()
+    func insert(_ name: String) { lock.lock(); set.insert(name); lock.unlock() }
+    var seen: Set<String> { lock.lock(); defer { lock.unlock() }; return set }
 }
 
 extension VideoWriter {

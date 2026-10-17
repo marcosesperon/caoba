@@ -433,9 +433,12 @@ final class SlideshowDocument {
         let delay = (delayed && entry < duration) ? entry : 0
         // Sin salida, el texto debe seguir mientras la tarjeta se funde con lo siguiente: se alarga más que cualquier transición.
         let extra = style.resolvedExit == .none ? Self.carryOverExtra : 0
-        return SlideshowPhoto(url: try renderCardBackground(background), duration: duration,
-                              transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entry,
-                              overlay: TextOverlay(lines: lines, style: style, duration: duration - delay + extra, delay: delay))
+        var photo = SlideshowPhoto(url: try renderCardBackground(background), duration: duration,
+                                   transition: resolvedTransition(for: id, generator: &generator), transitionDuration: entry,
+                                   overlay: TextOverlay(lines: lines, style: style, duration: duration - delay + extra, delay: delay))
+        // El fondo es un fichero temporal: en el progreso se enseña el texto de la tarjeta.
+        photo.label = lines.first.map { L("Texto · \($0)") } ?? L("Texto")
+        return photo
     }
 
     /// Margen con el que se alarga un texto sin salida para que siga durante la transición al elemento siguiente.
@@ -962,6 +965,7 @@ final class SlideshowDocument {
         let collageEntries = fixedRows.map { (resolvedTransition(for: $0.id.uuidString, generator: &generator), entryDuration(for: $0.id.uuidString)) }
         let coverEntry = (resolvedTransition(for: "cover", generator: &generator), entryDuration(for: "cover"))
         let creditsEntry = (resolvedTransition(for: "credits", generator: &generator), entryDuration(for: "credits"))
+        let collageLabels = fixedRows.enumerated().map { L("Collage \($0 + 1) · \($1.template.name)") }
         let collageCaptions = fixedRows.enumerated().map { caption(for: $1.id.uuidString, index: $0 + 1, total: fixedRows.count, info: nil, name: $1.template.name) }
         // Las tarjetas de texto se resuelven en el hilo principal cuando la lista está montada.
         let textApplier: @Sendable ([SlideshowPhoto], [String]) async throws -> [SlideshowPhoto] = { list, owners in
@@ -988,11 +992,14 @@ final class SlideshowDocument {
                     index += row.template.photos + 1
                 }
                 // Pie de cada collage en todos sus pasos: entra en el primero y sale en el último.
+                // Cada paso es un fichero temporal: en el progreso sale «Collage n · plantilla».
                 var step = 0
                 for (r, row) in limited.enumerated() {
                     let text = collageCaptions[r]
+                    let label = collageLabels[r]
                     let steps = row.template.photos + 1
                     for k in 0..<steps where photos.indices.contains(step) {
+                        photos[step].label = label
                         photos[step].caption = text
                         photos[step].captionEntry = k == 0
                         photos[step].captionExit = k == steps - 1

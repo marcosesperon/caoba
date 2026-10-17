@@ -1305,3 +1305,33 @@ Confirmada por el usuario («sí, confirmado»).
 
 ### 6. Pendiente de comprobar
 - Con `--folder` en una carpeta nueva, `--state text.demo=card` no deja las tarjetas en el timeline: al cargar la carpeta se aplica el preset (o los valores por defecto) y las borra. Para comprobar el arreglo se metió la tarjeta a mano en el `.caoba` de la carpeta de prueba.
+
+## 2026-10-17 — Sin nombres de ficheros temporales en el progreso del vídeo
+
+### 1. La petición tal como se ha entendido
+Mientras se codifica el vídeo del Slideshow, el mensaje de progreso enseña bajo el porcentaje el nombre del fichero del elemento en curso. En los collages y en las tarjetas de texto con fondo, ese fichero es una imagen temporal (`page007_frame03.jpg` o un identificador largo), y no le dice nada a quien usa la app. En esos casos tiene que salir una descripción legible: «Collage 7 · <nombre de la plantilla>», el mismo nombre que enseña el timeline, y «Texto · <primera línea de la tarjeta>». Las fotos normales, la portada y los créditos siguen mostrando su nombre de fichero, que sí es del usuario.
+Confirmada por el usuario («así»).
+
+### 2. Preguntas y respuestas
+- **Al codificar un collage o una tarjeta de texto, ¿qué sale bajo el porcentaje: una descripción legible, nada, o nada en ningún caso (tampoco en fotos)?** → Descripción legible.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Slideshow/VideoWriter.swift` (progreso con `url.lastPathComponent`).
+- `CaobaCore/Sources/CaobaCore/Slideshow/CollageSlideshow.swift` (`page%03d_frame%02d.jpg`).
+- `CaobaApp/Sources/Model/SlideshowDocument.swift` (`textCardPhoto`, `renderCardBackground`, `launch`).
+- `CaobaApp/Sources/Views/Shared/ProgressSheet.swift` y `SlideshowTimelineView.swift` (etiquetas del timeline).
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación como la 3.3.5.
+- `SlideshowPhoto.label` (opcional) y `displayName` (`label` o el nombre del fichero) en el motor; `VideoWriter` usa `displayName` en el progreso de codificación. Así el motor no tiene que saber qué ficheros son temporales: lo decide quien monta el vídeo.
+- La app pone la etiqueta en `textCardPhoto` («Texto · <primera línea>», o «Texto» si no hay texto) y en cada paso de collage («Collage n · <plantilla>», el nombre que enseña el timeline). Cadenas nuevas en `Localizable.xcstrings` con su versión en inglés.
+- Test nuevo en `SlideshowRenderTests`: el progreso enseña la etiqueta o, sin ella, el nombre del fichero. Pasan los 128 tests del motor.
+- Comprobado en la app con un `print` temporal en `JobRunner` (ya quitado), con dos collages y una tarjeta: salen «Collage 1 · Single 16:9», «Collage 2 · Single centrado 16:9» y «Texto · Alex & Sofi».
+- Versión 3.3.6.
+
+### 5. Alternativas descartadas
+- Detectar en el motor si la URL está en la carpeta temporal y ocultarla: no da un texto legible y ata el motor a dónde guarda la app sus temporales.
+- No enseñar nada en collages y tarjetas, o quitar la línea también en las fotos: descartadas por el usuario; se pierde la pista de por dónde va el vídeo.
+
+### 6. Pendiente de comprobar
+- La hoja de progreso no sale en las capturas de `--screenshot` (es una ventana aparte); por eso se comprobó con el `print`.

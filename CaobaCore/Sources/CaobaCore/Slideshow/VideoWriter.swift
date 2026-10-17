@@ -96,7 +96,7 @@ public final class VideoWriter {
             if frame % 5 == 0 {
                 let current = timeline.frame(at: t)?.current ?? 0
                 progress?(JobProgress(phase: .encodingVideo, fraction: Double(frame) / Double(max(1, totalFrames)),
-                                      currentFile: spec.photos.indices.contains(current) ? spec.photos[current].url.lastPathComponent : nil))
+                                      currentFile: spec.photos.indices.contains(current) ? spec.photos[current].displayName : nil))
             }
         }
         input.markAsFinished()
