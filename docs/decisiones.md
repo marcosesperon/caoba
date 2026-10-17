@@ -1377,3 +1377,27 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Riesgo de que se cuele la cuenta de EDISA en el futuro: el email global de git es el de EDISA (este repo usa el personal en local) y `gh` tiene las dos cuentas iniciadas; el script de release publica con la activa.
+
+## 2026-10-17 — La release solo se publica con la cuenta personal
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: propuesta concreta aceptada)* Al revisar la cuenta de GitHub en la petición anterior quedaron dos riesgos: el email global de git es el de EDISA y `gh` tiene también la cuenta de EDISA iniciada. Se propuso que `Tools/make-release.sh --publish` compruebe antes de nada que el email de git del repo es `marcosesperon@gmail.com` y que la cuenta activa de `gh` es `marcosesperon`, y que pare si no. El usuario lo aceptó («si»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `Tools/make-release.sh` (ASCII, LF).
+
+### 4. Decisiones
+- La comprobación solo corre con `--publish` (compilar el DMG en local no publica nada) y va antes de los tests y la compilación, para fallar rápido.
+- Si `gh` falla (sin sesión o token caducado), la cuenta se da por vacía y la release para igual.
+- Probado con una copia del script cortada tras la comprobación: pasa con la configuración actual, para con el email de EDISA (forzado con `GIT_CONFIG_*`) y con `gh` sin sesión válida (`GH_TOKEN` inválido), y sin `--publish` no comprueba nada.
+- Sin versión nueva: la app no cambia.
+
+### 5. Alternativas descartadas
+- Cambiar el email global de git o cerrar la sesión de EDISA en `gh`: afecta al trabajo de EDISA en otros repos.
+- Un hook de git que valide el email en cada commit: el email ya está fijado en el repo; el riesgo real es la release con `gh`, y esto lo cubre sin añadir piezas.
+
+### 6. Pendiente de comprobar
+Nada.

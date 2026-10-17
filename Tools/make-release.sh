@@ -28,6 +28,28 @@ if ! xcodebuild -version >/dev/null 2>&1; then
 fi
 
 echo "== CAOBA $VERSION =="
+
+# Al publicar, todo tiene que ir a nombre de la cuenta personal: el email de
+# git del repo (autor de los commits) y la cuenta activa de gh (autor de la
+# release). Se comprueba antes de compilar para no perder tiempo si falla.
+PERSONAL_EMAIL="marcosesperon@gmail.com"
+PERSONAL_GH="marcosesperon"
+if [ "$PUBLISH" = 1 ]; then
+  GIT_EMAIL="$(git config user.email || true)"
+  [ "$GIT_EMAIL" = "$PERSONAL_EMAIL" ] || {
+    echo "El email de git del repo es '$GIT_EMAIL', no $PERSONAL_EMAIL." >&2
+    echo "Arreglalo con: git config user.email $PERSONAL_EMAIL" >&2
+    exit 1
+  }
+  # Si gh falla (sin sesion o token caducado) se queda vacio, no con el JSON del error.
+  GH_USER="$(gh api user -q .login 2>/dev/null)" || GH_USER=""
+  [ "$GH_USER" = "$PERSONAL_GH" ] || {
+    echo "La cuenta activa de gh es '$GH_USER', no $PERSONAL_GH." >&2
+    echo "Cambiala con: gh auth switch --user $PERSONAL_GH" >&2
+    exit 1
+  }
+fi
+
 command -v xcodegen >/dev/null || { echo "Falta xcodegen (brew install xcodegen)" >&2; exit 1; }
 [ -d CaobaApp/Vendor/exiftool ] || echo "Aviso: no hay exiftool en CaobaApp/Vendor (Tools/fetch-exiftool.sh); Shutter Count solo leera Nikon."
 
