@@ -1139,3 +1139,36 @@ Queda fuera: el collage, la hoja de contactos y el resto de imágenes que genera
 ### 6. Pendiente de comprobar
 - Qué enseña el Finder (Obtener información) con un vídeo exportado de verdad: Spotlight no indexa la carpeta temporal de las pruebas.
 - Las redes sociales (YouTube, Instagram, WhatsApp) borran casi todas las etiquetas al subir el vídeo; solo se conservan en el fichero original.
+
+## 2026-10-17 — Aviso de versión nueva: sin enlace en la barra lateral y banda en rojo
+
+### 1. La petición tal como se ha entendido
+Confirmada por el usuario («sí») el 2026-10-17.
+
+Cuando hay una versión nueva:
+- Desaparece de la barra lateral el enlace «Nueva versión X». El pie queda siempre igual: CAOBA, la versión, caobafoto.com y «Hacer donación».
+- La banda de arriba pasa a tener fondo rojo sólido #D71921 (el color de acento), con el texto y los iconos en blanco. El botón «Actualizar ahora» o «Descargar» va en blanco con el texto en rojo. También cambian de color los estados de descarga, comprobación, instalación y error.
+- La × oculta la banda solo mientras la app sigue abierta. Al volver a arrancar sale otra vez, hasta que se actualice. Ya no se recuerda la versión cerrada (`caoba.update.dismissedVersion` deja de usarse).
+
+### 2. Preguntas y respuestas
+- **Sin el enlace lateral, ¿qué pasa al cerrar la banda con la ×?** → Se oculta solo mientras la app sigue abierta; al volver a arrancar sale otra vez, hasta que se actualice.
+- **¿Rojo sólido o suave?** → Sólido: fondo #D71921 (el color de acento), texto e iconos en blanco y el botón «Actualizar ahora» en blanco con el texto en rojo.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Views/ContentView.swift` (pie de la barra lateral), `Model/AppState.swift` (`checkForUpdates`, `dismissUpdateBanner`), `Model/Preferences.swift`, `Views/Shared/DonationSheet.swift` (`UpdateBanner`), `Assets.xcassets/AccentColor` (#D71921), todo en CAOBA 3.3.0.
+
+### 4. Decisiones
+- La banda usa `Color.accentColor`, no un rojo escrito a mano: si algún día cambia el acento, la banda cambia con él.
+- `BannerButtonStyle` (privado) para los botones de la banda: blanco con el texto en el color de acento. Se usa en «Actualizar ahora/Descargar», «Cancelar» y «Abrir en el navegador».
+- La banda fuerza `colorScheme = .dark` para que los controles del sistema (spinner, barra de progreso) salgan claros sobre el rojo.
+- Se quita `Preferences.updateDismissedVersionKey`. El valor que quede guardado en los Macs no molesta porque nadie lo lee.
+- Comprobado con una captura (`--state demo.update=9.9.9 --screenshot`).
+- Versión 3.3.1 (cambio pequeño de interfaz).
+
+### 5. Alternativas descartadas
+- Rojo suave (semitransparente con borde): destaca menos, y lo que se pedía era resaltar.
+- Mantener la × «hasta la siguiente versión»: sin el enlace lateral, esa versión no se volvería a avisar nunca.
+- Banda sin ×: demasiado insistente.
+
+### 6. Pendiente de comprobar
+- Cómo se ven en rojo los estados de descarga, instalación y error (solo se capturó el estado inicial).

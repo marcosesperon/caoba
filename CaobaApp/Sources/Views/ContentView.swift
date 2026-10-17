@@ -74,14 +74,6 @@ struct ContentView: View {
     private var sidebarFooter: some View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
-            if let update = appState.availableUpdate {
-                Button {
-                    appState.openExternal(update.url)
-                } label: {
-                    Label("Nueva versión \(update.version)", systemImage: "arrow.down.circle")
-                }
-                .buttonStyle(.link)
-            }
             HStack {
                 Text("CAOBA").font(.caobaTitle(14))
                 Spacer()

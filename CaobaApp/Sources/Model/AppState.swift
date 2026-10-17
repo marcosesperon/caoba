@@ -309,16 +309,13 @@ final class AppState {
 
     func checkForUpdates() async {
         availableUpdate = await VersionCheck.fetchNewerRelease(than: CaobaCoreInfo.version)
-        guard let update = availableUpdate, !isScreenshotMode else { return }
-        // Si el usuario ya cerró la banda de esta versión, no se insiste; el enlace del pie se queda.
-        let dismissed = UserDefaults.standard.string(forKey: Preferences.updateDismissedVersionKey)
-        showUpdateBanner = dismissed != update.version
+        guard availableUpdate != nil, !isScreenshotMode else { return }
+        showUpdateBanner = true
     }
 
+    /// La × solo oculta la banda hasta cerrar la app: en el siguiente arranque
+    /// vuelve a salir mientras siga habiendo una versión más nueva.
     func dismissUpdateBanner() {
-        if let version = availableUpdate?.version {
-            UserDefaults.standard.set(version, forKey: Preferences.updateDismissedVersionKey)
-        }
         showUpdateBanner = false
     }
 

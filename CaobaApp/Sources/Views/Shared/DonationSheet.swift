@@ -47,7 +47,8 @@ struct DonationSheet: View {
     }
 }
 
-/// Banda fina sobre el contenido cuando hay una versión más nueva publicada.
+/// Banda roja sobre el contenido cuando hay una versión más nueva publicada.
+/// Va en el color de acento con texto blanco para que no pase desapercibida.
 struct UpdateBanner: View {
     @Environment(AppState.self) private var appState
     let update: VersionCheck.Release
@@ -56,43 +57,57 @@ struct UpdateBanner: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.down.circle.fill")
-                .foregroundStyle(Color.accentColor)
             switch updater.phase {
             case .downloading(let fraction):
                 Text("Descargando CAOBA \(update.version)…").font(.callout)
-                ProgressView(value: fraction).frame(width: 140)
-                Button("Cancelar") { updater.cancel() }.controlSize(.small)
+                ProgressView(value: fraction).frame(width: 140).tint(.white)
+                Button("Cancelar") { updater.cancel() }.buttonStyle(BannerButtonStyle())
             case .verifying:
                 Text("Comprobando la descarga…").font(.callout)
-                ProgressView().controlSize(.small)
+                ProgressView().controlSize(.small).tint(.white)
             case .installing:
                 Text("Instalando…").font(.callout)
-                ProgressView().controlSize(.small)
+                ProgressView().controlSize(.small).tint(.white)
             case .relaunching:
                 Text("Reiniciando CAOBA…").font(.callout)
             case .manual(let message), .failed(let message):
                 Text(message).font(.callout).lineLimit(2)
-                Button("Abrir en el navegador") { appState.openExternal(update.url) }.controlSize(.small)
+                Button("Abrir en el navegador") { appState.openExternal(update.url) }.buttonStyle(BannerButtonStyle())
             case .idle:
-                Text("Nueva versión \(update.version) disponible").font(.callout)
+                Text("Nueva versión \(update.version) disponible").font(.callout.weight(.semibold))
             }
             Spacer()
             if case .idle = updater.phase {
                 Button(update.dmg != nil ? "Actualizar ahora" : "Descargar") {
                     if update.dmg != nil { updater.update(to: update) } else { appState.openExternal(update.url) }
                 }
-                .controlSize(.small)
+                .buttonStyle(BannerButtonStyle())
             }
             Button { appState.dismissUpdateBanner() } label: {
                 Image(systemName: "xmark")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.85))
             }
             .buttonStyle(.plain)
             .help("Cerrar aviso")
         }
+        .foregroundStyle(.white)
+        .environment(\.colorScheme, .dark) // controles del sistema (spinner) en claro sobre el rojo
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+/// Botón de la banda de versión: blanco con el texto en rojo, para que
+/// resalte sobre el fondo rojo.
+private struct BannerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.callout.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 3)
+            .background(.white.opacity(configuration.isPressed ? 0.8 : 1), in: RoundedRectangle(cornerRadius: 5))
     }
 }

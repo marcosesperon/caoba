@@ -6,7 +6,6 @@ enum Preferences {
     static let languageKey = "caoba.language"
     static let recentFoldersKey = "caoba.recentFolders"
     static let donationLastShownKey = "caoba.donation.lastShown"
-    static let updateDismissedVersionKey = "caoba.update.dismissedVersion"
     static let lastSeenVersionKey = "caoba.lastSeenVersion"
     static let authorKey = "caoba.author"
 

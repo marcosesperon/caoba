@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.3.1 — 2026-10-17
+
+- **Aviso de versión nueva más visible**: la banda de arriba pasa a rojo con el botón «Actualizar ahora» en blanco. Al cerrarla solo se oculta hasta la próxima vez que abras CAOBA.
+- Se quita el enlace de versión nueva del pie de la barra lateral.
+
 ## 3.3.0 — 2026-10-17
 
 - **Autor en Ajustes**: un campo nuevo con tu nombre o el de tu estudio. Se guarda en los vídeos del Slideshow y, en Metadatos, se propone como Artista en las fotos que no tienen; el botón «Usar mi autor» lo pone aunque la foto ya traiga otro.
