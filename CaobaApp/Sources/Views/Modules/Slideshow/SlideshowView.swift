@@ -105,6 +105,15 @@ struct SlideshowView: View {
             }
             // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
             if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
+            // `--state slideshow.select=collage|photo`: selecciona el primer collage o la primera foto
+            // del timeline en cuanto estén, para capturar sus inspectores.
+            if let kind = appState.launchState["slideshow.select"] {
+                Task {
+                    var attempts = 0
+                    while firstSelection(kind, in: doc) == nil && attempts < 40 { try? await Task.sleep(for: .milliseconds(250)); attempts += 1 }
+                    if let selection = firstSelection(kind, in: doc) { doc.selection = selection }
+                }
+            }
             // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
             if appState.launchState["slideshow.rhythm"] != nil {
                 Task { await autoAdjustToRhythm(doc) }
@@ -203,6 +212,18 @@ struct SlideshowView: View {
         case .track: return String(localized: "Pista")
         case .collage(let id): return String(localized: "Collage \((doc.rows.firstIndex { $0.id == id } ?? 0) + 1)")
         }
+    }
+
+    /// Primer collage o primera foto del timeline como selección (para `slideshow.select`).
+    private func firstSelection(_ kind: String, in doc: SlideshowDocument) -> TimelineSelection? {
+        for item in doc.items {
+            switch item.kind {
+            case .collage(let row) where kind == "collage": return .collage(row.id)
+            case .photo(let url) where kind == "photo": return .photo(url.lastPathComponent)
+            default: continue
+            }
+        }
+        return nil
     }
 
     /// Altura del timeline según el número de pistas (con tope).

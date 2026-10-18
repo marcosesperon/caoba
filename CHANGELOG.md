@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.4.1 — 2026-10-18
+
+- **Ajustes de un collage o una foto del Slideshow más claros**: el collage o los paneles de encuadre ocupan la izquierda y los ajustes van a la derecha en bloques con título (Tiempo, Transición, Pie y, en las fotos, Efecto y Encuadre). «Cambiar» enseña las plantillas en un panel junto al botón.
+
 ## 3.4.0 — 2026-10-17
 
 - **Pantallas más ordenadas**: las opciones, las listas de fotos, la ficha de Metadatos, las barras de arriba y abajo y el Timeline van en bloques con un borde fino, así cada cosa se ve en su sitio en vez de desperdigada por la ventana. En el Slideshow, la pestaña Fotos/Collages es un solo bloque con el modo, los botones y la lista.

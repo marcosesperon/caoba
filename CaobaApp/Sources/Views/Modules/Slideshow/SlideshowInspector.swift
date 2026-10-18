@@ -488,6 +488,8 @@ struct FontListPopover: View {
 struct CaptionOverrideRow: View {
     @Bindable var doc: SlideshowDocument
     let id: String
+    /// En columna (inspectores con columna de ajustes): selector y campo uno debajo de otro.
+    var stacked = false
 
     private enum Choice: Hashable { case pattern, own, none }
     private var choice: Choice {
@@ -496,27 +498,40 @@ struct CaptionOverrideRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            LabeledRow("Pie") {
-                Picker("", selection: Binding<Choice>(get: { choice }, set: { new in
-                    switch new {
-                    case .pattern: doc.itemCaptions[id] = nil
-                    case .own: if doc.itemCaptions[id]?.isEmpty ?? true { doc.itemCaptions[id] = " " }
-                    case .none: doc.itemCaptions[id] = ""
-                    }
-                })) {
-                    Text("Patrón").tag(Choice.pattern)
-                    Text("Propio").tag(Choice.own)
-                    Text("Sin pie").tag(Choice.none)
-                }
-                .pickerStyle(.segmented).fixedSize().labelsHidden()
+        if stacked {
+            VStack(alignment: .leading, spacing: 8) {
+                picker
+                if choice == .own { ownField }
             }
-            if choice == .own {
-                TextField("", text: Binding(get: { doc.itemCaptions[id] ?? "" }, set: { doc.itemCaptions[id] = $0.isEmpty ? " " : $0 }))
-                    .textFieldStyle(.roundedBorder).frame(maxWidth: 300)
+        } else {
+            HStack(spacing: 10) {
+                LabeledRow("Pie") { picker }
+                if choice == .own { ownField.frame(maxWidth: 300) }
+                Spacer()
             }
-            Spacer()
         }
+    }
+
+    /// Patrón (el de la pestaña «Portada y texto»), pie propio o ninguno.
+    private var picker: some View {
+        Picker("", selection: Binding<Choice>(get: { choice }, set: { new in
+            switch new {
+            case .pattern: doc.itemCaptions[id] = nil
+            case .own: if doc.itemCaptions[id]?.isEmpty ?? true { doc.itemCaptions[id] = " " }
+            case .none: doc.itemCaptions[id] = ""
+            }
+        })) {
+            Text("Patrón").tag(Choice.pattern)
+            Text("Propio").tag(Choice.own)
+            Text("Sin pie").tag(Choice.none)
+        }
+        .pickerStyle(.segmented).fixedSize().labelsHidden()
+    }
+
+    /// Texto del pie propio (un espacio guardado = propio pero aún vacío).
+    private var ownField: some View {
+        TextField("", text: Binding(get: { doc.itemCaptions[id] ?? "" }, set: { doc.itemCaptions[id] = $0.isEmpty ? " " : $0 }))
+            .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -602,35 +617,60 @@ struct ImageSlotInspector: View {
 struct TransitionOverrideRow: View {
     @Bindable var doc: SlideshowDocument
     let id: String
+    /// En columna (inspectores con columna de ajustes): tipo arriba y duración debajo.
+    var stacked = false
 
     private var hasDuration: Bool { doc.transitionChoice(for: id).hasDuration }
 
+    private var duration: Binding<Double> {
+        Binding(get: { doc.entryDuration(for: id) }, set: { doc.itemTransitionDurations[id] = $0 })
+    }
+
+    /// Botón de volver a la duración global; solo si esta tiene una propia.
+    private var resetDuration: (() -> Void)? {
+        doc.itemTransitionDurations[id] == nil ? nil : { doc.itemTransitionDurations[id] = nil }
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
-            LabeledRow("Transición") {
-                Picker("", selection: Binding<TransitionChoice?>(get: { doc.itemTransitions[id] }, set: { doc.itemTransitions[id] = $0 })) {
-                    Text("Por defecto").tag(TransitionChoice?.none)
-                    ForEach(TransitionChoice.all, id: \.self) { Text($0.title).tag(TransitionChoice?.some($0)) }
-                }
-                .frame(maxWidth: 220)
-                .labelsHidden()
-            }
-            if hasDuration {
-                Text("Duración").foregroundStyle(.secondary)
-                Slider(value: Binding(get: { doc.entryDuration(for: id) }, set: { doc.itemTransitionDurations[id] = $0 }), in: 0.25...2, step: 0.25)
-                    .frame(maxWidth: 160)
-                Text("\(doc.entryDuration(for: id), specifier: "%.2f") s").monospacedDigit().frame(width: 52)
-                if doc.itemTransitionDurations[id] != nil {
-                    Button { doc.itemTransitionDurations[id] = nil } label: { Image(systemName: "arrow.uturn.backward") }
-                        .buttonStyle(.borderless).help("Volver a la duración global")
+        if stacked {
+            VStack(alignment: .leading, spacing: 8) {
+                picker.frame(maxWidth: .infinity, alignment: .leading)
+                if hasDuration {
+                    StackedSlider(title: "Duración", value: duration, in: 0.25...2, step: 0.25, onReset: resetDuration) {
+                        Text("\(doc.entryDuration(for: id), specifier: "%.2f") s")
+                    }
                 }
             }
-            Spacer()
+        } else {
+            HStack(spacing: 10) {
+                LabeledRow("Transición") { picker.frame(maxWidth: 220) }
+                if hasDuration {
+                    Text("Duración").foregroundStyle(.secondary)
+                    Slider(value: duration, in: 0.25...2, step: 0.25)
+                        .frame(maxWidth: 160)
+                    Text("\(doc.entryDuration(for: id), specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                    if let resetDuration {
+                        Button(action: resetDuration) { Image(systemName: "arrow.uturn.backward") }
+                            .buttonStyle(.borderless).help("Volver a la duración global")
+                    }
+                }
+                Spacer()
+            }
         }
+    }
+
+    /// «Por defecto» = la transición global de la pestaña Vídeo.
+    private var picker: some View {
+        Picker("", selection: Binding<TransitionChoice?>(get: { doc.itemTransitions[id] }, set: { doc.itemTransitions[id] = $0 })) {
+            Text("Por defecto").tag(TransitionChoice?.none)
+            ForEach(TransitionChoice.all, id: \.self) { Text($0.title).tag(TransitionChoice?.some($0)) }
+        }
+        .labelsHidden()
     }
 }
 
-/// Foto seleccionada: efecto, duración y encuadre.
+/// Foto seleccionada: cabecera con «Ampliar», los paneles de inicio y fin del Ken Burns
+/// a la izquierda y, en una sola columna, efecto, encuadre, tiempo, transición y pie.
 struct PhotoInspector: View {
     @Bindable var doc: SlideshowDocument
     let url: URL
@@ -639,34 +679,33 @@ struct PhotoInspector: View {
     private var name: String { url.lastPathComponent }
 
     var body: some View {
-        HStack {
-            Text(name).font(.headline).lineLimit(1).truncationMode(.middle)
-            Spacer()
-            Button { expandedFraming = url } label: { Label("Ampliar", systemImage: "arrow.up.left.and.arrow.down.right") }
-                .help("Editar el encuadre a tamaño grande")
-        }
-        HStack(spacing: 16) {
-            LabeledRow("Efecto") {
-                Picker("", selection: Binding(get: { doc.choice(for: url) }, set: { doc.setChoice($0, for: url) })) {
-                    ForEach(EffectChoice.all, id: \.self) { Text($0.title).tag($0) }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(name).font(.headline).lineLimit(1).truncationMode(.middle)
+                Spacer()
+                Button { expandedFraming = url } label: { Label("Ampliar", systemImage: "arrow.up.left.and.arrow.down.right") }
+                    .help("Editar el encuadre a tamaño grande")
+            }
+            KenBurnsFramingView(doc: doc, url: url, compact: false) {
+                OptionGroup(title: "Efecto") {
+                    Picker("", selection: Binding(get: { doc.choice(for: url) }, set: { doc.setChoice($0, for: url) })) {
+                        ForEach(EffectChoice.all, id: \.self) { Text($0.title).tag($0) }
+                    }
+                    .labelsHidden()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: 300)
-                .labelsHidden()
+            } trailing: {
+                OptionGroup(title: "Tiempo") {
+                    StackedSlider(title: "Duración", value: Binding(get: { doc.duration(of: url) }, set: { doc.photoDurations[name] = $0 }),
+                                  in: 0.5...30, step: 0.5, onReset: doc.photoDurations[name] == nil ? nil : { doc.photoDurations[name] = nil }) {
+                        Text("\(doc.duration(of: url), specifier: "%.1f") s")
+                    }
+                }
+                OptionGroup(title: "Transición") { TransitionOverrideRow(doc: doc, id: name, stacked: true) }
+                OptionGroup(title: "Pie") { CaptionOverrideRow(doc: doc, id: name, stacked: true) }
             }
-            Text("Duración").foregroundStyle(.secondary)
-            Slider(value: Binding(get: { doc.duration(of: url) }, set: { doc.photoDurations[name] = $0 }), in: 0.5...30, step: 0.5)
-                .frame(maxWidth: 220)
-            Text("\(doc.duration(of: url), specifier: "%.1f") s").monospacedDigit().frame(width: 48)
-            if doc.photoDurations[name] != nil {
-                Button { doc.photoDurations[name] = nil } label: { Image(systemName: "arrow.uturn.backward") }
-                    .buttonStyle(.borderless).help("Volver a la duración global")
-            }
-            Spacer()
-        }
-        TransitionOverrideRow(doc: doc, id: name)
-        CaptionOverrideRow(doc: doc, id: name)
-        KenBurnsFramingView(doc: doc, url: url, compact: false)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
     }
 }
 
@@ -706,7 +745,23 @@ struct TrackInspector: View {
     }
 }
 
-/// Collage seleccionado: encuadre por celda (encajado al espacio) y cambio de plantilla.
+/// Columna de ajustes de los inspectores con vista grande (Collage y Foto): ancho fijo,
+/// grupos uno debajo de otro y desplazamiento si no caben en alto.
+struct InspectorColumn<Content: View>: View {
+    static var width: CGFloat { 300 }
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) { content }
+                .padding(.trailing, 2)   // que el borde de los bloques no lo tape la barra de desplazamiento
+        }
+        .frame(width: Self.width)
+    }
+}
+
+/// Collage seleccionado: cabecera con las acciones, el collage (encuadre por celda o
+/// resultado) a la izquierda y los ajustes de tiempo, transición y pie en una columna.
 struct CollageInspector: View {
     @Bindable var doc: SlideshowDocument
     let row: CollageRow
@@ -716,56 +771,75 @@ struct CollageInspector: View {
     private var itemIndex: Int? { doc.sequence.firstIndex { $0.id == row.id } }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
-                Text(row.template.name).font(.headline)
-                CollageViewModePicker(showResult: $showResult)
-                if !showResult {
-                    Text("· arrastra cada foto para encuadrarla").font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text("Mantener").foregroundStyle(.secondary)
-                Slider(value: Binding(get: { row.hold ?? doc.hold }, set: { doc.setHold($0, for: row.id) }), in: 0...30, step: 0.5)
-                    .frame(width: 140)
-                Text("\(row.hold ?? doc.hold, specifier: "%.1f") s").monospacedDigit().frame(width: 44)
-                if row.hold != nil {
-                    Button { doc.setHold(nil, for: row.id) } label: { Image(systemName: "arrow.uturn.backward") }
-                        .buttonStyle(.borderless).help("Volver al valor global")
-                }
-                Divider().frame(height: 16)
-                if !showResult {
-                    Button { centerCells() } label: { Label("Centrar", systemImage: "scope") }
-                    Toggle(isOn: $showTemplates) { Label("Cambiar", systemImage: "rectangle.3.group") }.toggleStyle(.button)
-                }
-                Button(role: .destructive) { doc.removeCollage(row.id) } label: { Label("Quitar", systemImage: "trash") }
-            }
-            TransitionOverrideRow(doc: doc, id: row.id.uuidString)
-            CaptionOverrideRow(doc: doc, id: row.id.uuidString)
+        VStack(alignment: .leading, spacing: 10) {
+            header
             HStack(alignment: .top, spacing: 16) {
-                if showResult {
-                    // Con las opciones de collage del vídeo, que son las que se usan al generar.
-                    CollageResultView(row: row, options: doc.collageOptions.collage)
-                } else {
-                    TemplateView(template: row.template, files: row.files, focusPoints: row.focusPoints, gap: 3) { cell, point in
-                        guard let i = itemIndex, doc.sequence[i].focusPoints.indices.contains(cell) else { return }
-                        doc.sequence[i].focusPoints[cell] = point
-                        doc.sequence[i].manualCells.insert(cell)
+                collageView
+                InspectorColumn {
+                    OptionGroup(title: "Tiempo") {
+                        StackedSlider(title: "Mantener", value: Binding(get: { row.hold ?? doc.hold }, set: { doc.setHold($0, for: row.id) }),
+                                      in: 0...30, step: 0.5, onReset: row.hold == nil ? nil : { doc.setHold(nil, for: row.id) }) {
+                            Text("\(row.hold ?? doc.hold, specifier: "%.1f") s")
+                        }
+                        Text("Segundos con el collage ya completo, antes de pasar al siguiente.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                }
-                if showTemplates, !showResult {
-                    TemplatePicker(templates: CollageTemplates.filter(photos: row.template.photos, includeOverlap: true), selected: [row.template.id]) { template in
-                        guard let i = itemIndex else { return }
-                        doc.sequence[i].templateID = template.id
-                        doc.sequence[i].focusPoints = Array(repeating: nil, count: template.photos)
-                        doc.sequence[i].manualCells = []
-                    }
-                    .frame(width: 340)
-                    .frame(maxHeight: .infinity)
+                    OptionGroup(title: "Transición") { TransitionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
+                    OptionGroup(title: "Pie") { CaptionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    /// Nombre de la plantilla y acciones: modo de vista, centrar, cambiar plantilla y quitar.
+    private var header: some View {
+        HStack(spacing: 10) {
+            Text(row.template.name).font(.headline).lineLimit(1)
+            Spacer()
+            CollageViewModePicker(showResult: $showResult)
+            if !showResult {
+                Button { centerCells() } label: { Label("Centrar", systemImage: "scope") }
+                    .help("Volver a centrar todas las fotos en su celda")
+                Button { showTemplates = true } label: { Label("Cambiar", systemImage: "rectangle.3.group") }
+                    .help("Cambiar la plantilla por otra con el mismo número de fotos")
+                    .popover(isPresented: $showTemplates, arrowEdge: .bottom) { templatePicker }
+            }
+            Button(role: .destructive) { doc.removeCollage(row.id) } label: { Label("Quitar", systemImage: "trash") }
+                .help("Quitar este collage del vídeo")
+        }
+    }
+
+    /// El collage a todo el espacio que quede: resultado final o encuadre arrastrable por celda.
+    @ViewBuilder
+    private var collageView: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if showResult {
+                // Con las opciones de collage del vídeo, que son las que se usan al generar.
+                CollageResultView(row: row, options: doc.collageOptions.collage)
+            } else {
+                TemplateView(template: row.template, files: row.files, focusPoints: row.focusPoints, gap: 3) { cell, point in
+                    guard let i = itemIndex, doc.sequence[i].focusPoints.indices.contains(cell) else { return }
+                    doc.sequence[i].focusPoints[cell] = point
+                    doc.sequence[i].manualCells.insert(cell)
+                }
+                Text("Arrastra cada foto para encuadrarla en su celda.").font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    /// Plantillas con el mismo número de fotos; al elegir una se aplica y se cierra el popover.
+    private var templatePicker: some View {
+        TemplatePicker(templates: CollageTemplates.filter(photos: row.template.photos, includeOverlap: true), selected: [row.template.id]) { template in
+            guard let i = itemIndex else { return }
+            doc.sequence[i].templateID = template.id
+            doc.sequence[i].focusPoints = Array(repeating: nil, count: template.photos)
+            doc.sequence[i].manualCells = []
+            showTemplates = false
+        }
+        .frame(width: 360, height: 440)
+        .padding(10)
     }
 
     private func centerCells() {

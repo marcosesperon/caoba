@@ -96,6 +96,43 @@ struct LabeledSlider<Display: View>: View {
     }
 }
 
+/// Deslizador para columnas estrechas (inspectores): la etiqueta arriba y, debajo,
+/// el deslizador, el valor y, si se pasa `onReset`, el botón de volver al valor global.
+/// En una columna de 300 puntos la fila de `LabeledSlider` dejaría el deslizador en nada.
+struct StackedSlider<Display: View>: View {
+    let title: LocalizedStringKey
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+    let step: Double
+    /// Acción del botón «volver al valor global»; `nil` = no se enseña.
+    var onReset: (() -> Void)?
+    @ViewBuilder let display: Display
+
+    init(title: LocalizedStringKey, value: Binding<Double>, in range: ClosedRange<Double>, step: Double,
+         onReset: (() -> Void)? = nil, @ViewBuilder display: () -> Display) {
+        self.title = title
+        self._value = value
+        self.range = range
+        self.step = step
+        self.onReset = onReset
+        self.display = display()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                Slider(value: $value, in: range, step: step)
+                display.monospacedDigit().frame(width: 52, alignment: .trailing)
+                if let onReset {
+                    Button(action: onReset) { Image(systemName: "arrow.uturn.backward") }
+                        .buttonStyle(.borderless).help("Volver al valor global")
+                }
+            }
+        }
+    }
+}
+
 /// Etiqueta y control en una fila, con la etiqueta en la misma columna fija
 /// que usan los deslizadores, para que todos los controles empiecen alineados.
 struct LabeledRow<Content: View>: View {

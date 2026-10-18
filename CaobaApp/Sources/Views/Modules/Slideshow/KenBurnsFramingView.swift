@@ -4,10 +4,27 @@ import CaobaCore
 /// Encuadre Ken Burns de una foto: paneles de inicio y fin arrastrables, zoom,
 /// retardo, ajuste, "Enfocar caras" y previsualización animada. En el
 /// inspector va compacto (paneles apilados); ampliado, uno al lado del otro.
-struct KenBurnsFramingView: View {
+///
+/// Con `leading` y `trailing`, los controles van en una columna de inspector
+/// (`InspectorColumn`): lo que pase quien llama antes (efecto), el grupo «Encuadre»
+/// y lo que pase después (tiempo, transición, pie). Así el inspector de Foto tiene
+/// una sola columna de ajustes, con el encuadre arriba, junto a los paneles.
+struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     @Bindable var doc: SlideshowDocument
     let url: URL
     let compact: Bool
+    private let leading: Leading
+    private let trailing: Trailing
+    private let hasLeading: Bool
+
+    init(doc: SlideshowDocument, url: URL, compact: Bool, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+        self.doc = doc
+        self.url = url
+        self.compact = compact
+        self.leading = leading()
+        self.trailing = trailing()
+        self.hasLeading = true
+    }
 
     @State private var isPlaying = false
     @State private var playStart = Date()
@@ -40,36 +57,50 @@ struct KenBurnsFramingView: View {
                           focusChanged: { f in update { $0.endFocus = f } }, zoomChanged: { z in update { $0.endZoom = z } })
                 }
             }
-            VStack(alignment: .leading, spacing: 8) {
-                LabeledRow("Ajuste") {
-                    Picker("", selection: Binding(get: { current.fit }, set: { newFit in update { $0.fit = newFit } })) {
-                        Text("Rellenar").tag(KenBurnsPoints.Fit.cover)
-                        Text("Entera").tag(KenBurnsPoints.Fit.contain)
-                    }
-                    .labelsHidden()
+            if hasLeading {
+                InspectorColumn {
+                    leading
+                    OptionGroup(title: "Encuadre") { framingControls }
+                    trailing
                 }
-                HStack {
-                    Button("Enfocar caras") { focusOnFaces() }.disabled(isDetecting)
-                    if isDetecting { ProgressView().controlSize(.small) }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    framingControls
+                    Spacer(minLength: 0)
                 }
-                HStack {
-                    Button("Inicio → Fin") { update { $0.endFocus = $0.startFocus; $0.endZoom = $0.startZoom } }
-                    Button("Intercambiar") { update { let f = $0.startFocus, z = $0.startZoom; $0.startFocus = $0.endFocus; $0.startZoom = $0.endZoom; $0.endFocus = f; $0.endZoom = z } }
-                }
-                Button("Restablecer") { doc.kbPoints[name] = nil }
-                HStack {
-                    Text("Retardo").foregroundStyle(.secondary)
-                    Slider(value: Binding(get: { current.delayPercent }, set: { v in update { $0.delayPercent = v } }), in: 0...80, step: 5)
-                    Text("\(Int(current.delayPercent)) %").monospacedDigit().frame(width: 40)
-                }
-                Divider()
-                previewRow
-                Spacer(minLength: 0)
+                .frame(width: compact ? 240 : 300)
             }
-            .frame(width: compact ? 240 : 300)
         }
         .onAppear { imageSize = ImageIOHelpers.displaySize(of: url) }
         .onChange(of: url) { imageSize = ImageIOHelpers.displaySize(of: url); isPlaying = false }
+    }
+
+    /// Ajuste, caras, inicio/fin, retardo y previsualización animada.
+    @ViewBuilder
+    private var framingControls: some View {
+        LabeledRow("Ajuste") {
+            Picker("", selection: Binding(get: { current.fit }, set: { newFit in update { $0.fit = newFit } })) {
+                Text("Rellenar").tag(KenBurnsPoints.Fit.cover)
+                Text("Entera").tag(KenBurnsPoints.Fit.contain)
+            }
+            .labelsHidden()
+        }
+        HStack {
+            Button("Enfocar caras") { focusOnFaces() }.disabled(isDetecting)
+            if isDetecting { ProgressView().controlSize(.small) }
+        }
+        HStack {
+            Button("Inicio → Fin") { update { $0.endFocus = $0.startFocus; $0.endZoom = $0.startZoom } }
+            Button("Intercambiar") { update { let f = $0.startFocus, z = $0.startZoom; $0.startFocus = $0.endFocus; $0.startZoom = $0.endZoom; $0.endFocus = f; $0.endZoom = z } }
+        }
+        Button("Restablecer") { doc.kbPoints[name] = nil }
+        HStack {
+            Text("Retardo").foregroundStyle(.secondary)
+            Slider(value: Binding(get: { current.delayPercent }, set: { v in update { $0.delayPercent = v } }), in: 0...80, step: 5)
+            Text("\(Int(current.delayPercent)) %").monospacedDigit().frame(width: 40)
+        }
+        Divider()
+        previewRow
     }
 
     private func update(_ change: (inout KenBurnsPoints) -> Void) {
@@ -111,7 +142,8 @@ struct KenBurnsFramingView: View {
 
     /// Previsualización animada con el mismo cálculo que el motor.
     private var previewRow: some View {
-        let width: CGFloat = compact ? 220 : 280
+        // En la columna del inspector, lo que cabe dentro del bloque.
+        let width: CGFloat = hasLeading ? InspectorColumn<EmptyView>.width - 30 : (compact ? 220 : 280)
         let size = CGSize(width: width, height: width / doc.format.aspectRatio)
         return VStack(alignment: .leading, spacing: 6) {
             TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { context in
@@ -145,6 +177,18 @@ struct KenBurnsFramingView: View {
         let zoom = base.width / max(1, crop.width)
         let focus = CGPoint(x: crop.midX / Double(imageSize.width), y: crop.midY / Double(imageSize.height))
         return (focus, zoom)
+    }
+}
+
+extension KenBurnsFramingView where Leading == EmptyView, Trailing == EmptyView {
+    /// Sin columna de inspector: los controles en su columna propia (hoja ampliada).
+    init(doc: SlideshowDocument, url: URL, compact: Bool) {
+        self.doc = doc
+        self.url = url
+        self.compact = compact
+        self.leading = EmptyView()
+        self.trailing = EmptyView()
+        self.hasLeading = false
     }
 }
 

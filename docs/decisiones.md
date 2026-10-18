@@ -1401,3 +1401,46 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-18 — Reorganizar los inspectores de Collage y Foto del Slideshow
+
+### 1. La petición tal como se ha entendido
+El inspector del collage seleccionado en el Slideshow tiene los controles apretados en una fila de arriba y en filas sueltas, con el collage pegado a la izquierda y mucho hueco vacío. El de Foto tiene el mismo problema. Se reorganizan los dos con el mismo esquema, para aprovechar el espacio y que se entienda qué hace cada control:
+- **Cabecera:** nombre (plantilla o fichero) y, a la derecha, las acciones. Collage: Encuadre/Resultado, Centrar, Cambiar y Quitar. Foto: Ampliar.
+- **Izquierda, a todo lo que dé:** la vista. Collage: encuadre o resultado, con la ayuda «arrastra cada foto para encuadrarla» debajo. Foto: los paneles de inicio y fin del Ken Burns.
+- **Derecha, columna de ancho fijo con grupos con título** (el estilo de bloque de la 3.4.0):
+  - Collage: **Tiempo** (Mantener, con su vuelta al valor global), **Transición** (tipo y duración, con su vuelta al valor global) y **Pie** (Patrón/Propio/Sin pie y, si es propio, el campo debajo).
+  - Foto: **Efecto**, **Tiempo** (Duración), **Transición**, **Pie** y **Encuadre**, con los controles del Ken Burns que hoy van en una columna propia (Rellenar/Entera, Enfocar caras, Inicio → Fin, Intercambiar, Restablecer, Retardo). Así queda una sola columna de ajustes.
+- **«Cambiar» del collage:** las plantillas salen en un popover del botón, que se cierra al elegir una.
+
+No cambia lo que hace ningún control, solo dónde está. La hoja de encuadre ampliado de Foto y los demás inspectores (Texto, Portada/Créditos, Pista) se quedan como están.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué inspectores se reorganizan: Collage y Foto, solo Collage o todos?** → Collage y Foto, con el mismo esquema.
+- **¿Qué distribución: vista + columna de ajustes a la derecha, o ajustes arriba y vista debajo?** → Vista grande a la izquierda y columna fija a la derecha con los ajustes en grupos con título.
+- **Al pulsar «Cambiar», ¿dónde salen las plantillas: popover del botón, en lugar de los ajustes o en un grupo fijo de la columna?** → Popover del botón, que se cierra al elegir.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`CollageInspector`, `PhotoInspector`, `TransitionOverrideRow`, `CaptionOverrideRow`), `KenBurnsFramingView.swift`, `SlideshowView.swift`.
+- `CaobaApp/Sources/Views/Shared/Theme.swift` y `TemplateViews.swift`.
+- `CaobaCore/Sources/CaobaCore/Slideshow/CollageSlideshow.swift` (qué significa «Mantener»: segundos extra con el collage completo).
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.4.1).
+- `InspectorColumn` (300 puntos, con desplazamiento) para la columna de los dos inspectores, y `StackedSlider` (etiqueta arriba) porque en 300 puntos la fila de `LabeledSlider` (etiqueta de 130) deja el deslizador en nada.
+- `TransitionOverrideRow` y `CaptionOverrideRow` con `stacked`: misma lógica, solo cambia la disposición; Texto y Portada/Créditos siguen en horizontal.
+- `KenBurnsFramingView` con huecos `leading`/`trailing`: el estado del Ken Burns (reproducción, detección de caras) sigue en la vista y no hace falta partirla. La hoja ampliada usa el inicializador sin huecos y queda igual.
+- **Cambio sobre lo confirmado:** en Foto, el grupo Encuadre va justo después de Efecto (no al final). En la primera captura quedaba abajo del todo, casi fuera de la vista, y es lo que se toca junto con los paneles de inicio y fin. Tiempo, Transición y Pie van después.
+- El selector de transición va alineado a la izquierda en su bloque (centrado quedaba raro).
+- Nueva opción de prueba `--state slideshow.select=collage|photo` para capturar los inspectores. Comprobado en oscuro y claro a 1440×900 y en oscuro a 1100×720: nada se corta; con la ventana pequeña la columna se desplaza.
+- Versión 3.4.1.
+
+### 5. Alternativas descartadas
+- Ajustes arriba en franja y vista debajo: descartado por el usuario; la vista pierde alto.
+- Plantillas en lugar de los ajustes o en un grupo fijo: descartado por el usuario; el popover no quita sitio.
+- Controles del Ken Burns debajo de los paneles, a la izquierda: con la ventana pequeña los paneles se quedaban diminutos.
+- Partir `KenBurnsFramingView` en dos vistas (paneles y controles): habría que sacar su estado a otro sitio; los huecos lo resuelven sin moverlo.
+
+### 6. Pendiente de comprobar
+- El popover de plantillas no sale en las capturas (es una ventana aparte); se comprobó que compila y usa el mismo `TemplatePicker`, pero no se vio en pantalla.
