@@ -128,10 +128,20 @@ struct SlideshowTimelineView: View {
                 }
                 .frame(width: totalWidth, height: laneHeight, alignment: .leading)
             }
-            Button {
-                addTracks()
-            } label: {
-                Label("Añadir pista", systemImage: "music.note.list")
+            HStack(spacing: 16) {
+                Button {
+                    addTracks()
+                } label: {
+                    Label("Añadir pista", systemImage: "music.note.list")
+                }
+                // Tarjeta de texto tras el elemento seleccionado (o al final); queda seleccionada para editarla.
+                Button {
+                    doc.addTextCard(after: true)
+                } label: {
+                    Label("Añadir texto", systemImage: "textformat")
+                }
+                .disabled(doc.items.isEmpty)
+                .help("Añade una tarjeta de texto tras el elemento seleccionado, o al final si no hay ninguno")
             }
             .buttonStyle(.link)
             .padding(.top, 2)

@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.4.2 — 2026-10-19
+
+- **Portada y texto más directa**: empieza por Portada y créditos y Marca de agua; el estilo de los títulos tiene su propio bloque. La lista de textos desaparece: las tarjetas se editan pulsándolas en el Timeline.
+- **«Añadir texto» en el Timeline**, junto a «Añadir pista»: añade una tarjeta tras el elemento seleccionado (o al final) y la abre para editarla.
+
 ## 3.4.1 — 2026-10-18
 
 - **Ajustes de un collage o una foto del Slideshow más claros**: el collage o los paneles de encuadre ocupan la izquierda y los ajustes van a la derecha en bloques con título (Tiempo, Transición, Pie y, en las fotos, Efecto y Encuadre). «Cambiar» enseña las plantillas en un panel junto al botón.

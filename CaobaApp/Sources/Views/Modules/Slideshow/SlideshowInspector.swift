@@ -121,43 +121,8 @@ struct ExtrasTab: View {
     @Bindable var doc: SlideshowDocument
 
     var body: some View {
+        // Las tarjetas de texto se añaden desde el Timeline y se editan al pulsarlas allí.
         VStack(alignment: .leading, spacing: 12) {
-            OptionGroup(title: "Textos") {
-                if doc.textCards.isEmpty {
-                    Text("Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline.")
-                        .font(.callout).foregroundStyle(.secondary)
-                }
-                ForEach(doc.items.filter(\.isText)) { item in
-                    if case .text(let card) = item.kind {
-                        HStack {
-                            Image(systemName: card.background == nil ? "textformat" : "rectangle.fill.on.rectangle.fill").foregroundStyle(.secondary)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(card.text.isEmpty ? "…" : card.text).lineLimit(1)
-                                Text("\(TimecodeField.format(item.start)) · \(card.background == nil ? String(localized: "sobre el siguiente") : String(localized: "pantalla propia")) · \(card.duration, specifier: "%.1f") s")
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button("Editar") { doc.selection = .text(card.id) }.controlSize(.small)
-                            Button { doc.removeTextCard(card.id) } label: { Image(systemName: "minus.circle") }.buttonStyle(.borderless)
-                        }
-                    }
-                }
-                HStack {
-                    Button("Añadir texto antes") { doc.addTextCard() }
-                    Button("Añadir texto después") { doc.addTextCard(after: true) }
-                }
-                Text("Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio.")
-                    .font(.caption).foregroundStyle(.secondary)
-                TextStyleEditor(title: "Estilo de títulos (por defecto para las tarjetas)", style: $doc.titleStyle)
-            }
-            OptionGroup(title: "Pies de foto") {
-                LabeledRow("Patrón") { TextField("", text: $doc.captionPattern).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-                Text("Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector.")
-                    .font(.caption).foregroundStyle(.secondary)
-                if !doc.captionPattern.isEmpty || !doc.itemCaptions.isEmpty {
-                    TextStyleEditor(title: "Estilo de los pies", style: $doc.captionStyle, showsHold: true)
-                }
-            }
             OptionGroup(title: "Portada y créditos") {
                 slotRow(title: "Portada", url: $doc.coverURL, duration: $doc.coverDuration)
                 slotRow(title: "Créditos", url: $doc.creditsURL, duration: $doc.creditsDuration)
@@ -184,6 +149,19 @@ struct ExtrasTab: View {
                     }
                     LabeledSlider(title: "Tamaño", value: $doc.wmSize, in: 1...100, step: 1) { Text("\(Int(doc.wmSize)) %") }
                     LabeledSlider(title: "Opacidad", value: $doc.wmOpacity, in: 0...100, step: 1) { Text("\(Int(doc.wmOpacity)) %") }
+                }
+            }
+            OptionGroup(title: "Estilo de títulos") {
+                TextStyleEditor(style: $doc.titleStyle)
+                Text("Estilo por defecto de las tarjetas de texto; cada tarjeta puede llevar uno propio desde su inspector.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            OptionGroup(title: "Pies de foto") {
+                LabeledRow("Patrón") { TextField("", text: $doc.captionPattern).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
+                Text("Vacío = sin pies. Variables: {nombre} {n} {total} {fecha} {camara} {objetivo}. Cada foto o collage puede llevar un pie propio desde su inspector.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if !doc.captionPattern.isEmpty || !doc.itemCaptions.isEmpty {
+                    TextStyleEditor(title: "Estilo de los pies", style: $doc.captionStyle, showsHold: true)
                 }
             }
         }
@@ -288,7 +266,8 @@ func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
 
 /// Editor de un estilo de texto: fuente, negrita, tamaño, color, posición y fondo.
 struct TextStyleEditor: View {
-    let title: LocalizedStringKey
+    /// Subtítulo encima de los controles; `nil` cuando el bloque que lo contiene ya lo dice.
+    var title: LocalizedStringKey? = nil
     @Binding var style: TextStyle
     /// Solo en los pies: elegir si se muestran toda la foto o unos segundos.
     var showsHold = false
@@ -325,7 +304,7 @@ struct TextStyleEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline.weight(.semibold)).padding(.top, 4)
+            if let title { Text(title).font(.subheadline.weight(.semibold)).padding(.top, 4) }
             LabeledRow("Fuente") {
                 HStack {
                     FontField(fontName: $style.fontName)
@@ -581,7 +560,7 @@ struct TextCardInspector: View {
         OptionGroup(title: "Estilo") {
             Toggle("Estilo propio para esta tarjeta", isOn: Binding(get: { hasOwnStyle }, set: { on in c.wrappedValue.style = on ? doc.titleStyle : nil }))
             if hasOwnStyle {
-                TextStyleEditor(title: "", style: Binding(get: { c.wrappedValue.style ?? doc.titleStyle }, set: { c.wrappedValue.style = $0 }))
+                TextStyleEditor(style: Binding(get: { c.wrappedValue.style ?? doc.titleStyle }, set: { c.wrappedValue.style = $0 }))
                 Button("Volver al estilo de títulos") { c.wrappedValue.style = nil }
             } else {
                 Text("Usa el estilo de títulos de la pestaña «Portada y texto».").font(.caption).foregroundStyle(.secondary)

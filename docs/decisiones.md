@@ -1444,3 +1444,41 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - El popover de plantillas no sale en las capturas (es una ventana aparte); se comprobó que compila y usa el mismo `TemplatePicker`, pero no se vio en pantalla.
+
+## 2026-10-19 — Slideshow › Portada y texto: orden de secciones y fuera la lista de textos
+
+### 1. La petición tal como se ha entendido
+En la pestaña «Portada y texto» del Slideshow:
+- **Orden nuevo de los bloques:** Portada y créditos, Marca de agua, Estilo de títulos y Pies de foto.
+- **Fuera la sección «Textos»:** su lista de tarjetas (con Editar y quitar) y los botones «Añadir texto antes/después». Las tarjetas se gestionan pulsándolas en el timeline.
+- **Se queda el estilo de títulos** como bloque propio, «Estilo de títulos». Sigue siendo el estilo por defecto de las tarjetas que no tienen uno propio, y funciona igual que ahora.
+- **Botón nuevo «Añadir texto»** en el Timeline, junto a «Añadir pista». Pone la tarjeta tras el elemento seleccionado, o al final si no hay selección, y la deja seleccionada para editarla en su inspector, como hacía el botón de la sección. El clic derecho del timeline sigue igual.
+
+La vista previa de la derecha de la pestaña se queda como está.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué se hace con el «Estilo de títulos» (estilo por defecto de las tarjetas), que hoy solo se edita en la sección Textos: bloque propio en la pestaña, al inspector de la tarjeta o quitarlo?** → Bloque propio «Estilo de títulos» en la pestaña, como «Pies de foto» tiene el suyo.
+- **Sin la sección, «Añadir texto» solo quedaría en el clic derecho del timeline: ¿botón a la vista o solo el clic derecho?** → Botón «Añadir texto» en el Timeline, junto a «Añadir pista», tras el elemento seleccionado o al final si no hay selección. El clic derecho sigue igual.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`ExtrasTab`, `TextStyleEditor`, `TextCardInspector`).
+- `SlideshowTimelineView.swift` (botón «Añadir pista» y menú contextual con «Añadir texto antes/después»).
+- `CaobaApp/Sources/Model/SlideshowDocument.swift` (`addTextCard(after:)`: coloca la tarjeta y la deja seleccionada).
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.4.2).
+- `ExtrasTab` queda en Portada y créditos → Marca de agua → Estilo de títulos → Pies de foto. Fuera la sección Textos (lista, Editar/quitar y los dos botones de añadir).
+- El estilo de títulos va en su bloque con una línea que explica que es el de las tarjetas sin estilo propio. `TextStyleEditor` pasa a tener el título opcional (`nil` = sin subtítulo), porque dentro de un bloque con título sobraba; el inspector de la tarjeta, que le pasaba `""`, deja de dejar una línea vacía.
+- «Añadir texto» bajo el Timeline llama a `addTextCard(after: true)`, la misma función que el clic derecho «Añadir texto después», así que no hay lógica nueva. Se desactiva con el timeline vacío.
+- Cadenas nuevas en `Localizable.xcstrings` con su versión en inglés.
+- Comprobado: capturas de la pestaña en oscuro y claro; y, con un gancho temporal (ya quitado) que selecciona la segunda foto y hace lo mismo que el botón, la tarjeta queda entre la foto 2 y la 3 y se abre su inspector.
+- Versión 3.4.2.
+
+### 5. Alternativas descartadas
+- Llevar el estilo de títulos al inspector de cada tarjeta: editar algo que afecta a todas desde una sola tarjeta confunde; descartado por el usuario.
+- Quitar el estilo común: cambia el funcionamiento (cada tarjeta con el suyo), no solo la pantalla; descartado por el usuario.
+- Dejar «Añadir texto» solo en el clic derecho: cuesta de descubrir; descartado por el usuario.
+
+### 6. Pendiente de comprobar
+Nada.

@@ -17,6 +17,46 @@
         }
       }
     },
+    "Añade una tarjeta de texto tras el elemento seleccionado, o al final si no hay ninguno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds a text card after the selected item, or at the end if nothing is selected"
+          }
+        }
+      }
+    },
+    "Añadir texto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text"
+          }
+        }
+      }
+    },
+    "Estilo de títulos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title style"
+          }
+        }
+      }
+    },
+    "Estilo por defecto de las tarjetas de texto; cada tarjeta puede llevar uno propio desde su inspector." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default style for text cards; each card can have its own from its inspector."
+          }
+        }
+      }
+    },
     "— Marcos Esperón" : {
 
     },
