@@ -17,296 +17,6 @@
         }
       }
     },
-    "Aplicar a todas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apply to all"
-          }
-        }
-      }
-    },
-    "Aplicar estilo a todas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apply style to all"
-          }
-        }
-      }
-    },
-    "Añade una tarjeta de texto tras el elemento seleccionado, o al final si no hay ninguno" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adds a text card after the selected item, or at the end if nothing is selected"
-          }
-        }
-      }
-    },
-    "Añadir texto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add text"
-          }
-        }
-      }
-    },
-    "Copia la letra, la colocación y las animaciones de esta tarjeta a todas las demás" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copies this card's lettering, placement and animations to all the others"
-          }
-        }
-      }
-    },
-    "Duración de la entrada" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entry duration"
-          }
-        }
-      }
-    },
-    "Duración de la salida" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exit duration"
-          }
-        }
-      }
-    },
-    "Duración de la transición" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transition duration"
-          }
-        }
-      }
-    },
-    "Dónde se ve" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Where it shows"
-          }
-        }
-      }
-    },
-    "El texto aparece encima del elemento que viene después en el timeline, con su entrada y su salida." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The text appears over the item that comes next in the timeline, with its entry and exit."
-          }
-        }
-      }
-    },
-    "El texto aparece ya sobre el elemento anterior y se queda quieto mientras se funde a esta pantalla." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The text already appears over the previous item and stays still while it fades into this screen."
-          }
-        }
-      }
-    },
-    "El texto se queda quieto mientras esta pantalla se funde con el elemento siguiente y sigue un rato sobre él." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The text stays still while this screen fades into the next item and remains over it for a while."
-          }
-        }
-      }
-    },
-    "Empalmes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carry-overs"
-          }
-        }
-      }
-    },
-    "Empezar sobre el anterior" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start over the previous item"
-          }
-        }
-      }
-    },
-    "Escribe un patrón de pie para ver cómo queda sobre el vídeo." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Type a caption pattern to see how it looks on the video."
-          }
-        }
-      }
-    },
-    "Estilo de títulos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Title style"
-          }
-        }
-      }
-    },
-    "Estilo por defecto de las tarjetas de texto; cada tarjeta puede llevar uno propio desde su inspector." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default style for text cards; each card can have its own from its inspector."
-          }
-        }
-      }
-    },
-    "Fondo de la pantalla" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen background"
-          }
-        }
-      }
-    },
-    "Las otras %lld tarjetas pasarán a tener la misma letra, colocación y animaciones que esta. El texto, la pantalla y los tiempos de cada una no cambian." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The other %lld cards will get the same lettering, placement and animations as this one. Each card keeps its own text, screen and timing."
-          }
-        }
-      }
-    },
-    "Letra" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lettering"
-          }
-        }
-      }
-    },
-    "Opcional" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optional"
-          }
-        }
-      }
-    },
-    "Pantalla y tiempo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen and timing"
-          }
-        }
-      }
-    },
-    "Realce" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Backdrop"
-          }
-        }
-      }
-    },
-    "Seguir sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue over the next item"
-          }
-        }
-      }
-    },
-    "Segundos sobre el anterior" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds over the previous item"
-          }
-        }
-      }
-    },
-    "Segundos sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seconds over the next item"
-          }
-        }
-      }
-    },
-    "Sobre el siguiente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Over the next item"
-          }
-        }
-      }
-    },
-    "Transición de entrada" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entry transition"
-          }
-        }
-      }
-    },
-    "¿Aplicar este estilo a todas las tarjetas de texto?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apply this style to all text cards?"
-          }
-        }
-      }
-    },
     "— Marcos Esperón" : {
 
     },
@@ -320,42 +30,22 @@
         }
       }
     },
-    "Autor" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Author"
-          }
-        }
-      }
-    },
-    "Creado con CAOBA — https://caobafoto.com" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Made with CAOBA — https://caobafoto.com"
-          }
-        }
-      }
-    },
-    "Donación" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Donate"
-          }
-        }
-      }
-    },
     "¡Gracias!" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thank you!"
+          }
+        }
+      }
+    },
+    "¿Aplicar este estilo a todas las tarjetas de texto?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply this style to all text cards?"
           }
         }
       }
@@ -391,6 +81,7 @@
       }
     },
     "· arrastra cada foto para encuadrarla" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -470,16 +161,6 @@
     "%@" : {
 
     },
-    "%@ · %@ · %.1f s" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ · %2$@ · %3$.1f s"
-          }
-        }
-      }
-    },
     "%@ (%@) · %lld×%lld" : {
       "localizations" : {
         "es" : {
@@ -489,6 +170,9 @@
           }
         }
       }
+    },
+    "%@ s" : {
+
     },
     "%lld" : {
 
@@ -912,11 +596,22 @@
       }
     },
     "Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add a text card or a caption pattern to see how they look on the video."
+          }
+        }
+      }
+    },
+    "Añade una tarjeta de texto tras el elemento seleccionado, o al final si no hay ninguno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds a text card after the selected item, or at the end if nothing is selected"
           }
         }
       }
@@ -957,6 +652,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add track…"
+          }
+        }
+      }
+    },
+    "Añadir texto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add text"
           }
         }
       }
@@ -1053,7 +758,6 @@
       }
     },
     "Animación" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1074,6 +778,7 @@
       }
     },
     "Antes o después del elemento seleccionado en el timeline (sin selección, al final); luego se puede arrastrar a otro sitio." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1152,6 +857,29 @@
           }
         }
       }
+    },
+    "Aplicar a todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to all"
+          }
+        }
+      }
+    },
+    "Aplicar estilo a todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply style to all"
+          }
+        }
+      }
+    },
+    "Arrastra cada foto para encuadrarla en su celda." : {
+
     },
     "Arrastra cada foto para encuadrarla." : {
       "extractionState" : "stale",
@@ -1334,6 +1062,16 @@
         }
       }
     },
+    "Autor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Author"
+          }
+        }
+      }
+    },
     "Autorrotar según EXIF" : {
       "localizations" : {
         "en" : {
@@ -1483,6 +1221,9 @@
           }
         }
       }
+    },
+    "Cambiar la plantilla por otra con el mismo número de fotos" : {
+
     },
     "Cambiar plantilla" : {
       "localizations" : {
@@ -1772,22 +1513,22 @@
         }
       }
     },
-    "Collage %lld de %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Collage %lld of %lld"
-          }
-        }
-      }
-    },
     "Collage %lld · %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Collage %lld · %@"
+          }
+        }
+      }
+    },
+    "Collage %lld de %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collage %lld of %lld"
           }
         }
       }
@@ -2007,6 +1748,16 @@
         }
       }
     },
+    "Copia la letra, la colocación y las animaciones de esta tarjeta a todas las demás" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies this card's lettering, placement and animations to all the others"
+          }
+        }
+      }
+    },
     "Copias nuevas" : {
       "localizations" : {
         "en" : {
@@ -2053,6 +1804,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hard cut"
+          }
+        }
+      }
+    },
+    "Creado con CAOBA — https://caobafoto.com" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Made with CAOBA — https://caobafoto.com"
           }
         }
       }
@@ -2361,6 +2122,26 @@
         }
       }
     },
+    "Donación" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Donate"
+          }
+        }
+      }
+    },
+    "Dónde se ve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where it shows"
+          }
+        }
+      }
+    },
     "Duración" : {
       "localizations" : {
         "en" : {
@@ -2378,6 +2159,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Animation length"
+          }
+        }
+      }
+    },
+    "Duración de la entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry duration"
+          }
+        }
+      }
+    },
+    "Duración de la salida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit duration"
+          }
+        }
+      }
+    },
+    "Duración de la transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition duration"
           }
         }
       }
@@ -2488,6 +2299,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The file is not a CAOBA presets export."
+          }
+        }
+      }
+    },
+    "El texto aparece encima del elemento que viene después en el timeline, con su entrada y su salida." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text appears over the item that comes next in the timeline, with its entry and exit."
+          }
+        }
+      }
+    },
+    "El texto aparece ya sobre el elemento anterior y se queda quieto mientras se funde a esta pantalla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text already appears over the previous item and stays still while it fades into this screen."
+          }
+        }
+      }
+    },
+    "El texto se queda quieto mientras esta pantalla se funde con el elemento siguiente y sigue un rato sobre él." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text stays still while this screen fades into the next item and remains over it for a while."
           }
         }
       }
@@ -2702,6 +2543,16 @@
         }
       }
     },
+    "Empalmes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry-overs"
+          }
+        }
+      }
+    },
     "Empezar el cierre sobre la última foto y mantenerlo al fundir a su pantalla" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2714,6 +2565,7 @@
       }
     },
     "Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2733,6 +2585,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start at %lld"
+          }
+        }
+      }
+    },
+    "Empezar sobre el anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start over the previous item"
           }
         }
       }
@@ -2853,6 +2715,16 @@
         }
       }
     },
+    "Escribe un patrón de pie para ver cómo queda sobre el vídeo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type a caption pattern to see how it looks on the video."
+          }
+        }
+      }
+    },
     "Escribiendo metadatos…" : {
       "localizations" : {
         "en" : {
@@ -2917,6 +2789,7 @@
       }
     },
     "Estilo" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2936,7 +2809,19 @@
         }
       }
     },
+    "Estilo de títulos" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title style"
+          }
+        }
+      }
+    },
     "Estilo de títulos (por defecto para las tarjetas)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2957,7 +2842,19 @@
         }
       }
     },
+    "Estilo por defecto de las tarjetas de texto; cada tarjeta puede llevar uno propio desde su inspector." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default style for text cards; each card can have its own from its inspector."
+          }
+        }
+      }
+    },
     "Estilo propio para esta tarjeta" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3123,6 +3020,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Background"
+          }
+        }
+      }
+    },
+    "Fondo de la pantalla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen background"
           }
         }
       }
@@ -3806,6 +3713,16 @@
         }
       }
     },
+    "Las otras %lld tarjetas pasarán a tener la misma letra, colocación y animaciones que esta. El texto, la pantalla y los tiempos de cada una no cambian." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The other %lld cards will get the same lettering, placement and animations as this one. Each card keeps its own text, screen and timing."
+          }
+        }
+      }
+    },
     "Latitud" : {
       "localizations" : {
         "en" : {
@@ -3822,6 +3739,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Slow"
+          }
+        }
+      }
+    },
+    "Letra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lettering"
           }
         }
       }
@@ -3940,6 +3867,7 @@
       }
     },
     "Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4253,6 +4181,7 @@
       }
     },
     "Ninguno · sobre el siguiente" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4473,6 +4402,7 @@
       }
     },
     "Nueva versión %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4571,6 +4501,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opacity"
+          }
+        }
+      }
+    },
+    "Opcional" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional"
           }
         }
       }
@@ -4746,6 +4686,7 @@
       }
     },
     "pantalla propia" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4756,12 +4697,21 @@
       }
     },
     "Pantalla propia" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Own screen"
+          }
+        }
+      }
+    },
+    "Pantalla y tiempo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen and timing"
           }
         }
       }
@@ -5206,6 +5156,9 @@
         }
       }
     },
+    "Quitar este collage del vídeo" : {
+
+    },
     "Quitar pista" : {
       "localizations" : {
         "en" : {
@@ -5253,6 +5206,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fast"
+          }
+        }
+      }
+    },
+    "Realce" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
           }
         }
       }
@@ -5518,6 +5481,16 @@
         }
       }
     },
+    "Seguir sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue over the next item"
+          }
+        }
+      }
+    },
     "Según el contenido" : {
       "localizations" : {
         "en" : {
@@ -5528,7 +5501,11 @@
         }
       }
     },
+    "Segundos con el collage ya completo, antes de pasar al siguiente." : {
+
+    },
     "Segundos mostrándose" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5549,11 +5526,32 @@
       }
     },
     "Segundos sobre él" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seconds over it"
+          }
+        }
+      }
+    },
+    "Segundos sobre el anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over the previous item"
+          }
+        }
+      }
+    },
+    "Segundos sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over the next item"
           }
         }
       }
@@ -5722,6 +5720,7 @@
       }
     },
     "Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo)." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5792,6 +5791,7 @@
       }
     },
     "Sin tarjetas de texto. Añade un título al principio, un cierre al final o un título de sección en cualquier punto del timeline." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5853,11 +5853,22 @@
       }
     },
     "sobre el siguiente" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "over the next one"
+          }
+        }
+      }
+    },
+    "Sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over the next item"
           }
         }
       }
@@ -6038,6 +6049,7 @@
       }
     },
     "Textos" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6046,6 +6058,9 @@
           }
         }
       }
+    },
+    "Tiempo" : {
+
     },
     "Timeline" : {
       "localizations" : {
@@ -6170,6 +6185,16 @@
         }
       }
     },
+    "Transición de entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry transition"
+          }
+        }
+      }
+    },
     "Tras la anterior" : {
       "localizations" : {
         "en" : {
@@ -6251,6 +6276,7 @@
       }
     },
     "Usa el estilo de títulos de la pestaña «Portada y texto»." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6455,6 +6481,9 @@
         }
       }
     },
+    "Volver a centrar todas las fotos en su celda" : {
+
+    },
     "Volver a la duración global" : {
       "localizations" : {
         "en" : {
@@ -6466,6 +6495,7 @@
       }
     },
     "Volver al estilo de títulos" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

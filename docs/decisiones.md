@@ -1561,3 +1561,38 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - El grupo Empalmes queda en la parte de la columna que hay que desplazar y no salió en las capturas; usa las mismas piezas (casillas, ayuda y `StackedSlider`) que se ven en el resto.
 - La confirmación de «Aplicar estilo a todas» (ventana aparte) no se vio en pantalla; la acción se comprobó con el gancho temporal.
+
+## 2026-10-19 — Los ajustes de la tarjeta de texto ocupan el ancho que sobra
+
+### 1. La petición tal como se ha entendido
+En los inspectores de **Texto, Collage y Foto**, la columna de ajustes mide 300 puntos fijos. La vista, que ocupa el resto, queda limitada por la altura disponible y deja un hueco vacío entre las dos. Se invierte el reparto:
+- **La vista toma solo el ancho que necesita** para llenar el alto disponible con su proporción: la tarjeta en el formato del vídeo, el collage en el de su plantilla y, en Foto, los dos paneles de Inicio y Fin.
+- **Los ajustes se quedan con todo lo demás**, creciendo hacia la izquierda. Nunca bajan de una columna de unos 300 puntos; si no cabe, es la vista la que encoge.
+- **Con el ancho extra, los grupos se reparten en 2 o 3 columnas**, de unos 280 puntos como mínimo cada una. Se leen en orden, de arriba abajo y de izquierda a derecha, y el reparto busca columnas de alto parecido. Si aun así no cabe en alto, la zona se desplaza como ahora.
+
+No cambia ningún control, solo el reparto del espacio.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **Con la zona de ajustes más ancha, ¿grupos en varias columnas o una columna más ancha?** → Grupos repartidos en 2 o 3 columnas según quepan (mínimo unos 280 puntos cada una).
+- **¿Se aplica también a Collage y Foto, que usan la misma columna fija?** → Sí, a los tres inspectores.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`InspectorColumn`, `TextCardInspector`, `CollageInspector`) y `KenBurnsFramingView.swift`.
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.5.1).
+- `InspectorSplit` sustituye a `InspectorColumn`. Cada inspector pasa la cuenta alto → ancho de su vista: tarjeta `(alto − 56) × proporción del vídeo` (título y etiqueta de la vista previa), collage `(alto − 24) × proporción de la plantilla` (línea de ayuda), foto `2 × (alto − 44) × proporción + 10` (dos paneles con su etiqueta y zoom). Ajustes con un mínimo de 300 puntos.
+- `BalancedColumns` (un `Layout` de SwiftUI): 1–3 columnas de al menos 280 puntos; reparte en orden y en tramos seguidos probando todos los cortes (son pocos grupos), y se queda con el que deja la columna más alta más baja.
+- Error encontrado al probar: SwiftUI pregunta a veces el tamaño con un ancho infinito y la cuenta de columnas hacía caer la app (`Double` infinito a `Int`). Se mide como una columna cuando el ancho no es finito.
+- La previsualización animada del grupo Encuadre se ajusta al ancho de su columna (antes, 270 puntos fijos); la hoja ampliada no cambia.
+- Comprobado con capturas de los tres inspectores a 1440×900, 1100×720 y 2000×1300, y Texto y Foto a 2000×900. A 1440×900 la tarjeta tiene unos 430 puntos de ajustes (una columna más ancha); a 2000×900, tres columnas. En Foto los dos paneles necesitan mucho ancho para llenar el alto y los ajustes se quedan en su mínimo.
+- Versión 3.5.1.
+
+### 5. Alternativas descartadas
+- Una sola columna más ancha: sigue habiendo que desplazar; descartado por el usuario.
+- Repartir los grupos a la columna más baja (tipo «masonry»): rompe el orden de lectura.
+- Encoger la vista para forzar dos columnas a 1440×900: el usuario pidió que la vista tome lo que necesita y los ajustes el resto.
+
+### 6. Pendiente de comprobar
+- En Foto, con ventanas anchas y bajas, los paneles se llevan casi todo el ancho y los ajustes quedan en 300 puntos. Es lo acordado; si se ve estrecho, se podría limitar el ancho de los paneles.

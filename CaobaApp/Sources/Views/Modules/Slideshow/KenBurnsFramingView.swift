@@ -6,7 +6,7 @@ import CaobaCore
 /// inspector va compacto (paneles apilados); ampliado, uno al lado del otro.
 ///
 /// Con `leading` y `trailing`, los controles van en una columna de inspector
-/// (`InspectorColumn`): lo que pase quien llama antes (efecto), el grupo «Encuadre»
+/// (`InspectorSplit`): lo que pase quien llama antes (efecto), el grupo «Encuadre»
 /// y lo que pase después (tiempo, transición, pie). Así el inspector de Foto tiene
 /// una sola columna de ajustes, con el encuadre arriba, junto a los paneles.
 struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
@@ -42,37 +42,49 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            // Paneles de inicio y fin: su tamaño sale de la altura disponible.
-            GeometryReader { geo in
-                let spacing: CGFloat = 10
-                let labelsAndSlider: CGFloat = 44
-                let panelHByWidth = ((geo.size.width - spacing) / 2) / doc.format.aspectRatio
-                let panelH = max(80, min(geo.size.height - labelsAndSlider, panelHByWidth))
-                let panelW = panelH * doc.format.aspectRatio
-                HStack(alignment: .top, spacing: spacing) {
-                    panel(title: "Inicio", focus: current.startFocus, zoom: current.startZoom, size: CGSize(width: panelW, height: panelH),
-                          focusChanged: { f in update { $0.startFocus = f } }, zoomChanged: { z in update { $0.startZoom = z } })
-                    panel(title: "Fin", focus: current.endFocus, zoom: current.endZoom, size: CGSize(width: panelW, height: panelH),
-                          focusChanged: { f in update { $0.endFocus = f } }, zoomChanged: { z in update { $0.endZoom = z } })
-                }
-            }
+        Group {
             if hasLeading {
-                InspectorColumn {
+                // Inspector: los dos paneles toman lo justo para llenar el alto; los ajustes, el resto.
+                InspectorSplit(previewWidth: { height in 2 * (height - Self.labelsAndSlider) * doc.format.aspectRatio + Self.panelSpacing }) {
+                    panels
+                } settings: {
                     leading
                     OptionGroup(title: "Encuadre") { framingControls }
                     trailing
                 }
             } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    framingControls
-                    Spacer(minLength: 0)
+                HStack(alignment: .top, spacing: 14) {
+                    panels
+                    VStack(alignment: .leading, spacing: 8) {
+                        framingControls
+                        Spacer(minLength: 0)
+                    }
+                    .frame(width: compact ? 240 : 300)
                 }
-                .frame(width: compact ? 240 : 300)
             }
         }
         .onAppear { imageSize = ImageIOHelpers.displaySize(of: url) }
         .onChange(of: url) { imageSize = ImageIOHelpers.displaySize(of: url); isPlaying = false }
+    }
+
+    /// Alto de la etiqueta y del zoom de cada panel, y separación entre los dos paneles.
+    private static var labelsAndSlider: CGFloat { 44 }
+    private static var panelSpacing: CGFloat { 10 }
+
+    /// Paneles de inicio y fin, uno al lado del otro: su tamaño sale del espacio disponible.
+    private var panels: some View {
+        GeometryReader { geo in
+            let spacing = Self.panelSpacing
+            let panelHByWidth = ((geo.size.width - spacing) / 2) / doc.format.aspectRatio
+            let panelH = max(80, min(geo.size.height - Self.labelsAndSlider, panelHByWidth))
+            let panelW = panelH * doc.format.aspectRatio
+            HStack(alignment: .top, spacing: spacing) {
+                panel(title: "Inicio", focus: current.startFocus, zoom: current.startZoom, size: CGSize(width: panelW, height: panelH),
+                      focusChanged: { f in update { $0.startFocus = f } }, zoomChanged: { z in update { $0.startZoom = z } })
+                panel(title: "Fin", focus: current.endFocus, zoom: current.endZoom, size: CGSize(width: panelW, height: panelH),
+                      focusChanged: { f in update { $0.endFocus = f } }, zoomChanged: { z in update { $0.endZoom = z } })
+            }
+        }
     }
 
     /// Ajuste, caras, inicio/fin, retardo y previsualización animada.
@@ -142,21 +154,30 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
 
     /// Previsualización animada con el mismo cálculo que el motor.
     private var previewRow: some View {
-        // En la columna del inspector, lo que cabe dentro del bloque.
-        let width: CGFloat = hasLeading ? InspectorColumn<EmptyView>.width - 30 : (compact ? 220 : 280)
-        let size = CGSize(width: width, height: width / doc.format.aspectRatio)
-        return VStack(alignment: .leading, spacing: 6) {
-            TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { context in
-                let elapsed = isPlaying ? context.date.timeIntervalSince(playStart).truncatingRemainder(dividingBy: segmentDuration) : 0
-                let (focus, zoom) = frame(at: elapsed)
-                CellPhotoView(url: url, focus: focus, size: size, zoom: zoom)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                    .background(Color.black)
+        VStack(alignment: .leading, spacing: 6) {
+            if hasLeading {
+                // En el inspector, todo el ancho de su columna, con la proporción del vídeo.
+                GeometryReader { geo in animatedPreview(width: geo.size.width) }
+                    .aspectRatio(doc.format.aspectRatio, contentMode: .fit)
+            } else {
+                animatedPreview(width: compact ? 220 : 280)
             }
             HStack {
                 Button(isPlaying ? "Detener" : "Reproducir") { isPlaying.toggle(); playStart = Date() }.controlSize(.small)
                 Text("Previsualización · \(segmentDuration, specifier: "%.1f") s").font(.caption).foregroundStyle(.secondary)
             }
+        }
+    }
+
+    /// La foto moviéndose como en el vídeo, a ese ancho.
+    private func animatedPreview(width: CGFloat) -> some View {
+        let size = CGSize(width: width, height: width / doc.format.aspectRatio)
+        return TimelineView(.animation(minimumInterval: 1 / 30, paused: !isPlaying)) { context in
+            let elapsed = isPlaying ? context.date.timeIntervalSince(playStart).truncatingRemainder(dividingBy: segmentDuration) : 0
+            let (focus, zoom) = frame(at: elapsed)
+            CellPhotoView(url: url, focus: focus, size: size, zoom: zoom)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .background(Color.black)
         }
     }
 

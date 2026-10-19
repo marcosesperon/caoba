@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.5.1 — 2026-10-19
+
+- En los ajustes de una tarjeta de texto, un collage o una foto del Slideshow, la vista ocupa solo lo que necesita y los ajustes aprovechan el resto del ancho: con la ventana ancha se reparten en dos o tres columnas y casi no hace falta desplazar.
+
 ## 3.5.0 — 2026-10-19
 
 - **Cada tarjeta de texto con su propio estilo**: desaparece el «Estilo de títulos» común. Tus tarjetas se quedan con el estilo que tenían; una tarjeta nueva copia el de la tarjeta de texto anterior, y «Aplicar estilo a todas» copia el de una a las demás.

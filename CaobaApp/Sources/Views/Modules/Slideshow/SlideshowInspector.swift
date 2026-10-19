@@ -604,17 +604,16 @@ struct TextCardInspector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
-            HStack(alignment: .top, spacing: 16) {
+            // La vista previa, con la proporción del vídeo (más su título y su etiqueta); los ajustes, el resto.
+            InspectorSplit(previewWidth: { height in (height - 56) * doc.format.aspectRatio }) {
                 TextPreviewPanel(doc: doc, content: .card)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                InspectorColumn {
-                    OptionGroup(title: "Contenido") { content }
-                    OptionGroup(title: "Pantalla y tiempo") { screenAndTime }
-                    OptionGroup(title: "Letra") { TextStyleEditor(style: style, parts: [.letter], stacked: true) }
-                    OptionGroup(title: "Colocación") { TextStyleEditor(style: style, parts: [.placement], stacked: true) }
-                    OptionGroup(title: "Animación") { TextStyleEditor(style: style, parts: [.animation], stacked: true) }
-                    if hasOwnScreen { OptionGroup(title: "Empalmes") { carryOvers } }
-                }
+            } settings: {
+                OptionGroup(title: "Contenido") { content }
+                OptionGroup(title: "Pantalla y tiempo") { screenAndTime }
+                OptionGroup(title: "Letra") { TextStyleEditor(style: style, parts: [.letter], stacked: true) }
+                OptionGroup(title: "Colocación") { TextStyleEditor(style: style, parts: [.placement], stacked: true) }
+                OptionGroup(title: "Animación") { TextStyleEditor(style: style, parts: [.animation], stacked: true) }
+                if hasOwnScreen { OptionGroup(title: "Empalmes") { carryOvers } }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -853,18 +852,98 @@ struct TrackInspector: View {
     }
 }
 
-/// Columna de ajustes de los inspectores con vista grande (Collage y Foto): ancho fijo,
-/// grupos uno debajo de otro y desplazamiento si no caben en alto.
-struct InspectorColumn<Content: View>: View {
-    static var width: CGFloat { 300 }
-    @ViewBuilder var content: Content
+/// Reparto de los inspectores con vista grande (Texto, Collage y Foto): la vista toma
+/// solo el ancho que necesita para llenar el alto disponible con su proporción, y los
+/// ajustes se quedan con el resto, repartidos en columnas (`BalancedColumns`). Los
+/// ajustes nunca bajan de `minSettingsWidth`: si no cabe, es la vista la que encoge.
+struct InspectorSplit<Preview: View, Settings: View>: View {
+    static var minSettingsWidth: CGFloat { 300 }
+    private let spacing: CGFloat = 16
+    /// Ancho que necesita la vista para un alto dado (según su proporción).
+    let previewWidth: (CGFloat) -> CGFloat
+    @ViewBuilder var preview: Preview
+    @ViewBuilder var settings: Settings
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 12) { content }
-                .padding(.trailing, 2)   // que el borde de los bloques no lo tape la barra de desplazamiento
+        GeometryReader { geo in
+            let width = max(120, min(previewWidth(geo.size.height), geo.size.width - Self.minSettingsWidth - spacing))
+            HStack(alignment: .top, spacing: spacing) {
+                preview.frame(width: width, height: geo.size.height, alignment: .topLeading)
+                ScrollView {
+                    BalancedColumns { settings }
+                        .padding(.trailing, 2)   // que el borde de los bloques no lo tape la barra de desplazamiento
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
-        .frame(width: Self.width)
+    }
+}
+
+/// Reparte los grupos de ajustes en 1, 2 o 3 columnas según el ancho (cada una de al menos
+/// `minColumnWidth`). Mantiene el orden: se leen de arriba abajo y de izquierda a derecha,
+/// en tramos seguidos, y elige los cortes que dejan la columna más alta lo más baja posible.
+struct BalancedColumns: Layout {
+    var minColumnWidth: CGFloat = 280
+    var maxColumns = 3
+    var columnSpacing: CGFloat = 16
+    var rowSpacing: CGFloat = 12
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        // SwiftUI a veces pregunta sin ancho o con uno infinito (para saber el máximo): se mide como una columna.
+        let width = proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? minColumnWidth
+        let plan = arrange(width: width, subviews: subviews)
+        return CGSize(width: width, height: plan.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let plan = arrange(width: bounds.width, subviews: subviews)
+        for (column, range) in plan.columns.enumerated() {
+            var y = bounds.minY
+            let x = bounds.minX + CGFloat(column) * (plan.columnWidth + columnSpacing)
+            for index in range {
+                subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(width: plan.columnWidth, height: plan.heights[index]))
+                y += plan.heights[index] + rowSpacing
+            }
+        }
+    }
+
+    /// Cuántas columnas caben, su ancho, el alto de cada grupo a ese ancho y qué grupos van en cada columna.
+    private func arrange(width: CGFloat, subviews: Subviews) -> (columnWidth: CGFloat, heights: [CGFloat], columns: [Range<Int>], height: CGFloat) {
+        let fitting = width.isFinite ? Int((width + columnSpacing) / (minColumnWidth + columnSpacing)) : 1
+        let count = max(1, min(maxColumns, fitting, subviews.count))
+        let columnWidth = (width - CGFloat(count - 1) * columnSpacing) / CGFloat(count)
+        let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: columnWidth, height: nil)).height }
+        let columns = bestSplit(heights, into: count)
+        let tallest = columns.map { columnHeight(heights, $0) }.max() ?? 0
+        return (columnWidth, heights, columns, tallest)
+    }
+
+    /// Alto de una columna con esos grupos (y la separación entre ellos).
+    private func columnHeight(_ heights: [CGFloat], _ range: Range<Int>) -> CGFloat {
+        guard !range.isEmpty else { return 0 }
+        return heights[range].reduce(0, +) + CGFloat(range.count - 1) * rowSpacing
+    }
+
+    /// Cortes en tramos seguidos que minimizan la columna más alta. Son pocos grupos y
+    /// como mucho 3 columnas, así que basta con probar todas las combinaciones.
+    private func bestSplit(_ heights: [CGFloat], into count: Int) -> [Range<Int>] {
+        let n = heights.count
+        guard count > 1, n > 1 else { return [0..<n] }
+        var best: [Range<Int>] = [0..<n]
+        var bestHeight = columnHeight(heights, 0..<n)
+        func consider(_ cuts: [Int]) {
+            let bounds = [0] + cuts + [n]
+            let ranges = zip(bounds, bounds.dropFirst()).map { $0..<$1 }
+            let height = ranges.map { columnHeight(heights, $0) }.max() ?? 0
+            if height < bestHeight { bestHeight = height; best = ranges }
+        }
+        if count == 2 {
+            for a in 1..<n { consider([a]) }
+        } else {
+            // Con 3 columnas hay al menos 3 grupos (`count` nunca pasa del número de grupos).
+            for a in 1..<(n - 1) { for b in (a + 1)..<n { consider([a, b]) } }
+        }
+        return best
     }
 }
 
@@ -881,20 +960,20 @@ struct CollageInspector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
-            HStack(alignment: .top, spacing: 16) {
+            // El collage con la proporción de su plantilla (más la línea de ayuda); los ajustes, el resto.
+            InspectorSplit(previewWidth: { height in (height - 24) * row.template.aspectRatio }) {
                 collageView
-                InspectorColumn {
-                    OptionGroup(title: "Tiempo") {
-                        StackedSlider(title: "Mantener", value: Binding(get: { row.hold ?? doc.hold }, set: { doc.setHold($0, for: row.id) }),
-                                      in: 0...30, step: 0.5, onReset: row.hold == nil ? nil : { doc.setHold(nil, for: row.id) }) {
-                            Text("\(row.hold ?? doc.hold, specifier: "%.1f") s")
-                        }
-                        Text("Segundos con el collage ya completo, antes de pasar al siguiente.")
-                            .font(.caption).foregroundStyle(.secondary)
+            } settings: {
+                OptionGroup(title: "Tiempo") {
+                    StackedSlider(title: "Mantener", value: Binding(get: { row.hold ?? doc.hold }, set: { doc.setHold($0, for: row.id) }),
+                                  in: 0...30, step: 0.5, onReset: row.hold == nil ? nil : { doc.setHold(nil, for: row.id) }) {
+                        Text("\(row.hold ?? doc.hold, specifier: "%.1f") s")
                     }
-                    OptionGroup(title: "Transición") { TransitionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
-                    OptionGroup(title: "Pie") { CaptionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
+                    Text("Segundos con el collage ya completo, antes de pasar al siguiente.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
+                OptionGroup(title: "Transición") { TransitionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
+                OptionGroup(title: "Pie") { CaptionOverrideRow(doc: doc, id: row.id.uuidString, stacked: true) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
