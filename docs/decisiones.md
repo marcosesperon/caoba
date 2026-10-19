@@ -1482,3 +1482,26 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-19 — Desplegables desalineados
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: arreglo de un fallo)* El usuario pregunta por qué hay campos sin alinear (Transición en Vídeo; Posición, Entrada y Salida en los estilos de títulos y pies). Se le explicó la causa y el arreglo, y lo aprobó con release («si»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`VideoTab`, `TextStyleEditor`, `TextCardInspector`, `TransitionOverrideRow`), `KenBurnsFramingView.swift` (hoja ampliada) y `RenamerView.swift`.
+
+### 4. Decisiones
+- Causa: un `Picker` de menú con `.frame(maxWidth: N)` sin alineación. En macOS el desplegable no se estira hasta ese ancho y SwiftUI lo centra en el hueco, así que cuanto más corto es su texto, más a la derecha queda. Deslizadores, segmentados y campos de texto sí llenan el hueco y salían bien.
+- Arreglo: `alignment: .leading` en los 7 desplegables con ancho máximo (Vídeo › Transición; Posición, Entrada y Salida del editor de estilo; Fondo de la tarjeta; Transición en horizontal; Efecto de la hoja ampliada; Modo del Renombrador). Regla anotada en `documentacion.md`.
+- Comprobado con capturas de Vídeo, Portada y texto (con pies) y Renombrador en oscuro y claro. La tarjeta de texto con estilo propio usa el mismo `TextStyleEditor` y el Fondo tiene el mismo arreglo; no se capturó aparte.
+- Versión 3.4.3.
+
+### 5. Alternativas descartadas
+- `.fixedSize()` en los desplegables: también los alinea, pero pierden el ancho máximo y los textos largos podrían empujar lo que va detrás.
+
+### 6. Pendiente de comprobar
+Nada.

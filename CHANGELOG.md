@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.4.3 — 2026-10-19
+
+- Los desplegables de Vídeo, del estilo de títulos y pies, de las tarjetas de texto, del encuadre ampliado y del Renombrador ya salen alineados con el resto de controles; antes algunos se desplazaban hacia la derecha.
+
 ## 3.4.2 — 2026-10-19
 
 - **Portada y texto más directa**: empieza por Portada y créditos y Marca de agua; el estilo de los títulos tiene su propio bloque. La lista de textos desaparece: las tarjetas se editan pulsándolas en el Timeline.

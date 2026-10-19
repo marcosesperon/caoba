@@ -211,7 +211,7 @@ struct KenBurnsFramingSheet: View {
                     Picker("", selection: Binding(get: { doc.choice(for: photo) }, set: { doc.setChoice($0, for: photo) })) {
                         ForEach(EffectChoice.all, id: \.self) { Text($0.title).tag($0) }
                     }
-                    .frame(maxWidth: 260)
+                    .frame(maxWidth: 260, alignment: .leading)
                     .labelsHidden()
                 }
             }

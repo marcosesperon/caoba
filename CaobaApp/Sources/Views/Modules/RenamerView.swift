@@ -43,7 +43,7 @@ struct RenamerView: View {
                         ForEach(Mode.allCases) { Text($0.title).tag($0) }
                     }
                     .labelsHidden()
-                    .frame(maxWidth: 260)
+                    .frame(maxWidth: 260, alignment: .leading)
                 }
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {

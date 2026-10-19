@@ -66,7 +66,7 @@ struct VideoTab: View {
                     Picker("", selection: $doc.transitionChoice) {
                         ForEach(TransitionChoice.all, id: \.self) { Text($0.title).tag($0) }
                     }
-                    .frame(maxWidth: 260)
+                    .frame(maxWidth: 260, alignment: .leading)
                     .labelsHidden()
                 }
                 if doc.transitionChoice.hasDuration {
@@ -290,7 +290,7 @@ struct TextStyleEditor: View {
             Text(exit ? "Máquina de escribir (se borra)" : "Máquina de escribir").tag(TextAnimation.typewriter)
             Text("Aleatorio").tag(TextAnimation.random)
         }
-        .frame(maxWidth: 240).labelsHidden()
+        .frame(maxWidth: 240, alignment: .leading).labelsHidden()
     }
 
     private var colorBinding: Binding<Color> {
@@ -325,7 +325,7 @@ struct TextStyleEditor: View {
                     Text("Abajo centro").tag(TextAnchor.bottom)
                     Text("Abajo derecha").tag(TextAnchor.bottomRight)
                 }
-                .frame(maxWidth: 220).labelsHidden()
+                .frame(maxWidth: 220, alignment: .leading).labelsHidden()
             }
             LabeledRow("Fondo") {
                 Picker("", selection: $style.backdrop) {
@@ -538,7 +538,7 @@ struct TextCardInspector: View {
                     Text("Blanco").tag(CanvasBackground?.some(.white))
                     Text("Gris").tag(CanvasBackground?.some(.gray))
                 }
-                .frame(maxWidth: 240).labelsHidden()
+                .frame(maxWidth: 240, alignment: .leading).labelsHidden()
             }
             if c.wrappedValue.background != nil {
                 LabeledSlider(title: "Duración", value: c.duration, in: 1...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
@@ -622,7 +622,7 @@ struct TransitionOverrideRow: View {
             }
         } else {
             HStack(spacing: 10) {
-                LabeledRow("Transición") { picker.frame(maxWidth: 220) }
+                LabeledRow("Transición") { picker.frame(maxWidth: 220, alignment: .leading) }
                 if hasDuration {
                     Text("Duración").foregroundStyle(.secondary)
                     Slider(value: duration, in: 0.25...2, step: 0.25)
