@@ -39,6 +39,21 @@ struct CollageSlideshowTests {
 
 @Suite("SlideshowPreset")
 struct SlideshowPresetTests {
+    @Test("Las tarjetas de texto guardadas sin estilo propio se siguen leyendo, junto con el estilo de títulos antiguo")
+    func cardsWithoutStyle() throws {
+        let folder = try TestImages.makeTempFolder()
+        let json = """
+        {"version":2,"slideshow":{"text":{"titleStyle":{"fontName":"Georgia","sizePercent":7},
+          "cards":[{"id":"8D3C2C1E-0000-4000-8000-000000000001","text":"Ana y Luis","subtitle":"","background":"black","duration":4,
+                    "carryNext":false,"carryNextSeconds":3,"carryPrevious":false,"carryPreviousSeconds":3,"anchor":"start"}]}}}
+        """
+        try json.write(to: CaobaConfig.fileURL(in: folder), atomically: true, encoding: .utf8)
+        let text = try #require(SlideshowPreset.load(from: folder)?.text)
+        #expect(text.cards?.count == 1)
+        #expect(text.cards?.first?.style == nil)
+        #expect(text.titleStyle?.fontName == "Georgia")
+    }
+
     @Test("Lee un .caoba v1 de la app antigua")
     func legacy() throws {
         let folder = try TestImages.makeTempFolder()

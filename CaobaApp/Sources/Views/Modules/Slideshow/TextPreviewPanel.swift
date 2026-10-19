@@ -1,10 +1,13 @@
 import SwiftUI
 import CaobaCore
 
-/// Vista previa en vivo de los textos del vídeo: título (pantalla propia o sobre
-/// la primera foto), cierre y pie, renderizados con el motor a tamaño reducido.
+/// Vista previa en vivo de los textos del vídeo: una tarjeta de texto (pantalla propia
+/// o sobre el elemento siguiente) y el pie, renderizados con el motor a tamaño reducido.
 struct TextPreviewPanel: View {
     @Bindable var doc: SlideshowDocument
+    /// Qué se enseña: la tarjeta (inspector de la tarjeta), el pie (pestaña «Portada y texto») o los dos.
+    enum Content { case card, caption, both }
+    var content: Content = .both
     @State private var cardImage: CGImage?
     @State private var caption: CGImage?
     @State private var captionText: String?
@@ -12,7 +15,7 @@ struct TextPreviewPanel: View {
     /// Todo lo que cambia la vista previa, para recalcular solo cuando toca.
     private struct Key: Equatable {
         var card: TextCard?; var cardPhoto: URL?
-        var titleStyle: TextStyle; var captionStyle: TextStyle; var pattern: String
+        var captionStyle: TextStyle; var pattern: String
         var firstPhoto: URL?; var firstCaptionId: String?; var ownCaption: String?; var format: VideoFormat; var total: Int
         var templateName: String?
     }
@@ -52,9 +55,9 @@ struct TextPreviewPanel: View {
         case .photos: id = doc.files.first?.lastPathComponent; total = doc.files.count; template = nil
         case .collage: id = doc.rows.first?.id.uuidString; total = doc.rows.count; template = doc.rows.first?.template.name
         }
-        let card = previewCard
+        let card = content == .caption ? nil : previewCard
         return Key(card: card, cardPhoto: card.flatMap { photo(after: $0) },
-                   titleStyle: doc.titleStyle, captionStyle: doc.captionStyle, pattern: doc.captionPattern,
+                   captionStyle: doc.captionStyle, pattern: doc.captionPattern,
                    firstPhoto: firstPhoto, firstCaptionId: id, ownCaption: id.flatMap { doc.itemCaptions[$0] }, format: doc.format, total: total,
                    templateName: template)
     }
@@ -62,14 +65,14 @@ struct TextPreviewPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Vista previa").font(.subheadline.weight(.semibold))
-            if previewCard == nil, captionText == nil {
-                Text("Añade una tarjeta de texto o un patrón de pie para ver cómo quedan sobre el vídeo.")
+            if content == .caption, captionText == nil {
+                Text("Escribe un patrón de pie para ver cómo queda sobre el vídeo.")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            if let card = previewCard {
+            if content != .caption, let card = previewCard {
                 preview(cardImage, label: card.background == nil ? "Texto · sobre el siguiente" : "Texto · pantalla propia")
             }
-            if let captionText {
+            if content != .card, let captionText {
                 preview(caption, label: "Pie: \(captionText)")
             }
             Spacer(minLength: 0)
@@ -99,12 +102,13 @@ struct TextPreviewPanel: View {
         let sampleInfo: RenameSourceInfo? = (key.firstPhoto != nil && doc.mode == .photos && !key.pattern.isEmpty)
             ? Renamer.gatherInfo(files: [key.firstPhoto!], pattern: key.pattern.replacingOccurrences(of: "{fecha}", with: "YYYY"), needsDates: key.pattern.contains("{fecha}")).first
             : nil
-        let text = doc.caption(for: key.firstCaptionId ?? "", index: 1, total: max(1, key.total), info: sampleInfo, name: key.templateName)
+        // En el inspector de la tarjeta no hace falta el pie.
+        let text = content == .card ? nil : doc.caption(for: key.firstCaptionId ?? "", index: 1, total: max(1, key.total), info: sampleInfo, name: key.templateName)
         let result = await Task.detached(priority: .userInitiated) { () -> (CGImage?, CGImage?) in
             let photo = key.firstPhoto.flatMap { ThumbnailProvider.makeThumbnail(url: $0, maxPixelSize: 900) }
             var cardImage: CGImage?
             if let card = key.card {
-                let style = card.style ?? key.titleStyle
+                let style = card.style ?? .title
                 if let background = card.background {
                     cardImage = try? TextRenderer.card(lines: card.lines, style: style, background: background.fill, canvas: canvas)
                 } else {

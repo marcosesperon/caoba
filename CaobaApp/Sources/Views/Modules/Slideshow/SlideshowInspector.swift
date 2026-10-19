@@ -121,7 +121,7 @@ struct ExtrasTab: View {
     @Bindable var doc: SlideshowDocument
 
     var body: some View {
-        // Las tarjetas de texto se añaden desde el Timeline y se editan al pulsarlas allí.
+        // Las tarjetas de texto (y su estilo) se añaden desde el Timeline y se editan al pulsarlas allí.
         VStack(alignment: .leading, spacing: 12) {
             OptionGroup(title: "Portada y créditos") {
                 slotRow(title: "Portada", url: $doc.coverURL, duration: $doc.coverDuration)
@@ -150,11 +150,6 @@ struct ExtrasTab: View {
                     LabeledSlider(title: "Tamaño", value: $doc.wmSize, in: 1...100, step: 1) { Text("\(Int(doc.wmSize)) %") }
                     LabeledSlider(title: "Opacidad", value: $doc.wmOpacity, in: 0...100, step: 1) { Text("\(Int(doc.wmOpacity)) %") }
                 }
-            }
-            OptionGroup(title: "Estilo de títulos") {
-                TextStyleEditor(style: $doc.titleStyle)
-                Text("Estilo por defecto de las tarjetas de texto; cada tarjeta puede llevar uno propio desde su inspector.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
             OptionGroup(title: "Pies de foto") {
                 LabeledRow("Patrón") { TextField("", text: $doc.captionPattern).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
@@ -302,75 +297,147 @@ struct TextStyleEditor: View {
                 })
     }
 
+    /// Partes del estilo, para montarlas juntas (pies) o cada una en su grupo (tarjetas).
+    enum Part: CaseIterable { case letter, placement, animation }
+    /// Qué partes se enseñan; por defecto todas.
+    var parts: Set<Part> = Set(Part.allCases)
+    /// En columna estrecha (inspector): cada etiqueta encima de su control.
+    var stacked = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: stacked ? 10 : 8) {
             if let title { Text(title).font(.subheadline.weight(.semibold)).padding(.top, 4) }
-            LabeledRow("Fuente") {
+            if parts.contains(.letter) { letter }
+            if parts.contains(.placement) { placement }
+            if parts.contains(.animation) { animations }
+        }
+    }
+
+    /// Fila con etiqueta: a la izquierda en la columna fija o, en columna estrecha, encima.
+    @ViewBuilder
+    private func row(_ title: LocalizedStringKey, @ViewBuilder content: () -> some View) -> some View {
+        if stacked {
+            StackedRow(title, content: content)
+        } else {
+            LabeledRow(title, content: content)
+        }
+    }
+
+    /// Deslizador de segundos de una animación (o de lo que se muestra el pie).
+    @ViewBuilder
+    private func secondsSlider(_ title: LocalizedStringKey, value: Binding<Double>, in range: ClosedRange<Double>, step: Double) -> some View {
+        // Con la coma o el punto que toque según el idioma (0,60 s).
+        let label = Text("\(value.wrappedValue.formatted(.number.precision(.fractionLength(2)))) s")
+        if stacked {
+            StackedSlider(title: title, value: value, in: range, step: step) { label }
+        } else {
+            HStack {
+                Text(title).foregroundStyle(.secondary)
+                Slider(value: value, in: range, step: step).frame(width: 120)
+                label.monospacedDigit().frame(width: 52)
+            }
+        }
+    }
+
+    /// Letra: fuente con negrita, tamaño y color.
+    @ViewBuilder
+    private var letter: some View {
+        row("Fuente") {
+            if stacked {
+                VStack(alignment: .leading, spacing: 6) {
+                    FontField(fontName: $style.fontName)
+                    Toggle("Negrita", isOn: $style.bold)
+                }
+            } else {
                 HStack {
                     FontField(fontName: $style.fontName)
                     Toggle("Negrita", isOn: $style.bold)
                 }
             }
+        }
+        if stacked {
+            StackedSlider(title: "Tamaño", value: $style.sizePercent, in: 1...20, step: 0.5) { Text("\(style.sizePercent, specifier: "%.1f") %") }
+        } else {
             LabeledSlider(title: "Tamaño", value: $style.sizePercent, in: 1...20, step: 0.5) { Text("\(style.sizePercent, specifier: "%.1f") %") }
-            LabeledRow("Color") { ColorPicker("", selection: colorBinding, supportsOpacity: false).labelsHidden() }
-            LabeledRow("Posición") {
-                Picker("", selection: $style.anchor) {
-                    Text("Arriba izquierda").tag(TextAnchor.topLeft)
-                    Text("Arriba centro").tag(TextAnchor.top)
-                    Text("Arriba derecha").tag(TextAnchor.topRight)
-                    Text("Centro izquierda").tag(TextAnchor.left)
-                    Text("Centro").tag(TextAnchor.center)
-                    Text("Centro derecha").tag(TextAnchor.right)
-                    Text("Abajo izquierda").tag(TextAnchor.bottomLeft)
-                    Text("Abajo centro").tag(TextAnchor.bottom)
-                    Text("Abajo derecha").tag(TextAnchor.bottomRight)
-                }
-                .frame(maxWidth: 220, alignment: .leading).labelsHidden()
+        }
+        row("Color") { ColorPicker("", selection: colorBinding, supportsOpacity: false).labelsHidden() }
+    }
+
+    /// Colocación: en qué parte de la pantalla y con qué realce (sombra o banda) para que se lea.
+    @ViewBuilder
+    private var placement: some View {
+        row("Posición") {
+            Picker("", selection: $style.anchor) {
+                Text("Arriba izquierda").tag(TextAnchor.topLeft)
+                Text("Arriba centro").tag(TextAnchor.top)
+                Text("Arriba derecha").tag(TextAnchor.topRight)
+                Text("Centro izquierda").tag(TextAnchor.left)
+                Text("Centro").tag(TextAnchor.center)
+                Text("Centro derecha").tag(TextAnchor.right)
+                Text("Abajo izquierda").tag(TextAnchor.bottomLeft)
+                Text("Abajo centro").tag(TextAnchor.bottom)
+                Text("Abajo derecha").tag(TextAnchor.bottomRight)
             }
-            LabeledRow("Fondo") {
-                Picker("", selection: $style.backdrop) {
-                    Text("Nada").tag(TextBackdrop.none)
-                    Text("Sombra").tag(TextBackdrop.shadow)
-                    Text("Banda").tag(TextBackdrop.band)
-                }
-                .pickerStyle(.segmented).fixedSize().labelsHidden()
+            .frame(maxWidth: 220, alignment: .leading).labelsHidden()
+        }
+        row("Realce") {
+            Picker("", selection: $style.backdrop) {
+                Text("Nada").tag(TextBackdrop.none)
+                Text("Sombra").tag(TextBackdrop.shadow)
+                Text("Banda").tag(TextBackdrop.band)
             }
-            // `$style.animation` chocaría con `Binding.animation(_:)` de SwiftUI: bindings explícitos.
-            LabeledRow("Entrada") {
+            .pickerStyle(.segmented).fixedSize().labelsHidden()
+        }
+    }
+
+    /// Animación: entrada, (en los pies) cuánto se muestra, y salida; cada una con sus segundos.
+    // `$style.animation` chocaría con `Binding.animation(_:)` de SwiftUI: bindings explícitos.
+    @ViewBuilder
+    private var animations: some View {
+        row("Entrada") {
+            if stacked {
+                animationPicker(Binding(get: { style.animation }, set: { style.animation = $0 }), exit: false)
+            } else {
                 HStack {
                     animationPicker(Binding(get: { style.animation }, set: { style.animation = $0 }), exit: false)
                     if style.animation != .none {
-                        Text("en").foregroundStyle(.secondary)
-                        Slider(value: $style.animationDuration, in: 0.25...3, step: 0.25).frame(width: 120)
-                        Text("\(style.animationDuration, specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                        secondsSlider("en", value: $style.animationDuration, in: 0.25...3, step: 0.25)
                     }
                 }
             }
-            if showsHold {
-                LabeledRow("Mostrar") {
-                    HStack {
-                        Picker("", selection: Binding(get: { style.holdSeconds == nil }, set: { style.holdSeconds = $0 ? nil : 3 })) {
-                            Text("Toda la foto").tag(true)
-                            Text("Unos segundos").tag(false)
-                        }
-                        .pickerStyle(.segmented).fixedSize().labelsHidden()
-                        if let hold = style.holdSeconds {
-                            Slider(value: Binding(get: { hold }, set: { style.holdSeconds = $0 }), in: 0.5...30, step: 0.5).frame(width: 120)
-                            Text("\(hold, specifier: "%.1f") s").monospacedDigit().frame(width: 52)
-                        }
+        }
+        if stacked, style.animation != .none {
+            secondsSlider("Duración de la entrada", value: $style.animationDuration, in: 0.25...3, step: 0.25)
+        }
+        if showsHold {
+            row("Mostrar") {
+                HStack {
+                    Picker("", selection: Binding(get: { style.holdSeconds == nil }, set: { style.holdSeconds = $0 ? nil : 3 })) {
+                        Text("Toda la foto").tag(true)
+                        Text("Unos segundos").tag(false)
+                    }
+                    .pickerStyle(.segmented).fixedSize().labelsHidden()
+                    if let hold = style.holdSeconds {
+                        Slider(value: Binding(get: { hold }, set: { style.holdSeconds = $0 }), in: 0.5...30, step: 0.5).frame(width: 120)
+                        Text("\(hold, specifier: "%.1f") s").monospacedDigit().frame(width: 52)
                     }
                 }
             }
-            LabeledRow("Salida") {
+        }
+        row("Salida") {
+            if stacked {
+                animationPicker(Binding(get: { style.exitAnimation }, set: { style.exitAnimation = $0 }), exit: true)
+            } else {
                 HStack {
                     animationPicker(Binding(get: { style.exitAnimation }, set: { style.exitAnimation = $0 }), exit: true)
                     if style.resolvedExit != .none {
-                        Text("en").foregroundStyle(.secondary)
-                        Slider(value: $style.exitDuration, in: 0.25...3, step: 0.25).frame(width: 120)
-                        Text("\(style.exitDuration, specifier: "%.2f") s").monospacedDigit().frame(width: 52)
+                        secondsSlider("en", value: $style.exitDuration, in: 0.25...3, step: 0.25)
                     }
                 }
             }
+        }
+        if stacked, style.resolvedExit != .none {
+            secondsSlider("Duración de la salida", value: $style.exitDuration, in: 0.25...3, step: 0.25)
         }
     }
 }
@@ -514,56 +581,118 @@ struct CaptionOverrideRow: View {
     }
 }
 
-/// Tarjeta de texto seleccionada: texto, fondo, duración, transición, empalmes y estilo propio.
+/// Tarjeta de texto seleccionada: la vista previa a la izquierda y, en una columna,
+/// contenido, pantalla y tiempo, letra, colocación, animación y empalmes. Cada tarjeta
+/// lleva su propio estilo; «Aplicar estilo a todas» lo copia a las demás.
 struct TextCardInspector: View {
     @Bindable var doc: SlideshowDocument
     let cardId: UUID
+    @State private var confirmApplyAll = false
 
     private var card: Binding<TextCard> {
         Binding(get: { doc.textCard(cardId) ?? TextCard() }, set: { doc.updateTextCard($0) })
     }
 
-    private var hasOwnStyle: Bool { doc.textCard(cardId)?.style != nil }
+    /// El estilo de la tarjeta (las antiguas sin estilo se migran al abrir; `.title` por si acaso).
+    private var style: Binding<TextStyle> {
+        Binding(get: { card.wrappedValue.style ?? .title }, set: { card.wrappedValue.style = $0 })
+    }
+
+    private var hasOwnScreen: Bool { card.wrappedValue.background != nil }
+    private var otherCards: Int { max(0, doc.textCards.count - 1) }
 
     var body: some View {
-        let c = card
-        Text("Texto").font(.headline)
-        OptionGroup(title: "Contenido") {
-            LabeledRow("Texto") { TextField("", text: c.text).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-            LabeledRow("Subtítulo") { TextField("", text: c.subtitle).textFieldStyle(.roundedBorder).frame(maxWidth: 360) }
-            LabeledRow("Fondo") {
-                Picker("", selection: Binding<CanvasBackground?>(get: { c.wrappedValue.background }, set: { c.wrappedValue.background = $0 })) {
-                    Text("Ninguno · sobre el siguiente").tag(CanvasBackground?.none)
-                    Text("Negro").tag(CanvasBackground?.some(.black))
-                    Text("Blanco").tag(CanvasBackground?.some(.white))
-                    Text("Gris").tag(CanvasBackground?.some(.gray))
+        VStack(alignment: .leading, spacing: 10) {
+            header
+            HStack(alignment: .top, spacing: 16) {
+                TextPreviewPanel(doc: doc, content: .card)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                InspectorColumn {
+                    OptionGroup(title: "Contenido") { content }
+                    OptionGroup(title: "Pantalla y tiempo") { screenAndTime }
+                    OptionGroup(title: "Letra") { TextStyleEditor(style: style, parts: [.letter], stacked: true) }
+                    OptionGroup(title: "Colocación") { TextStyleEditor(style: style, parts: [.placement], stacked: true) }
+                    OptionGroup(title: "Animación") { TextStyleEditor(style: style, parts: [.animation], stacked: true) }
+                    if hasOwnScreen { OptionGroup(title: "Empalmes") { carryOvers } }
                 }
-                .frame(maxWidth: 240, alignment: .leading).labelsHidden()
-            }
-            if c.wrappedValue.background != nil {
-                LabeledSlider(title: "Duración", value: c.duration, in: 1...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
-                TransitionOverrideRow(doc: doc, id: cardId.uuidString)
-                Toggle("Mantener el texto quieto mientras la tarjeta se funde con el elemento siguiente", isOn: c.carryNext)
-                if c.wrappedValue.carryNext {
-                    LabeledSlider(title: "Segundos sobre él", value: c.carryNextSeconds, in: 0.5...15, step: 0.5) { Text("\(c.wrappedValue.carryNextSeconds, specifier: "%.1f") s") }
-                }
-                Toggle("Empezar el texto sobre el elemento anterior y mantenerlo al fundir a la tarjeta", isOn: c.carryPrevious)
-                if c.wrappedValue.carryPrevious {
-                    LabeledSlider(title: "Segundos sobre él", value: c.carryPreviousSeconds, in: 0.5...15, step: 0.5) { Text("\(c.wrappedValue.carryPreviousSeconds, specifier: "%.1f") s") }
-                }
-            } else {
-                LabeledSlider(title: "Segundos mostrándose", value: c.duration, in: 0.5...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
-                Text("Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo).")
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
-        OptionGroup(title: "Estilo") {
-            Toggle("Estilo propio para esta tarjeta", isOn: Binding(get: { hasOwnStyle }, set: { on in c.wrappedValue.style = on ? doc.titleStyle : nil }))
-            if hasOwnStyle {
-                TextStyleEditor(style: Binding(get: { c.wrappedValue.style ?? doc.titleStyle }, set: { c.wrappedValue.style = $0 }))
-                Button("Volver al estilo de títulos") { c.wrappedValue.style = nil }
-            } else {
-                Text("Usa el estilo de títulos de la pestaña «Portada y texto».").font(.caption).foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .confirmationDialog("¿Aplicar este estilo a todas las tarjetas de texto?", isPresented: $confirmApplyAll) {
+            Button("Aplicar a todas") { doc.applyStyleToAllCards(from: cardId) }
+        } message: {
+            Text("Las otras \(otherCards) tarjetas pasarán a tener la misma letra, colocación y animaciones que esta. El texto, la pantalla y los tiempos de cada una no cambian.")
+        }
+    }
+
+    /// «Texto · primera línea» y la acción de copiar el estilo a las demás tarjetas.
+    private var header: some View {
+        HStack {
+            Text(card.wrappedValue.text.isEmpty ? String(localized: "Texto") : String(localized: "Texto · \(card.wrappedValue.text)"))
+                .font(.headline).lineLimit(1).truncationMode(.tail)
+            Spacer()
+            Button { confirmApplyAll = true } label: { Label("Aplicar estilo a todas", systemImage: "square.on.square") }
+                .disabled(otherCards == 0)
+                .help("Copia la letra, la colocación y las animaciones de esta tarjeta a todas las demás")
+        }
+    }
+
+    /// Texto principal y subtítulo (opcional, en una segunda línea más pequeña).
+    @ViewBuilder
+    private var content: some View {
+        let c = card
+        StackedRow("Texto") { TextField("", text: c.text).textFieldStyle(.roundedBorder) }
+        StackedRow("Subtítulo") { TextField("", text: c.subtitle, prompt: Text("Opcional")).textFieldStyle(.roundedBorder) }
+    }
+
+    /// Dónde se ve (pantalla propia con fondo o encima del elemento siguiente) y cuánto dura.
+    @ViewBuilder
+    private var screenAndTime: some View {
+        let c = card
+        StackedRow("Dónde se ve") {
+            Picker("", selection: Binding(get: { hasOwnScreen }, set: { own in c.wrappedValue.background = own ? (c.wrappedValue.background ?? .black) : nil })) {
+                Text("Pantalla propia").tag(true)
+                Text("Sobre el siguiente").tag(false)
+            }
+            .pickerStyle(.segmented).fixedSize().labelsHidden()
+        }
+        if let background = c.wrappedValue.background {
+            StackedRow("Fondo de la pantalla") {
+                Picker("", selection: Binding(get: { background }, set: { c.wrappedValue.background = $0 })) {
+                    Text("Negro").tag(CanvasBackground.black)
+                    Text("Blanco").tag(CanvasBackground.white)
+                    Text("Gris").tag(CanvasBackground.gray)
+                }
+                .pickerStyle(.segmented).fixedSize().labelsHidden()
+            }
+            StackedSlider(title: "Duración", value: c.duration, in: 1...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
+            StackedRow("Transición de entrada") { TransitionOverrideRow(doc: doc, id: cardId.uuidString, stacked: true) }
+        } else {
+            StackedSlider(title: "Segundos sobre el siguiente", value: c.duration, in: 0.5...30, step: 0.5) { Text("\(c.wrappedValue.duration, specifier: "%.1f") s") }
+            Text("El texto aparece encima del elemento que viene después en el timeline, con su entrada y su salida.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    /// Con pantalla propia: el texto puede empezar sobre el elemento anterior o seguir sobre el siguiente.
+    @ViewBuilder
+    private var carryOvers: some View {
+        let c = card
+        Toggle("Empezar sobre el anterior", isOn: c.carryPrevious)
+        Text("El texto aparece ya sobre el elemento anterior y se queda quieto mientras se funde a esta pantalla.")
+            .font(.caption).foregroundStyle(.secondary)
+        if c.wrappedValue.carryPrevious {
+            StackedSlider(title: "Segundos sobre el anterior", value: c.carryPreviousSeconds, in: 0.5...15, step: 0.5) {
+                Text("\(c.wrappedValue.carryPreviousSeconds, specifier: "%.1f") s")
+            }
+        }
+        Divider()
+        Toggle("Seguir sobre el siguiente", isOn: c.carryNext)
+        Text("El texto se queda quieto mientras esta pantalla se funde con el elemento siguiente y sigue un rato sobre él.")
+            .font(.caption).foregroundStyle(.secondary)
+        if c.wrappedValue.carryNext {
+            StackedSlider(title: "Segundos sobre el siguiente", value: c.carryNextSeconds, in: 0.5...15, step: 0.5) {
+                Text("\(c.wrappedValue.carryNextSeconds, specifier: "%.1f") s")
             }
         }
     }
@@ -615,7 +744,7 @@ struct TransitionOverrideRow: View {
             VStack(alignment: .leading, spacing: 8) {
                 picker.frame(maxWidth: .infinity, alignment: .leading)
                 if hasDuration {
-                    StackedSlider(title: "Duración", value: duration, in: 0.25...2, step: 0.25, onReset: resetDuration) {
+                    StackedSlider(title: "Duración de la transición", value: duration, in: 0.25...2, step: 0.25, onReset: resetDuration) {
                         Text("\(doc.entryDuration(for: id), specifier: "%.2f") s")
                     }
                 }

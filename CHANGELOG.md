@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.5.0 — 2026-10-19
+
+- **Cada tarjeta de texto con su propio estilo**: desaparece el «Estilo de títulos» común. Tus tarjetas se quedan con el estilo que tenían; una tarjeta nueva copia el de la tarjeta de texto anterior, y «Aplicar estilo a todas» copia el de una a las demás.
+- **Ajustes de la tarjeta de texto más claros**: la vista previa a la izquierda y, a la derecha, bloques con lo que hace cada cosa: Contenido, Pantalla y tiempo, Letra, Colocación, Animación y Empalmes.
+
 ## 3.4.3 — 2026-10-19
 
 - Los desplegables de Vídeo, del estilo de títulos y pies, de las tarjetas de texto, del encuadre ampliado y del Renombrador ya salen alineados con el resto de controles; antes algunos se desplazaban hacia la derecha.

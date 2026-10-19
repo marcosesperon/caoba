@@ -1505,3 +1505,59 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-19 — Cada tarjeta de texto con su estilo y rediseño de su inspector
+
+### 1. La petición tal como se ha entendido
+**Sin estilo común de títulos:**
+- Desaparece el bloque «Estilo de títulos» de la pestaña «Portada y texto», que queda con Portada y créditos, Marca de agua y Pies de foto.
+- Cada tarjeta de texto lleva siempre su propio estilo. Ya no existe «Estilo propio para esta tarjeta» ni «Volver al estilo de títulos».
+- Las tarjetas que ya existen y no tenían estilo propio se quedan con una copia del estilo de títulos guardado en el proyecto, así que se ven igual que antes.
+- Una tarjeta nueva copia el estilo de la tarjeta de texto anterior en el timeline, o el de la siguiente si es la primera. Si no hay ninguna, usa el estilo por defecto de la app.
+- **«Aplicar estilo a todas»:** copia el estilo de esta tarjeta (letra, colocación y animaciones) a todas las tarjetas de texto del proyecto, pidiendo confirmación antes.
+
+**Inspector de la tarjeta, con el mismo esquema que Collage y Foto:**
+- **Cabecera:** «Texto · <primera línea>» y, a la derecha, «Aplicar estilo a todas».
+- **Izquierda:** vista previa en vivo de la tarjeta, con su fondo o sobre el elemento siguiente.
+- **Derecha, columna de grupos con título:**
+  1. **Contenido:** texto y subtítulo.
+  2. **Pantalla y tiempo:** dónde se ve (pantalla propia con fondo negro, blanco o gris, o sobre el elemento siguiente) y cuánto dura. Con pantalla propia, también su transición.
+  3. **Letra:** fuente, negrita, tamaño y color.
+  4. **Colocación:** posición y realce del texto (nada, sombra o banda). Se llama «Realce» para no confundirlo con el fondo de la pantalla.
+  5. **Animación:** entrada y salida, cada una con su duración.
+  6. **Empalmes**, solo con pantalla propia: empezar el texto sobre el elemento anterior y mantenerlo al fundirse con el siguiente, cada uno con sus segundos y con textos más cortos.
+
+El estilo de los pies de foto no cambia.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Con qué estilo nace una tarjeta nueva: copia de la anterior o siempre el de la app?** → Copia del estilo de la tarjeta de texto anterior en el timeline (o de la siguiente si es la primera); si no hay ninguna, el estilo por defecto de la app.
+- **Sin estilo común, ¿acción para copiar el estilo de una tarjeta a las demás?** → Sí: «Aplicar a todas» en el grupo de estilo, con confirmación; copia el estilo (fuente, tamaño, color, posición, animaciones) a todas las tarjetas de texto del proyecto.
+- **¿Distribución del inspector: vista previa + columna de grupos, o dos columnas de grupos sin vista previa?** → Vista previa en vivo de la tarjeta a la izquierda y columna de grupos a la derecha, como Collage y Foto.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Model/SlideshowDocument.swift` (`titleStyle`, `addTextCard`, carga y guardado del preset, `applyText`).
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`ExtrasTab`, `TextStyleEditor`, `TextCardInspector`), `TextPreviewPanel.swift`, `SlideshowView.swift` (demo `text.demo`).
+- `CaobaCore/Sources/CaobaCore/Slideshow/TextOverlay.swift` (`TextCard`, `TextStyle`) y `SlideshowPreset.swift` (`text.titleStyle`).
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.5.0).
+- `TextCard.style` sigue siendo opcional en el formato del fichero, para leer los `.caoba` antiguos sin tocar el motor. Al cargar, toda tarjeta con `style == nil` recibe una copia de `text.titleStyle` (o `.title`); al guardar ya no se escribe `titleStyle`. Comprobado con una carpeta de prueba: las tarjetas heredan Georgia y el fichero deja de llevar `titleStyle`.
+- `titleStyle` sale del documento. El fondo liso de las tarjetas y el render usan `.title` como reserva (`card.style ?? .title`), que solo se usaría si algo creara una tarjeta sin estilo.
+- Tarjeta nueva: `inheritedStyle(for:)` toma el de la tarjeta de texto anterior en el timeline, si no el de la siguiente, si no `.title`. «Aplicar estilo a todas» (`applyStyleToAllCards(from:)`) con confirmación que explica qué cambia y qué no. Comprobado con un gancho temporal (ya quitado): la nueva hereda Georgia y al aplicar Menlo a todas, las tres pasan a Menlo.
+- `TextStyleEditor` con `parts` y `stacked`: un solo editor para los pies (completo, en filas) y para la tarjeta (cada parte en su grupo, en columna). «Fondo» del texto pasa a «Realce» en todos los sitios para no confundirlo con el fondo de la pantalla.
+- `StackedRow` en `Theme.swift` (etiqueta encima), compartido por el editor y el inspector.
+- En «Pantalla y tiempo», la duración de la transición en columna se llama «Duración de la transición»: había dos «Duración» seguidas. Afecta también a Collage y Foto, donde se lee igual de bien.
+- `TextPreviewPanel(content:)`: `.card` en el inspector, `.caption` en «Portada y texto» (la tarjeta ya se ve en su inspector).
+- `slideshow.select` acepta `text`. Test nuevo en el motor: una tarjeta guardada sin `style` se sigue leyendo junto con el `titleStyle` antiguo. Pasan los 129 tests.
+- Versión 3.5.0: cambia el funcionamiento (no hay estilo común).
+
+### 5. Alternativas descartadas
+- Toda tarjeta nueva con el estilo de la app: obliga a repetir los ajustes en cada tarjeta; descartado por el usuario.
+- Sin «Aplicar estilo a todas»: cambiar la fuente del proyecto sería ir tarjeta por tarjeta; descartado por el usuario.
+- Dos columnas de grupos sin vista previa: descartado por el usuario.
+- Hacer `TextCard.style` obligatorio en el motor: rompería la lectura de los `.caoba` antiguos o necesitaría un decodificador propio; la migración en la app basta.
+
+### 6. Pendiente de comprobar
+- El grupo Empalmes queda en la parte de la columna que hay que desplazar y no salió en las capturas; usa las mismas piezas (casillas, ayuda y `StackedSlider`) que se ven en el resto.
+- La confirmación de «Aplicar estilo a todas» (ventana aparte) no se vio en pantalla; la acción se comprobó con el gancho temporal.

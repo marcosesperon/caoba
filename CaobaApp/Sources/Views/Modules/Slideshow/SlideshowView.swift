@@ -49,7 +49,8 @@ struct SlideshowView: View {
                     // Controles a la izquierda y, a la derecha, cómo quedan los textos sobre el vídeo.
                     HStack(alignment: .top, spacing: 14) {
                         ScrollView { ExtrasTab(doc: doc).padding(.horizontal, 4) }
-                        TextPreviewPanel(doc: doc).frame(width: 380)
+                        // Solo el pie: cada tarjeta de texto se ve en su propio inspector.
+                        TextPreviewPanel(doc: doc, content: .caption).frame(width: 380)
                     }
                 case .music: ScrollView { MusicTab(doc: doc).padding(.horizontal, 4) }
                 case .inspector: SelectionTab(doc: doc, expandedFraming: $expandedFraming).padding(.horizontal, 4)
@@ -69,9 +70,15 @@ struct SlideshowView: View {
             // `--state text.demo=card|overlay`: título, cierre y pies de ejemplo; `slideshow.generate=/ruta.mp4` genera una vista previa ahí.
             if let demo = appState.launchState["text.demo"] {
                 let carry = appState.launchState["text.carry"] != nil
-                var title = TextCard(text: "Alex & Sofi", subtitle: "Biar, julio de 2025", background: demo == "overlay" ? nil : .black, duration: carry ? 3 : 4, anchor: TextCard.startAnchor)
+                // Cada tarjeta lleva su estilo: el de la app, con los retoques que pida la prueba.
+                var demoStyle = TextStyle.title
+                if carry { demoStyle.animation = .fade; demoStyle.animationDuration = 0.5; demoStyle.exitAnimation = .fade; demoStyle.exitDuration = 0.5 }
+                let animation = appState.launchState["text.animation"].flatMap(TextAnimation.init(rawValue:))
+                if let animation { demoStyle.animation = animation; demoStyle.animationDuration = 1 }
+                var title = TextCard(text: "Alex & Sofi", subtitle: "Biar, julio de 2025", background: demo == "overlay" ? nil : .black, duration: carry ? 3 : 4,
+                                     style: demoStyle, anchor: TextCard.startAnchor)
                 title.carryNext = carry; title.carryNextSeconds = 2
-                var closing = TextCard(text: "Gracias", subtitle: "caobafoto.com", background: .black, duration: carry ? 3 : 4, anchor: TextCard.endAnchor)
+                var closing = TextCard(text: "Gracias", subtitle: "caobafoto.com", background: .black, duration: carry ? 3 : 4, style: demoStyle, anchor: TextCard.endAnchor)
                 closing.carryPrevious = carry; closing.carryPreviousSeconds = 2
                 doc.textCards = [title, closing]
                 // `text.section=1`: un título de sección superpuesto ante el tercer elemento (cuando haya fotos).
@@ -80,19 +87,13 @@ struct SlideshowView: View {
                         var attempts = 0
                         while doc.items.filter({ !$0.isText }).count < 3 && attempts < 40 { try? await Task.sleep(for: .milliseconds(250)); attempts += 1 }
                         guard let third = doc.items.filter({ !$0.isText }).dropFirst(2).first else { return }
-                        var section = TextCard(text: "Segunda parte", subtitle: "", background: nil, duration: 3, anchor: third.id)
-                        section.style = doc.titleStyle; section.style?.anchor = .bottomRight; section.style?.animation = .slideLeft; section.style?.animationDuration = 0.75
-                        doc.textCards.append(section)
+                        var sectionStyle = demoStyle
+                        sectionStyle.anchor = .bottomRight; sectionStyle.animation = .slideLeft; sectionStyle.animationDuration = 0.75
+                        doc.textCards.append(TextCard(text: "Segunda parte", subtitle: "", background: nil, duration: 3, style: sectionStyle, anchor: third.id))
                     }
                 }
-                if carry {
-                    doc.transitionChoice = .kind(.crossfade); doc.transitionDuration = 1; doc.itemTransitions = [:]
-                    doc.titleStyle.animation = .fade; doc.titleStyle.animationDuration = 0.5; doc.titleStyle.exitAnimation = .fade; doc.titleStyle.exitDuration = 0.5
-                }
-                if let anim = appState.launchState["text.animation"].flatMap(TextAnimation.init(rawValue:)) {
-                    doc.titleStyle.animation = anim; doc.titleStyle.animationDuration = 1
-                    doc.captionStyle.animation = anim; doc.captionStyle.animationDuration = 0.75
-                }
+                if carry { doc.transitionChoice = .kind(.crossfade); doc.transitionDuration = 1; doc.itemTransitions = [:] }
+                if let animation { doc.captionStyle.animation = animation; doc.captionStyle.animationDuration = 0.75 }
                 doc.captionPattern = "{n} de {total} · {nombre}"
                 tab = .extras
             }
@@ -105,7 +106,7 @@ struct SlideshowView: View {
             }
             // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
             if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
-            // `--state slideshow.select=collage|photo`: selecciona el primer collage o la primera foto
+            // `--state slideshow.select=collage|photo|text`: selecciona el primer collage, foto o tarjeta de texto
             // del timeline en cuanto estén, para capturar sus inspectores.
             if let kind = appState.launchState["slideshow.select"] {
                 Task {
@@ -214,12 +215,13 @@ struct SlideshowView: View {
         }
     }
 
-    /// Primer collage o primera foto del timeline como selección (para `slideshow.select`).
+    /// Primer collage, foto o tarjeta de texto del timeline como selección (para `slideshow.select`).
     private func firstSelection(_ kind: String, in doc: SlideshowDocument) -> TimelineSelection? {
         for item in doc.items {
             switch item.kind {
             case .collage(let row) where kind == "collage": return .collage(row.id)
             case .photo(let url) where kind == "photo": return .photo(url.lastPathComponent)
+            case .text(let card) where kind == "text": return .text(card.id)
             default: continue
             }
         }

@@ -17,6 +17,26 @@
         }
       }
     },
+    "Aplicar a todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply to all"
+          }
+        }
+      }
+    },
+    "Aplicar estilo a todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply style to all"
+          }
+        }
+      }
+    },
     "Añade una tarjeta de texto tras el elemento seleccionado, o al final si no hay ninguno" : {
       "localizations" : {
         "en" : {
@@ -37,6 +57,116 @@
         }
       }
     },
+    "Copia la letra, la colocación y las animaciones de esta tarjeta a todas las demás" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies this card's lettering, placement and animations to all the others"
+          }
+        }
+      }
+    },
+    "Duración de la entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry duration"
+          }
+        }
+      }
+    },
+    "Duración de la salida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit duration"
+          }
+        }
+      }
+    },
+    "Duración de la transición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transition duration"
+          }
+        }
+      }
+    },
+    "Dónde se ve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where it shows"
+          }
+        }
+      }
+    },
+    "El texto aparece encima del elemento que viene después en el timeline, con su entrada y su salida." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text appears over the item that comes next in the timeline, with its entry and exit."
+          }
+        }
+      }
+    },
+    "El texto aparece ya sobre el elemento anterior y se queda quieto mientras se funde a esta pantalla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text already appears over the previous item and stays still while it fades into this screen."
+          }
+        }
+      }
+    },
+    "El texto se queda quieto mientras esta pantalla se funde con el elemento siguiente y sigue un rato sobre él." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text stays still while this screen fades into the next item and remains over it for a while."
+          }
+        }
+      }
+    },
+    "Empalmes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry-overs"
+          }
+        }
+      }
+    },
+    "Empezar sobre el anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start over the previous item"
+          }
+        }
+      }
+    },
+    "Escribe un patrón de pie para ver cómo queda sobre el vídeo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type a caption pattern to see how it looks on the video."
+          }
+        }
+      }
+    },
     "Estilo de títulos" : {
       "localizations" : {
         "en" : {
@@ -53,6 +183,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Default style for text cards; each card can have its own from its inspector."
+          }
+        }
+      }
+    },
+    "Fondo de la pantalla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen background"
+          }
+        }
+      }
+    },
+    "Las otras %lld tarjetas pasarán a tener la misma letra, colocación y animaciones que esta. El texto, la pantalla y los tiempos de cada una no cambian." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The other %lld cards will get the same lettering, placement and animations as this one. Each card keeps its own text, screen and timing."
+          }
+        }
+      }
+    },
+    "Letra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lettering"
+          }
+        }
+      }
+    },
+    "Opcional" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional"
+          }
+        }
+      }
+    },
+    "Pantalla y tiempo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen and timing"
+          }
+        }
+      }
+    },
+    "Realce" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backdrop"
+          }
+        }
+      }
+    },
+    "Seguir sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue over the next item"
+          }
+        }
+      }
+    },
+    "Segundos sobre el anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over the previous item"
+          }
+        }
+      }
+    },
+    "Segundos sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seconds over the next item"
+          }
+        }
+      }
+    },
+    "Sobre el siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Over the next item"
+          }
+        }
+      }
+    },
+    "Transición de entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry transition"
+          }
+        }
+      }
+    },
+    "¿Aplicar este estilo a todas las tarjetas de texto?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply this style to all text cards?"
           }
         }
       }

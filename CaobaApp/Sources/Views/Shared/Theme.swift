@@ -133,6 +133,25 @@ struct StackedSlider<Display: View>: View {
     }
 }
 
+/// Etiqueta encima de su control, para columnas estrechas (inspectores), donde la
+/// columna fija de `LabeledRow` no cabe.
+struct StackedRow<Content: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder let content: Content
+
+    init(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title).foregroundStyle(.secondary)
+            content
+        }
+    }
+}
+
 /// Etiqueta y control en una fila, con la etiqueta en la misma columna fija
 /// que usan los deslizadores, para que todos los controles empiecen alineados.
 struct LabeledRow<Content: View>: View {

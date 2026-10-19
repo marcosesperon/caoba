@@ -200,8 +200,6 @@ final class SlideshowDocument {
     // Texto
     /// Tarjetas de texto del timeline (título, cierre, títulos de sección…).
     var textCards: [TextCard] = []
-    /// Estilo por defecto de las tarjetas de texto (cada una puede llevar el suyo).
-    var titleStyle: TextStyle = .title
     var captionStyle: TextStyle = .caption
     /// Patrón de pie para todas las fotos; vacío = sin pies.
     var captionPattern = ""
@@ -345,8 +343,26 @@ final class SlideshowDocument {
         } else {
             textCards.append(card)
         }
+        // Cada tarjeta lleva su estilo: la nueva copia el de la tarjeta de texto vecina.
+        if let i = textCards.firstIndex(where: { $0.id == card.id }) { textCards[i].style = inheritedStyle(for: card.id) }
         selection = .text(card.id)
         return card.id
+    }
+
+    /// Estilo de la tarjeta de texto anterior en el timeline, si no de la siguiente, y si no hay
+    /// ninguna, el de la app.
+    private func inheritedStyle(for id: UUID) -> TextStyle {
+        let texts = items.compactMap { item -> TextCard? in if case .text(let c) = item.kind { return c } else { return nil } }
+        guard let index = texts.firstIndex(where: { $0.id == id }) else { return .title }
+        let previous = texts[..<index].last { $0.style != nil }
+        let next = texts[(index + 1)...].first { $0.style != nil }
+        return previous?.style ?? next?.style ?? .title
+    }
+
+    /// Copia el estilo de una tarjeta (letra, colocación y animaciones) a todas las demás.
+    func applyStyleToAllCards(from id: UUID) {
+        guard let style = textCard(id)?.style else { return }
+        for i in textCards.indices { textCards[i].style = style }
     }
 
     /// Coloca la tarjeta justo después de otra tarjeta (mismo ancla, detrás de ella).
@@ -412,7 +428,7 @@ final class SlideshowDocument {
     /// Fondo liso de una tarjeta de título o cierre como imagen temporal; el texto
     /// va aparte, como texto superpuesto, para poder animarlo.
     private func renderCardBackground(_ background: CanvasBackground) throws -> URL {
-        let image = try TextRenderer.card(lines: [], style: titleStyle, background: background.fill, canvas: format.size)
+        let image = try TextRenderer.card(lines: [], style: .title, background: background.fill, canvas: format.size)
         let url = try TempFiles.makeFileURL(extension: "jpg")
         try ImageWriter.write(image, to: url, encoding: ImageEncoding(format: .jpeg, quality: 95))
         return url
@@ -864,7 +880,7 @@ final class SlideshowDocument {
         var cardPhotos: [UUID: SlideshowPhoto] = [:]
         for (i, kind) in kinds.enumerated() {
             guard case .text(let card) = kind.kind, !card.lines.isEmpty else { continue }
-            let style = resolved(card.style ?? titleStyle, generator: &generator)
+            let style = resolved(card.style ?? .title, generator: &generator)
             let next = kinds[(i + 1)...].first { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
             let previous = kinds[..<i].last { !$0.kind.isTextKind }.flatMap { ranges[$0.id] }
             guard let background = card.background else {
@@ -1039,7 +1055,7 @@ final class SlideshowDocument {
         var transition: TransitionChoice; var transitionDuration: Double; var itemTransitions: [String: TransitionChoice]; var itemTransitionDurations: [String: Double]
         var cover: URL?; var coverDuration: Double; var credits: URL?; var creditsDuration: Double
         var textCards: [TextCard]
-        var titleStyle: TextStyle; var captionStyle: TextStyle; var captionPattern: String; var itemCaptions: [String: String]
+        var captionStyle: TextStyle; var captionPattern: String; var itemCaptions: [String: String]
         var watermark: URL?; var wmPosition: OverlayPosition; var wmSize: Double; var wmOpacity: Double
         var durations: [String: Double]
         var tracks: [AudioTrack]; var fadeOut: Bool; var normalize: Bool; var loopPlaylist: Bool
@@ -1053,7 +1069,7 @@ final class SlideshowDocument {
                  itemTransitions: itemTransitions, itemTransitionDurations: itemTransitionDurations, cover: coverURL, coverDuration: coverDuration,
                  credits: creditsURL, creditsDuration: creditsDuration,
                  textCards: textCards,
-                 titleStyle: titleStyle, captionStyle: captionStyle, captionPattern: captionPattern, itemCaptions: itemCaptions,
+                 captionStyle: captionStyle, captionPattern: captionPattern, itemCaptions: itemCaptions,
                  watermark: watermarkURL, wmPosition: wmPosition, wmSize: wmSize, wmOpacity: wmOpacity,
                  durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
                  kb: kbSettings, choices: kbChoices, points: kbPoints,
@@ -1084,7 +1100,7 @@ final class SlideshowDocument {
         p.durations = photoDurations
         var text = SlideshowPreset.TextSection()
         text.cards = textCards
-        text.titleStyle = titleStyle; text.captionStyle = captionStyle; text.captionPattern = captionPattern; text.captions = itemCaptions
+        text.captionStyle = captionStyle; text.captionPattern = captionPattern; text.captions = itemCaptions
         p.text = text
         p.beatsPerCut = beatsPerCut
         p.rhythmItems = rhythmItems.sorted()
@@ -1150,7 +1166,7 @@ final class SlideshowDocument {
         if let d = preset.durationPerPhoto { durationPerPhoto = d }
         photoDurations = preset.durations ?? [:]
         if let t = preset.text {
-            titleStyle = t.titleStyle ?? .title; captionStyle = t.captionStyle ?? .caption
+            captionStyle = t.captionStyle ?? .caption
             captionPattern = t.captionPattern ?? ""; itemCaptions = t.captions ?? [:]
             if let cards = t.cards {
                 textCards = cards
@@ -1172,6 +1188,10 @@ final class SlideshowDocument {
                 }
                 textCards = migrated
             }
+            // Ya no hay estilo común de títulos: las tarjetas que lo usaban se quedan con una
+            // copia del que tenía guardado el proyecto, así se ven igual que antes.
+            let legacyTitleStyle = t.titleStyle ?? .title
+            for i in textCards.indices where textCards[i].style == nil { textCards[i].style = legacyTitleStyle }
         }
         beatsPerCut = preset.beatsPerCut
         rhythmItems = Set(preset.rhythmItems ?? [])
@@ -1256,7 +1276,7 @@ final class SlideshowDocument {
         transitionChoice = .kind(.crossfade); transitionDuration = SlideshowSpec.transitionSeconds; itemTransitions = [:]; itemTransitionDurations = [:]
         coverURL = nil; coverDuration = 4; creditsURL = nil; creditsDuration = 4
         textCards = []
-        titleStyle = .title; captionStyle = .caption; captionPattern = ""; itemCaptions = [:]
+        captionStyle = .caption; captionPattern = ""; itemCaptions = [:]
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true
         beatTracks = [:]; beatsPerCut = nil; rhythmItems = []; rhythmMessage = nil
