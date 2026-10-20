@@ -2038,3 +2038,65 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Cómo se ve en móvil (no se ha capturado a ese ancho).
+
+## 2026-10-20 — Revisión: capturas de otras apps de collage (`collages/`)
+
+### 1. La petición tal como se ha entendido
+*(revisión, sin cambios de código)* Revisar las 46 capturas de `collages/` (tres apps de collage de iPhone) y hacer la lista de los diseños que no tiene CAOBA y lo que costaría añadir cada uno.
+
+### 2. Preguntas y respuestas
+- **¿Qué se hace con la revisión: lista de lo que falta, propuesta de qué añadir u otra cosa?** → La lista de lo que falta y lo que costaría.
+
+### 3. Fuentes analizadas
+- Capturas `collages/IMG_1057`–`IMG_1102`.
+- `CaobaCore/Sources/CaobaCore/Collage/templates.json` (570 plantillas: 1–9 fotos, 84 superpuestas, 10 proporciones; tiras solo hasta 4 bandas; 9 fotos solo `grid_3x3`), `CollageTemplate.swift` (la celda es un rectángulo x, y, w, h), `CollageRenderer.swift` y los sitios que dibujan plantillas (`TemplateViews`, `CollageResultView`, editor de secuencia, timeline e inspector del Slideshow, `CollageSlideshow`).
+
+### 4. Decisiones
+- Lista entregada en el chat, en tres niveles de coste: solo catálogo (añadir plantillas al JSON), cambio pequeño del motor (círculo o elipse, giro, color de fondo) y cambio grande (polígonos y diagonales, curvas, formas, carrusel troceado, stickers).
+
+### 5. Alternativas descartadas
+Ninguna.
+
+### 6. Pendiente de comprobar
+- Qué se hace con la lista (el usuario decide).
+- Aclaración del usuario: IMG_1073–IMG_1079 son carruseles para Instagram (N fotos que se suben juntas). Le gusta que las fotos de fondo ocupen más de una diapositiva y sigan en la siguiente. Visto en las capturas: un lienzo ancho con cortes marcados (3–6 diapositivas verticales), fotos de fondo que cruzan cortes y fotos encima con margen, algunas también a caballo de un corte. En CAOBA encajaría como plantillas superpuestas muy anchas, más proporciones de carrusel, guías de corte, exportación troceada en N JPG numerados y saber en «Componer» qué fotos van de fondo. Sin cambiar la forma de las celdas: coste medio-alto.
+- El usuario descarta de la lista: bordes en onda o zigzag, formas (corazones, flores, puzle, nubes) y stickers y texto libre sobre el collage. Quedan: grupo 1 (tiras de 5–9 bandas, rejillas de 7–9 fotos, columna de tiras + foto grande, escalonadas, más superpuestas), grupo 2 (celda redonda u ovalada, fotos giradas, fondo de cualquier color) y del grupo 3 los cortes en diagonal y polígonos y el carrusel panorámico.
+- Aclaración del usuario sobre la celda redonda: solo interesan las plantillas que **combinan un círculo con celdas de otro tipo** (por ejemplo, un círculo encima de una rejilla rectangular). Las ovaladas, no.
+- Y el collage de un solo círculo también se queda. Celda redonda: plantillas de un solo círculo y plantillas que mezclan un círculo con celdas rectangulares; ovaladas, no.
+
+## 2026-10-20 — Collage: plantillas nuevas (grupo de coste bajo)
+
+### 1. La petición tal como se ha entendido
+Se añaden al catálogo de plantillas (`templates.json`) los diseños del grupo de coste bajo de la revisión de `collages/`. Todos son rectángulos, así que no se toca el motor:
+- **Tiras** de 5, 6, 7, 8 y 9 bandas, verticales y horizontales.
+- **Rejillas de 7, 8 y 9 fotos** con celdas de varios tamaños (hoy 9 fotos solo tiene la 3×3).
+- **Columna de 4 a 6 tiras finas junto a una foto grande**.
+- **Celdas escalonadas** (filas o columnas desplazadas, tipo ladrillo).
+- **Más variantes superpuestas** con marco (tarjetas sobre un fondo).
+
+Cada diseño en 16:9, 9:16, 3:2, 2:3, 4:5, 5:4 y 1:1, salvo donde las celdas quedarían demasiado finas. Antes de añadir nada, el usuario ve una **hoja de muestras** con todos los diseños propuestos dibujados y elige cuáles entran. Los que entren aparecen solos en Collage, en el Slideshow, en Componer (que ya admite grupos de 7 a 9 fotos) y en los filtros por número de fotos y proporción.
+Confirmada por el usuario («ok»).
+
+### 2. Preguntas y respuestas
+- **¿En qué proporciones se crea cada diseño nuevo?** → Las 6 principales (16:9, 9:16, 3:2, 2:3, 4:5, 5:4) y 1:1, como el resto del catálogo, salvo donde no tenga sentido (por ejemplo, tiras demasiado finas).
+- **¿Se aprueban los diseños antes de entrar en el catálogo?** → Sí: hoja de muestras con todos los propuestos dibujados; el usuario elige cuáles entran.
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.9.0).
+- Diseños generados con un script temporal (fuera del repo): 36 diseños en las 7 proporciones, descartando las variantes con celdas de menos del 8 % del lado o 8 veces más largas que anchas y las que ya existían en el catálogo. En 9:16, 4:5 y 2:3, «tiras + grande» pasa a foto grande arriba o abajo con las tiras al lado contrario. Identificadores y nombres en el estilo del catálogo (`16_9_strips_v9`, «Tiras 9 verticales 16:9»).
+- Hoja de muestras HTML con cada diseño numerado y dibujado en sus proporciones; aprobados todos («todas ok»). Corregido antes de enseñarla: las superpuestas se dibujaban sin margen ni sombra.
+- `templates.json`: 570 + 220 = 790 (112 superpuestas). Cada nueva va tras la última de su mismo número de fotos. Se mantiene el formato compacto en una sola línea (comprobado: reescribir el original daba los mismos bytes).
+- Test `CollageTemplatesTests.catalog` actualizado (790 y 112) y ampliado: sin identificadores repetidos, tantas celdas como fotos, al menos 40 plantillas de 7, 8 y 9 fotos. Pasan los 130 tests.
+- Comprobado: 10 plantillas nuevas dibujadas con el motor real (tiras, rejillas, ladrillo, escalera y superpuestas con marco y sombra) y captura del selector de Collage con «Fotos: 9». Nueva opción de prueba `collage.photos`.
+- Número de plantillas actualizado en `documentacion.md`, `README.md` y la landing (la landing se publica con el push).
+- Versión 3.9.0.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Collage/templates.json`, `CollageTemplate.swift`, `ContentComposer.swift` (forma grupos según las plantillas que haya, sin tope propio de tamaño), `CaobaCore/Tests/CaobaCoreTests/CollageTests.swift` y `CollageView.swift`.
+
+### 5. Alternativas descartadas
+- Solo 6 proporciones, o solo 1:1 y 4:5: descartado por el usuario.
+- Añadirlas sin revisar: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- Con 9 fotos por grupo, «Componer según el contenido» reparte las fotos con el método rápido (a partir de 6 fotos no prueba todas las combinaciones); no se ha medido cuánto tarda con carpetas grandes.

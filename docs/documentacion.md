@@ -146,7 +146,7 @@ Cuatro planes, todos devuelven `[RenameEntry]` (original → nombre nuevo) con c
 
 ### Plantillas de collage (`CollageTemplate`, `CollageTemplates`)
 
-- 570 plantillas (84 de ellas `overlap`, reservadas para el slideshow) en `Collage/templates.json`, exportadas tal cual de la app antigua con Node (`getTemplates()` ya deduplicado). Si hay que añadir plantillas, se edita ese JSON.
+- 790 plantillas (112 de ellas `overlap`, reservadas para el slideshow) en `Collage/templates.json`, un JSON compacto en una sola línea. Las 570 primeras se exportaron tal cual de la app antigua con Node (`getTemplates()` ya deduplicado); en la 3.9.0 se añadieron 220 más, de 36 diseños nuevos (tiras de 5 a 9 bandas, rejillas de 7 a 9 fotos, tiras + foto grande, ladrillo y escalera, fondo con tarjetas), cada una tras las de su mismo número de fotos. Para añadir plantillas se edita ese JSON, manteniendo el formato compacto; el test `CollageTemplatesTests.catalog` vigila las cuentas, que no haya identificadores repetidos y que las celdas caigan dentro del lienzo. Prueba: `--state collage.photos=9` abre «Aleatorias» filtrado por ese número de fotos.
 - Cada plantilla: `id`, `name`, `photos`, `aspect` (`[16, 9]`), `overlap`, `cells` con `x y w h` normalizados (0-1).
 - `CollageTemplates.filter(photos:aspectLabel:includeOverlap:)`, `template(id:)`, `aspectLabels` (de más apaisada a más vertical). `canvasSize(longestSide:)` da el lienzo.
 

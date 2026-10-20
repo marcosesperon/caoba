@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.9.0 — 2026-10-20
+
+- **220 plantillas de collage nuevas** (790 en total), en Collage y en el Slideshow: tiras de 5 a 9 fotos, rejillas de 7, 8 y 9 fotos con celdas de varios tamaños, una foto grande con una columna de tiras, ladrillo y escalera, y una foto de fondo con tarjetas encima. «Componer» puede formar ahora grupos de hasta 9 fotos.
+
 ## 3.8.2 — 2026-10-20
 
 - «Reiniciar» la configuración de una carpeta pide confirmación y explica qué se borra (el montaje del Slideshow, los ajustes de «Componer» del Collage y el orden manual) y qué no (las fotos, los presets y el historial del Renombrador).
