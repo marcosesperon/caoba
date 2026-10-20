@@ -138,7 +138,7 @@ struct SlideshowView: View {
         .sheet(isPresented: $showAddPicker) {
             TemplatePickerSheet(title: "Añadir collage",
                                 subtitle: "Quedan \(doc.files.count - doc.rows.reduce(0) { $0 + $1.files.count }) fotos sin asignar.",
-                                templates: { f in doc.visibleTemplatesForAdd.filter { (f.photos == nil || $0.photos == f.photos) && (f.aspect == nil || $0.aspectLabel == f.aspect) && (f.type == nil || (f.type == .overlap) == $0.overlap) } },
+                                templates: { f in doc.visibleTemplatesForAdd.filter { (f.photos == nil || $0.photos == f.photos) && (f.aspect == nil || $0.aspectLabel == f.aspect) && (f.type == nil || CollageTemplates.type(of: $0) == f.type) } },
                                 filters: $doc.addFilters,
                                 selection: .constant([]), confirmTitle: nil, onPick: { doc.addTemplate($0); showAddPicker = false }) {}
         }

@@ -8,7 +8,7 @@ struct CollageTemplatesTests {
     @Test("El catálogo se carga del JSON y tiene las cuentas esperadas")
     func catalog() {
         let all = CollageTemplates.all
-        #expect(all.count == 790)
+        #expect(all.count == 860)
         #expect(all.filter(\.overlap).count == 112)
         // Sin identificadores repetidos y con tantas celdas como fotos.
         #expect(Set(all.map(\.id)).count == all.count)
@@ -22,10 +22,31 @@ struct CollageTemplatesTests {
         #expect(CollageTemplates.aspectLabels.first == "3:1")
         // Filtro por tipo: las superpuestas solo salen si se piden, y el tipo acota.
         #expect(CollageTemplates.filter(includeOverlap: true, type: .overlap).count == 112)
-        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 790 - 112)
+        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 860 - 112 - 70)
+        // Las redondas salen también sin pedir superpuestas (van en Collage).
+        #expect(CollageTemplates.filter(type: .round).count == 70)
+        #expect(CollageTemplates.filter().contains { $0.isRound })
         #expect(CollageTemplates.filter(includeOverlap: false, type: .overlap).isEmpty)
         // Todas las celdas dentro del lienzo.
         for t in all { for c in t.cells { #expect(c.x >= 0 && c.y >= 0 && c.x + c.w <= 1.0001 && c.y + c.h <= 1.0001) } }
+    }
+
+    @Test("Celdas redondas: las plantillas antiguas no llevan forma y el círculo es cuadrado en píxeles en todas las proporciones")
+    func roundCells() throws {
+        #expect(CollageTemplates.template(id: "grid_2x2")?.cells.allSatisfy { $0.shape == nil } == true)
+        let round = CollageTemplates.filter(type: .round)
+        for t in round {
+            let canvas = t.canvasSize(longestSide: 1000)
+            let circles = t.cells.filter(\.isCircle)
+            #expect(circles.count == 1 && t.cells.last?.isCircle == true, "el círculo va el último en \(t.id)")
+            for c in circles {
+                let w = c.w * Double(canvas.width), h = c.h * Double(canvas.height)
+                #expect(abs(w - h) <= 2, "\(t.id): \(w) × \(h)")
+            }
+        }
+        // Se lee y se guarda la forma.
+        let data = #"{"x":0,"y":0,"w":0.5,"h":0.5,"shape":"circle"}"#.data(using: .utf8)!
+        #expect(try JSONDecoder().decode(CollageCell.self, from: data).isCircle)
     }
 
     @Test("Tamaño del lienzo según el lado mayor")
@@ -34,6 +55,26 @@ struct CollageTemplatesTests {
         #expect(t.canvasSize(longestSide: 1920) == PixelSize(width: 1920, height: 1080))
         let v = CollageTemplates.template(id: "single_9_16")!
         #expect(v.canvasSize(longestSide: 1920) == PixelSize(width: 1080, height: 1920))
+    }
+}
+
+@Suite("Collage redondo")
+struct RoundCollageTests {
+    @Test("El círculo se recorta en redondo encima de la foto de debajo, con aro del color del fondo")
+    func render() throws {
+        let folder = try TestImages.makeTempFolder()
+        let red = try TestImages.write(TestImages.solid(width: 800, height: 800, r: 1, g: 0, b: 0), to: folder.appendingPathComponent("r.jpg"))
+        let blue = try TestImages.write(TestImages.solid(width: 800, height: 800, r: 0, g: 0, b: 1), to: folder.appendingPathComponent("b.jpg"))
+        let t = try #require(CollageTemplates.template(id: "circle_big_br"))
+        let image = try CollageRenderer.render(CollageRow(template: t, files: [red, blue]), options: CollageOptions(longestSide: 800, gap: 10, background: .white))
+        let circle = t.cells[1]
+        let cx = Int((circle.x + circle.w / 2) * 800), cy = Int((circle.y + circle.h / 2) * 800)
+        #expect(TestImages.isBlue(TestImages.pixel(image, x: cx, y: cy)))
+        // Esquina del cuadro del círculo: fuera del redondo, se ve la foto de debajo.
+        #expect(TestImages.isRed(TestImages.pixel(image, x: Int(circle.x * 800) + 4, y: Int(circle.y * 800) + 4)))
+        // Justo fuera del círculo, el aro blanco.
+        let edge = TestImages.pixel(image, x: cx, y: Int(circle.y * 800) - 2)
+        #expect(TestImages.isWhite(edge))
     }
 }
 

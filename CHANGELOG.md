@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.10.0 — 2026-10-20
+
+- **Plantillas con una foto en redondo**: 70 nuevas (860 en total), en Collage y en el Slideshow. Un solo círculo, o un círculo encima de 2, 3, 4 o 6 fotos o de una foto grande, separado por un aro del color del fondo. El filtro «Tipo» tiene ahora «Redondas», también en Collage.
+
 ## 3.9.1 — 2026-10-20
 
 - **Fondo de cualquier color** en Collage, Contact Sheet y los collages del Slideshow: además de Blanco, Negro y Gris, «Personalizado» con el selector de color de macOS. El texto y el borde se ajustan solos para que se lean sobre ese fondo.

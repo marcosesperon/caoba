@@ -6,15 +6,24 @@ public struct CollageCell: Codable, Sendable, Equatable, Hashable {
     public var y: Double
     public var w: Double
     public var h: Double
+    /// Forma de la celda: `nil` = rectángulo; `.circle` = foto recortada en redondo (el círculo
+    /// va en el cuadrado centrado dentro de la celda, con un aro del color del fondo).
+    public var shape: Shape?
 
-    public init(x: Double, y: Double, w: Double, h: Double) {
+    public enum Shape: String, Codable, Sendable, Hashable {
+        case circle
+    }
+
+    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil) {
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.shape = shape
     }
 
-    public var aspectRatio: Double { h > 0 ? w / h : 1 }
+    public var isCircle: Bool { shape == .circle }
+    public var aspectRatio: Double { isCircle ? 1 : (h > 0 ? w / h : 1) }
 }
 
 /// Plantilla de collage: cuántas fotos, qué proporción tiene el lienzo y dónde
@@ -48,6 +57,9 @@ public struct CollageTemplate: Codable, Sendable, Equatable, Hashable, Identifia
     }
 
     public var isLandscape: Bool { aspectRatio >= 1 }
+
+    /// Plantilla con alguna celda redonda (tipo «Redondas»: sale en Collage y en el Slideshow).
+    public var isRound: Bool { cells.contains(where: \.isCircle) }
 
     /// Tamaño del lienzo dado el lado mayor.
     public func canvasSize(longestSide: Int) -> PixelSize {
@@ -86,9 +98,15 @@ public enum CollageTemplates {
         all.first { $0.id == id }
     }
 
-    /// Tipo de plantilla para filtrar: básicas (celdas en rejilla) o superpuestas (marco y sombra).
+    /// Tipo de plantilla para filtrar: básicas (celdas en rejilla), superpuestas (marco y
+    /// sombra, solo en el Slideshow) o redondas (con un círculo; en Collage y en el Slideshow).
     public enum TemplateType: String, Sendable, Codable, CaseIterable {
-        case basic, overlap
+        case basic, overlap, round
+    }
+
+    /// Tipo de una plantilla.
+    public static func type(of t: CollageTemplate) -> TemplateType {
+        t.overlap ? .overlap : (t.isRound ? .round : .basic)
     }
 
     /// Filtra por número de fotos, proporción, si se admiten overlap y, opcionalmente, tipo.
@@ -97,7 +115,7 @@ public enum CollageTemplates {
             (includeOverlap || !t.overlap)
                 && (photos == nil || t.photos == photos)
                 && (aspectLabel == nil || t.aspectLabel == aspectLabel)
-                && (type == nil || (type == .overlap) == t.overlap)
+                && (type == nil || Self.type(of: t) == type)
         }
     }
 }

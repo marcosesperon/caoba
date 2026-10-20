@@ -1,8 +1,8 @@
 import SwiftUI
 import CaobaCore
 
-/// Dibuja la plantilla como rectángulos, opcionalmente con las fotos de cada
-/// celda recortadas según su punto de foco. Sirve para el selector, la
+/// Dibuja la plantilla como rectángulos (y círculos), opcionalmente con las fotos de
+/// cada celda recortadas según su punto de foco. Sirve para el selector, la
 /// secuencia y el editor de enfoque.
 struct TemplateView: View {
     let template: CollageTemplate
@@ -12,15 +12,25 @@ struct TemplateView: View {
     var highlightIndex: Int? = nil
     /// Si se pasa, cada celda permite arrastrar su foto para mover el foco.
     var onFocusChange: ((Int, CGPoint) -> Void)? = nil
+    /// Color del aro de las celdas redondas: el de lo que hay detrás (el resultado usa el del fondo del collage).
+    var ringColor = Color(nsColor: .controlBackgroundColor)
 
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
             ZStack(alignment: .topLeading) {
                 ForEach(Array(template.cells.enumerated()), id: \.offset) { index, cell in
-                    let rect = CGRect(x: cell.x * size.width + gap / 2, y: cell.y * size.height + gap / 2,
+                    let full = CGRect(x: cell.x * size.width + gap / 2, y: cell.y * size.height + gap / 2,
                                       width: max(1, cell.w * size.width - gap), height: max(1, cell.h * size.height - gap))
-                    cellView(index: index, rect: rect)
+                    // Círculo perfecto: el cuadrado centrado en la celda, con un aro que lo separa de lo de debajo.
+                    let rect = cell.isCircle ? CollageRenderer.squareInside(full) : full
+                    if cell.isCircle {
+                        let ring = max(1.5, gap)
+                        Circle().fill(ringColor)
+                            .frame(width: rect.width + 2 * ring, height: rect.height + 2 * ring)
+                            .offset(x: rect.minX - ring, y: rect.minY - ring)
+                    }
+                    cellView(index: index, rect: rect, isCircle: cell.isCircle)
                         .frame(width: rect.width, height: rect.height)
                         .offset(x: rect.minX, y: rect.minY)
                 }
@@ -30,7 +40,7 @@ struct TemplateView: View {
     }
 
     @ViewBuilder
-    private func cellView(index: Int, rect: CGRect) -> some View {
+    private func cellView(index: Int, rect: CGRect, isCircle: Bool) -> some View {
         let url = files.indices.contains(index) ? files[index] : nil
         let focus = focusPoints.indices.contains(index) ? (focusPoints[index] ?? CGPoint(x: 0.5, y: 0.5)) : CGPoint(x: 0.5, y: 0.5)
         ZStack(alignment: .topLeading) {
@@ -39,10 +49,10 @@ struct TemplateView: View {
                 CellPhotoView(url: url, focus: focus, size: rect.size, onFocusChange: onFocusChange.map { handler in { handler(index, $0) } })
             }
             if highlightIndex == index {
-                Rectangle().strokeBorder(Color.accentColor, lineWidth: 2)
+                if isCircle { Circle().strokeBorder(Color.accentColor, lineWidth: 2) } else { Rectangle().strokeBorder(Color.accentColor, lineWidth: 2) }
             }
         }
-        .clipped()
+        .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(Rectangle()))
         .shadow(color: template.overlap ? .black.opacity(0.25) : .clear, radius: template.overlap ? 3 : 0, x: 1, y: 1)
     }
 }
@@ -152,7 +162,8 @@ struct TemplatePicker: View {
 /// Filtros comunes de plantillas.
 struct TemplateFilters: View {
     @Binding var filters: TemplateFilterState
-    /// Selector «Tipo» (básicas / superpuestas): solo donde se ofrecen las superpuestas.
+    /// Si se ofrecen las superpuestas (solo en el Slideshow); el selector «Tipo» sale siempre,
+    /// porque las redondas van en todas partes.
     var showType = false
 
     var body: some View {
@@ -174,16 +185,15 @@ struct TemplateFilters: View {
                 .frame(maxWidth: 320, alignment: .leading)
                 .labelsHidden()
             }
-            if showType {
-                LabeledRow("Tipo") {
-                    Picker("", selection: $filters.type) {
-                        Text("Todas").tag(CollageTemplates.TemplateType?.none)
-                        Text("Básicas").tag(CollageTemplates.TemplateType?.some(.basic))
-                        Text("Superpuestas").tag(CollageTemplates.TemplateType?.some(.overlap))
-                    }
-                    .pickerStyle(.segmented).fixedSize()
-                    .labelsHidden()
+            LabeledRow("Tipo") {
+                Picker("", selection: $filters.type) {
+                    Text("Todas").tag(CollageTemplates.TemplateType?.none)
+                    Text("Básicas").tag(CollageTemplates.TemplateType?.some(.basic))
+                    if showType { Text("Superpuestas").tag(CollageTemplates.TemplateType?.some(.overlap)) }
+                    Text("Redondas").tag(CollageTemplates.TemplateType?.some(.round))
                 }
+                .pickerStyle(.segmented).fixedSize()
+                .labelsHidden()
             }
         }
     }

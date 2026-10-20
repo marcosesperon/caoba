@@ -2139,3 +2139,42 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - Contact Sheet no tiene presets: su color dura lo que el resto de sus ajustes (la sesión).
 - El selector de color y el desplegable de Collage y Contact Sheet se han revisado en el código; la captura es de la pestaña Vídeo del Slideshow.
+
+## 2026-10-20 — Celda redonda (grupo de coste medio, 2 de 3)
+
+### 1. La petición tal como se ha entendido
+Las plantillas de collage pueden tener **celdas redondas**:
+- **Plantilla de un solo círculo:** una foto recortada en redondo sobre el fondo.
+- **Círculo encima de una rejilla de rectángulos** (en el centro o en otra posición), tapando parte de las fotos de debajo, con un **aro del color del fondo** alrededor para separarlo. El aro sigue la «Separación» del collage.
+- **Círculo perfecto** en cualquier proporción del collage. Nada de óvalos.
+- Las redondas son un **tipo propio, «Redondas»**, que sale en **Collage y en el Slideshow** (no como las superpuestas, que solo salen en el Slideshow), con su opción en el filtro de tipo.
+- En todos los sitios que dibujan plantillas (selector, resultado, editor de encuadre, timeline, collages del vídeo), la foto del círculo se recorta en redondo y su encuadre se sigue arrastrando igual.
+- **Antes de añadir nada,** el usuario ve una hoja de muestras con los diseños propuestos y elige cuáles entran.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Cómo es el círculo combinado con rectángulos: encima con aro, en su propio hueco o los dos?** → Encima de la rejilla (por ejemplo, en el centro de una 2×2), tapando parte de las fotos, con un aro del color del fondo alrededor.
+- **Las superpuestas solo salen en el Slideshow: ¿dónde salen las redondas?** → En Collage y en el Slideshow, como un tipo propio («Redondas») con su filtro, aunque el círculo vaya encima de otras fotos.
+- **¿Hoja de muestras antes de añadir los diseños redondos?** → Sí: unos 10–15 diseños dibujados en sus proporciones; el usuario elige.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.10.0).
+- Modelo: `CollageCell.shape` opcional (`circle`), `isCircle`, `CollageTemplate.isRound`, `TemplateType.round` y `CollageTemplates.type(of:)`. `filter` saca las redondas aunque no se pidan superpuestas (van en Collage) y `.basic` ya no las incluye. Las 860 plantillas se leen; las antiguas no llevan `shape`.
+- Motor: el círculo va en el cuadrado centrado dentro de su celda (perfecto aunque el título cambie el alto), con un aro del color del fondo (`ringWidth`: la separación, mínimo 4 px o 0,6 % del lado menor) y la foto recortada en elipse. Se dibuja el último (en el catálogo, la celda redonda va al final).
+- App: `TemplateView` recorta en círculo con aro (`ringColor`, por defecto el fondo de los controles); el selector «Tipo» sale siempre (Básicas, Superpuestas solo en el Slideshow, Redondas), también en «Aleatorias» de Collage (`typeFilter`). Arreglado el filtro de «Añadir collage» del Slideshow, que comparaba solo superpuestas sí o no. Nueva prueba `collage.type`.
+- Diseños: 10 diseños × 7 proporciones = 70, propuestos con un script temporal y enseñados en una hoja de muestras dibujada con el motor real (esta vez no con un dibujo aproximado). Aprobados todos («ok»). En vertical, los diseños de columnas pasan a filas.
+- Tests: suite «Collage redondo» (el centro del círculo es la foto del círculo, la esquina de su cuadro la de debajo y justo fuera el aro blanco) y en `CollageTemplatesTests`: las antiguas sin forma, el círculo cuadrado en píxeles (±2) en las 70 y el último de su plantilla, y las cuentas (860; 70 redondas). Pasan los 135 tests.
+- Comprobado en la app: selector de Collage con «Redondas», editor de un collage redondo del Slideshow (círculo con aro en el editor y en el timeline) y vídeo generado con la foto central en redondo.
+- Número de plantillas actualizado en `documentacion.md`, `README.md` y la landing.
+- Versión 3.10.0.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Collage/CollageTemplate.swift`, `CollageRenderer.swift` (`cellRect`, dibujo de celdas), `Drawing.swift`, `templates.json`; `CaobaApp/Sources/Views/Shared/TemplateViews.swift` (`TemplateView`, `TemplateFilters`), `CollageView.swift`, `CollageSequenceEditor.swift`, `SlideshowView.swift` (hoja «Añadir collage»).
+
+### 5. Alternativas descartadas
+- Círculo en su propio hueco (sin tapar nada), o los dos tipos: descartado por el usuario.
+- Redondas solo en el Slideshow, como las superpuestas: descartado por el usuario.
+- Óvalos: descartados por el usuario.
+
+### 6. Pendiente de comprobar
+- En el selector y el editor, el aro usa el color de fondo de los controles (no el del collage); en el resultado y el vídeo usa el del fondo del collage. Con fondos de collage muy distintos al de la ventana, el aro del editor no coincide con el final.

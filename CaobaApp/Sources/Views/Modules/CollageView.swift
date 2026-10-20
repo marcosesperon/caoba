@@ -27,6 +27,7 @@ struct CollageView: View {
     @State private var loadedFolder: URL?
     @State private var photosFilter: Int?
     @State private var aspectFilter: String?
+    @State private var typeFilter: CollageTemplates.TemplateType?
     @State private var focusMode: FocusMode = .saliency
 
     @State private var longestSide = 3000
@@ -71,7 +72,7 @@ struct CollageView: View {
 
     private var files: [URL] { appState.checkedFiles }
     private var rows: [CollageRow] { CollageSequenceEditor.rows(from: sequence, files: files) }
-    private var visibleTemplates: [CollageTemplate] { CollageTemplates.filter(photos: photosFilter, aspectLabel: aspectFilter) }
+    private var visibleTemplates: [CollageTemplate] { CollageTemplates.filter(photos: photosFilter, aspectLabel: aspectFilter, type: typeFilter) }
 
     private var options: CollageOptions {
         CollageOptions(longestSide: longestSide, gap: gap, background: background, cornerRadius: cornerRadius,
@@ -153,6 +154,8 @@ struct CollageView: View {
             if let aspect = appState.launchState["collage.aspect"] { aspectFilter = aspect }
             // `--state collage.photos=9`: «Aleatorias» filtrado por ese número de fotos.
             if let photos = appState.launchState["collage.photos"].flatMap(Int.init) { mode = .random; photosFilter = photos }
+            // `--state collage.type=round`: «Aleatorias» con ese tipo de plantilla.
+            if let type = appState.launchState["collage.type"].flatMap(CollageTemplates.TemplateType.init(rawValue:)) { mode = .random; typeFilter = type }
         }
         .onChange(of: appState.sourceFolder) { loadFolderSettings() }
         .onChange(of: appState.configResetToken) { composeSheet = ComposeSheetState(); randomSelection = [] }
@@ -180,8 +183,8 @@ struct CollageView: View {
     private var randomSection: some View {
         OptionGroup(title: "Plantillas permitidas") {
             TemplateFilters(filters: Binding(
-                get: { TemplateFilterState(photos: photosFilter, aspect: aspectFilter) },
-                set: { photosFilter = $0.photos; aspectFilter = $0.aspect }))
+                get: { TemplateFilterState(photos: photosFilter, aspect: aspectFilter, type: typeFilter) },
+                set: { photosFilter = $0.photos; aspectFilter = $0.aspect; typeFilter = $0.type }))
             LabeledRow("Enfoque") {
                 Picker("", selection: $focusMode) {
                     Text("Centro").tag(FocusMode.center)

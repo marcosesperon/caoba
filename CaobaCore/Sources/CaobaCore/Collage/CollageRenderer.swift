@@ -168,13 +168,17 @@ public enum CollageRenderer {
         for (i, cell) in template.cells.enumerated() {
             try Task.checkCaobaCancellation()
             if let visibleCells, i >= visibleCells { break }
-            let rect = cellRect(cell, canvas: canvas, imageAreaTop: titleH, gap: options.gap, edgePadding: edgePadding)
+            var rect = cellRect(cell, canvas: canvas, imageAreaTop: titleH, gap: options.gap, edgePadding: edgePadding)
+            // Círculo perfecto: el cuadrado centrado en su celda (el título cambia el alto disponible).
+            if cell.isCircle { rect = squareInside(rect) }
             guard rect.width >= 1, rect.height >= 1 else { continue }
             let photo = try PhotoLoader.load(row.files[i], fittingAtLeast: PixelSize(width: Int(rect.width), height: Int(rect.height)))
             let focus = row.focusPoints.indices.contains(i) ? (row.focusPoints[i] ?? CGPoint(x: 0.5, y: 0.5)) : CGPoint(x: 0.5, y: 0.5)
             let crop = CropGeometry.rect(in: photo.pixelSize, ratio: rect.width / rect.height, focus: focus)
 
-            if template.overlap {
+            if cell.isCircle {
+                drawCircularPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
+            } else if template.overlap {
                 drawFramedPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
             } else {
                 Drawing.drawImage(photo, crop: crop, into: rect, cornerRadius: options.cornerRadius, in: ctx, canvasHeight: canvas.height)
@@ -194,6 +198,35 @@ public enum CollageRenderer {
 
         guard let image = ctx.makeImage() else { throw CaobaError.invalidParameters("collage.render") }
         return image
+    }
+
+    /// Cuadrado más grande centrado dentro de un rectángulo (sitio del círculo).
+    public static func squareInside(_ rect: CGRect) -> CGRect {
+        let side = min(rect.width, rect.height)
+        return CGRect(x: rect.midX - side / 2, y: rect.midY - side / 2, width: side, height: side)
+    }
+
+    /// Ancho del aro del color del fondo alrededor de un círculo: la separación del collage, con un mínimo.
+    public static func ringWidth(gap: Double, canvas: PixelSize) -> Double {
+        max(gap, max(4, Double(min(canvas.width, canvas.height)) * 0.006))
+    }
+
+    /// Foto en redondo con un aro del color del fondo, que la separa de las fotos que tapa.
+    private static func drawCircularPhoto(_ photo: CGImage, crop: CGRect, in rect: CGRect, options: CollageOptions, ctx: CGContext, canvas: PixelSize) {
+        let ring = ringWidth(gap: options.gap, canvas: canvas)
+        let outer = rect.insetBy(dx: -ring, dy: -ring)
+        ctx.saveGState()
+        ctx.setFillColor(options.background.fill)
+        ctx.fillEllipse(in: Drawing.cgRect(outer, canvasHeight: canvas.height))
+        ctx.restoreGState()
+        guard let cropped = photo.croppedTopLeft(crop) else { return }
+        let target = Drawing.cgRect(rect, canvasHeight: canvas.height)
+        ctx.saveGState()
+        ctx.addEllipse(in: target)
+        ctx.clip()
+        ctx.interpolationQuality = .high
+        ctx.draw(cropped, in: target)
+        ctx.restoreGState()
     }
 
     /// Marco blanco + sombra para plantillas overlap.
