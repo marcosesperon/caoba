@@ -17,7 +17,6 @@ struct SlideshowView: View {
     @State private var tab: SlideshowTab = .photos
     @State private var showComposePicker = false
     @State private var showAddPicker = false
-    @State private var expandedFraming: URL?
 
     var body: some View {
         Group {
@@ -42,7 +41,7 @@ struct SlideshowView: View {
             if doc.selection != .none {
                 // Editando algo del timeline: su editor tapa título y pestañas (que siguen
                 // donde estaban) hasta cerrarlo; el borde rojo deja claro que se está editando.
-                SelectionEditor(doc: doc, expandedFraming: $expandedFraming)
+                SelectionEditor(doc: doc)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .caobaPanel(padding: 12, border: .accentColor, borderWidth: 2)
             } else {
@@ -124,7 +123,6 @@ struct SlideshowView: View {
             }
         }
         .sheet(item: $doc.previewURL) { url in VideoPreviewSheet(url: url) }
-        .sheet(item: $expandedFraming) { url in KenBurnsFramingSheet(doc: doc, photo: url) }
         .sheet(isPresented: $showComposePicker) {
             TemplatePickerSheet(title: "Componer secuencia",
                                 subtitle: doc.composeSheet.mode == .random

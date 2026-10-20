@@ -1706,3 +1706,35 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Esc cierra el editor desde el botón «Cerrar» (`cancelAction`); si el foco está en un campo de texto, ese campo puede quedarse el Esc. No se probó con el teclado de verdad, solo la acción de cerrar.
+
+## 2026-10-20 — Foto: previsualización más pequeña y sin «Ampliar»
+
+### 1. La petición tal como se ha entendido
+En el editor de Foto del Slideshow:
+- **La previsualización animada** de la derecha ocupa como mucho **un tercio del ancho** del editor (ahora, el 45 %). Sigue sin pasar de lo que necesita para llenar el alto, y los ajustes ganan el espacio.
+- **Fuera la opción «Ampliar»:** el botón de la cabecera y la hoja de encuadre a pantalla grande, con sus flechas para pasar de foto. El encuadre se hace solo en el grupo Encuadre del editor, con «Personalizado».
+- Como la hoja era lo único que usaba la vista de encuadre «sin columnas» (paneles grandes uno al lado del otro), ese modo desaparece del código.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué paneles se limitan: la previsualización, Inicio y Fin, o los dos?** → La previsualización.
+- **¿Qué tope: 480 puntos, un tercio del ancho o 360 puntos?** → Un tercio del ancho del editor.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/KenBurnsFramingView.swift` (vista de encuadre y `KenBurnsFramingSheet`), `SlideshowInspector.swift` (`SelectionEditor`, `PhotoInspector`) y `SlideshowView.swift`.
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.6.1).
+- `maxPreviewFraction` de Foto: de 0,45 a 1/3.
+- Fuera el botón «Ampliar», `KenBurnsFramingSheet` y el estado `expandedFraming` (en `SlideshowView`, `SelectionEditor` y `PhotoInspector`).
+- `KenBurnsFramingView` queda con un solo camino (el del editor): fuera el inicializador sin huecos, `compact`, `hasLeading`, los paneles grandes uno al lado del otro y `panel(title:size:)` de tamaño fijo.
+- La cadena «Ampliar» se queda en `Localizable.xcstrings` sin uso: Xcode la marca como obsoleta al compilar el catálogo; no se borra a mano.
+- Comprobado con capturas con «Personalizado» y «Ninguno» a 1440×900 y 2000×900 (oscuro) y 1440×900 (claro), y con `grep` de que no queda «Ampliar», `expandedFraming`, `KenBurnsFramingSheet` ni `compact:` en el código.
+- Versión 3.6.1.
+
+### 5. Alternativas descartadas
+- Tope fijo de 480 o 360 puntos para la previsualización: descartado por el usuario; prefiere que crezca con la ventana (un tercio).
+- Mantener la hoja «Ampliar» para encuadrar con más detalle: el usuario pidió quitarla.
+
+### 6. Pendiente de comprobar
+Nada.

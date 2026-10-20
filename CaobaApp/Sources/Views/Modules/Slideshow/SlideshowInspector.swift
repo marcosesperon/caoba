@@ -6,7 +6,6 @@ import CaobaCore
 /// hasta cerrarlo (ver `EditorHeader`).
 struct SelectionEditor: View {
     @Bindable var doc: SlideshowDocument
-    @Binding var expandedFraming: URL?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -18,7 +17,7 @@ struct SelectionEditor: View {
             case .text(let id): TextCardInspector(doc: doc, cardId: id)
             case .photo(let name):
                 if let url = doc.files.first(where: { $0.lastPathComponent == name }) {
-                    PhotoInspector(doc: doc, url: url, expandedFraming: $expandedFraming)
+                    PhotoInspector(doc: doc, url: url)
                 }
             case .track(let id):
                 if let track = doc.tracks.first(where: { $0.id == id }) { TrackInspector(doc: doc, track: track) }
@@ -810,22 +809,18 @@ struct TransitionOverrideRow: View {
     }
 }
 
-/// Foto seleccionada: cabecera con «Ampliar», los paneles de inicio y fin del Ken Burns
-/// a la izquierda y, en una sola columna, efecto, encuadre, tiempo, transición y pie.
+/// Foto seleccionada: a la izquierda efecto, tiempo, transición y pie; con «Personalizado»,
+/// el encuadre en el centro; a la derecha la previsualización (ver `KenBurnsFramingView`).
 struct PhotoInspector: View {
     @Bindable var doc: SlideshowDocument
     let url: URL
-    @Binding var expandedFraming: URL?
 
     private var name: String { url.lastPathComponent }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            EditorHeader(doc: doc, kind: "Foto", name: name) {
-                Button { expandedFraming = url } label: { Label("Ampliar", systemImage: "arrow.up.left.and.arrow.down.right") }
-                    .help("Editar el encuadre a tamaño grande")
-            }
-            KenBurnsFramingView(doc: doc, url: url, compact: false) {
+            EditorHeader(doc: doc, kind: "Foto", name: name)
+            KenBurnsFramingView(doc: doc, url: url) {
                 OptionGroup(title: "Efecto") {
                     Picker("", selection: Binding(get: { doc.choice(for: url) }, set: { doc.setChoice($0, for: url) })) {
                         ForEach(EffectChoice.all, id: \.self) { Text($0.title).tag($0) }

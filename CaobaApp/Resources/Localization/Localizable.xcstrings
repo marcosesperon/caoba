@@ -50,6 +50,9 @@
         }
       }
     },
+    "·" : {
+
+    },
     "· %@" : {
       "localizations" : {
         "en" : {
@@ -1504,6 +1507,7 @@
       }
     },
     "Collage %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2230,6 +2234,9 @@
 
     },
     "Ease out" : {
+
+    },
+    "Editando" : {
 
     },
     "Editar" : {
@@ -5609,6 +5616,7 @@
       }
     },
     "Selecciona una tarjeta o una pista en el timeline." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -6007,6 +6015,9 @@
           }
         }
       }
+    },
+    "Terminar de editar (Esc)" : {
+
     },
     "Texto" : {
       "localizations" : {

@@ -1,30 +1,22 @@
 import SwiftUI
 import CaobaCore
 
-/// Encuadre Ken Burns de una foto: paneles de inicio y fin arrastrables, zoom,
-/// retardo, ajuste, "Enfocar caras" y previsualización animada.
-///
-/// Con `leading` y `trailing` (inspector de Foto) van primero los controles, en
-/// columnas (`InspectorSplit`): lo que pase quien llama antes (efecto), el grupo
-/// «Encuadre» con Inicio y Fin en pequeño, solo con el efecto «Personalizado», y lo
-/// que pase después (tiempo, transición, pie); a la derecha, la previsualización.
-/// Sin ellos (hoja «Ampliar»), los paneles grandes uno al lado del otro y los
-/// controles en su columna.
+/// Editor de Foto en columnas fijas (`InspectorSplit`): a la izquierda lo que pase quien
+/// llama (`leading`: efecto; `trailing`: tiempo, transición, pie); en el centro el grupo
+/// «Encuadre» con Inicio y Fin en pequeño, arrastrables y con zoom, más ajuste, caras y
+/// retardo, solo con el efecto «Personalizado» (los demás no usan Inicio y Fin); a la
+/// derecha la previsualización animada, calculada igual que el motor.
 struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     @Bindable var doc: SlideshowDocument
     let url: URL
-    let compact: Bool
     private let leading: Leading
     private let trailing: Trailing
-    private let hasLeading: Bool
 
-    init(doc: SlideshowDocument, url: URL, compact: Bool, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+    init(doc: SlideshowDocument, url: URL, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
         self.doc = doc
         self.url = url
-        self.compact = compact
         self.leading = leading()
         self.trailing = trailing()
-        self.hasLeading = true
     }
 
     @State private var isPlaying = false
@@ -43,44 +35,27 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     }
 
     var body: some View {
-        Group {
-            if hasLeading {
-                // Inspector, en columnas fijas: a la izquierda los ajustes de quien llama (efecto,
-                // tiempo, transición, pie); en el centro el encuadre, solo con «Personalizado» (los
-                // demás efectos no usan Inicio y Fin); a la derecha la previsualización animada (lo
-                // justo para llenar el alto, como mucho el 45 % del ancho; encoge si no hay sitio).
-                InspectorSplit(minSettingsWidth: isCustom ? 2 * Self.columnWidth + 16 : Self.columnWidth, balancesSettings: false,
-                               previewOnTrailingSide: true, maxPreviewFraction: 0.45,
-                               previewWidth: { height in (height - Self.previewControlsHeight) * doc.format.aspectRatio }) {
-                    previewRow
-                } settings: {
-                    HStack(alignment: .top, spacing: 16) {
-                        InspectorScroll {
-                            VStack(alignment: .leading, spacing: 12) {
-                                leading
-                                trailing
-                            }
-                        }
-                        if isCustom {
-                            InspectorScroll {
-                                OptionGroup(title: "Encuadre") {
-                                    stackedPanels
-                                    framingButtons
-                                }
-                            }
-                        }
+        // La previsualización toma lo justo para llenar el alto, como mucho un tercio del
+        // ancho, y encoge si las columnas de controles no caben.
+        InspectorSplit(minSettingsWidth: isCustom ? 2 * Self.columnWidth + 16 : Self.columnWidth, balancesSettings: false,
+                       previewOnTrailingSide: true, maxPreviewFraction: 1.0 / 3,
+                       previewWidth: { height in (height - Self.previewControlsHeight) * doc.format.aspectRatio }) {
+            previewRow
+        } settings: {
+            HStack(alignment: .top, spacing: 16) {
+                InspectorScroll {
+                    VStack(alignment: .leading, spacing: 12) {
+                        leading
+                        trailing
                     }
                 }
-            } else {
-                HStack(alignment: .top, spacing: 14) {
-                    panels
-                    VStack(alignment: .leading, spacing: 8) {
-                        framingButtons
-                        Divider()
-                        previewRow
-                        Spacer(minLength: 0)
+                if isCustom {
+                    InspectorScroll {
+                        OptionGroup(title: "Encuadre") {
+                            stackedPanels
+                            framingButtons
+                        }
                     }
-                    .frame(width: compact ? 240 : 300)
                 }
             }
         }
@@ -88,9 +63,6 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         .onChange(of: url) { imageSize = ImageIOHelpers.displaySize(of: url); isPlaying = false }
     }
 
-    /// Alto de la etiqueta y del zoom de cada panel, y separación entre los dos paneles.
-    private static var labelsAndSlider: CGFloat { 44 }
-    private static var panelSpacing: CGFloat { 10 }
     /// Ancho mínimo de cada columna de controles del inspector.
     private static var columnWidth: CGFloat { 280 }
     /// Alto de «Reproducir» y la duración bajo la previsualización.
@@ -101,24 +73,8 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         return false
     }
 
-    /// Paneles de inicio y fin, uno al lado del otro: su tamaño sale del espacio disponible.
-    private var panels: some View {
-        GeometryReader { geo in
-            let spacing = Self.panelSpacing
-            let panelHByWidth = ((geo.size.width - spacing) / 2) / doc.format.aspectRatio
-            let panelH = max(80, min(geo.size.height - Self.labelsAndSlider, panelHByWidth))
-            let panelW = panelH * doc.format.aspectRatio
-            HStack(alignment: .top, spacing: spacing) {
-                panel(title: "Inicio", focus: current.startFocus, zoom: current.startZoom, size: CGSize(width: panelW, height: panelH),
-                      focusChanged: { f in update { $0.startFocus = f } }, zoomChanged: { z in update { $0.startZoom = z } })
-                panel(title: "Fin", focus: current.endFocus, zoom: current.endZoom, size: CGSize(width: panelW, height: panelH),
-                      focusChanged: { f in update { $0.endFocus = f } }, zoomChanged: { z in update { $0.endZoom = z } })
-            }
-        }
-    }
-
     /// Inicio y Fin en pequeño, uno encima del otro en la columna central, con tope de ancho
-    /// para que no se coman el inspector (para encuadrar con detalle está «Ampliar»).
+    /// para que no se coman el editor.
     private var stackedPanels: some View {
         VStack(alignment: .leading, spacing: 10) {
             startPanel.frame(maxWidth: 260, alignment: .leading)
@@ -180,16 +136,7 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         }
     }
 
-    private func panel(title: LocalizedStringKey, focus: CGPoint, zoom: Double, size: CGSize,
-                       focusChanged: @escaping (CGPoint) -> Void, zoomChanged: @escaping @MainActor @Sendable (Double) -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            panelImage(focus: focus, zoom: zoom, size: size, focusChanged: focusChanged)
-            zoomRow(zoom: zoom, zoomChanged: zoomChanged)
-        }
-    }
-
-    /// El mismo panel a todo el ancho que le den, con la proporción del vídeo.
+    /// Panel de Inicio o Fin a todo el ancho que le den, con la proporción del vídeo.
     private func flexiblePanel(title: LocalizedStringKey, focus: CGPoint, zoom: Double,
                                focusChanged: @escaping (CGPoint) -> Void, zoomChanged: @escaping @MainActor @Sendable (Double) -> Void) -> some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -227,13 +174,9 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     /// Previsualización animada con el mismo cálculo que el motor.
     private var previewRow: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if hasLeading {
-                // En el inspector, todo el ancho que le deja el reparto, con la proporción del vídeo.
-                GeometryReader { geo in animatedPreview(width: geo.size.width) }
-                    .aspectRatio(doc.format.aspectRatio, contentMode: .fit)
-            } else {
-                animatedPreview(width: compact ? 220 : 280)
-            }
+            // Todo el ancho que le deja el reparto, con la proporción del vídeo.
+            GeometryReader { geo in animatedPreview(width: geo.size.width) }
+                .aspectRatio(doc.format.aspectRatio, contentMode: .fit)
             HStack {
                 Button(isPlaying ? "Detener" : "Reproducir") { isPlaying.toggle(); playStart = Date() }.controlSize(.small)
                 Text("Previsualización · \(segmentDuration, specifier: "%.1f") s").font(.caption).foregroundStyle(.secondary)
@@ -270,56 +213,5 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         let zoom = base.width / max(1, crop.width)
         let focus = CGPoint(x: crop.midX / Double(imageSize.width), y: crop.midY / Double(imageSize.height))
         return (focus, zoom)
-    }
-}
-
-extension KenBurnsFramingView where Leading == EmptyView, Trailing == EmptyView {
-    /// Sin columna de inspector: los controles en su columna propia (hoja ampliada).
-    init(doc: SlideshowDocument, url: URL, compact: Bool) {
-        self.doc = doc
-        self.url = url
-        self.compact = compact
-        self.leading = EmptyView()
-        self.trailing = EmptyView()
-        self.hasLeading = false
-    }
-}
-
-/// El mismo encuadre a pantalla grande, con navegación entre fotos.
-struct KenBurnsFramingSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @Bindable var doc: SlideshowDocument
-    @State var photo: URL
-
-    private var index: Int { doc.files.firstIndex(of: photo) ?? 0 }
-
-    var body: some View {
-        VStack(spacing: 10) {
-            HStack {
-                Button { go(-1) } label: { Image(systemName: "chevron.left") }.disabled(index == 0)
-                Text("\(index + 1) / \(doc.files.count) · \(photo.lastPathComponent)").font(.headline).lineLimit(1)
-                Button { go(1) } label: { Image(systemName: "chevron.right") }.disabled(index >= doc.files.count - 1)
-                Spacer()
-                LabeledRow("Efecto") {
-                    Picker("", selection: Binding(get: { doc.choice(for: photo) }, set: { doc.setChoice($0, for: photo) })) {
-                        ForEach(EffectChoice.all, id: \.self) { Text($0.title).tag($0) }
-                    }
-                    .frame(maxWidth: 260, alignment: .leading)
-                    .labelsHidden()
-                }
-            }
-            KenBurnsFramingView(doc: doc, url: photo, compact: false)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            HStack { Spacer(); Button("Hecho") { dismiss() }.keyboardShortcut(.defaultAction) }
-        }
-        .padding(16)
-        .frame(minWidth: 940, minHeight: 640)
-    }
-
-    private func go(_ delta: Int) {
-        let i = index + delta
-        guard doc.files.indices.contains(i) else { return }
-        photo = doc.files[i]
-        doc.selection = .photo(photo.lastPathComponent)
     }
 }
