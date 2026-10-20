@@ -7,6 +7,7 @@ import CaobaCore
 struct SourceFolderBar: View {
     @Environment(AppState.self) private var appState
     @State private var isTargeted = false
+    @State private var confirmReset = false
 
     var body: some View {
         @Bindable var state = appState
@@ -28,7 +29,8 @@ struct SourceFolderBar: View {
             if appState.hasFolderConfig {
                 Label("Configuración restaurada", systemImage: "checkmark.circle")
                     .font(.callout).foregroundStyle(.secondary)
-                Button("Reiniciar") { appState.resetFolderConfig() }
+                // Borra lo guardado de la carpeta y no se puede deshacer: se pide confirmación.
+                Button("Reiniciar") { confirmReset = true }
                     .controlSize(.small)
                     .help("Borra la configuración guardada en esta carpeta. El historial de renombrados se conserva.")
             }
@@ -49,6 +51,11 @@ struct SourceFolderBar: View {
             Button("Elegir carpeta…") { appState.chooseSourceFolder() }
         }
         .caobaDropPanel(isTargeted: isTargeted, highlighted: appState.sourceFolder == nil)
+        .confirmationDialog("¿Reiniciar la configuración de esta carpeta?", isPresented: $confirmReset) {
+            Button("Reiniciar", role: .destructive) { appState.resetFolderConfig() }
+        } message: {
+            Text("Se borra lo guardado para esta carpeta: todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, textos, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.\n\nNo se tocan las fotos, los presets guardados ni el historial del Renombrador, que se puede seguir deshaciendo. Esto no se puede deshacer.")
+        }
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             guard let provider = providers.first else { return false }
             _ = provider.loadObject(ofClass: URL.self) { url, _ in

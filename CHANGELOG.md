@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.8.2 — 2026-10-20
+
+- «Reiniciar» la configuración de una carpeta pide confirmación y explica qué se borra (el montaje del Slideshow, los ajustes de «Componer» del Collage y el orden manual) y qué no (las fotos, los presets y el historial del Renombrador).
+
 ## 3.8.1 — 2026-10-20
 
 - En los módulos que trabajan con una carpeta de fotos, mientras no hay carpeta elegida todo lo demás se ve apagado y no responde, y la barra de carpeta se resalta en rojo con «Empieza eligiendo o arrastrando una carpeta de fotos».

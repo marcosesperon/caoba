@@ -17,242 +17,22 @@
         }
       }
     },
-    "Arrastra para cambiar el orden" : {
+    "Se borra lo guardado para esta carpeta: todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, textos, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.\n\nNo se tocan las fotos, los presets guardados ni el historial del Renombrador, que se puede seguir deshaciendo. Esto no se puede deshacer." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag to change the order"
+            "value" : "This deletes what is saved for this folder: the whole Slideshow project (photo order and selection, collages, framing, texts, captions, cover and credits, music, watermark and video settings), the Collage «Compose» settings and the manual photo order.\n\nYour photos, saved presets and the Renamer history are not touched (you can still undo renames). This cannot be undone."
           }
         }
       }
     },
-    "Empieza eligiendo o arrastrando una carpeta de fotos" : {
+    "¿Reiniciar la configuración de esta carpeta?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start by choosing or dropping a photo folder"
-          }
-        }
-      }
-    },
-    "Escuchar el tramo entre Desde y Hasta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listen to the section between From and To"
-          }
-        }
-      }
-    },
-    "Falta 1 fichero: se generará sin él" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1 file is missing: the video will be made without it"
-          }
-        }
-      }
-    },
-    "Faltan %lld ficheros: se generará sin ellos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld files are missing: the video will be made without them"
-          }
-        }
-      }
-    },
-    "Generar igualmente" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Generate anyway"
-          }
-        }
-      }
-    },
-    "Localizar…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Locate…"
-          }
-        }
-      }
-    },
-    "Manual" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manual"
-          }
-        }
-      }
-    },
-    "No se encuentra el fichero" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File not found"
-          }
-        }
-      }
-    },
-    "No se encuentra el fichero: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File not found: %@"
-          }
-        }
-      }
-    },
-    "No se encuentra el fichero: selecciónalo en el timeline para localizarlo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File not found: select it in the timeline to locate it"
-          }
-        }
-      }
-    },
-    "Ordenar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sort"
-          }
-        }
-      }
-    },
-    "Pausar" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pause"
-          }
-        }
-      }
-    },
-    "Preescucha" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preview listening"
-          }
-        }
-      }
-    },
-    "Se ha encontrado otro fichero en esa carpeta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Another file was found in that folder"
-          }
-        }
-      }
-    },
-    "Se han encontrado %lld ficheros más en esa carpeta" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld more files were found in that folder"
-          }
-        }
-      }
-    },
-    "Se perderá el orden que hiciste a mano arrastrando las fotos." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The order you made by dragging the photos will be lost."
-          }
-        }
-      }
-    },
-    "Suena la pista tal cual, sin fundidos, del segundo Desde al Hasta. Si cambias Desde mientras suena, salta allí." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plays the track as is, without fades, from From to To. If you change From while it plays, it jumps there."
-          }
-        }
-      }
-    },
-    "Tenían el mismo nombre que otros ficheros que faltaban y se han recolocado." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "They had the same name as other missing files and have been relinked."
-          }
-        }
-      }
-    },
-    "Vale" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OK"
-          }
-        }
-      }
-    },
-    "Ver la foto en grande" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View the photo large"
-          }
-        }
-      }
-    },
-    "· Arrastra para cambiar el orden" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "· Drag to change the order"
-          }
-        }
-      }
-    },
-    "¿Ordenar por fecha?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sort by date?"
-          }
-        }
-      }
-    },
-    "¿Ordenar por nombre?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sort by name?"
+            "value" : "Reset this folder's settings?"
           }
         }
       }
@@ -286,6 +66,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apply this style to all text cards?"
+          }
+        }
+      }
+    },
+    "¿Ordenar por fecha?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by date?"
+          }
+        }
+      }
+    },
+    "¿Ordenar por nombre?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by name?"
           }
         }
       }
@@ -330,6 +130,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "· drag each photo to frame it"
+          }
+        }
+      }
+    },
+    "· Arrastra para cambiar el orden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· Drag to change the order"
           }
         }
       }
@@ -1143,6 +953,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Drag each photo to frame it. Manual framing is kept when using “Adjust focus”."
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el orden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order"
           }
         }
       }
@@ -2684,6 +2504,7 @@
       }
     },
     "Elige o arrastra una carpeta de fotos" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2849,6 +2670,16 @@
         }
       }
     },
+    "Empieza eligiendo o arrastrando una carpeta de fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start by choosing or dropping a photo folder"
+          }
+        }
+      }
+    },
     "Empieza en %@ · suena %@" : {
       "localizations" : {
         "en" : {
@@ -2991,6 +2822,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Write metadata"
+          }
+        }
+      }
+    },
+    "Escuchar el tramo entre Desde y Hasta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listen to the section between From and To"
           }
         }
       }
@@ -3180,6 +3021,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exposure"
+          }
+        }
+      }
+    },
+    "Falta 1 fichero: se generará sin él" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 file is missing: the video will be made without it"
+          }
+        }
+      }
+    },
+    "Faltan %lld ficheros: se generará sin ellos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files are missing: the video will be made without them"
           }
         }
       }
@@ -3514,6 +3375,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Generate"
+          }
+        }
+      }
+    },
+    "Generar igualmente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generate anyway"
           }
         }
       }
@@ -4043,6 +3914,16 @@
         }
       }
     },
+    "Localizar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locate…"
+          }
+        }
+      }
+    },
     "Logo" : {
       "localizations" : {
         "en" : {
@@ -4134,6 +4015,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keep the title still while the card fades into the first photo"
+          }
+        }
+      }
+    },
+    "Manual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual"
           }
         }
       }
@@ -4481,6 +4372,36 @@
         }
       }
     },
+    "No se encuentra el fichero" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found"
+          }
+        }
+      }
+    },
+    "No se encuentra el fichero: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found: %@"
+          }
+        }
+      }
+    },
+    "No se encuentra el fichero: selecciónalo en el timeline para localizarlo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found: select it in the timeline to locate it"
+          }
+        }
+      }
+    },
     "No se encuentra el logo: " : {
       "localizations" : {
         "en" : {
@@ -4805,6 +4726,16 @@
         }
       }
     },
+    "Ordenar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort"
+          }
+        }
+      }
+    },
     "Ordenar por" : {
       "localizations" : {
         "en" : {
@@ -4982,6 +4913,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pattern"
+          }
+        }
+      }
+    },
+    "Pausar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         }
       }
@@ -5164,6 +5105,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Position"
+          }
+        }
+      }
+    },
+    "Preescucha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview listening"
           }
         }
       }
@@ -5721,6 +5672,36 @@
         }
       }
     },
+    "Se ha encontrado otro fichero en esa carpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another file was found in that folder"
+          }
+        }
+      }
+    },
+    "Se han encontrado %lld ficheros más en esa carpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld more files were found in that folder"
+          }
+        }
+      }
+    },
+    "Se perderá el orden que hiciste a mano arrastrando las fotos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The order you made by dragging the photos will be lost."
+          }
+        }
+      }
+    },
     "Secuencia" : {
       "localizations" : {
         "en" : {
@@ -6195,6 +6176,16 @@
         }
       }
     },
+    "Suena la pista tal cual, sin fundidos, del segundo Desde al Hasta. Si cambias Desde mientras suena, salta allí." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays the track as is, without fades, from From to To. If you change From while it plays, it jumps there."
+          }
+        }
+      }
+    },
     "Sufijo" : {
       "localizations" : {
         "en" : {
@@ -6255,6 +6246,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Phone"
+          }
+        }
+      }
+    },
+    "Tenían el mismo nombre que otros ficheros que faltaban y se han recolocado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They had the same name as other missing files and have been relinked."
           }
         }
       }
@@ -6603,6 +6604,16 @@
         }
       }
     },
+    "Vale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
     "Valores por defecto" : {
       "localizations" : {
         "en" : {
@@ -6629,6 +6640,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Speed"
+          }
+        }
+      }
+    },
+    "Ver la foto en grande" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View the photo large"
           }
         }
       }

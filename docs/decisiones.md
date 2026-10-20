@@ -1968,3 +1968,32 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Los botones principales en rojo («Generar vídeo», «Escribir metadatos») siguen viéndose algo vivos aunque estén apagados, por su color de fondo; no responden.
+
+## 2026-10-20 — Confirmación antes de «Reiniciar»
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: el código dice qué se borra)* El botón «Reiniciar» de la barra de carpeta borra sin preguntar lo guardado para la carpeta en su `.caoba`. Pasa a pedir confirmación con un mensaje que explique qué hace:
+- **Título:** «¿Reiniciar la configuración de esta carpeta?».
+- **Qué se borra:** todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, tarjetas de texto, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.
+- **Qué no se toca:** las fotos de la carpeta, los presets guardados de cada módulo y el historial del Renombrador (se puede seguir deshaciendo).
+- **Botones:** «Reiniciar» (en rojo, porque no se puede deshacer) y «Cancelar».
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.8.2).
+- `SourceFolderBar`: «Reiniciar» abre un `confirmationDialog` («Reiniciar» con `role: .destructive` y «Cancelar»); solo al confirmar se llama a `resetFolderConfig()`, que no cambia. Comprobado en el código que es el único sitio que la llama.
+- El mensaje sale de lo que de verdad borra `CaobaConfig.resetSettings`: las secciones `slideshow`, `collage` y `fileOrder`; conserva `renameHistory`. Los presets de cada módulo no van en el `.caoba` de la carpeta, así que no se tocan.
+- Traducciones al inglés del título y el mensaje. Corregida de paso en `documentacion.md` la lista de secciones del `.caoba` (decía solo `slideshow` y `renameHistory`).
+- Versión 3.8.2.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/SourceFolderBar.swift`, `AppState.resetFolderConfig`, `CaobaCore/Sources/CaobaCore/Config/CaobaConfig.swift` (`resetSettings`, `protectedSections`) y las secciones que escribe la app.
+
+### 5. Alternativas descartadas
+Ninguna.
+
+### 6. Pendiente de comprobar
+- La ventana de confirmación no sale en las capturas (ventana aparte); se comprobó en el código.
