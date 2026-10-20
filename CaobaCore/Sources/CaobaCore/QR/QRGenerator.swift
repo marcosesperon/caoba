@@ -4,7 +4,7 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 /// Color RGB sencillo para no depender de AppKit/UIKit en el motor.
-public struct RGBColor: Sendable, Equatable, Codable {
+public struct RGBColor: Sendable, Equatable, Hashable, Codable {
     public var red: Double
     public var green: Double
     public var blue: Double

@@ -245,7 +245,7 @@ final class SlideshowDocument {
     private var composeTask: Task<Void, Never>?
     var reveal = 1.5
     var hold = 3.0
-    var csBackground: CanvasBackground = .white
+    var csBackground: CanvasColor = .white
     var csGap = 10.0
     var csRadius = 0.0
     var csShadow = 50.0
@@ -1108,7 +1108,7 @@ final class SlideshowDocument {
         var durations: [String: Double]
         var tracks: [AudioTrack]; var fadeOut: Bool; var normalize: Bool; var loopPlaylist: Bool
         var kb: KenBurnsSettings; var choices: [String: EffectChoice]; var points: [String: KenBurnsPoints]
-        var sequence: [SequenceItem]; var reveal: Double; var hold: Double; var bg: CanvasBackground; var gap: Double; var radius: Double; var shadow: Double
+        var sequence: [SequenceItem]; var reveal: Double; var hold: Double; var bg: CanvasColor; var gap: Double; var radius: Double; var shadow: Double
         var sortMode: SortMode; var manualOrder: Bool; var orientation: OrientationFilter; var order: [String]; var excluded: Set<String>
     }
 
@@ -1292,7 +1292,7 @@ final class SlideshowDocument {
         if let cs = preset.collage {
             reveal = cs.revealDuration ?? 1.5
             hold = cs.holdDuration ?? 3
-            csBackground = cs.bgColor.flatMap(CanvasBackground.init(rawValue:)) ?? .white
+            csBackground = cs.bgColor.flatMap(CanvasColor.init(rawValue:)) ?? .white
             csGap = cs.gap ?? 10
             csRadius = cs.borderRadius ?? 0
             csShadow = cs.shadowIntensity ?? 50

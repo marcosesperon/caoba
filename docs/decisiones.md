@@ -2101,3 +2101,41 @@ Confirmada por el usuario («ok»).
 ### 6. Pendiente de comprobar
 - Con 9 fotos por grupo, «Componer según el contenido» reparte las fotos con el método rápido (a partir de 6 fotos no prueba todas las combinaciones); no se ha medido cuánto tarda con carpetas grandes.
 - La carpeta `collages/` (capturas de otras apps, solo de referencia) se ignora en git a petición del usuario, para no publicarla; el script de release exige el árbol limpio.
+
+## 2026-10-20 — Fondo de cualquier color (grupo de coste medio, 1 de 3)
+
+*(El grupo de coste medio se hace en tres peticiones seguidas, a elección del usuario: fondo de color, celda redonda y fotos giradas.)*
+
+### 1. La petición tal como se ha entendido
+En **Collage**, en los **collages del Slideshow** (pestaña Vídeo, modo collages) y en **Contact Sheet**, el selector de fondo pasa a ofrecer **Blanco, Negro, Gris y «Personalizado»**:
+- Con «Personalizado», al lado aparece el selector de color de macOS, sin transparencia.
+- El color del texto (título, nombres de archivo, numeración) y el del borde se eligen solos según lo claro u oscuro que sea el fondo, como hoy con los tres de siempre.
+- El color se guarda donde ya se guarda el fondo: presets de Collage y Contact Sheet y proyecto del Slideshow. Los presets y proyectos antiguos se siguen leyendo igual.
+- Las tarjetas de texto del Slideshow siguen con Negro, Blanco y Gris.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Las tres cosas del grupo una a una o juntas?** → Una a una, cada una con su versión: primero el fondo de color, luego la celda redonda y por último las fotos giradas.
+- **¿Dónde se elige el color libre: Collage, collages del Slideshow y Contact Sheet; también tarjetas de texto; o solo Collage y Slideshow?** → Collage, collages del Slideshow y Contact Sheet. Las tarjetas de texto siguen con Negro, Blanco y Gris.
+- **¿Cómo se elige: Blanco/Negro/Gris + «Personalizado», o solo un selector de color?** → Se quedan Blanco, Negro y Gris y se añade «Personalizado», con el selector de color de macOS al lado. Texto y borde se ajustan solos al color (claros sobre fondo oscuro, oscuros sobre claro).
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.9.1). Contact Sheet no tiene presets: su color dura lo que el resto de sus ajustes (la sesión).
+- Motor: `CanvasColor` (`.preset(CanvasBackground)` o `.custom(RGBColor)`), con `fill`, `text`, `border`, `isDark` (luminancia relativa < 0,5) y `rawValue` («white» o «#RRGGBB»); se codifica como una cadena, así los presets de Collage (`CollageSettings.background`) y los proyectos del Slideshow (`collage.bgColor`) antiguos se leen igual. `CollageOptions` y `ContactSheetOptions` pasan a `CanvasColor`; las tarjetas de texto siguen con `CanvasBackground`. `RGBColor` pasa a `Hashable`.
+- Fallo encontrado al probar: el color propio salía más claro (0,5 daba 145 en vez de 128) porque `CGColor(red:green:blue:)` es RGB genérico y se convierte a sRGB al dibujar; el selector de macOS trabaja en sRGB. Se crea con `CGColor(srgbRed:…)`. El «Gris» de siempre tiene el mismo efecto (sale 146) y no se ha tocado para no cambiar los collages existentes.
+- App: `BackgroundPicker` (desplegable + `ColorPicker` sin transparencia; al pasar a «Personalizado» parte del color que hubiera) en Collage, Contact Sheet y la pestaña Vídeo del Slideshow en modo collages.
+- Tests nuevos (suite `CanvasColor`): leer y guardar «white» y «#336699», rechazar valores no válidos, contraste del texto, y collage y hoja de contacto con fondo `#008080` que sale tal cual (±1). Pasan los 133 tests.
+- Comprobado en la app: proyecto del Slideshow con `#1E3A5F`; la pestaña Vídeo enseña «Personalizado» con el color, el proyecto lo conserva y el vídeo generado tiene el fondo (29, 57, 95), dentro del redondeo del vídeo.
+- Versión 3.9.1.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Drawing/Drawing.swift` (`CanvasBackground`), `CollageRenderer.swift`, `ContactSheetRenderer.swift`, `QR/QRGenerator.swift` (`RGBColor`), `CaobaApp/Sources/Model/ModulePresets.swift`, `SlideshowDocument.swift`, `CollageView.swift`, `ContactSheetView.swift` y `SlideshowInspector.swift`.
+
+### 5. Alternativas descartadas
+- Solo el selector de color (sin Blanco, Negro y Gris): descartado por el usuario.
+- Color libre también en las tarjetas de texto: descartado por el usuario.
+- Corregir de paso el «Gris» a sRGB: cambiaría los collages ya hechos; no estaba en la petición.
+
+### 6. Pendiente de comprobar
+- Contact Sheet no tiene presets: su color dura lo que el resto de sus ajustes (la sesión).
+- El selector de color y el desplegable de Collage y Contact Sheet se han revisado en el código; la captura es de la pestaña Vídeo del Slideshow.

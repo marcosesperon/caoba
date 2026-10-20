@@ -28,7 +28,7 @@ struct WatermarkSettings: Codable, Equatable {
 struct CollageSettings: Codable, Equatable {
     var longestSide = 3000
     var gap = 10.0
-    var background: CanvasBackground = .white
+    var background: CanvasColor = .white
     var cornerRadius = 0.0
     var shadow = true
     var title = ""

@@ -7,7 +7,7 @@ public struct CollageOptions: Sendable, Equatable {
     public var longestSide: Int
     /// Separación entre fotos en píxeles.
     public var gap: Double
-    public var background: CanvasBackground
+    public var background: CanvasColor
     public var cornerRadius: Double
     /// Intensidad de la sombra (0-100) en plantillas overlap.
     public var shadowIntensity: Double
@@ -17,7 +17,7 @@ public struct CollageOptions: Sendable, Equatable {
 
     public static let maxDimension = 15_000
 
-    public init(longestSide: Int = 3000, gap: Double = 10, background: CanvasBackground = .white, cornerRadius: Double = 0,
+    public init(longestSide: Int = 3000, gap: Double = 10, background: CanvasColor = .white, cornerRadius: Double = 0,
                 shadowIntensity: Double = 100, title: String = "", quality: Int = 90, logo: LogoOptions? = nil) {
         self.longestSide = min(CollageOptions.maxDimension, max(100, longestSide))
         self.gap = max(0, gap)

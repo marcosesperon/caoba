@@ -31,7 +31,7 @@ struct CollageView: View {
 
     @State private var longestSide = 3000
     @State private var gap = 10.0
-    @State private var background: CanvasBackground = .white
+    @State private var background: CanvasColor = .white
     @State private var cornerRadius = 0.0
     @State private var shadow = true
     @State private var title = ""
@@ -122,12 +122,7 @@ struct CollageView: View {
                             }
                             LabeledSlider(title: "Separación", value: $gap, in: 0...100, step: 1) { Text("\(Int(gap)) px") }
                             LabeledRow("Fondo") {
-                                Picker("", selection: $background) {
-                                    Text("Blanco").tag(CanvasBackground.white)
-                                    Text("Negro").tag(CanvasBackground.black)
-                                    Text("Gris").tag(CanvasBackground.gray)
-                                }
-                                .labelsHidden()
+                                BackgroundPicker(selection: $background)
                             }
                             LabeledSlider(title: "Esquinas", value: $cornerRadius, in: 0...200, step: 1) { Text("\(Int(cornerRadius)) px") }
                             Toggle("Sombra en plantillas superpuestas", isOn: $shadow)

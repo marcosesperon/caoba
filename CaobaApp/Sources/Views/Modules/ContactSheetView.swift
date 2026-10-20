@@ -12,7 +12,7 @@ struct ContactSheetView: View {
     @State private var showFilenames = true
     @State private var showNumbering = false
     @State private var title = ""
-    @State private var background: CanvasBackground = .white
+    @State private var background: CanvasColor = .white
     @State private var showBorder = false
     @State private var borderWidth = 1.0
     @State private var quality = 90.0
@@ -76,12 +76,7 @@ struct ContactSheetView: View {
                             Toggle("Nombres de archivo", isOn: $showFilenames)
                             Toggle("Numeración", isOn: $showNumbering)
                             LabeledRow("Fondo") {
-                                Picker("", selection: $background) {
-                                    Text("Blanco").tag(CanvasBackground.white)
-                                    Text("Negro").tag(CanvasBackground.black)
-                                    Text("Gris").tag(CanvasBackground.gray)
-                                }
-                                .labelsHidden()
+                                BackgroundPicker(selection: $background)
                             }
                             Toggle("Borde", isOn: $showBorder)
                             if showBorder { LabeledRow("Grosor") { Stepper("\(Int(borderWidth)) px", value: $borderWidth, in: 1...20).fixedSize() } }

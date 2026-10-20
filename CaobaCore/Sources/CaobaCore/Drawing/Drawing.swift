@@ -33,6 +33,78 @@ public enum CanvasBackground: String, Sendable, Codable, CaseIterable {
     }
 }
 
+/// Fondo de collage y contact sheet: uno de los tres de siempre o un color propio.
+/// El texto y el borde se eligen según lo claro u oscuro que sea el fondo. Se guarda como
+/// antes para los tres de siempre («white») y como «#RRGGBB» para un color propio, así los
+/// presets y proyectos antiguos se siguen leyendo.
+public enum CanvasColor: Sendable, Equatable, Hashable, Codable {
+    case preset(CanvasBackground)
+    case custom(RGBColor)
+
+    public static let white = CanvasColor.preset(.white)
+    public static let black = CanvasColor.preset(.black)
+    public static let gray = CanvasColor.preset(.gray)
+
+    public var fill: CGColor {
+        switch self {
+        case .preset(let p): return p.fill
+        // En sRGB, el espacio del selector de color: así sale el mismo color que se eligió
+        // (con `CGColor(red:green:blue:)`, RGB genérico, saldría más claro al dibujarlo).
+        case .custom(let c): return CGColor(srgbRed: c.red, green: c.green, blue: c.blue, alpha: 1)
+        }
+    }
+
+    public var text: CGColor {
+        switch self {
+        case .preset(let p): return p.text
+        case .custom: return isDark ? CGColor(red: 0.93, green: 0.93, blue: 0.93, alpha: 1) : CGColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1)
+        }
+    }
+
+    var border: CGColor {
+        switch self {
+        case .preset(let p): return p.border
+        case .custom: return isDark ? CGColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1) : CGColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1)
+        }
+    }
+
+    /// Fondo oscuro (luminancia relativa por debajo de la mitad): pide texto claro.
+    public var isDark: Bool {
+        guard case .custom(let c) = self else { return self == .black }
+        return 0.2126 * c.red + 0.7152 * c.green + 0.0722 * c.blue < 0.5
+    }
+
+    /// Texto que se guarda: «white», «black», «gray» o «#RRGGBB».
+    public var rawValue: String {
+        switch self {
+        case .preset(let p): return p.rawValue
+        case .custom(let c):
+            func byte(_ v: Double) -> Int { Int((min(1, max(0, v)) * 255).rounded()) }
+            return String(format: "#%02X%02X%02X", byte(c.red), byte(c.green), byte(c.blue))
+        }
+    }
+
+    public init?(rawValue: String) {
+        if let p = CanvasBackground(rawValue: rawValue) { self = .preset(p); return }
+        let hex = rawValue.trimmingCharacters(in: .whitespaces)
+        guard hex.hasPrefix("#"), hex.count == 7, let v = Int(hex.dropFirst(), radix: 16) else { return nil }
+        self = .custom(RGBColor(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255))
+    }
+
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        guard let value = CanvasColor(rawValue: raw) else {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Fondo no válido: \(raw)"))
+        }
+        self = value
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        try c.encode(rawValue)
+    }
+}
+
 /// Logo superpuesto al resultado (collage y contact sheet).
 public struct LogoOptions: Sendable, Equatable {
     public var url: URL

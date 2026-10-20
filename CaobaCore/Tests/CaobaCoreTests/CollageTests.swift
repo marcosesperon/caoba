@@ -37,6 +37,44 @@ struct CollageTemplatesTests {
     }
 }
 
+@Suite("CanvasColor")
+struct CanvasColorTests {
+    @Test("Se lee y se guarda como antes para los tres de siempre y como #RRGGBB para un color propio")
+    func coding() throws {
+        #expect(CanvasColor(rawValue: "white") == .white)
+        let custom = try #require(CanvasColor(rawValue: "#336699"))
+        #expect(custom.rawValue == "#336699")
+        #expect(CanvasColor(rawValue: "#12345") == nil && CanvasColor(rawValue: "azul") == nil)
+        let data = try JSONEncoder().encode([CanvasColor.black, custom])
+        #expect(String(data: data, encoding: .utf8) == ##"["black","#336699"]"##)
+        #expect(try JSONDecoder().decode([CanvasColor].self, from: data) == [.black, custom])
+    }
+
+    @Test("Texto claro sobre un fondo oscuro y oscuro sobre uno claro")
+    func contrast() {
+        let navy = CanvasColor.custom(RGBColor(red: 0.1, green: 0.15, blue: 0.35))
+        let cream = CanvasColor.custom(RGBColor(red: 0.96, green: 0.93, blue: 0.85))
+        #expect(navy.isDark && !cream.isDark)
+        #expect(navy.text.components![0] > 0.8 && cream.text.components![0] < 0.3)
+    }
+
+    @Test("Collage y hoja de contacto dibujados con un fondo propio tienen ese color")
+    func render() throws {
+        let folder = try TestImages.makeTempFolder()
+        let photos = try (0..<2).map { try TestImages.makePhoto(in: folder, name: "p\($0).jpg", width: 600, height: 400) }
+        // #008080: tiene que salir tal cual (el color se crea en sRGB, como lo da el selector).
+        let teal = CanvasColor.custom(RGBColor(red: 0, green: 128.0 / 255, blue: 128.0 / 255))
+        let template = try #require(CollageTemplates.template(id: "16_9_strips_v5") ?? CollageTemplates.filter(photos: 2).first)
+        let row = CollageRow(template: template, files: Array(repeating: photos[0], count: template.photos))
+        let collage = try CollageRenderer.render(row, options: CollageOptions(longestSide: 600, gap: 40, background: teal))
+        let a = TestImages.pixel(collage, x: 3, y: 3)
+        #expect(a.r < 10 && abs(a.g - 128) <= 1 && abs(a.b - 128) <= 1)
+        let sheet = try ContactSheetRenderer.render(files: photos, options: ContactSheetOptions(columns: 2, thumbSize: 120, background: teal))
+        let b = TestImages.pixel(sheet, x: 2, y: 2)
+        #expect(b.r < 10 && abs(b.g - 128) <= 1 && abs(b.b - 128) <= 1)
+    }
+}
+
 @Suite("CollageRenderer")
 struct CollageRendererTests {
     struct SeededGenerator: RandomNumberGenerator {

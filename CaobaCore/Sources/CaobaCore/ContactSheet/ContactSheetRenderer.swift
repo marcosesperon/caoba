@@ -14,7 +14,7 @@ public struct ContactSheetOptions: Sendable, Equatable {
     public var showFilenames: Bool
     public var showNumbering: Bool
     public var title: String
-    public var background: CanvasBackground
+    public var background: CanvasColor
     public var showBorder: Bool
     public var borderWidth: Double
     public var logo: LogoOptions?
@@ -26,7 +26,7 @@ public struct ContactSheetOptions: Sendable, Equatable {
     static let titleHeight = 40.0
 
     public init(columns: Int = 5, thumbSize: Int = 200, layout: Layout = .grid, cropMode: CropMode = .contain,
-                showFilenames: Bool = true, showNumbering: Bool = false, title: String = "", background: CanvasBackground = .white,
+                showFilenames: Bool = true, showNumbering: Bool = false, title: String = "", background: CanvasColor = .white,
                 showBorder: Bool = false, borderWidth: Double = 1, logo: LogoOptions? = nil, quality: Int = 90) {
         self.columns = max(1, columns)
         self.thumbSize = max(20, thumbSize)

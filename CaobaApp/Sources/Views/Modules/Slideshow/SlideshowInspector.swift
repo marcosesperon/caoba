@@ -137,12 +137,7 @@ struct VideoTab: View {
             } else {
                 OptionGroup(title: "Aspecto de los collages") {
                     LabeledRow("Fondo") {
-                        Picker("", selection: $doc.csBackground) {
-                            Text("Blanco").tag(CanvasBackground.white)
-                            Text("Negro").tag(CanvasBackground.black)
-                            Text("Gris").tag(CanvasBackground.gray)
-                        }
-                        .labelsHidden()
+                        BackgroundPicker(selection: $doc.csBackground)
                     }
                     LabeledSlider(title: "Separación", value: $doc.csGap, in: 0...60, step: 1) { Text("\(Int(doc.csGap)) px") }
                     LabeledSlider(title: "Esquinas", value: $doc.csRadius, in: 0...100, step: 1) { Text("\(Int(doc.csRadius)) px") }
