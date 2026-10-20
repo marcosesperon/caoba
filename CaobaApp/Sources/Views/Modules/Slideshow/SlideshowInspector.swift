@@ -20,7 +20,8 @@ struct SelectionEditor: View {
                     PhotoInspector(doc: doc, url: url)
                 }
             case .track(let id):
-                if let track = doc.tracks.first(where: { $0.id == id }) { TrackInspector(doc: doc, track: track) }
+                // Identificado por la pista: al pasar a otra, el reproductor de la anterior se para.
+                if let track = doc.tracks.first(where: { $0.id == id }) { TrackInspector(doc: doc, track: track).id(track.id) }
             case .collage(let id):
                 if let row = doc.rows.first(where: { $0.id == id }) { CollageInspector(doc: doc, row: row) }
             }
@@ -876,6 +877,42 @@ struct TrackInspector: View {
             Text("También puedes arrastrar el bloque en el timeline y estirar sus bordes.").font(.caption).foregroundStyle(.secondary)
             Button("Quitar pista", role: .destructive) { doc.removeTrack(track.id) }
         }
+        if let duration = doc.trackDurations[track.id] {
+            OptionGroup(title: "Preescucha") {
+                TrackPreview(url: track.url, start: track.trimStart, end: track.trimEnd ?? duration)
+            }
+        }
+    }
+}
+
+/// Reproductor del tramo Desde → Hasta de una pista, para oír dónde empieza y acaba.
+struct TrackPreview: View {
+    let url: URL
+    let start: Double
+    let end: Double
+    @State private var player = TrackPreviewPlayer()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Button { player.togglePlay() } label: {
+                    Image(systemName: player.isPlaying ? "pause.fill" : "play.fill").frame(width: 16)
+                }
+                .help(player.isPlaying ? "Pausar" : "Escuchar el tramo entre Desde y Hasta")
+                Text(TimecodeField.format(player.position)).monospacedDigit()
+                Slider(value: Binding(get: { player.position }, set: { player.seek(to: $0) }), in: player.start...max(player.start + 0.1, player.end))
+                Text(TimecodeField.format(player.end)).monospacedDigit().foregroundStyle(.secondary)
+            }
+            Text("Suena la pista tal cual, sin fundidos, del segundo Desde al Hasta. Si cambias Desde mientras suena, salta allí.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .onAppear {
+            player.load(url)
+            player.setRange(start: start, end: end)
+        }
+        .onChange(of: start) { player.setRange(start: start, end: end) }
+        .onChange(of: end) { player.setRange(start: start, end: end) }
+        .onDisappear { player.stop() }
     }
 }
 

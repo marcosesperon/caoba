@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.7.0 — 2026-10-20
+
+- **Preescucha de las pistas**: en el editor de una pista hay un reproductor del tramo entre Desde y Hasta, para oír dónde empieza y dónde acaba antes de generar el vídeo. Si cambias Desde mientras suena, salta allí.
+- Los tiempos de una pista (Inicio en el vídeo, Desde y Hasta) se guardan también al salir del campo o cerrar el editor; antes solo con Intro y, si no, se perdían.
+
 ## 3.6.2 — 2026-10-20
 
 - En el editor de una foto con efecto «Personalizado», la columna del Encuadre mide lo justo para Inicio y Fin; el resto del ancho es para Efecto, Tiempo, Transición y Pie.

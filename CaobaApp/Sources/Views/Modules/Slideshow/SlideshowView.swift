@@ -374,17 +374,25 @@ struct VideoPreviewSheet: View {
 struct TimecodeField: View {
     @Binding var seconds: Double
     @State private var text = ""
+    @FocusState private var focused: Bool
 
     var body: some View {
         TextField("0:00", text: $text)
             .frame(width: 56)
             .monospacedDigit()
+            .focused($focused)
             .onAppear { text = Self.format(seconds) }
             .onChange(of: seconds) { text = Self.format(seconds) }
+            // Se guarda con Intro, al salir del campo (Tab o clic fuera) y al cerrar el editor.
             .onSubmit { commit() }
+            .onChange(of: focused) { if !focused { commit() } }
+            .onDisappear { commit() }
     }
 
     private func commit() {
+        // Solo si el texto ha cambiado: guardar lo mismo redondearía el valor a segundos enteros
+        // (y, en «Inicio en el vídeo», dejaría de ser «tras la anterior») sin que nadie lo pidiera.
+        guard text != Self.format(seconds) else { return }
         if let parsed = Self.parse(text) { seconds = parsed }
         text = Self.format(seconds)
     }

@@ -1762,3 +1762,68 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-20 — Revisión: «Desde» de una pista no parece aplicarse al exportar
+
+### 1. La petición tal como se ha entendido
+*(revisión, sin cambios de código)* El usuario cree que el «Desde» de una pista (segundo del MP3 desde el que empieza a sonar, para saltarse silencio o voces del principio) no se aplica al exportar cuando se escribe a mano. Se pide revisar si hay un fallo.
+
+### 2. Preguntas y respuestas
+Ninguna (se investigó primero; las dudas quedan en el apartado 6).
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Audio/AudioMuxer.swift`, `AudioPlan.swift`, `Slideshow/SlideshowRenderer.swift` (camino del audio al exportar).
+- `CaobaApp/Sources/Model/SlideshowDocument.swift` (guardado y carga de las pistas en el preset) y `TimecodeField` en `SlideshowView.swift`.
+- `.caoba` del proyecto real del usuario (solo lectura): la primera pista tiene `trimStart: 5`.
+
+### 4. Decisiones
+- Pruebas hechas (todas correctas):
+  - Motor con un tono de 440 Hz los primeros 5 s y 1000 Hz después, en MP3 y M4A, «Desde» = 5: el vídeo empieza en 1000 Hz.
+  - App de punta a punta (preset → documento → vídeo) con el mismo tono en MP3, y con un MP3 de bitrate variable de 3 minutos: empieza en 1000 Hz.
+  - App con el MP3 real del usuario («Desde» = 5): el audio del vídeo coincide con el MP3 a partir del segundo 4,9 (dentro del margen de la medición).
+- Mismo camino de audio en «Vista previa» y «Generar vídeo»; «Normalizar» solo cambia el volumen.
+- Hallazgo: `TimecodeField` solo guarda el valor al pulsar Intro. Si se escribe y se sale del campo de otra forma (clic en otro sitio, «Cerrar», Esc, «Generar vídeo»), el valor no se guarda aunque el campo lo siga mostrando. Encaja con «asignando a mano el valor no funciona». No se ha cambiado nada: se propone como arreglo.
+- Observación: esa canción suena con el mismo volumen desde el segundo 0, sin silencio ni voces al principio; saltarse 5 s de música continua puede pasar desapercibido al oírlo.
+
+### 5. Alternativas descartadas
+Ninguna.
+
+### 6. Pendiente de comprobar
+- Si el usuario pulsaba Intro al escribir el valor, y qué oye exactamente al principio del vídeo exportado.
+- En el mismo proyecto, la segunda pista tiene `startTime` 24,09 y `trimStart` 17,09 (justo 7 s menos); puede venir de estirar su borde en el timeline. No se ha revisado.
+
+## 2026-10-20 — Preescuchar una pista en su editor
+
+### 1. La petición tal como se ha entendido
+En el editor de una pista del Slideshow se añade un **reproductor** para oír cómo queda el recorte:
+- **Botón play/pausa y barra de posición** del tramo entre Desde y Hasta. La barra se puede arrastrar para saltar, y al lado se ve el tiempo de la canción.
+- Suena **la pista tal cual**, sin fundidos ni normalización: sirve para oír dónde empieza y dónde acaba.
+- **Al cambiar Desde** mientras suena, salta al nuevo Desde y sigue sonando. **Al cambiar Hasta**, sigue y para al llegar al nuevo Hasta. Lo mismo si se cambian estirando los bordes del bloque en el timeline.
+- **Al llegar a Hasta** se para y vuelve a Desde. También se para al cerrar el editor o al pasar a editar otro elemento.
+- **Arreglo incluido:** Inicio en el vídeo, Desde y Hasta se guardan también al pulsar Tab, hacer clic fuera o cerrar el editor, no solo con Intro.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué tipo de preescucha: reproductor con atajos de inicio y final, solo los atajos o solo un reproductor?** → Solo un reproductor (play/pausa y barra de posición) del tramo Desde → Hasta.
+- **Al cambiar Desde o Hasta mientras suena, ¿vuelve a empezar o se para?** → Si cambia Desde, salta al nuevo Desde y sigue sonando; si cambia Hasta, sigue y para al llegar al nuevo Hasta.
+- **¿Se arregla también aquí que Desde y Hasta solo se guarden con Intro?** → Sí: los campos de tiempo guardan también al pulsar Tab, hacer clic fuera o cerrar el editor.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.7.0).
+- `TrackPreviewPlayer` (`@Observable`, en `Model/`) sobre `AVAudioPlayer`: reproduce el fichero tal cual, con un temporizador de 20 Hz que sigue la posición y para en Hasta. `setRange(start:end:)` salta a Desde si cambia y para si la posición queda por detrás de Hasta.
+- Vista `TrackPreview` en un grupo «Preescucha» del editor de pista, solo cuando ya se conoce la duración del fichero. El editor de pista lleva `.id(track.id)` para que al pasar a otra pista la vista se rehaga y el reproductor anterior se pare (`onDisappear`).
+- `TimecodeField` guarda también al perder el foco (`@FocusState`) y al desaparecer, pero **solo si el texto ha cambiado**: guardar lo mismo redondearía a segundos enteros (un Hasta de 182,01 pasaría a 182) y en «Inicio en el vídeo» cambiaría «tras la anterior» por un tiempo fijo. Comprobado: tras abrir y cerrar el editor, el `.caoba` conserva `trimEnd` 182,0137.
+- Comprobado el reproductor compilándolo aparte con un programa de prueba (tono de 440/1000 Hz, Desde 5, Hasta 7): empieza en 5 y avanza; al cambiar Desde a 6 salta allí y sigue; al llegar a Hasta para y vuelve a Desde. El sonido no se ha podido oír, solo la posición.
+- Captura del editor de pista en oscuro y claro. Cadenas nuevas en `Localizable.xcstrings` con su inglés.
+- Versión 3.7.0: función nueva.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowInspector.swift` (`TrackInspector`) y `SlideshowView.swift` (`TimecodeField`).
+
+### 5. Alternativas descartadas
+- Reproductor con atajos «Oír el inicio» y «Oír el final», o solo los atajos: descartado por el usuario.
+- Pararse al cambiar Desde o Hasta: descartado por el usuario.
+- Reproducir con la mezcla real (fundidos, normalización) a través de `AudioMuxer`: más lento y no hace falta para oír dónde empieza y acaba.
+
+### 6. Pendiente de comprobar
+- El guardado al perder el foco (Tab o clic fuera) se ha revisado en el código, pero no con el teclado de verdad.
