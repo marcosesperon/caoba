@@ -43,8 +43,7 @@ struct FileListView: View {
                     } onPreview: {
                         previewURL = file.url
                     }
-                    .contentShape(Rectangle())
-                    .onTapGesture { selection?.wrappedValue = file.url }
+                    .modifier(SelectOnTap(selection: selection, url: file.url))
                 }
                 .onMove { from, to in
                     if allowsReorder { appState.moveFiles(from: from, to: to) }
@@ -124,6 +123,20 @@ struct FileListView: View {
     }
 }
 
+/// Clic en la fila para elegirla (ficha de Metadatos). Solo se pone si la lista lo usa:
+/// un gesto de clic en la fila no deja arrastrarla para cambiar el orden.
+private struct SelectOnTap: ViewModifier {
+    let selection: Binding<URL?>?
+    let url: URL
+    func body(content: Content) -> some View {
+        if let selection {
+            content.contentShape(Rectangle()).onTapGesture { selection.wrappedValue = url }
+        } else {
+            content
+        }
+    }
+}
+
 /// Bloque común solo si se pide (la lista puede ir dentro de otro bloque).
 private struct OptionalPanel: ViewModifier {
     let enabled: Bool
@@ -142,13 +155,15 @@ private struct FileRow: View {
     var isReorderable = false
     let onToggle: () -> Void
     let onPreview: () -> Void
+    @State private var isHovering = false
 
     var body: some View {
         HStack(spacing: 8) {
             Toggle("", isOn: Binding(get: { isChecked }, set: { _ in onToggle() }))
                 .toggleStyle(.checkbox).labelsHidden()
             Text("\(index + 1)").font(.caption.monospacedDigit()).foregroundStyle(.secondary).frame(width: 32, alignment: .trailing)
-            ThumbnailView(url: file.url).onTapGesture(perform: onPreview)
+            // Sin clic en la miniatura: así se arrastra desde cualquier sitio. La foto en grande, con la lupa.
+            ThumbnailView(url: file.url)
             VStack(alignment: .leading) {
                 Text(file.name).lineLimit(1)
                 if let size = file.size {
@@ -159,6 +174,11 @@ private struct FileRow: View {
             if isMarked {
                 Circle().fill(Color.accentColor).frame(width: 8, height: 8).help("Con cambios pendientes")
             }
+            Button(action: onPreview) { Image(systemName: "magnifyingglass") }
+                .buttonStyle(.borderless)
+                .help("Ver la foto en grande")
+                .opacity(isHovering ? 1 : 0)
+                .allowsHitTesting(isHovering)
             if isReorderable {
                 Image(systemName: "line.3.horizontal").font(.body.weight(.medium)).foregroundStyle(.secondary)
                     .help("Arrastra para cambiar el orden")
@@ -169,6 +189,7 @@ private struct FileRow: View {
         .background(isSelected ? Color.accentColor.opacity(0.2) : .clear, in: RoundedRectangle(cornerRadius: 6))
         .opacity(isChecked ? 1 : 0.4)
         .onHover { inside in
+            isHovering = inside
             guard isReorderable else { return }
             if inside { NSCursor.openHand.push() } else { NSCursor.pop() }
         }

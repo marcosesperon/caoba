@@ -99,9 +99,10 @@ final class AppState {
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else { return }
         sourceFolder = url
         excludedNames = []
-        // Otra carpeta empieza ordenada; si tenía orden manual guardado, su proyecto lo recupera.
-        isManualOrder = false
-        manualNames = []
+        // Orden manual guardado en la carpeta (común a Slideshow, Collage y Contact Sheet); si no, por nombre o fecha.
+        let savedOrder = FileOrderSettings.load(from: url)?.names ?? []
+        isManualOrder = !savedOrder.isEmpty
+        manualNames = savedOrder
         recentFolders = RecentFolders.add(url)
         // Destino por defecto: subcarpeta "caoba" dentro del origen.
         destinationFolder = url.appendingPathComponent("caoba", isDirectory: true)
@@ -130,18 +131,35 @@ final class AppState {
         files.move(fromOffsets: source, toOffset: destination)
         isManualOrder = true
         manualNames = files.map(\.name)
+        saveManualOrder()
     }
 
     /// «Manual» elegido en el selector: el orden actual pasa a ser el manual.
     func keepCurrentOrderAsManual() {
+        adoptManualOrder(names: files.map(\.name))
+    }
+
+    /// Un orden guardado (por nombre) pasa a ser el orden manual común de la carpeta. No depende de
+    /// que la carpeta ya esté leída: si aún no lo está, se aplica al terminar la lectura.
+    func adoptManualOrder(names: [String]) {
+        guard !names.isEmpty else { return }
         isManualOrder = true
-        manualNames = files.map(\.name)
+        applyOrder(names: names)
+        saveManualOrder()
+    }
+
+    /// Guarda el orden manual en la carpeta, para todos los módulos.
+    private func saveManualOrder() {
+        guard let folder = sourceFolder else { return }
+        try? FileOrderSettings(names: manualNames).save(in: folder)
+        hasFolderConfig = true
     }
 
     /// Vuelve a ordenar por nombre o fecha, dejando el orden manual.
     func sortAutomatically(by mode: SortMode) {
         isManualOrder = false
         manualNames = []
+        if let folder = sourceFolder { try? FileOrderSettings.remove(from: folder) }
         sortMode = mode   // aunque sea el mismo, `didSet` vuelve a leer la carpeta ya ordenada
     }
 
@@ -180,6 +198,12 @@ final class AppState {
         CaobaConfig.resetSettings(in: folder)
         hasFolderConfig = false
         configResetToken += 1
+        // También el orden manual: las fotos vuelven a ir por nombre o fecha.
+        if isManualOrder {
+            isManualOrder = false
+            manualNames = []
+            Task { await rescan() }
+        }
     }
 
     // MARK: - Destino

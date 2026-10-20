@@ -58,6 +58,21 @@ struct QRGeneratorTests {
 struct CaobaConfigTests {
     struct SlideshowPreset: Codable, Equatable { var mode: String; var durationPerPhoto: Double; var files: [String] }
 
+    @Test("El orden manual de la carpeta se guarda, se lee y «Reiniciar» lo quita sin tocar el historial")
+    func fileOrder() throws {
+        let folder = try TestImages.makeTempFolder()
+        #expect(FileOrderSettings.load(from: folder) == nil)
+        try FileOrderSettings(names: ["c.jpg", "a.jpg", "b.jpg"]).save(in: folder)
+        #expect(FileOrderSettings.load(from: folder)?.names == ["c.jpg", "a.jpg", "b.jpg"])
+        try CaobaConfig.writeSection("renameHistory", value: ["x"], in: folder)
+        CaobaConfig.resetSettings(in: folder)
+        #expect(FileOrderSettings.load(from: folder) == nil)
+        #expect(CaobaConfig.readSection("renameHistory", as: [String].self, from: folder) == ["x"])
+        try FileOrderSettings(names: ["a.jpg"]).save(in: folder)
+        try FileOrderSettings.remove(from: folder)
+        #expect(FileOrderSettings.load(from: folder) == nil)
+    }
+
     @Test("Lee un .caoba de la app antigua")
     func readsLegacy() throws {
         let folder = try TestImages.makeTempFolder()

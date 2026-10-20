@@ -1216,9 +1216,13 @@ final class SlideshowDocument {
         fadeOut = preset.audio?.fadeout ?? true
         normalize = preset.audio?.normalize ?? false
         loopPlaylist = preset.audio?.loopPlaylist ?? true
-        if let order = preset.fileOrder { app.applyOrder(names: order) }
-        // Orden manual guardado (también el «manual» de los proyectos de la app antigua).
-        app.isManualOrder = preset.sortMode == "manual"
+        // Manda el orden manual común de la carpeta (ya aplicado al abrirla). Solo sin él se usa
+        // el orden guardado del Slideshow; y si era manual (proyectos de antes, también de la app
+        // antigua), pasa a ser el orden común.
+        if !app.isManualOrder, let order = preset.fileOrder {
+            app.applyOrder(names: order)
+            if preset.sortMode == "manual" { app.adoptManualOrder(names: order) }
+        }
         if let excluded = preset.excludedFiles { app.excludedNames = Set(excluded).intersection(app.files.map(\.name)) }
         if let kb = preset.kenBurns {
             kbSettings = KenBurnsSettings(intensity: kb.intensity.flatMap(KenBurnsIntensity.init(rawValue:)) ?? .normal,

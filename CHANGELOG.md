@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.7.2 — 2026-10-20
+
+- Las fotos de la lista se arrastran desde cualquier sitio de la fila (antes, solo junto a la casilla). Para ver una foto en grande, la lupa que aparece al pasar el ratón por la fila.
+- El orden manual se guarda en la carpeta y es el mismo en Slideshow, Collage y Contact Sheet: si reordenas en uno, los otros lo ven igual, también al volver a abrir la carpeta.
+
 ## 3.7.1 — 2026-10-20
 
 - En las listas de fotos de Slideshow, Collage y Contact Sheet se ve que se pueden reordenar: un asa ≡ en cada fila, la mano al pasar por encima y «Arrastra para cambiar el orden».

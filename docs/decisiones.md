@@ -1863,3 +1863,37 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - El cursor de mano abierta no sale en las capturas; se ha revisado en el código, no con el ratón.
 - Collage y Contact Sheet no guardan el orden en su preset; durante la sesión se mantiene, pero al reabrir la carpeta en esos módulos vuelve al orden por nombre si el Slideshow no tenía orden manual guardado.
+
+## 2026-10-20 — Arrastrar desde cualquier sitio de la fila y orden manual en Collage y Contact Sheet
+
+### 1. La petición tal como se ha entendido
+Dos cosas en las listas de fotos reordenables (Slideshow, Collage y Contact Sheet):
+- **Arrastrar desde cualquier sitio de la fila.** Ahora solo funciona en el hueco junto a la casilla, porque un clic de la fila (el que usa la ficha de Metadatos para elegir foto) está puesto siempre, y el de la miniatura (abre la foto en grande) también se come el arrastre.
+  - El clic de selección solo se pone donde hace falta (Metadatos).
+  - La foto en grande se abre con un **botón de lupa** que aparece al pasar el ratón por la fila. La miniatura deja de abrirla. Esto vale en todas las listas, también en las que no se reordenan, para que funcione igual en toda la app.
+- **El orden manual se guarda también para Collage y Contact Sheet**, con un único orden por carpeta común a los tres módulos: si reordenas en Collage, el Slideshow lo ve igual. Se recupera al volver a abrir la carpeta desde cualquiera de ellos. Los proyectos que solo tenían el orden manual guardado en el Slideshow lo siguen recuperando. «Reiniciar» lo quita, como el resto de la configuración de la carpeta.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **Un clic en la miniatura abre la foto en grande y bloquea el arrastre: ¿doble clic, botón de lupa o dejarlo así?** → Botón de lupa al pasar el ratón por la fila; el resto de la fila se arrastra.
+- **¿El orden manual se guarda uno por carpeta común a los tres módulos o uno por módulo?** → Uno por carpeta, común a Slideshow, Collage y Contact Sheet (como ya se comparte mientras la app está abierta).
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.7.2).
+- Causa del arrastre: `FileListView` ponía `.onTapGesture` (elegir foto para la ficha de Metadatos) en todas las filas, aunque la lista no lo usara, y la miniatura tenía otro `onTapGesture` (foto en grande); los dos se comían el arrastre de `List.onMove`. Ahora el de la fila solo se pone con `selection` (`SelectOnTap`), la miniatura no tiene clic y la foto en grande se abre con un botón de lupa que solo se ve (y responde) al pasar el ratón por la fila.
+- Motor: `FileOrderSettings`, sección `fileOrder` del `.caoba` (no protegida, así que «Reiniciar» la borra). Test: guardar, leer, quitar y que «Reiniciar» la borra sin tocar `renameHistory`. Pasan los 130 tests.
+- `AppState` lee `fileOrder` al abrir la carpeta (enciende Manual y aplica el orden al terminar la lectura), lo guarda al arrastrar o elegir Manual, lo quita con Nombre o Fecha y apaga Manual con «Reiniciar».
+- Slideshow: antes aplicaba siempre su `fileOrder`, lo que pisaría un orden hecho en Collage. Ahora manda el orden común; el del Slideshow solo se usa sin él, y si era manual pasa a ser el común (`adoptManualOrder(names:)`, que no depende de que la carpeta ya esté leída: si no, se guardaría una lista vacía).
+- Comprobado con un gancho temporal en `ContentView` (ya quitado), en arranques separados sobre la misma carpeta: mover en Collage → sección `fileOrder` con ese orden → Contact Sheet y Slideshow lo recuperan con Manual. Proyecto de antes con el orden manual solo en el Slideshow → al abrirlo se crea la sección común con ese orden y Collage lo ve igual. Captura de Collage con Manual.
+- Versión 3.7.2.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/FileListView.swift` (gestos de la fila y de la miniatura), `CaobaApp/Sources/Model/AppState.swift`, `SlideshowDocument.swift` (carga del orden) y `CaobaCore/Sources/CaobaCore/Config/` (`CaobaConfig`, `ComposeSettings`).
+
+### 5. Alternativas descartadas
+- Doble clic para ver la foto en grande, o dejar el clic en la miniatura: descartado por el usuario.
+- Un orden por módulo: descartado por el usuario; mientras la app está abierta el orden ya es uno solo para todos.
+
+### 6. Pendiente de comprobar
+- El arrastre con el ratón de verdad: no se puede simular desde aquí sin permiso de Accesibilidad. Se ha quitado lo que lo bloqueaba (comprobado en el código); falta que el usuario lo pruebe.
+- La lupa aparece al pasar el ratón: no sale en las capturas.

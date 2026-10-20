@@ -97,6 +97,16 @@
         }
       }
     },
+    "Ver la foto en grande" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View the photo large"
+          }
+        }
+      }
+    },
     "· Arrastra para cambiar el orden" : {
       "localizations" : {
         "en" : {
