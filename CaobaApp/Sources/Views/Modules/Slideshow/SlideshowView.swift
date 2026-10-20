@@ -5,17 +5,16 @@ import CaobaCore
 
 /// Pestañas de la parte superior de la pantalla.
 enum SlideshowTab: String, Hashable {
-    case photos, video, extras, music, inspector
+    case photos, video, extras, music
 }
 
-/// Pantalla del Slideshow: pestañas arriba (origen, vídeo, portada y marca,
-/// música y la contextual de lo seleccionado), timeline a toda la anchura
-/// abajo y barra de acción al pie.
+/// Pantalla del Slideshow: pestañas arriba (origen, vídeo, portada y marca y
+/// música), timeline a toda la anchura abajo y barra de acción al pie. Al pulsar
+/// un elemento del timeline, su editor tapa la parte de arriba hasta cerrarlo.
 struct SlideshowView: View {
     @Environment(AppState.self) private var appState
     @State private var document: SlideshowDocument?
     @State private var tab: SlideshowTab = .photos
-    @State private var previousTab: SlideshowTab = .photos
     @State private var showComposePicker = false
     @State private var showAddPicker = false
     @State private var expandedFraming: URL?
@@ -40,23 +39,16 @@ struct SlideshowView: View {
     private func content(_ doc: SlideshowDocument) -> some View {
         @Bindable var doc = doc
         VStack(spacing: 8) {
-            tabBar(doc)
-            Group {
-                switch tab {
-                case .photos: SourceTab(doc: doc, showComposePicker: $showComposePicker, showAddPicker: $showAddPicker)
-                case .video: ScrollView { VideoTab(doc: doc).padding(.horizontal, 4) }
-                case .extras:
-                    // Controles a la izquierda y, a la derecha, cómo quedan los textos sobre el vídeo.
-                    HStack(alignment: .top, spacing: 14) {
-                        ScrollView { ExtrasTab(doc: doc).padding(.horizontal, 4) }
-                        // Solo el pie: cada tarjeta de texto se ve en su propio inspector.
-                        TextPreviewPanel(doc: doc, content: .caption).frame(width: 380)
-                    }
-                case .music: ScrollView { MusicTab(doc: doc).padding(.horizontal, 4) }
-                case .inspector: SelectionTab(doc: doc, expandedFraming: $expandedFraming).padding(.horizontal, 4)
-                }
+            if doc.selection != .none {
+                // Editando algo del timeline: su editor tapa título y pestañas (que siguen
+                // donde estaban) hasta cerrarlo; el borde rojo deja claro que se está editando.
+                SelectionEditor(doc: doc, expandedFraming: $expandedFraming)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .caobaPanel(padding: 12, border: .accentColor, borderWidth: 2)
+            } else {
+                tabBar(doc)
+                tabContent(doc)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             SlideshowTimelineView(doc: doc)
                 .frame(height: timelineHeight(doc))
             SlideshowActionBar(doc: doc)
@@ -106,8 +98,8 @@ struct SlideshowView: View {
             }
             // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
             if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
-            // `--state slideshow.select=collage|photo|text`: selecciona el primer collage, foto o tarjeta de texto
-            // del timeline en cuanto estén, para capturar sus inspectores.
+            // `--state slideshow.select=collage|photo|text|track`: selecciona el primer collage, foto, tarjeta
+            // de texto o pista del timeline en cuanto estén, para capturar sus editores.
             if let kind = appState.launchState["slideshow.select"] {
                 Task {
                     var attempts = 0
@@ -123,15 +115,6 @@ struct SlideshowView: View {
         .onChange(of: doc.snapshot) { doc.scheduleSave() }
         .onChange(of: doc.files) { doc.pruneSequence() }
         .onChange(of: appState.jobRunner.isRunning) { _, running in if !running { doc.jobFinished() } }
-        .onChange(of: doc.selection) { _, selection in
-            // Seleccionar algo abre su pestaña; quitar la selección vuelve a la anterior.
-            if selection == .none {
-                if tab == .inspector { tab = previousTab }
-            } else {
-                if tab != .inspector { previousTab = tab }
-                tab = .inspector
-            }
-        }
         .onDeleteCommand { doc.deleteSelection() }
         .onMoveCommand { direction in
             switch direction {
@@ -174,6 +157,25 @@ struct SlideshowView: View {
         await doc.adjustToRhythm()
     }
 
+    /// Contenido de la pestaña elegida.
+    private func tabContent(_ doc: SlideshowDocument) -> some View {
+        Group {
+            switch tab {
+            case .photos: SourceTab(doc: doc, showComposePicker: $showComposePicker, showAddPicker: $showAddPicker)
+            case .video: ScrollView { VideoTab(doc: doc).padding(.horizontal, 4) }
+            case .extras:
+                // Controles a la izquierda y, a la derecha, cómo quedan los textos sobre el vídeo.
+                HStack(alignment: .top, spacing: 14) {
+                    ScrollView { ExtrasTab(doc: doc).padding(.horizontal, 4) }
+                    // Solo el pie: cada tarjeta de texto se ve en su propio editor.
+                    TextPreviewPanel(doc: doc, content: .caption).frame(width: 380)
+                }
+            case .music: ScrollView { MusicTab(doc: doc).padding(.horizontal, 4) }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
     private func tabBar(_ doc: SlideshowDocument) -> some View {
         // Título en su propia fila y las pestañas debajo, siempre.
         VStack(alignment: .leading, spacing: 6) {
@@ -192,31 +194,15 @@ struct SlideshowView: View {
             Text("Vídeo").tag(SlideshowTab.video)
             Text("Portada y texto").tag(SlideshowTab.extras)
             Text("Música").tag(SlideshowTab.music)
-            if doc.selection != .none {
-                Text(selectionTitle(doc)).tag(SlideshowTab.inspector)
-            }
         }
         .pickerStyle(.segmented)
         .labelsHidden()
         .fixedSize()
     }
 
-    /// Título corto de la pestaña contextual: el nombre completo ya se ve dentro.
-    /// Un título largo obligaría a todos los segmentos a ser igual de anchos.
-    private func selectionTitle(_ doc: SlideshowDocument) -> String {
-        switch doc.selection {
-        case .none: return ""
-        case .cover: return String(localized: "Portada")
-        case .credits: return String(localized: "Créditos")
-        case .text: return String(localized: "Texto")
-        case .photo: return String(localized: "Foto")
-        case .track: return String(localized: "Pista")
-        case .collage(let id): return String(localized: "Collage \((doc.rows.firstIndex { $0.id == id } ?? 0) + 1)")
-        }
-    }
-
-    /// Primer collage, foto o tarjeta de texto del timeline como selección (para `slideshow.select`).
+    /// Primer collage, foto, tarjeta de texto o pista del timeline como selección (para `slideshow.select`).
     private func firstSelection(_ kind: String, in doc: SlideshowDocument) -> TimelineSelection? {
+        if kind == "track" { return doc.tracks.first.map { .track($0.id) } }
         for item in doc.items {
             switch item.kind {
             case .collage(let row) where kind == "collage": return .collage(row.id)

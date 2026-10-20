@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.6.0 — 2026-10-20
+
+- **Editar un elemento del Slideshow ya no abre una pestaña más**: al pulsar una foto, un collage, un texto o una pista en el timeline, su editor ocupa toda la parte de arriba, con un borde rojo y «Editando · …» para que se note. «Cerrar» (o Esc) termina, quita la selección y vuelve a lo que estabas viendo. Con el editor abierto, pulsar otro elemento pasa a editar ese.
+
 ## 3.5.3 — 2026-10-20
 
 - En los ajustes de una foto del Slideshow, Efecto, Tiempo, Transición y Pie van juntos a la izquierda y, con «Personalizado», el Encuadre en una columna en el centro.

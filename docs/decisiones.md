@@ -1667,3 +1667,42 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-20 — Editar elementos del timeline en un modal
+
+*(El título se queda como se abrió el bloque; durante las preguntas el usuario redefinió la petición: no es un modal.)*
+
+### 1. La petición tal como se ha entendido
+Al editar un elemento del timeline (foto, collage, texto, portada, créditos o pista) deja de aparecer una pestaña más. En su lugar:
+- **Se abre con un clic** en el elemento, como ahora.
+- **El editor tapa la parte de arriba del módulo:** el título SLIDESHOW, las pestañas y su contenido. Se ven igual que antes la barra de carpeta, el timeline y la barra inferior.
+- **Para que se note que se está editando,** lleva un borde rojo y una cabecera «Editando · <tipo> · <nombre>». A la derecha de la cabecera van las acciones de ese elemento (Ampliar, Aplicar estilo a todas, Encuadre/Resultado, Centrar, Cambiar, Quitar…) y el botón **Cerrar**, que también responde a Esc. Las cabeceras propias de cada editor desaparecen para no repetir el nombre.
+- **Debajo, el editor de ese elemento** con todo el espacio. Es el mismo contenido de hoy (Foto, Collage, Texto, Portada/Créditos, Pista).
+- **Si se pulsa otro elemento del timeline** con el editor abierto, pasa a editar ese otro.
+- **Al cerrar se deselecciona el elemento** y vuelve a verse lo que había: el título, las pestañas y la pestaña que estaba abierta. Pulsar en un hueco vacío del timeline, que ya deselecciona, también lo cierra.
+- **La pestaña contextual** («Foto», «Texto», «Collage 1»…) desaparece de la barra de pestañas.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Cómo se abre el editor modal: doble clic (un clic solo selecciona) o un clic?** → Un clic. Para mover o borrar se usa arrastrar directamente o el clic derecho.
+- **¿Qué tapa el modal: todo el módulo o todo menos el timeline?** → El usuario redefine la petición: **no es un modal**. El editor usa el mismo espacio de arriba, tapando lo que hay (no como una pestaña más); hay que cerrarlo para volver a ver lo anterior, y al cerrarlo se deselecciona el elemento en el timeline. El timeline sigue visible debajo.
+- **¿Desde dónde tapa el editor: título y pestañas, o solo las pestañas?** → Título SLIDESHOW, pestañas y su contenido. La barra de carpeta, el timeline y la barra inferior siguen visibles.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.6.0).
+- Con selección, `SlideshowView` cambia título, pestañas y contenido por `SelectionEditor` dentro de `.caobaPanel(padding: 12, border: .accentColor, borderWidth: 2)`; sin selección, lo de siempre. Fuera `SlideshowTab.inspector`, la pestaña contextual, `selectionTitle` y la lógica de «pestaña anterior»: como ya no se cambia de pestaña al seleccionar, al cerrar se ve la que estaba.
+- `EditorHeader` común (nombre en una sola línea «Editando · tipo · nombre», acciones del editor y «Cerrar» con `.keyboardShortcut(.cancelAction)`, es decir, Esc). Sustituye a las cabeceras propias de Foto, Collage, Texto, Portada/Créditos y Pista.
+- `slideshow.select` acepta `track` (primera pista).
+- Comprobado con capturas de Foto (oscuro y claro), Collage, Texto, Pista y sin selección; y con un gancho temporal (ya quitado): con «Portada y texto» abierta y una foto seleccionada, al hacer lo mismo que «Cerrar» la selección queda vacía y vuelve «Portada y texto».
+- Versión 3.6.0: cambia cómo se edita.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/SlideshowView.swift` (barra de pestañas, pestaña contextual y cambio de pestaña al seleccionar) y `SlideshowInspector.swift` (`SelectionTab` y cabeceras de cada editor).
+
+### 5. Alternativas descartadas
+- Modal sobre la ventana con fondo oscurecido: el usuario redefinió la petición; tapaba el timeline y obligaba a cerrar para cambiar de elemento.
+- Doble clic para editar (un clic solo selecciona): descartado por el usuario; se edita con un clic.
+- Dejar el título SLIDESHOW visible y tapar solo las pestañas: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- Esc cierra el editor desde el botón «Cerrar» (`cancelAction`); si el foco está en un campo de texto, ese campo puede quedarse el Esc. No se probó con el teclado de verdad, solo la acción de cerrar.

@@ -2,8 +2,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 import CaobaCore
 
-/// Pestaña contextual con lo seleccionado en el timeline.
-struct SelectionTab: View {
+/// Editor de lo seleccionado en el timeline: tapa la parte de arriba del Slideshow
+/// hasta cerrarlo (ver `EditorHeader`).
+struct SelectionEditor: View {
     @Bindable var doc: SlideshowDocument
     @Binding var expandedFraming: URL?
 
@@ -11,7 +12,7 @@ struct SelectionTab: View {
         VStack(alignment: .leading, spacing: 12) {
             switch doc.selection {
             case .none:
-                Text("Selecciona una tarjeta o una pista en el timeline.").foregroundStyle(.secondary)
+                EmptyView()
             case .cover: ImageSlotInspector(doc: doc, isCover: true)
             case .credits: ImageSlotInspector(doc: doc, isCover: false)
             case .text(let id): TextCardInspector(doc: doc, cardId: id)
@@ -25,6 +26,42 @@ struct SelectionTab: View {
                 if let row = doc.rows.first(where: { $0.id == id }) { CollageInspector(doc: doc, row: row) }
             }
         }
+    }
+}
+
+/// Cabecera de los editores: «Editando · tipo · nombre», las acciones de ese elemento y
+/// «Cerrar» (también con Esc), que deselecciona el elemento y vuelve a dejar ver las pestañas.
+struct EditorHeader<Actions: View>: View {
+    @Bindable var doc: SlideshowDocument
+    let kind: LocalizedStringKey
+    let name: String
+    @ViewBuilder var actions: Actions
+
+    var body: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 6) {
+                Text("Editando").foregroundStyle(Color.accentColor)
+                Text("·").foregroundStyle(.secondary)
+                Text(kind)
+                if !name.isEmpty {
+                    Text("·").foregroundStyle(.secondary)
+                    Text(name).lineLimit(1).truncationMode(.middle)
+                }
+            }
+            .font(.headline)
+            Spacer()
+            actions
+            Button { doc.selection = .none } label: { Label("Cerrar", systemImage: "xmark") }
+                .keyboardShortcut(.cancelAction)
+                .help("Terminar de editar (Esc)")
+        }
+    }
+}
+
+extension EditorHeader where Actions == EmptyView {
+    /// Sin acciones propias (portada, créditos, pista).
+    init(doc: SlideshowDocument, kind: LocalizedStringKey, name: String) {
+        self.init(doc: doc, kind: kind, name: name) { EmptyView() }
     }
 }
 
@@ -624,12 +661,9 @@ struct TextCardInspector: View {
         }
     }
 
-    /// «Texto · primera línea» y la acción de copiar el estilo a las demás tarjetas.
+    /// «Editando · Texto · primera línea» y la acción de copiar el estilo a las demás tarjetas.
     private var header: some View {
-        HStack {
-            Text(card.wrappedValue.text.isEmpty ? String(localized: "Texto") : String(localized: "Texto · \(card.wrappedValue.text)"))
-                .font(.headline).lineLimit(1).truncationMode(.tail)
-            Spacer()
+        EditorHeader(doc: doc, kind: "Texto", name: card.wrappedValue.text) {
             Button { confirmApplyAll = true } label: { Label("Aplicar estilo a todas", systemImage: "square.on.square") }
                 .disabled(otherCards == 0)
                 .help("Copia la letra, la colocación y las animaciones de esta tarjeta a todas las demás")
@@ -703,7 +737,7 @@ struct ImageSlotInspector: View {
     let isCover: Bool
 
     var body: some View {
-        Text(isCover ? "Portada" : "Créditos").font(.headline)
+        EditorHeader(doc: doc, kind: isCover ? "Portada" : "Créditos", name: (isCover ? doc.coverURL : doc.creditsURL)?.lastPathComponent ?? "")
         OptionGroup(title: "Imagen") {
             let url = isCover ? doc.coverURL : doc.creditsURL
             if let url {
@@ -787,9 +821,7 @@ struct PhotoInspector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(name).font(.headline).lineLimit(1).truncationMode(.middle)
-                Spacer()
+            EditorHeader(doc: doc, kind: "Foto", name: name) {
                 Button { expandedFraming = url } label: { Label("Ampliar", systemImage: "arrow.up.left.and.arrow.down.right") }
                     .help("Editar el encuadre a tamaño grande")
             }
@@ -824,7 +856,7 @@ struct TrackInspector: View {
     private var index: Int? { doc.tracks.firstIndex { $0.id == track.id } }
 
     var body: some View {
-        Text(track.url.lastPathComponent).font(.headline).lineLimit(1).truncationMode(.middle)
+        EditorHeader(doc: doc, kind: "Pista", name: track.url.lastPathComponent)
         OptionGroup(title: "Pista") {
             if let d = doc.trackDurations[track.id] {
                 Text("Duración del fichero: \(TimecodeField.format(d)) · suena \(TimecodeField.format(track.effectiveDuration(assetDuration: d)))")
@@ -1011,11 +1043,9 @@ struct CollageInspector: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    /// Nombre de la plantilla y acciones: modo de vista, centrar, cambiar plantilla y quitar.
+    /// «Editando · Collage · plantilla» y acciones: modo de vista, centrar, cambiar plantilla y quitar.
     private var header: some View {
-        HStack(spacing: 10) {
-            Text(row.template.name).font(.headline).lineLimit(1)
-            Spacer()
+        EditorHeader(doc: doc, kind: "Collage", name: row.template.name) {
             CollageViewModePicker(showResult: $showResult)
             if !showResult {
                 Button { centerCells() } label: { Label("Centrar", systemImage: "scope") }
