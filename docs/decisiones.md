@@ -1897,3 +1897,4 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - El arrastre con el ratón de verdad: no se puede simular desde aquí sin permiso de Accesibilidad. Se ha quitado lo que lo bloqueaba (comprobado en el código); falta que el usuario lo pruebe.
 - La lupa aparece al pasar el ratón: no sale en las capturas.
+- Confirmado por el usuario («correcto»): el arrastre funciona desde cualquier sitio de la fila.
