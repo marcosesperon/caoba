@@ -13,6 +13,11 @@ struct FileListView: View {
     /// Con `false` la lista va sin bloque propio, para quien ya la mete en uno (pestaña Fotos del Slideshow).
     var framed = true
     @State private var previewURL: URL?
+    /// Orden automático pendiente de confirmar (se pierde el orden manual).
+    @State private var pendingSort: SortMode?
+
+    /// Opciones del selector «Orden»: las del motor y la manual (solo de la app).
+    private enum OrderChoice: Hashable { case name, date, manual }
 
     var body: some View {
         @Bindable var state = appState
@@ -32,7 +37,8 @@ struct FileListView: View {
             List {
                 ForEach(Array(appState.files.enumerated()), id: \.element.id) { index, file in
                     FileRow(index: index, file: file, isChecked: !appState.excludedNames.contains(file.name),
-                            isSelected: selection?.wrappedValue == file.url, isMarked: markedNames.contains(file.name)) {
+                            isSelected: selection?.wrappedValue == file.url, isMarked: markedNames.contains(file.name),
+                            isReorderable: allowsReorder) {
                         appState.toggle(file)
                     } onPreview: {
                         previewURL = file.url
@@ -57,6 +63,12 @@ struct FileListView: View {
         }
         .modifier(OptionalPanel(enabled: framed))
         .sheet(item: $previewURL) { url in PhotoPreviewSheet(url: url) }
+        .confirmationDialog(pendingSort == .date ? "¿Ordenar por fecha?" : "¿Ordenar por nombre?",
+                            isPresented: Binding(get: { pendingSort != nil }, set: { if !$0 { pendingSort = nil } })) {
+            Button("Ordenar") { if let mode = pendingSort { appState.sortAutomatically(by: mode) }; pendingSort = nil }
+        } message: {
+            Text("Se perderá el orden que hiciste a mano arrastrando las fotos.")
+        }
     }
 
     /// Casilla general (marcada = todas; desmarcada = ninguna) y contador.
@@ -71,16 +83,35 @@ struct FileListView: View {
             .disabled(appState.files.isEmpty)
             Text("\(appState.checkedCount) de \(appState.files.count)")
                 .font(.callout).foregroundStyle(.secondary)
+            if allowsReorder && !appState.files.isEmpty {
+                Text("· Arrastra para cambiar el orden").font(.callout).foregroundStyle(.secondary)
+            }
         }
+    }
+
+    /// «Orden»: Nombre, Fecha o Manual. Salir de Manual pide confirmación (se pierde el orden).
+    private var orderBinding: Binding<OrderChoice> {
+        Binding(get: {
+            if appState.isManualOrder { return .manual }
+            return appState.sortMode == .date ? .date : .name
+        }, set: { choice in
+            switch choice {
+            case .manual: appState.keepCurrentOrderAsManual()   // deja el orden como está
+            case .name, .date:
+                let mode: SortMode = choice == .date ? .date : .name
+                if appState.isManualOrder { pendingSort = mode } else { appState.sortAutomatically(by: mode) }
+            }
+        })
     }
 
     /// Orden y filtro de orientación.
     private var sortControls: some View {
         @Bindable var state = appState
         return HStack(spacing: 10) {
-            Picker("Orden", selection: $state.sortMode) {
-                Text("Nombre").tag(SortMode.name)
-                Text("Fecha").tag(SortMode.date)
+            Picker("Orden", selection: orderBinding) {
+                Text("Nombre").tag(OrderChoice.name)
+                Text("Fecha").tag(OrderChoice.date)
+                Text("Manual").tag(OrderChoice.manual)
             }
             .fixedSize()
             Picker("Orientación", selection: $state.orientationFilter) {
@@ -107,6 +138,8 @@ private struct FileRow: View {
     let isChecked: Bool
     var isSelected = false
     var isMarked = false
+    /// Lista reordenable: asa al final y cursor de mano abierta al pasar por encima.
+    var isReorderable = false
     let onToggle: () -> Void
     let onPreview: () -> Void
 
@@ -126,11 +159,19 @@ private struct FileRow: View {
             if isMarked {
                 Circle().fill(Color.accentColor).frame(width: 8, height: 8).help("Con cambios pendientes")
             }
+            if isReorderable {
+                Image(systemName: "line.3.horizontal").font(.body.weight(.medium)).foregroundStyle(.secondary)
+                    .help("Arrastra para cambiar el orden")
+            }
         }
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(isSelected ? Color.accentColor.opacity(0.2) : .clear, in: RoundedRectangle(cornerRadius: 6))
         .opacity(isChecked ? 1 : 0.4)
+        .onHover { inside in
+            guard isReorderable else { return }
+            if inside { NSCursor.openHand.push() } else { NSCursor.pop() }
+        }
     }
 }
 

@@ -27,6 +27,12 @@ final class AppState {
     /// Ficheros desmarcados (por nombre) que no entran en el resultado.
     var excludedNames: Set<String> = []
     var sortMode: SortMode = .name { didSet { Task { await rescan() } } }
+    /// Orden hecho a mano arrastrando en la lista: mientras dure, la carpeta no se reordena
+    /// sola por nombre ni por fecha (el selector «Orden» enseña «Manual»).
+    var isManualOrder = false
+    /// El orden manual (por nombre), para volver a aplicarlo cada vez que se lee la carpeta:
+    /// el proyecto puede aplicarlo antes de que termine la lectura, y esta lo pisaría.
+    private var manualNames: [String] = []
     var orientationFilter: OrientationFilter = .all { didSet { Task { await rescan() } } }
     private(set) var isScanning = false
     private(set) var recentFolders: [URL] = []
@@ -93,6 +99,9 @@ final class AppState {
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else { return }
         sourceFolder = url
         excludedNames = []
+        // Otra carpeta empieza ordenada; si tenía orden manual guardado, su proyecto lo recupera.
+        isManualOrder = false
+        manualNames = []
         recentFolders = RecentFolders.add(url)
         // Destino por defecto: subcarpeta "caoba" dentro del origen.
         destinationFolder = url.appendingPathComponent("caoba", isDirectory: true)
@@ -109,6 +118,8 @@ final class AppState {
         } catch {
             files = []
         }
+        // Con orden manual, al volver a leer la carpeta (al abrirla, al cambiar el filtro…) se mantiene.
+        if isManualOrder, !manualNames.isEmpty { applyOrder(names: manualNames) }
         // Si la carpeta ha cambiado por fuera, las exclusiones de ficheros que ya no existen sobran.
         let names = Set(files.map(\.name))
         excludedNames = excludedNames.intersection(names)
@@ -117,6 +128,21 @@ final class AppState {
     /// Reordenación manual desde la lista (arrastrar).
     func moveFiles(from source: IndexSet, to destination: Int) {
         files.move(fromOffsets: source, toOffset: destination)
+        isManualOrder = true
+        manualNames = files.map(\.name)
+    }
+
+    /// «Manual» elegido en el selector: el orden actual pasa a ser el manual.
+    func keepCurrentOrderAsManual() {
+        isManualOrder = true
+        manualNames = files.map(\.name)
+    }
+
+    /// Vuelve a ordenar por nombre o fecha, dejando el orden manual.
+    func sortAutomatically(by mode: SortMode) {
+        isManualOrder = false
+        manualNames = []
+        sortMode = mode   // aunque sea el mismo, `didSet` vuelve a leer la carpeta ya ordenada
     }
 
     /// Reordena las fotos marcadas según `order` dejando las no marcadas en su sitio.
@@ -130,6 +156,7 @@ final class AppState {
 
     /// Aplica un orden guardado (por nombre); los ficheros no listados van al final.
     func applyOrder(names: [String]) {
+        manualNames = names
         let index = Dictionary(uniqueKeysWithValues: names.enumerated().map { ($1, $0) })
         files.sort { (index[$0.name] ?? Int.max, $0.name) < (index[$1.name] ?? Int.max, $1.name) }
     }

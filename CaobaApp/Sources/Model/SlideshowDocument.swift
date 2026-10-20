@@ -1061,7 +1061,7 @@ final class SlideshowDocument {
         var tracks: [AudioTrack]; var fadeOut: Bool; var normalize: Bool; var loopPlaylist: Bool
         var kb: KenBurnsSettings; var choices: [String: EffectChoice]; var points: [String: KenBurnsPoints]
         var sequence: [SequenceItem]; var reveal: Double; var hold: Double; var bg: CanvasBackground; var gap: Double; var radius: Double; var shadow: Double
-        var sortMode: SortMode; var orientation: OrientationFilter; var order: [String]; var excluded: Set<String>
+        var sortMode: SortMode; var manualOrder: Bool; var orientation: OrientationFilter; var order: [String]; var excluded: Set<String>
     }
 
     var snapshot: Snapshot {
@@ -1074,7 +1074,7 @@ final class SlideshowDocument {
                  durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
                  kb: kbSettings, choices: kbChoices, points: kbPoints,
                  sequence: sequence, reveal: reveal, hold: hold, bg: csBackground, gap: csGap, radius: csRadius, shadow: csShadow,
-                 sortMode: app.sortMode, orientation: app.orientationFilter, order: app.files.map(\.name), excluded: app.excludedNames)
+                 sortMode: app.sortMode, manualOrder: app.isManualOrder, orientation: app.orientationFilter, order: app.files.map(\.name), excluded: app.excludedNames)
     }
 
     func scheduleSave() {
@@ -1091,7 +1091,8 @@ final class SlideshowDocument {
     private func makePreset() -> SlideshowPreset {
         var p = SlideshowPreset()
         p.mode = mode.rawValue
-        p.sortMode = app.sortMode.rawValue
+        // «manual» = orden hecho a mano arrastrando (el orden en sí va en `fileOrder`).
+        p.sortMode = app.isManualOrder ? "manual" : app.sortMode.rawValue
         p.orientationFilter = app.orientationFilter.rawValue
         p.fileOrder = app.files.map(\.name)
         p.excludedFiles = Array(app.excludedNames).sorted()
@@ -1216,6 +1217,8 @@ final class SlideshowDocument {
         normalize = preset.audio?.normalize ?? false
         loopPlaylist = preset.audio?.loopPlaylist ?? true
         if let order = preset.fileOrder { app.applyOrder(names: order) }
+        // Orden manual guardado (también el «manual» de los proyectos de la app antigua).
+        app.isManualOrder = preset.sortMode == "manual"
         if let excluded = preset.excludedFiles { app.excludedNames = Set(excluded).intersection(app.files.map(\.name)) }
         if let kb = preset.kenBurns {
             kbSettings = KenBurnsSettings(intensity: kb.intensity.flatMap(KenBurnsIntensity.init(rawValue:)) ?? .normal,

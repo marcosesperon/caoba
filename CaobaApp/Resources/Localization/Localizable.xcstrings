@@ -17,12 +17,42 @@
         }
       }
     },
+    "Arrastra para cambiar el orden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order"
+          }
+        }
+      }
+    },
     "Escuchar el tramo entre Desde y Hasta" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Listen to the section between From and To"
+          }
+        }
+      }
+    },
+    "Manual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manual"
+          }
+        }
+      }
+    },
+    "Ordenar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort"
           }
         }
       }
@@ -47,12 +77,52 @@
         }
       }
     },
+    "Se perderá el orden que hiciste a mano arrastrando las fotos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The order you made by dragging the photos will be lost."
+          }
+        }
+      }
+    },
     "Suena la pista tal cual, sin fundidos, del segundo Desde al Hasta. Si cambias Desde mientras suena, salta allí." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plays the track as is, without fades, from From to To. If you change From while it plays, it jumps there."
+          }
+        }
+      }
+    },
+    "· Arrastra para cambiar el orden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· Drag to change the order"
+          }
+        }
+      }
+    },
+    "¿Ordenar por fecha?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by date?"
+          }
+        }
+      }
+    },
+    "¿Ordenar por nombre?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by name?"
           }
         }
       }

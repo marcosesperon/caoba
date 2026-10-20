@@ -1827,3 +1827,39 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - El guardado al perder el foco (Tab o clic fuera) se ha revisado en el código, pero no con el teclado de verdad.
+
+## 2026-10-20 — Que se vea que la lista de fotos se puede reordenar
+
+### 1. La petición tal como se ha entendido
+En las listas de fotos que se pueden reordenar arrastrando (Slideshow, Collage y Contact Sheet) no se nota que se puede hacer. Se añade:
+- **Un asa ≡ al final de cada fila**, **cursor de mano abierta** al pasar por encima de la fila y **«Arrastra para cambiar el orden»** junto al contador («24 de 24»). En las listas que no se pueden reordenar (Procesador, Marca de agua, Metadatos, Renombrador) no sale nada de esto.
+- **Opción «Manual» en el selector «Orden»** (junto a Nombre y Fecha). Se elige sola al arrastrar una foto. Con «Manual», la carpeta no se vuelve a ordenar por su cuenta.
+- **Pasar de «Manual» a Nombre o Fecha pide confirmación**, porque se pierde el orden hecho a mano.
+- El orden manual se guarda y se recupera con el proyecto, como ahora. Al abrir otra carpeta, si no tiene orden manual guardado, «Orden» vuelve a «Nombre».
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Cómo se indica que se pueden arrastrar las fotos: asa + cursor + aviso, solo el asa o solo el aviso?** → Asa ≡ al final de cada fila, cursor de mano abierta al pasar por encima y «Arrastra para cambiar el orden» junto al contador.
+- **Tras reordenar a mano, «Orden» sigue diciendo «Nombre» y tocarlo pierde el orden: ¿se arregla aquí?** → Sí: opción «Manual» en «Orden», que se elige sola al arrastrar; volver a Nombre o Fecha pide confirmación si había orden manual.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.7.1).
+- «Manual» va como marca de la app (`AppState.isManualOrder`) y no en el `SortMode` del motor: ese tipo también lo usa «Ordenar por» del Renombrador, donde «Manual» no tiene sentido.
+- Indicadores solo con `allowsReorder`: asa `line.3.horizontal` (en gris secundario: en terciario casi no se veía), cursor `openHand` con `onHover` y «· Arrastra para cambiar el orden» junto al contador.
+- Selector «Orden» con Nombre, Fecha y Manual. Manual guarda el orden actual (`keepCurrentOrderAsManual`); de Manual a Nombre o Fecha, `confirmationDialog` y `sortAutomatically(by:)`.
+- Fallo encontrado al probar (y que ya pasaba antes de este cambio): al reabrir la carpeta, el Slideshow aplicaba su `fileOrder` antes de que terminase la lectura de la carpeta y esta lo pisaba, así que el orden manual se perdía. Arreglo: `AppState` recuerda el orden manual (`manualNames`) y lo vuelve a aplicar al final de cada lectura mientras esté en Manual (también al cambiar el filtro de orientación).
+- Preset del Slideshow: `sortMode: "manual"` cuando hay orden manual (el orden ya iba en `fileOrder`); al abrir, `"manual"` enciende la marca (también en proyectos de la app antigua).
+- Comprobado con un gancho temporal (ya quitado), en tres arranques: mover la foto 3 al principio → Manual y guardado `"manual"` con ese orden; reabrir → Manual y el mismo orden; cambiar el filtro de orientación y volver → se mantiene. Capturas de la lista del Slideshow con Manual (oscuro y claro) y del Procesador (sin indicadores).
+- Versión 3.7.1.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/FileListView.swift`, `CaobaApp/Sources/Model/AppState.swift` (lectura de la carpeta, `moveFiles`, `applyOrder`), `SlideshowDocument.swift` (guardado y carga del orden) y `CaobaCore/Sources/CaobaCore/Scanning/FolderScanner.swift` (`SortMode`).
+
+### 5. Alternativas descartadas
+- Solo el asa o solo el aviso: descartado por el usuario.
+- Dejar el selector «Orden» como estaba: descartado por el usuario (decía «Nombre» con un orden manual y tocarlo lo perdía).
+- Añadir `manual` al `SortMode` del motor: aparecería en «Ordenar por» del Renombrador.
+
+### 6. Pendiente de comprobar
+- El cursor de mano abierta no sale en las capturas; se ha revisado en el código, no con el ratón.
+- Collage y Contact Sheet no guardan el orden en su preset; durante la sesión se mantiene, pero al reabrir la carpeta en esos módulos vuelve al orden por nombre si el Slideshow no tenía orden manual guardado.

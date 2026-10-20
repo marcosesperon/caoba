@@ -2,6 +2,12 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.7.1 — 2026-10-20
+
+- En las listas de fotos de Slideshow, Collage y Contact Sheet se ve que se pueden reordenar: un asa ≡ en cada fila, la mano al pasar por encima y «Arrastra para cambiar el orden».
+- «Orden» tiene una opción **Manual**, que se elige sola al arrastrar; volver a Nombre o Fecha pide confirmación para no perder tu orden.
+- Arreglado: el orden hecho a mano en el Slideshow se perdía al volver a abrir la carpeta (las fotos volvían a salir por nombre).
+
 ## 3.7.0 — 2026-10-20
 
 - **Preescucha de las pistas**: en el editor de una pista hay un reproductor del tramo entre Desde y Hasta, para oír dónde empieza y dónde acaba antes de generar el vídeo. Si cambias Desde mientras suena, salta allí.
