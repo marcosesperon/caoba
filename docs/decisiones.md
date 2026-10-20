@@ -1596,3 +1596,43 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - En Foto, con ventanas anchas y bajas, los paneles se llevan casi todo el ancho y los ajustes quedan en 300 puntos. Es lo acordado; si se ve estrecho, se podría limitar el ancho de los paneles.
+
+## 2026-10-20 — Inspector de Foto: encuadre solo con «Personalizado», controles antes que la previsualización
+
+*(La petición anterior, «limita el ancho de los paneles en Foto», la interrumpió el usuario para pasar a esta, que la sustituye.)*
+
+### 1. La petición tal como se ha entendido
+Se reorganiza el inspector de Foto del Slideshow:
+- **Cabecera:** nombre del fichero y «Ampliar», igual que ahora.
+- **Izquierda, los controles,** en grupos repartidos en columnas si caben: Efecto, Encuadre, Tiempo, Transición y Pie.
+- **Encuadre solo con el efecto «Personalizado».** Con cualquier otro efecto (Ninguno, Aleatorio, acercar, alejar, barridos) no aparece nada del encuadre: ni paneles ni sus controles.
+- **Inicio y Fin pequeños, dentro del grupo Encuadre:** uno encima del otro, al ancho de su columna, cada uno con su zoom. Debajo, Ajuste, Enfocar caras, Inicio → Fin, Intercambiar, Restablecer y Retardo. Para encuadrar con detalle sigue estando «Ampliar».
+- **Derecha, la previsualización animada** con «Reproducir» y la duración. Toma el ancho que necesita para llenar el alto, como mucho más o menos el 45 % del inspector, para que los controles no se queden sin sitio.
+
+No cambia lo que hace ningún control. La hoja «Ampliar» se queda como está.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **Con un efecto que no es «Personalizado», ¿qué se ve del encuadre: nada o solo el foco?** → Nada del encuadre: solo Efecto, Tiempo, Transición, Pie y la previsualización. Para encuadrar a mano se elige «Personalizado» (o «Ampliar»).
+- **¿Distribución: controles a la izquierda y previsualización a la derecha, o controles arriba y previsualización debajo?** → Controles a la izquierda (en columnas si caben) y previsualización animada a la derecha.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/KenBurnsFramingView.swift` y `SlideshowInspector.swift` (`InspectorSplit`, `PhotoInspector`).
+- `CaobaCore/Sources/CaobaCore/Slideshow/KenBurns.swift` (`cropRect(for:…)`): Inicio y Fin solo los usa el efecto `custom`; los automáticos usan el foco de inicio, el retardo y el ajuste. En la app, tocar cualquier control del encuadre pasa la foto a «Personalizado».
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.5.2).
+- `InspectorSplit` con `previewOnTrailingSide` y `maxPreviewFraction` (Texto y Collage siguen igual).
+- En el inspector, `KenBurnsFramingView` pone la previsualización animada a la derecha (como mucho el 45 % del ancho) y el grupo Encuadre solo con «Personalizado». La hoja «Ampliar» no cambia.
+- Paneles en pequeño: la imagen del panel y su zoom se separan (`panelImage`, `zoomRow`) para usarlos a tamaño fijo (hoja) o flexible (inspector) sin repetir código.
+- Ajuste tras la primera captura: con la ventana pequeña la zona de controles es una sola columna ancha y Inicio y Fin volvían a salir enormes. Ahora van uno al lado del otro de 210 puntos si caben y, si no, uno encima del otro de hasta 260 (`ViewThatFits`).
+- Comprobado con capturas con efecto «Ninguno» y «Personalizado» a 1440×900, 1100×720 y 2000×900 (oscuro) y 1440×900 (claro).
+- Versión 3.5.2.
+
+### 5. Alternativas descartadas
+- Enseñar solo el foco (y «Enfocar caras») con los efectos automáticos: hoy tocarlo pasa la foto a «Personalizado»; descartado por el usuario.
+- Controles arriba y previsualización debajo: descartado por el usuario.
+- Paneles al ancho completo de la columna: con una sola columna ancha volvían a ocupar demasiado.
+
+### 6. Pendiente de comprobar
+- Con los efectos automáticos ya no hay forma de ver ni cambiar el foco que usan (el de Inicio) sin pasar a «Personalizado»; si hiciera falta, sería otra petición.

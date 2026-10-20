@@ -2,13 +2,14 @@ import SwiftUI
 import CaobaCore
 
 /// Encuadre Ken Burns de una foto: paneles de inicio y fin arrastrables, zoom,
-/// retardo, ajuste, "Enfocar caras" y previsualización animada. En el
-/// inspector va compacto (paneles apilados); ampliado, uno al lado del otro.
+/// retardo, ajuste, "Enfocar caras" y previsualización animada.
 ///
-/// Con `leading` y `trailing`, los controles van en una columna de inspector
-/// (`InspectorSplit`): lo que pase quien llama antes (efecto), el grupo «Encuadre»
-/// y lo que pase después (tiempo, transición, pie). Así el inspector de Foto tiene
-/// una sola columna de ajustes, con el encuadre arriba, junto a los paneles.
+/// Con `leading` y `trailing` (inspector de Foto) van primero los controles, en
+/// columnas (`InspectorSplit`): lo que pase quien llama antes (efecto), el grupo
+/// «Encuadre» con Inicio y Fin en pequeño, solo con el efecto «Personalizado», y lo
+/// que pase después (tiempo, transición, pie); a la derecha, la previsualización.
+/// Sin ellos (hoja «Ampliar»), los paneles grandes uno al lado del otro y los
+/// controles en su columna.
 struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     @Bindable var doc: SlideshowDocument
     let url: URL
@@ -44,19 +45,29 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     var body: some View {
         Group {
             if hasLeading {
-                // Inspector: los dos paneles toman lo justo para llenar el alto; los ajustes, el resto.
-                InspectorSplit(previewWidth: { height in 2 * (height - Self.labelsAndSlider) * doc.format.aspectRatio + Self.panelSpacing }) {
-                    panels
+                // Inspector: primero los controles y, a la derecha, la previsualización animada
+                // (lo justo para llenar el alto, como mucho el 45 % del ancho). El encuadre a mano
+                // solo tiene sentido con el efecto «Personalizado»: con los demás no se enseña.
+                InspectorSplit(previewOnTrailingSide: true, maxPreviewFraction: 0.45,
+                               previewWidth: { height in (height - Self.previewControlsHeight) * doc.format.aspectRatio }) {
+                    previewRow
                 } settings: {
                     leading
-                    OptionGroup(title: "Encuadre") { framingControls }
+                    if isCustom {
+                        OptionGroup(title: "Encuadre") {
+                            stackedPanels
+                            framingButtons
+                        }
+                    }
                     trailing
                 }
             } else {
                 HStack(alignment: .top, spacing: 14) {
                     panels
                     VStack(alignment: .leading, spacing: 8) {
-                        framingControls
+                        framingButtons
+                        Divider()
+                        previewRow
                         Spacer(minLength: 0)
                     }
                     .frame(width: compact ? 240 : 300)
@@ -70,6 +81,13 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     /// Alto de la etiqueta y del zoom de cada panel, y separación entre los dos paneles.
     private static var labelsAndSlider: CGFloat { 44 }
     private static var panelSpacing: CGFloat { 10 }
+    /// Alto de «Reproducir» y la duración bajo la previsualización.
+    private static var previewControlsHeight: CGFloat { 34 }
+
+    private var isCustom: Bool {
+        if case .effect(.custom) = choice { return true }
+        return false
+    }
 
     /// Paneles de inicio y fin, uno al lado del otro: su tamaño sale del espacio disponible.
     private var panels: some View {
@@ -87,9 +105,35 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         }
     }
 
-    /// Ajuste, caras, inicio/fin, retardo y previsualización animada.
+    /// Inicio y Fin en pequeño: uno al lado del otro si la columna es ancha y, si no, uno
+    /// encima del otro. Con tope de ancho, para que no se coman el inspector (para
+    /// encuadrar con detalle está «Ampliar»).
+    private var stackedPanels: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: Self.panelSpacing) {
+                startPanel.frame(width: 210)
+                endPanel.frame(width: 210)
+            }
+            VStack(alignment: .leading, spacing: 10) {
+                startPanel.frame(maxWidth: 260, alignment: .leading)
+                endPanel.frame(maxWidth: 260, alignment: .leading)
+            }
+        }
+    }
+
+    private var startPanel: some View {
+        flexiblePanel(title: "Inicio", focus: current.startFocus, zoom: current.startZoom,
+                      focusChanged: { f in update { $0.startFocus = f } }, zoomChanged: { z in update { $0.startZoom = z } })
+    }
+
+    private var endPanel: some View {
+        flexiblePanel(title: "Fin", focus: current.endFocus, zoom: current.endZoom,
+                      focusChanged: { f in update { $0.endFocus = f } }, zoomChanged: { z in update { $0.endZoom = z } })
+    }
+
+    /// Ajuste, caras, inicio/fin y retardo.
     @ViewBuilder
-    private var framingControls: some View {
+    private var framingButtons: some View {
         LabeledRow("Ajuste") {
             Picker("", selection: Binding(get: { current.fit }, set: { newFit in update { $0.fit = newFit } })) {
                 Text("Rellenar").tag(KenBurnsPoints.Fit.cover)
@@ -111,8 +155,6 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
             Slider(value: Binding(get: { current.delayPercent }, set: { v in update { $0.delayPercent = v } }), in: 0...80, step: 5)
             Text("\(Int(current.delayPercent)) %").monospacedDigit().frame(width: 40)
         }
-        Divider()
-        previewRow
     }
 
     private func update(_ change: (inout KenBurnsPoints) -> Void) {
@@ -137,18 +179,43 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
                        focusChanged: @escaping (CGPoint) -> Void, zoomChanged: @escaping @MainActor @Sendable (Double) -> Void) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            if current.fit == .contain {
-                ThumbnailView(url: url, maxPixelSize: 1200, displaySize: min(size.width, size.height))
-                    .frame(width: size.width, height: size.height).background(Color.black)
-            } else {
-                CellPhotoView(url: url, focus: focus, size: size, zoom: zoom, onFocusChange: focusChanged)
-                    .background(Color.black)
+            panelImage(focus: focus, zoom: zoom, size: size, focusChanged: focusChanged)
+            zoomRow(zoom: zoom, zoomChanged: zoomChanged)
+        }
+    }
+
+    /// El mismo panel a todo el ancho que le den, con la proporción del vídeo.
+    private func flexiblePanel(title: LocalizedStringKey, focus: CGPoint, zoom: Double,
+                               focusChanged: @escaping (CGPoint) -> Void, zoomChanged: @escaping @MainActor @Sendable (Double) -> Void) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            GeometryReader { geo in
+                panelImage(focus: focus, zoom: zoom, size: CGSize(width: geo.size.width, height: geo.size.width / doc.format.aspectRatio),
+                           focusChanged: focusChanged)
             }
-            HStack {
-                Text("Zoom").font(.caption).foregroundStyle(.secondary)
-                Slider(value: Binding(get: { zoom }, set: { v in Task { @MainActor in zoomChanged(v) } }), in: 1...2, step: 0.05)
-                Text("\(Int((zoom * 100).rounded())) %").font(.caption.monospacedDigit()).frame(width: 44)
-            }
+            .aspectRatio(doc.format.aspectRatio, contentMode: .fit)
+            zoomRow(zoom: zoom, zoomChanged: zoomChanged)
+        }
+    }
+
+    /// La foto del panel: entera sobre negro o recortada con su foco y zoom (arrastrable).
+    @ViewBuilder
+    private func panelImage(focus: CGPoint, zoom: Double, size: CGSize, focusChanged: @escaping (CGPoint) -> Void) -> some View {
+        if current.fit == .contain {
+            ThumbnailView(url: url, maxPixelSize: 1200, displaySize: min(size.width, size.height))
+                .frame(width: size.width, height: size.height).background(Color.black)
+        } else {
+            CellPhotoView(url: url, focus: focus, size: size, zoom: zoom, onFocusChange: focusChanged)
+                .background(Color.black)
+        }
+    }
+
+    /// Zoom del panel, del 100 % al 200 %.
+    private func zoomRow(zoom: Double, zoomChanged: @escaping @MainActor @Sendable (Double) -> Void) -> some View {
+        HStack {
+            Text("Zoom").font(.caption).foregroundStyle(.secondary)
+            Slider(value: Binding(get: { zoom }, set: { v in Task { @MainActor in zoomChanged(v) } }), in: 1...2, step: 0.05)
+            Text("\(Int((zoom * 100).rounded())) %").font(.caption.monospacedDigit()).frame(width: 44)
         }
     }
 
@@ -156,7 +223,7 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     private var previewRow: some View {
         VStack(alignment: .leading, spacing: 6) {
             if hasLeading {
-                // En el inspector, todo el ancho de su columna, con la proporción del vídeo.
+                // En el inspector, todo el ancho que le deja el reparto, con la proporción del vídeo.
                 GeometryReader { geo in animatedPreview(width: geo.size.width) }
                     .aspectRatio(doc.format.aspectRatio, contentMode: .fit)
             } else {

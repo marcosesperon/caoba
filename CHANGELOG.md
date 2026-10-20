@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.5.2 — 2026-10-20
+
+- **Ajustes de una foto del Slideshow más ordenados**: primero los controles y, a la derecha, la previsualización del movimiento. Los paneles de Inicio y Fin solo salen con el efecto «Personalizado», que es el único que los usa, y en pequeño; para encuadrar con detalle sigue estando «Ampliar».
+
 ## 3.5.1 — 2026-10-19
 
 - En los ajustes de una tarjeta de texto, un collage o una foto del Slideshow, la vista ocupa solo lo que necesita y los ajustes aprovechan el resto del ancho: con la ventana ancha se reparten en dos o tres columnas y casi no hace falta desplazar.
