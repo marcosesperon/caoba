@@ -857,8 +857,11 @@ struct TrackInspector: View {
 /// ajustes se quedan con el resto, repartidos en columnas (`BalancedColumns`). Los
 /// ajustes nunca bajan de `minSettingsWidth`: si no cabe, es la vista la que encoge.
 struct InspectorSplit<Preview: View, Settings: View>: View {
-    static var minSettingsWidth: CGFloat { 300 }
     private let spacing: CGFloat = 16
+    /// Ancho mínimo de los ajustes.
+    var minSettingsWidth: CGFloat = 300
+    /// Con `false`, los ajustes se colocan tal cual (quien llama monta sus propias columnas).
+    var balancesSettings = true
     /// Vista a la derecha (Foto: primero los controles, luego la previsualización).
     var previewOnTrailingSide = false
     /// Parte del ancho que puede ocupar la vista como mucho (1 = sin más límite que el de los ajustes).
@@ -870,7 +873,7 @@ struct InspectorSplit<Preview: View, Settings: View>: View {
 
     var body: some View {
         GeometryReader { geo in
-            let width = max(120, min(previewWidth(geo.size.height), geo.size.width - Self.minSettingsWidth - spacing,
+            let width = max(120, min(previewWidth(geo.size.height), geo.size.width - minSettingsWidth - spacing,
                                      geo.size.width * maxPreviewFraction))
             let sizedPreview = preview.frame(width: width, height: geo.size.height, alignment: .topLeading)
             HStack(alignment: .top, spacing: spacing) {
@@ -886,10 +889,23 @@ struct InspectorSplit<Preview: View, Settings: View>: View {
     }
 
     /// Los grupos de ajustes en columnas, con desplazamiento si no caben en alto.
+    @ViewBuilder
     private var settingsArea: some View {
+        if balancesSettings {
+            InspectorScroll { BalancedColumns { settings } }
+        } else {
+            settings.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+}
+
+/// Zona de ajustes con desplazamiento vertical si no cabe en alto.
+struct InspectorScroll<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
         ScrollView {
-            BalancedColumns { settings }
-                .padding(.trailing, 2)   // que el borde de los bloques no lo tape la barra de desplazamiento
+            content.padding(.trailing, 2)   // que el borde de los bloques no lo tape la barra de desplazamiento
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

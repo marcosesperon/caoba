@@ -1636,3 +1636,34 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Con los efectos automáticos ya no hay forma de ver ni cambiar el foco que usan (el de Inicio) sin pasar a «Personalizado»; si hiciera falta, sería otra petición.
+
+## 2026-10-20 — Inspector de Foto: columnas fijas (ajustes, encuadre, previsualización)
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: la petición y la captura marcan el reparto)* En el inspector de Foto los grupos dejan de repartirse solos en columnas. Pasan a tres zonas fijas:
+- **Izquierda:** Efecto, Tiempo, Transición y Pie, uno debajo de otro (ahora Transición y Pie se iban a una segunda columna).
+- **Centro, solo con «Personalizado»:** el grupo Encuadre (Inicio y Fin en pequeño, uno encima del otro, con sus controles).
+- **Derecha:** la previsualización animada, como ahora (como mucho el 45 % del ancho).
+
+Sin «Personalizado» solo hay columna de ajustes y previsualización. Si la ventana es estrecha, las dos columnas de controles mantienen un mínimo (unos 280 puntos cada una) y es la previsualización la que encoge. Cada columna se desplaza por su cuenta si no cabe en alto.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.5.3).
+- `InspectorSplit` con `minSettingsWidth` (antes fijo a 300) y `balancesSettings`: con `false` los ajustes se colocan tal cual y quien llama monta sus columnas. Texto y Collage siguen con el reparto automático.
+- Foto: dos columnas fijas del mismo ancho, cada una con `InspectorScroll` (el `ScrollView` que ya usaba el reparto, sacado a una pieza para no repetirlo). Mínimo de controles: 280 con una columna, 2 × 280 + 16 con dos.
+- Inicio y Fin siempre uno encima del otro (hasta 260 puntos): en la columna central ya no hace falta ponerlos uno al lado del otro.
+- Comprobado con capturas con «Ninguno» y «Personalizado» a 1440×900, 1100×720 y 2000×900 (oscuro) y 1440×900 (claro).
+- Versión 3.5.3.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/KenBurnsFramingView.swift` y `SlideshowInspector.swift` (`InspectorSplit`).
+
+### 5. Alternativas descartadas
+- Mantener el reparto automático (`BalancedColumns`) en Foto: mandaba Transición y Pie a otra columna, que es lo que el usuario quería evitar.
+
+### 6. Pendiente de comprobar
+Nada.

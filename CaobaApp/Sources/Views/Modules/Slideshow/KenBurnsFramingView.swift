@@ -45,21 +45,31 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     var body: some View {
         Group {
             if hasLeading {
-                // Inspector: primero los controles y, a la derecha, la previsualización animada
-                // (lo justo para llenar el alto, como mucho el 45 % del ancho). El encuadre a mano
-                // solo tiene sentido con el efecto «Personalizado»: con los demás no se enseña.
-                InspectorSplit(previewOnTrailingSide: true, maxPreviewFraction: 0.45,
+                // Inspector, en columnas fijas: a la izquierda los ajustes de quien llama (efecto,
+                // tiempo, transición, pie); en el centro el encuadre, solo con «Personalizado» (los
+                // demás efectos no usan Inicio y Fin); a la derecha la previsualización animada (lo
+                // justo para llenar el alto, como mucho el 45 % del ancho; encoge si no hay sitio).
+                InspectorSplit(minSettingsWidth: isCustom ? 2 * Self.columnWidth + 16 : Self.columnWidth, balancesSettings: false,
+                               previewOnTrailingSide: true, maxPreviewFraction: 0.45,
                                previewWidth: { height in (height - Self.previewControlsHeight) * doc.format.aspectRatio }) {
                     previewRow
                 } settings: {
-                    leading
-                    if isCustom {
-                        OptionGroup(title: "Encuadre") {
-                            stackedPanels
-                            framingButtons
+                    HStack(alignment: .top, spacing: 16) {
+                        InspectorScroll {
+                            VStack(alignment: .leading, spacing: 12) {
+                                leading
+                                trailing
+                            }
+                        }
+                        if isCustom {
+                            InspectorScroll {
+                                OptionGroup(title: "Encuadre") {
+                                    stackedPanels
+                                    framingButtons
+                                }
+                            }
                         }
                     }
-                    trailing
                 }
             } else {
                 HStack(alignment: .top, spacing: 14) {
@@ -81,6 +91,8 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     /// Alto de la etiqueta y del zoom de cada panel, y separación entre los dos paneles.
     private static var labelsAndSlider: CGFloat { 44 }
     private static var panelSpacing: CGFloat { 10 }
+    /// Ancho mínimo de cada columna de controles del inspector.
+    private static var columnWidth: CGFloat { 280 }
     /// Alto de «Reproducir» y la duración bajo la previsualización.
     private static var previewControlsHeight: CGFloat { 34 }
 
@@ -105,19 +117,12 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         }
     }
 
-    /// Inicio y Fin en pequeño: uno al lado del otro si la columna es ancha y, si no, uno
-    /// encima del otro. Con tope de ancho, para que no se coman el inspector (para
-    /// encuadrar con detalle está «Ampliar»).
+    /// Inicio y Fin en pequeño, uno encima del otro en la columna central, con tope de ancho
+    /// para que no se coman el inspector (para encuadrar con detalle está «Ampliar»).
     private var stackedPanels: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .top, spacing: Self.panelSpacing) {
-                startPanel.frame(width: 210)
-                endPanel.frame(width: 210)
-            }
-            VStack(alignment: .leading, spacing: 10) {
-                startPanel.frame(maxWidth: 260, alignment: .leading)
-                endPanel.frame(maxWidth: 260, alignment: .leading)
-            }
+        VStack(alignment: .leading, spacing: 10) {
+            startPanel.frame(maxWidth: 260, alignment: .leading)
+            endPanel.frame(maxWidth: 260, alignment: .leading)
         }
     }
 
