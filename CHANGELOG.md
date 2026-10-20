@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.8.0 — 2026-10-20
+
+- **Ficheros que ya no están en su sitio**: si al abrir un Slideshow una pista, la portada, los créditos o la marca de agua se han movido, ya no desaparecen. Se marcan en rojo en el timeline y en su editor, con «Localizar…» para elegir dónde están ahora, sin perder sus ajustes (inicio, Desde, Hasta, duración…). Al localizar uno, se buscan en esa carpeta los demás que falten.
+- Si se genera el vídeo con ficheros sin encontrar, se avisa antes y se genera sin ellos.
+
 ## 3.7.2 — 2026-10-20
 
 - Las fotos de la lista se arrastran desde cualquier sitio de la fila (antes, solo junto a la casilla). Para ver una foto en grande, la lupa que aparece al pasar el ratón por la fila.

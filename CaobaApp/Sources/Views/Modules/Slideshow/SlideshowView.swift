@@ -279,6 +279,8 @@ struct SourceTab: View {
 struct SlideshowActionBar: View {
     @Environment(AppState.self) private var appState
     let doc: SlideshowDocument
+    /// Acción pendiente de confirmar porque faltan ficheros (vista previa o generar).
+    @State private var pendingAction: (() -> Void)?
 
     var body: some View {
         HStack(spacing: 12) {
@@ -289,12 +291,23 @@ struct SlideshowActionBar: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button("Elegir…") { appState.chooseDestinationFile(contentTypes: appState.destinationFileTypes) }
             Divider().frame(height: 18)
-            Button("Vista previa") { doc.preview() }.disabled(!doc.canPreview)
-            Button("Generar vídeo") { doc.generate() }
+            Button("Vista previa") { run(doc.preview) }.disabled(!doc.canPreview)
+            Button("Generar vídeo") { run(doc.generate) }
                 .buttonStyle(.borderedProminent)
                 .disabled(!doc.canGenerate)
         }
         .caobaPanel()
+        .confirmationDialog(doc.missingFiles.count == 1 ? "Falta 1 fichero: se generará sin él" : "Faltan \(doc.missingFiles.count) ficheros: se generará sin ellos",
+                            isPresented: Binding(get: { pendingAction != nil }, set: { if !$0 { pendingAction = nil } })) {
+            Button("Generar igualmente") { pendingAction?(); pendingAction = nil }
+        } message: {
+            Text(doc.missingFiles.map(\.lastPathComponent).joined(separator: "\n"))
+        }
+    }
+
+    /// Genera (o previsualiza) y, si faltan ficheros, pide confirmación antes.
+    private func run(_ action: @escaping () -> Void) {
+        if doc.missingFiles.isEmpty { action() } else { pendingAction = action }
     }
 }
 

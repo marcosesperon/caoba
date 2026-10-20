@@ -55,6 +55,23 @@ extension View {
     }
 }
 
+/// Fondo rojo rayado de lo que no se encuentra (pistas, portada, créditos del timeline).
+struct MissingStripes: View {
+    var body: some View {
+        Canvas { context, size in
+            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.red.opacity(0.18)))
+            var stripes = Path()
+            var x: CGFloat = -size.height
+            while x < size.width {
+                stripes.move(to: CGPoint(x: x, y: size.height))
+                stripes.addLine(to: CGPoint(x: x + size.height, y: 0))
+                x += 10
+            }
+            context.stroke(stripes, with: .color(.red.opacity(0.45)), lineWidth: 3)
+        }
+    }
+}
+
 /// Bloque de opciones con cabecera: el título encima y los controles en un bloque.
 struct OptionGroup<Content: View>: View {
     let title: LocalizedStringKey

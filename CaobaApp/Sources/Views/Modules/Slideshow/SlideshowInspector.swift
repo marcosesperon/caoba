@@ -167,6 +167,9 @@ struct ExtrasTab: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             OptionGroup(title: "Marca de agua") {
+                if let url = doc.watermarkURL, SlideshowDocument.isMissing(url) {
+                    MissingFileNotice(doc: doc, url: url, types: [.png])
+                }
                 HStack {
                     Text(doc.watermarkURL?.lastPathComponent ?? String(localized: "Ningún PNG elegido"))
                         .lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
@@ -202,9 +205,14 @@ struct ExtrasTab: View {
     private func slotRow(title: LocalizedStringKey, url: Binding<URL?>, duration: Binding<Double>) -> some View {
         HStack {
             Text(title).frame(width: 130, alignment: .leading)
-            Text(url.wrappedValue?.lastPathComponent ?? String(localized: "Ninguna"))
-                .lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
-                .foregroundStyle(url.wrappedValue == nil ? .secondary : .primary)
+            let missing = url.wrappedValue.map(SlideshowDocument.isMissing) ?? false
+            HStack(spacing: 4) {
+                if missing { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red).help("No se encuentra el fichero: selecciónalo en el timeline para localizarlo") }
+                Text(url.wrappedValue?.lastPathComponent ?? String(localized: "Ninguna"))
+                    .lineLimit(1).truncationMode(.middle)
+                    .foregroundStyle(missing ? .red : (url.wrappedValue == nil ? .secondary : .primary))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             if url.wrappedValue != nil {
                 Stepper("\(duration.wrappedValue, specifier: "%.0f") s", value: duration, in: 1...30).fixedSize()
                 Button("Quitar") { url.wrappedValue = nil }
@@ -290,6 +298,46 @@ struct MusicTab: View {
 }
 
 @MainActor
+/// Aviso de un fichero que ya no está en su sitio, con «Localizar…»: elige el nuevo (puede
+/// llamarse distinto), lo pone sin tocar el resto de ajustes y recoloca los demás que falten
+/// con el mismo nombre en esa carpeta.
+struct MissingFileNotice: View {
+    @Bindable var doc: SlideshowDocument
+    let url: URL
+    let types: [UTType]
+    @State private var foundMore: Int?
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("No se encuentra el fichero").foregroundStyle(.red)
+                Text(url.path).font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
+            }
+            Spacer()
+            Button("Localizar…") { locate() }
+        }
+        .alert(foundMore == 1 ? "Se ha encontrado otro fichero en esa carpeta" : "Se han encontrado \(foundMore ?? 0) ficheros más en esa carpeta",
+               isPresented: Binding(get: { (foundMore ?? 0) > 0 }, set: { if !$0 { foundMore = nil } })) {
+            Button("Vale") { foundMore = nil }
+        } message: {
+            Text("Tenían el mismo nombre que otros ficheros que faltaban y se han recolocado.")
+        }
+    }
+
+    private func locate() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = types
+        panel.directoryURL = url.deletingLastPathComponent()
+        panel.nameFieldStringValue = url.lastPathComponent
+        guard panel.runModal() == .OK, let picked = panel.url else { return }
+        foundMore = doc.relocate(url, to: picked)
+    }
+}
+
+/// Tipos de fichero de las pistas de audio.
+let audioFileTypes: [UTType] = [.mp3, .mpeg4Audio, .wav, .aiff, .audio]
+
 func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
     let panel = NSOpenPanel()
     panel.allowedContentTypes = types
@@ -741,8 +789,12 @@ struct ImageSlotInspector: View {
         OptionGroup(title: "Imagen") {
             let url = isCover ? doc.coverURL : doc.creditsURL
             if let url {
-                ThumbnailView(url: url, maxPixelSize: 600, displaySize: 220)
-                Text(url.lastPathComponent).lineLimit(1).truncationMode(.middle)
+                if SlideshowDocument.isMissing(url) {
+                    MissingFileNotice(doc: doc, url: url, types: [.jpeg, .png, .heic])
+                } else {
+                    ThumbnailView(url: url, maxPixelSize: 600, displaySize: 220)
+                    Text(url.lastPathComponent).lineLimit(1).truncationMode(.middle)
+                }
             }
             HStack {
                 Button("Cambiar…") { if let picked = pickImage() { if isCover { doc.coverURL = picked } else { doc.creditsURL = picked } } }
@@ -854,6 +906,9 @@ struct TrackInspector: View {
     var body: some View {
         EditorHeader(doc: doc, kind: "Pista", name: track.url.lastPathComponent)
         OptionGroup(title: "Pista") {
+            if SlideshowDocument.isMissing(track.url) {
+                MissingFileNotice(doc: doc, url: track.url, types: audioFileTypes)
+            }
             if let d = doc.trackDurations[track.id] {
                 Text("Duración del fichero: \(TimecodeField.format(d)) · suena \(TimecodeField.format(track.effectiveDuration(assetDuration: d)))")
                     .font(.caption).foregroundStyle(.secondary)

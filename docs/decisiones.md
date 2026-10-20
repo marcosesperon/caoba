@@ -1898,3 +1898,42 @@ Confirmada por el usuario («si»).
 - El arrastre con el ratón de verdad: no se puede simular desde aquí sin permiso de Accesibilidad. Se ha quitado lo que lo bloqueaba (comprobado en el código); falta que el usuario lo pruebe.
 - La lupa aparece al pasar el ratón: no sale en las capturas.
 - Confirmado por el usuario («correcto»): el arrastre funciona desde cualquier sitio de la fila.
+
+## 2026-10-20 — Ficheros del proyecto que ya no están en su sitio
+
+### 1. La petición tal como se ha entendido
+Al abrir un Slideshow guardado, los ficheros de fuera de la carpeta que recuerda el proyecto (**pistas de audio, imagen de portada, de créditos y PNG de marca de agua**) pueden no estar ya donde estaban. Hoy se descartan sin avisar y se pierden sus ajustes. En su lugar:
+- **Se conservan con todos sus ajustes**: inicio en el vídeo, Desde y Hasta de una pista; duración y transición de la portada y los créditos; posición, tamaño y opacidad de la marca. También se siguen guardando en el proyecto mientras falten.
+- **Se marcan:**
+  - En el timeline, el bloque de la pista o la tarjeta de portada o créditos sale en rojo y rayado, con un aviso y el nombre del fichero. Una pista que falta ocupa desde su inicio hasta su Hasta, o hasta el final del vídeo si no tiene Hasta, porque no se sabe lo que dura.
+  - En su editor, «No se encuentra: <ruta>» y un botón **«Localizar…»**.
+  - La marca de agua, igual en su bloque de «Portada y texto».
+- **«Localizar…»** abre el selector de ficheros para elegir el nuevo sitio (puede tener otro nombre) y cambia solo la ruta, sin tocar el resto de los ajustes. Después **busca en esa misma carpeta los demás ficheros que falten con el mismo nombre**, los recoloca solos y avisa de cuántos ha encontrado.
+- **Al pulsar Generar vídeo o Vista previa con ficheros sin encontrar**, avisa: «Faltan N ficheros: se generará sin ellos», con «Generar igualmente» o «Cancelar». Si se genera, esos ficheros simplemente no entran.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Solo las pistas de audio o también el resto de ficheros externos (portada, créditos, marca de agua)?** → Todos: pistas, imagen de portada, de créditos y PNG de marca de agua.
+- **Con ficheros sin encontrar, al pulsar Generar vídeo o Vista previa: ¿avisa y deja seguir, no deja generar o sigue sin avisar?** → Avisa («Faltan N ficheros: se generará sin ellos») con «Generar igualmente» o «Cancelar».
+- **Al localizar un fichero en otra carpeta, ¿se buscan ahí los demás que faltan?** → Sí: los que tengan el mismo nombre se recolocan solos y se avisa de cuántos.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.8.0).
+- Carga del preset: pistas, portada, créditos y marca se cargan aunque el fichero no exista (antes se descartaban y se perdían sus ajustes) y se siguen guardando tal cual.
+- `SlideshowDocument`: `isMissing(_:)`, `missingFiles`, `available(_:)` (el fichero si está) y `relocate(_:to:)`. Lo que falta no entra en el vídeo (audio, portada, créditos, marca) ni en el análisis de ritmo. `timelineDuration(of:)`: una pista que falta (o aún sin leer) se dibuja hasta su Hasta o, sin él, lo que dure el vídeo desde su Desde.
+- Interfaz: `MissingStripes` (rayado rojo) en el bloque de la pista y en la tarjeta de portada o créditos; `MissingFileNotice` («No se encuentra el fichero», ruta y «Localizar…», que abre el selector en la carpeta antigua con el nombre puesto) en los editores de Pista y Portada/Créditos y en el bloque de la marca; ⚠︎ y nombre en rojo en la fila de portada/créditos de «Portada y texto». La Preescucha no sale mientras la pista falte (no hay duración).
+- Barra de acciones: «Vista previa» y «Generar vídeo» piden confirmación si faltan ficheros, con la lista de nombres.
+- Comprobado: proyecto con dos pistas, portada y marca en una carpeta externa que luego se mueve. Capturas del timeline, del editor de pista (oscuro) y de «Portada y texto» (claro) con las marcas; el `.caoba` sigue con los cuatro ficheros. Gancho temporal (ya quitado): al recolocar solo la primera pista se encuentran los otros 3, se conservan Desde, Hasta, inicio, tamaño y opacidad, y el vídeo suena desde el Desde (1000 Hz con el tono de prueba). Con todo sin encontrar, el vídeo se genera (25 s, sin audio ni portada) sin fallar.
+- Versión 3.8.0.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Model/SlideshowDocument.swift` (carga y guardado del preset, `makeSpec`, montaje de fotos, banda sonora del timeline, ritmo), `SlideshowInspector.swift`, `SlideshowTimelineView.swift` (`TrackBlock`, tarjetas), `SlideshowView.swift` (`SlideshowActionBar`) y `Theme.swift`.
+
+### 5. Alternativas descartadas
+- Solo las pistas: descartado por el usuario.
+- No dejar generar hasta resolverlos, o generar sin avisar: descartado por el usuario.
+- Localizar uno a uno sin buscar el resto: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- La ventana de «Faltan N ficheros» y el aviso de «Se han encontrado N más» no salen en las capturas (ventanas aparte); se comprobó la acción, no la ventana.
+- Collage y Contact Sheet tienen su propia marca de agua o logo; no se han tocado (no estaban en la petición, que era del Slideshow).

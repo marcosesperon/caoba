@@ -515,7 +515,7 @@ final class SlideshowDocument {
     /// vídeo acabe antes. El timeline se dibuja hasta aquí para ver las pistas enteras.
     var audioExtent: Double {
         tracks.map { track in
-            let length = trackDurations[track.id].map { track.effectiveDuration(assetDuration: $0) } ?? 0
+            let length = track.effectiveDuration(assetDuration: timelineDuration(of: track))
             return effectiveStart(of: track) + length
         }.max() ?? 0
     }
@@ -524,8 +524,55 @@ final class SlideshowDocument {
 
     /// Segmentos de audio tal como los calculará el motor (para dibujar los carriles).
     var audioSegments: [AudioSegment] {
-        let durations = tracks.map { trackDurations[$0.id] ?? totalDuration }
+        let durations = tracks.map(timelineDuration(of:))
         return AudioPlan.build(tracks: tracks, durations: durations, gains: nil, timeline: timeline, fadeOutAtEnd: false, loopPlaylist: loopPlaylist)
+    }
+
+    /// Duración del fichero de una pista para dibujarla. Si no se encuentra (o aún no se ha leído),
+    /// hasta su Hasta o, sin Hasta, lo que dure el vídeo desde su Desde.
+    func timelineDuration(of track: AudioTrack) -> Double {
+        trackDurations[track.id] ?? track.trimEnd ?? (track.trimStart + totalDuration)
+    }
+
+    // MARK: Ficheros que no se encuentran
+
+    /// Un fichero de fuera de la carpeta que el proyecto recuerda y ya no está en su sitio.
+    static func isMissing(_ url: URL) -> Bool { !FileManager.default.fileExists(atPath: url.path) }
+
+    /// El fichero si está en su sitio; `nil` si no está puesto o no se encuentra.
+    private func available(_ url: URL?) -> URL? { url.flatMap { Self.isMissing($0) ? nil : $0 } }
+
+    /// Ficheros que no se encuentran (pistas, portada, créditos, marca de agua), sin repetir.
+    var missingFiles: [URL] {
+        var seen: Set<String> = []
+        let all = tracks.map(\.url) + [coverURL, creditsURL, watermarkURL].compactMap { $0 }
+        return all.filter { Self.isMissing($0) && seen.insert($0.path).inserted }
+    }
+
+    /// Pone `newURL` donde estaba `oldURL` (sin tocar el resto de ajustes) y busca en la misma
+    /// carpeta los demás ficheros que falten con el mismo nombre. Devuelve cuántos más ha encontrado.
+    @discardableResult
+    func relocate(_ oldURL: URL, to newURL: URL) -> Int {
+        replace(oldURL, with: newURL)
+        let folder = newURL.deletingLastPathComponent()
+        var found = 0
+        for missing in missingFiles {
+            let candidate = folder.appendingPathComponent(missing.lastPathComponent)
+            if !Self.isMissing(candidate) { replace(missing, with: candidate); found += 1 }
+        }
+        return found
+    }
+
+    /// Cambia una ruta en todas sus referencias y lee la duración de las pistas afectadas.
+    private func replace(_ oldURL: URL, with newURL: URL) {
+        for i in tracks.indices where tracks[i].url.path == oldURL.path {
+            tracks[i].url = newURL
+            let id = tracks[i].id
+            Task { if let d = try? await AudioPlan.duration(of: newURL) { trackDurations[id] = d } }
+        }
+        if coverURL?.path == oldURL.path { coverURL = newURL }
+        if creditsURL?.path == oldURL.path { creditsURL = newURL }
+        if watermarkURL?.path == oldURL.path { watermarkURL = newURL }
     }
 
     /// Inicio efectivo de una pista (resolviendo "tras la anterior").
@@ -539,7 +586,7 @@ final class SlideshowDocument {
         points.append(contentsOf: items.map(\.start))
         for track in tracks {
             let start = effectiveStart(of: track)
-            let duration = trackDurations[track.id].map { track.effectiveDuration(assetDuration: $0) } ?? 0
+            let duration = track.effectiveDuration(assetDuration: timelineDuration(of: track))
             points.append(start + duration)
         }
         return points
@@ -606,7 +653,7 @@ final class SlideshowDocument {
         isAnalyzingRhythm = true
         rhythmMessage = nil
         defer { isAnalyzingRhythm = false }
-        let pending = Array(Set(tracks.map(\.url.path))).filter { beatTracks[$0] == nil }
+        let pending = Array(Set(tracks.filter { !Self.isMissing($0.url) }.map(\.url.path))).filter { beatTracks[$0] == nil }
         if !pending.isEmpty {
             await withTaskGroup(of: (String, BeatTrack?).self) { group in
                 for path in pending {
@@ -859,8 +906,8 @@ final class SlideshowDocument {
                                   caption: caption(for: name, index: index + 1, total: list.count, info: infos.indices.contains(index) ? infos[index] : nil))
         }
         var owners = list.map(\.lastPathComponent)
-        if let coverURL { photos.insert(coverPhoto(coverURL, duration: coverDuration, id: "cover", generator: &generator), at: 0); owners.insert("cover", at: 0) }
-        if let creditsURL { photos.append(coverPhoto(creditsURL, duration: creditsDuration, id: "credits", generator: &generator)); owners.append("credits") }
+        if let coverURL = available(coverURL) { photos.insert(coverPhoto(coverURL, duration: coverDuration, id: "cover", generator: &generator), at: 0); owners.insert("cover", at: 0) }
+        if let creditsURL = available(creditsURL) { photos.append(coverPhoto(creditsURL, duration: creditsDuration, id: "credits", generator: &generator)); owners.append("credits") }
         return (photos, owners)
     }
 
@@ -938,10 +985,11 @@ final class SlideshowDocument {
     }
 
     private func makeSpec(output: URL, preview: Bool) -> SlideshowSpec {
-        var audio = AudioOptions(tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist)
+        // Lo que no se encuentra no entra en el vídeo (se avisa antes de generar).
+        var audio = AudioOptions(tracks: tracks.filter { !Self.isMissing($0.url) }, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist)
         if preview { audio.normalize = false }
         var spec = SlideshowSpec(photos: [], format: format, transition: transitionChoice.hasDuration,
-                                 watermark: watermarkURL.map { VideoWatermark(url: $0, position: wmPosition, sizePercent: wmSize, opacity: wmOpacity) },
+                                 watermark: available(watermarkURL).map { VideoWatermark(url: $0, position: wmPosition, sizePercent: wmSize, opacity: wmOpacity) },
                                  audio: audio, kenBurns: kbSettings, output: output, preview: preview)
         // Cada foto lleva ya su transición resuelta; esto cubre lo que no la tenga (p. ej. pasos de collage).
         if case .kind(let k) = transitionChoice { spec.defaultTransition = k }
@@ -974,7 +1022,7 @@ final class SlideshowDocument {
         let fixedRows = rows
         let csOptions = collageOptions
         let (photoList, photoOwners) = makePhotos(limit: preview ? 10 : nil)
-        let coverURL = coverURL, creditsURL = creditsURL, coverDuration = coverDuration, creditsDuration = creditsDuration
+        let coverURL = available(coverURL), creditsURL = available(creditsURL), coverDuration = coverDuration, creditsDuration = creditsDuration
         let baseSpec = makeSpec(output: output, preview: preview)
         // Transiciones de entrada de cada collage, portada y créditos, resueltas aquí (estado del documento).
         var generator = SystemRandomNumberGenerator()
@@ -1205,9 +1253,11 @@ final class SlideshowDocument {
             // Proyectos antiguos: interruptor activo → fundido de 1 s; apagado → corte.
             transitionChoice = t ? .kind(.crossfade) : .kind(.cut)
         }
-        if let c = preset.cover, let path = c.path, FileManager.default.fileExists(atPath: path) { coverURL = URL(fileURLWithPath: path); coverDuration = c.duration ?? 4 }
-        if let c = preset.credits, let path = c.path, FileManager.default.fileExists(atPath: path) { creditsURL = URL(fileURLWithPath: path); creditsDuration = c.duration ?? 4 }
-        if let w = preset.watermark, let path = w.path, FileManager.default.fileExists(atPath: path) {
+        // Los ficheros de fuera de la carpeta se cargan aunque ya no estén en su sitio: se marcan
+        // como no encontrados (`missingFiles`) y se pueden localizar sin perder sus ajustes.
+        if let c = preset.cover, let path = c.path { coverURL = URL(fileURLWithPath: path); coverDuration = c.duration ?? 4 }
+        if let c = preset.credits, let path = c.path { creditsURL = URL(fileURLWithPath: path); creditsDuration = c.duration ?? 4 }
+        if let w = preset.watermark, let path = w.path {
             watermarkURL = URL(fileURLWithPath: path)
             wmPosition = w.position.flatMap(OverlayPosition.init(rawValue:)) ?? .bottomRight
             wmSize = w.size ?? 30
@@ -1267,15 +1317,14 @@ final class SlideshowDocument {
         // Pistas: el inicio por foto de los ficheros antiguos se convierte a tiempo del vídeo.
         let tl = timeline
         let photoOffset = coverURL != nil ? 1 : 0
-        tracks = (preset.musicTracks ?? []).compactMap { t in
-            guard FileManager.default.fileExists(atPath: t.path) else { return nil }
+        tracks = (preset.musicTracks ?? []).map { t in
             let startMode: AudioTrack.StartMode
             if let s = t.startTime, t.mode == "time" { startMode = .atTime(s) }
             else if t.mode == "manual", let p = t.startPhoto { startMode = .atTime(tl.startTime(ofPhoto: p + photoOffset)) }
             else { startMode = .automatic }
             return AudioTrack(url: URL(fileURLWithPath: t.path), startMode: startMode, trimStart: t.trimStart ?? 0, trimEnd: t.trimEnd)
         }
-        for track in tracks { Task { if let d = try? await AudioPlan.duration(of: track.url) { trackDurations[track.id] = d } } }
+        for track in tracks where !Self.isMissing(track.url) { Task { if let d = try? await AudioPlan.duration(of: track.url) { trackDurations[track.id] = d } } }
     }
 
     func resetToDefaults() {

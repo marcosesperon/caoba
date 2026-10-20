@@ -37,12 +37,82 @@
         }
       }
     },
+    "Falta 1 fichero: se generará sin él" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 file is missing: the video will be made without it"
+          }
+        }
+      }
+    },
+    "Faltan %lld ficheros: se generará sin ellos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files are missing: the video will be made without them"
+          }
+        }
+      }
+    },
+    "Generar igualmente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generate anyway"
+          }
+        }
+      }
+    },
+    "Localizar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locate…"
+          }
+        }
+      }
+    },
     "Manual" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Manual"
+          }
+        }
+      }
+    },
+    "No se encuentra el fichero" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found"
+          }
+        }
+      }
+    },
+    "No se encuentra el fichero: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found: %@"
+          }
+        }
+      }
+    },
+    "No se encuentra el fichero: selecciónalo en el timeline para localizarlo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File not found: select it in the timeline to locate it"
           }
         }
       }
@@ -77,6 +147,26 @@
         }
       }
     },
+    "Se ha encontrado otro fichero en esa carpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another file was found in that folder"
+          }
+        }
+      }
+    },
+    "Se han encontrado %lld ficheros más en esa carpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld more files were found in that folder"
+          }
+        }
+      }
+    },
     "Se perderá el orden que hiciste a mano arrastrando las fotos." : {
       "localizations" : {
         "en" : {
@@ -93,6 +183,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plays the track as is, without fades, from From to To. If you change From while it plays, it jumps there."
+          }
+        }
+      }
+    },
+    "Tenían el mismo nombre que otros ficheros que faltaban y se han recolocado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They had the same name as other missing files and have been relinked."
+          }
+        }
+      }
+    },
+    "Vale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }

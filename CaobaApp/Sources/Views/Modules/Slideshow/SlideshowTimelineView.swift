@@ -150,7 +150,7 @@ struct SlideshowTimelineView: View {
 
     /// Duración real de la canción recortada (o la del vídeo si aún no se sabe).
     private func trackLength(_ track: AudioTrack) -> Double {
-        doc.trackDurations[track.id].map { track.effectiveDuration(assetDuration: $0) } ?? doc.totalDuration
+        track.effectiveDuration(assetDuration: doc.timelineDuration(of: track))
     }
 
     /// Tramos de relleno: dentro de cada segmento de esta pista, todo lo que va
@@ -172,7 +172,7 @@ struct SlideshowTimelineView: View {
 
     private func addTracks() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.mp3, .mpeg4Audio, .wav, .aiff, .audio]
+        panel.allowedContentTypes = audioFileTypes
         panel.allowsMultipleSelection = true
         guard panel.runModal() == .OK else { return }
         doc.addTracks(panel.urls)
@@ -277,7 +277,17 @@ struct TimelineCard: View {
             }
             .frame(width: size.width, height: size.height)
         case .cover(let url), .credits(let url):
-            CellPhotoView(url: url, focus: CGPoint(x: 0.5, y: 0.5), size: size)
+            if SlideshowDocument.isMissing(url) {
+                // No se encuentra: rayada y con aviso, para localizarla desde su editor.
+                ZStack {
+                    MissingStripes()
+                    Image(systemName: "exclamationmark.triangle.fill").font(.title2).foregroundStyle(.red).offset(y: -10)
+                }
+                .frame(width: size.width, height: size.height)
+                .help("No se encuentra el fichero: \(url.path)")
+            } else {
+                CellPhotoView(url: url, focus: CGPoint(x: 0.5, y: 0.5), size: size)
+            }
         case .photo(let url):
             let points = doc.kbPoints[url.lastPathComponent]
             CellPhotoView(url: url, focus: points?.startFocus ?? CGPoint(x: 0.5, y: 0.5), size: size, zoom: points?.startZoom ?? 1)
@@ -371,6 +381,7 @@ struct TrackBlock: View {
 
     private var pps: CGFloat { CGFloat(doc.pixelsPerSecond) }
     private var isSelected: Bool { doc.selection == .track(track.id) }
+    private var isMissing: Bool { SlideshowDocument.isMissing(track.url) }
 
     var body: some View {
         ZStack {
@@ -378,10 +389,12 @@ struct TrackBlock: View {
             // contenedor, para que las asas (hermanas por encima) reciban los suyos.
             RoundedRectangle(cornerRadius: 5)
                 .fill(Color.accentColor.opacity(isSelected ? 0.55 : 0.35))
+                // Pista que no se encuentra: rayada en rojo (se localiza desde su editor).
+                .overlay { if isMissing { MissingStripes().clipShape(RoundedRectangle(cornerRadius: 5)).allowsHitTesting(false) } }
                 .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 1.5))
                 .overlay(alignment: .leading) {
                     HStack(spacing: 4) {
-                        Image(systemName: "music.note").font(.caption2)
+                        Image(systemName: isMissing ? "exclamationmark.triangle.fill" : "music.note").font(.caption2)
                         Text(track.url.deletingPathExtension().lastPathComponent).font(.caption2).lineLimit(1)
                         Text(TimecodeField.format(length)).font(.caption2.monospacedDigit()).opacity(0.8)
                     }
@@ -401,7 +414,7 @@ struct TrackBlock: View {
                 .contentShape(Rectangle())
                 .onTapGesture { doc.selection = .track(track.id) }
                 .highPriorityGesture(moveGesture)
-                .help("Arrastra para mover el inicio; estira los bordes para recortar")
+                .help(isMissing ? "No se encuentra el fichero: \(track.url.path)" : "Arrastra para mover el inicio; estira los bordes para recortar")
             HStack {
                 handle(isLeading: true)
                 Spacer()
