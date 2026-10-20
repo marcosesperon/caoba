@@ -37,7 +37,7 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     var body: some View {
         // La previsualización toma lo justo para llenar el alto, como mucho un tercio del
         // ancho, y encoge si las columnas de controles no caben.
-        InspectorSplit(minSettingsWidth: isCustom ? 2 * Self.columnWidth + 16 : Self.columnWidth, balancesSettings: false,
+        InspectorSplit(minSettingsWidth: isCustom ? Self.columnWidth + 16 + Self.framingColumnWidth : Self.columnWidth, balancesSettings: false,
                        previewOnTrailingSide: true, maxPreviewFraction: 1.0 / 3,
                        previewWidth: { height in (height - Self.previewControlsHeight) * doc.format.aspectRatio }) {
             previewRow
@@ -50,12 +50,14 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
                     }
                 }
                 if isCustom {
+                    // Del ancho justo para Inicio y Fin: lo que sobre es para la columna de la izquierda.
                     InspectorScroll {
                         OptionGroup(title: "Encuadre") {
                             stackedPanels
                             framingButtons
                         }
                     }
+                    .frame(width: Self.framingColumnWidth)
                 }
             }
         }
@@ -63,8 +65,12 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
         .onChange(of: url) { imageSize = ImageIOHelpers.displaySize(of: url); isPlaying = false }
     }
 
-    /// Ancho mínimo de cada columna de controles del inspector.
+    /// Ancho mínimo de la columna de ajustes (efecto, tiempo, transición, pie).
     private static var columnWidth: CGFloat { 280 }
+    /// Ancho máximo de los paneles de Inicio y Fin.
+    private static var panelMaxWidth: CGFloat { 260 }
+    /// Columna del Encuadre: los paneles, el margen del bloque (10 a cada lado) y el hueco de la barra de desplazamiento.
+    private static var framingColumnWidth: CGFloat { panelMaxWidth + 2 * 10 + 2 }
     /// Alto de «Reproducir» y la duración bajo la previsualización.
     private static var previewControlsHeight: CGFloat { 34 }
 
@@ -77,8 +83,8 @@ struct KenBurnsFramingView<Leading: View, Trailing: View>: View {
     /// para que no se coman el editor.
     private var stackedPanels: some View {
         VStack(alignment: .leading, spacing: 10) {
-            startPanel.frame(maxWidth: 260, alignment: .leading)
-            endPanel.frame(maxWidth: 260, alignment: .leading)
+            startPanel.frame(maxWidth: Self.panelMaxWidth, alignment: .leading)
+            endPanel.frame(maxWidth: Self.panelMaxWidth, alignment: .leading)
         }
     }
 

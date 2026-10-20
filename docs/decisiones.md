@@ -1738,3 +1738,27 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 Nada.
+
+## 2026-10-20 — Foto: la columna de Encuadre, del ancho justo de Inicio y Fin
+
+### 1. La petición tal como se ha entendido
+*(sin preguntas: la captura marca el problema)* En el editor de Foto, con «Personalizado», la columna del Encuadre crece igual que la de la izquierda y deja un hueco vacío a la derecha de Inicio y Fin. Pasa a tener **ancho fijo, el justo para Inicio y Fin** (sus 260 puntos más el margen del bloque). El espacio que sobre se lo queda la columna de la izquierda (Efecto, Tiempo, Transición y Pie); la previsualización no cambia.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.6.2).
+- Columna del Encuadre con `.frame(width: framingColumnWidth)`: `panelMaxWidth` (260) + 2 × 10 del margen del bloque + 2 del hueco de la barra de desplazamiento. El 260 pasa a ser una constante compartida con el tope de los paneles. Mínimo de controles: 280 + 16 + ese ancho.
+- Comprobado con capturas con «Personalizado» a 1440×900 y 2000×900 (oscuro) y 1440×900 (claro).
+- Versión 3.6.2.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Slideshow/KenBurnsFramingView.swift`.
+
+### 5. Alternativas descartadas
+- Repartir el ancho entre las dos columnas a partes iguales (lo que había): dejaba el hueco vacío junto a los paneles.
+
+### 6. Pendiente de comprobar
+Nada.

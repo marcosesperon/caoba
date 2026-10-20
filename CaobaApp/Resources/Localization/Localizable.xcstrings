@@ -191,6 +191,7 @@
       }
     },
     "%lld / %lld · %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -568,6 +569,7 @@
       }
     },
     "Ampliar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2250,6 +2252,7 @@
       }
     },
     "Editar el encuadre a tamaño grande" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

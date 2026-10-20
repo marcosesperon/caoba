@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.6.2 — 2026-10-20
+
+- En el editor de una foto con efecto «Personalizado», la columna del Encuadre mide lo justo para Inicio y Fin; el resto del ancho es para Efecto, Tiempo, Transición y Pie.
+
 ## 3.6.1 — 2026-10-20
 
 - En el editor de una foto del Slideshow, la previsualización ocupa como mucho un tercio del ancho y los ajustes ganan el sitio.
