@@ -1997,3 +1997,44 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 - La ventana de confirmación no sale en las capturas (ventana aparte); se comprobó en el código.
+
+## 2026-10-20 — Landing: capturas nuevas y novedades
+
+### 1. La petición tal como se ha entendido
+El usuario ha cambiado las capturas de `assets/screenshots/` (mismos nombres, así que la página ya las usa). Falta contar en `index.html` lo que ha entrado desde la última vez que se tocó la landing (3.3.3), integrado en cada módulo y en «Por qué CAOBA», en español y en inglés y sin hablar de versiones:
+- **Slideshow:**
+  - Tarjetas de texto en cualquier punto del timeline, a pantalla propia o sobre la foto siguiente, cada una con su letra, posición, realce y animación de entrada y salida, y «Aplicar estilo a todas».
+  - Pies de foto con patrón ({nombre}, {fecha}, {camara}…).
+  - Editor de cada elemento al pulsarlo en el timeline.
+  - Preescucha del tramo de cada pista.
+  - Ficheros movidos (música, portada, créditos, marca) que se marcan y se localizan sin perder ajustes.
+  - El vídeo guarda tu autor y una descripción.
+- **Introducción de «Lo que hace»:** las fotos se ordenan arrastrando, y ese orden es el mismo en Slideshow, Collage y Contact Sheet.
+- **Metadatos:** «Usar mi autor», con el autor puesto en Ajustes.
+- **«Por qué CAOBA»:** en «Pensada para no perder nada», que «Reiniciar» avisa antes y que los ficheros movidos se recuperan; en «Rápida y ligera», que se actualiza desde la propia app.
+- **Pie de la captura grande:** que diga lo que se ve ahora (un título, collages y dos pistas de música en el timeline).
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Cómo se incluyen las novedades: dentro de cada módulo, una sección «Novedades» además, o solo la sección?** → Dentro de cada módulo (sobre todo Slideshow) y en «Por qué CAOBA», como funciones de la app y sin hablar de versiones.
+
+### 4. Decisiones
+- Plan aprobado («si»), con commit y push a `main` (que publica la landing en GitHub Pages); sin versión de la app.
+- `index.html`, en español e inglés (79 textos de cada idioma, HTML bien formado):
+  - Slideshow: viñeta nueva de títulos y textos (con estilo para todos y pies con patrón); la de Ken Burns pasa a «un clic abre su editor»; la de música suma la preescucha; viñeta nueva de ficheros movidos y autor del vídeo.
+  - Introducción de «Lo que hace»: ordenar arrastrando, con el mismo orden en Slideshow, Collage y Contact Sheet.
+  - Metadatos: autor de Ajustes con un clic.
+  - «Por qué CAOBA»: «Reiniciar» avisa y los ficheros movidos se recuperan; se actualiza desde la propia app.
+  - Pie y `alt` de la captura grande: un título, collages y dos pistas.
+- Las capturas nuevas del usuario (mismos nombres, PNG y WebP, también `og`) entran en el mismo commit.
+- Comprobado con una captura de la página hecha con WebKit (programa temporal, sin abrir el navegador): la tarjeta del Slideshow crece y deja algo de hueco bajo el texto del Collage, sin descuadrar nada; los recortes de las capturas nuevas encajan.
+- Sin versión de la app: la landing se publica con el push a `main` (GitHub Pages).
+
+### 3. Fuentes analizadas
+- `index.html` (secciones Slideshow, «Lo que hace», Metadatos, «Por qué CAOBA» y pie de la captura grande) y `CHANGELOG.md` de la 3.3.0 a la 3.8.2.
+
+### 5. Alternativas descartadas
+- Sección «Novedades» aparte (con o sin actualizar los módulos): descartado por el usuario; la landing describe lo que hace la app, no su historial.
+
+### 6. Pendiente de comprobar
+- Cómo se ve en móvil (no se ha capturado a ese ancho).
