@@ -27,6 +27,16 @@
         }
       }
     },
+    "Empieza eligiendo o arrastrando una carpeta de fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start by choosing or dropping a photo folder"
+          }
+        }
+      }
+    },
     "Escuchar el tramo entre Desde y Hasta" : {
       "localizations" : {
         "en" : {

@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.8.1 — 2026-10-20
+
+- En los módulos que trabajan con una carpeta de fotos, mientras no hay carpeta elegida todo lo demás se ve apagado y no responde, y la barra de carpeta se resalta en rojo con «Empieza eligiendo o arrastrando una carpeta de fotos».
+
 ## 3.8.0 — 2026-10-20
 
 - **Ficheros que ya no están en su sitio**: si al abrir un Slideshow una pista, la portada, los créditos o la marca de agua se han movido, ya no desaparecen. Se marcan en rojo en el timeline y en su editor, con «Localizar…» para elegir dónde están ahora, sin perder sus ajustes (inicio, Desde, Hasta, duración…). Al localizar uno, se buscan en esa carpeta los demás que falten.

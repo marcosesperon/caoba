@@ -49,9 +49,11 @@ extension View {
 
     /// Bloque común para las barras donde se suelta algo (carpeta, foto): al arrastrar
     /// encima se tiñe de rojo y el borde se engorda, para que se vea que se puede soltar.
-    func caobaDropPanel(isTargeted: Bool) -> some View {
+    /// Con `highlighted` (falta elegir la carpeta) lleva el borde rojo aunque no se arrastre nada.
+    func caobaDropPanel(isTargeted: Bool, highlighted: Bool = false) -> some View {
         caobaPanel(fill: isTargeted ? Color.accentColor.opacity(0.15) : Color(nsColor: .controlBackgroundColor),
-                   border: isTargeted ? Color.accentColor : Color(nsColor: .separatorColor), borderWidth: isTargeted ? 2 : 1)
+                   border: isTargeted || highlighted ? Color.accentColor : Color(nsColor: .separatorColor),
+                   borderWidth: isTargeted || highlighted ? 2 : 1)
     }
 }
 

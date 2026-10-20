@@ -28,15 +28,21 @@ struct ContentView: View {
                 if appState.currentModule.usesSourceFolder {
                     SourceFolderBar()
                 }
+                // Sin carpeta de origen, el módulo y el destino se apagan: lo primero es elegirla arriba.
+                let needsFolder = appState.currentModule.usesSourceFolder && appState.sourceFolder == nil
                 Group {
-                    if appState.currentModule.isAvailable {
-                        moduleView(appState.currentModule)
-                    } else {
-                        ComingSoonView(module: appState.currentModule)
+                    Group {
+                        if appState.currentModule.isAvailable {
+                            moduleView(appState.currentModule)
+                        } else {
+                            ComingSoonView(module: appState.currentModule)
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    DestinationBar(kind: appState.currentModule.destinationKind)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                DestinationBar(kind: appState.currentModule.destinationKind)
+                .disabled(needsFolder)
+                .opacity(needsFolder ? 0.45 : 1)
             }
             .padding(12)
             .animation(.default, value: appState.showUpdateBanner)

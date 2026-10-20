@@ -1937,3 +1937,34 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - La ventana de «Faltan N ficheros» y el aviso de «Se han encontrado N más» no salen en las capturas (ventanas aparte); se comprobó la acción, no la ventana.
 - Collage y Contact Sheet tienen su propia marca de agua o logo; no se han tocado (no estaban en la petición, que era del Slideshow).
+
+## 2026-10-20 — Sin carpeta de origen, todo deshabilitado salvo elegirla
+
+### 1. La petición tal como se ha entendido
+En los módulos que trabajan sobre una carpeta de fotos (Slideshow, Collage, Contact Sheet, Procesador, Marca de agua, Metadatos y Renombrador), mientras no haya carpeta elegida:
+- **Todo el módulo y la barra de destino de abajo se ven apagados y no responden**: presets, opciones, listas, destino y botones de acción.
+- **Solo quedan activas la barra de carpeta** (Elegir carpeta…, Recientes y arrastrar una carpeta encima) **y la barra lateral** para cambiar de módulo.
+- **La barra de carpeta se resalta** con el borde rojo de la app y el texto «Empieza eligiendo o arrastrando una carpeta de fotos».
+- En cuanto se elige carpeta, todo vuelve a la normalidad. Código QR y Shutter Count no usan carpeta y no cambian.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **Además de deshabilitar el resto, ¿se resalta la barra de carpeta?** → Sí: borde rojo de la app y el texto «Empieza eligiendo o arrastrando una carpeta de fotos»; el resto de la pantalla, apagado y sin responder.
+- **¿Qué se queda activo sin carpeta, además de la barra de carpeta y la lateral?** → Nada más: presets, opciones, destino y botones de acción, todo apagado hasta elegir carpeta.
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.8.1).
+- Un solo sitio: `ContentView` calcula «falta la carpeta» (`usesSourceFolder` y sin `sourceFolder`) y pone `.disabled` y opacidad 0,45 al módulo y a la barra de destino. No hace falta tocar cada módulo.
+- `caobaDropPanel(isTargeted:highlighted:)`: con `highlighted`, borde rojo de 2 puntos sin estar arrastrando. `SourceFolderBar` lo usa sin carpeta, con el texto en rojo «Empieza eligiendo o arrastrando una carpeta de fotos».
+- Comprobado con capturas sin carpeta de Collage (oscuro y claro), Slideshow, Procesador y Metadatos; Código QR sin cambios; y Collage con carpeta, de vuelta a la normalidad.
+- Versión 3.8.1.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/ContentView.swift`, `CaobaApp/Sources/Views/Shared/SourceFolderBar.swift`, `Theme.swift` y `CaobaApp/Sources/Model/Module.swift` (`usesSourceFolder`).
+
+### 5. Alternativas descartadas
+- Solo deshabilitar, sin resaltar la barra de carpeta: descartado por el usuario.
+- Dejar activos los presets sin carpeta: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- Los botones principales en rojo («Generar vídeo», «Escribir metadatos») siguen viéndose algo vivos aunque estén apagados, por su color de fondo; no responden.

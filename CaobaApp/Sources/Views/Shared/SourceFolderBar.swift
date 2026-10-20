@@ -12,10 +12,10 @@ struct SourceFolderBar: View {
         @Bindable var state = appState
         HStack(spacing: 10) {
             Image(systemName: "folder").foregroundStyle(.secondary)
-            Text(appState.sourceFolder?.path ?? String(localized: "Elige o arrastra una carpeta de fotos"))
+            Text(appState.sourceFolder?.path ?? String(localized: "Empieza eligiendo o arrastrando una carpeta de fotos"))
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .foregroundStyle(appState.sourceFolder == nil ? .secondary : .primary)
+                .foregroundStyle(appState.sourceFolder == nil ? Color.accentColor : .primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if appState.isScanning {
@@ -48,7 +48,7 @@ struct SourceFolderBar: View {
 
             Button("Elegir carpeta…") { appState.chooseSourceFolder() }
         }
-        .caobaDropPanel(isTargeted: isTargeted)
+        .caobaDropPanel(isTargeted: isTargeted, highlighted: appState.sourceFolder == nil)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             guard let provider = providers.first else { return false }
             _ = provider.loadObject(ofClass: URL.self) { url, _ in
