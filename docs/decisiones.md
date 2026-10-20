@@ -2100,3 +2100,4 @@ Confirmada por el usuario («ok»).
 
 ### 6. Pendiente de comprobar
 - Con 9 fotos por grupo, «Componer según el contenido» reparte las fotos con el método rápido (a partir de 6 fotos no prueba todas las combinaciones); no se ha medido cuánto tarda con carpetas grandes.
+- La carpeta `collages/` (capturas de otras apps, solo de referencia) se ignora en git a petición del usuario, para no publicarla; el script de release exige el árbol limpio.

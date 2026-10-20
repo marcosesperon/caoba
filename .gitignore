@@ -25,3 +25,6 @@ dist/
 
 # ExifTool descargado por Tools/fetch-exiftool.sh
 CaobaApp/Vendor/
+
+# Capturas de otras apps usadas como referencia de diseño (no se publican)
+collages/
