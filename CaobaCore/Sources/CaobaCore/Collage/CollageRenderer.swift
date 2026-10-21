@@ -168,7 +168,9 @@ public enum CollageRenderer {
         for (i, cell) in template.cells.enumerated() {
             try Task.checkCaobaCancellation()
             if let visibleCells, i >= visibleCells { break }
-            var rect = cellRect(cell, canvas: canvas, imageAreaTop: titleH, gap: options.gap, edgePadding: edgePadding)
+            // Pieza en polígono: encogida hacia dentro para dejar la separación; se encuadra sobre su caja.
+            let shape = cell.polygon.map { polygonInPixels($0, canvas: canvas, imageAreaTop: titleH, gap: options.gap) }
+            var rect = shape.map(boundingBox) ?? cellRect(cell, canvas: canvas, imageAreaTop: titleH, gap: options.gap, edgePadding: edgePadding)
             // Círculo perfecto: el cuadrado centrado en su celda (el título cambia el alto disponible).
             if cell.isCircle { rect = squareInside(rect) }
             guard rect.width >= 1, rect.height >= 1 else { continue }
@@ -180,7 +182,9 @@ public enum CollageRenderer {
             ctx.saveGState()
             defer { ctx.restoreGState() }
             if cell.angle != 0 { rotate(ctx, degrees: cell.angle, around: rect, canvasHeight: canvas.height) }
-            if cell.isCircle {
+            if let shape {
+                drawPolygonPhoto(photo, crop: crop, in: rect, polygon: shape, ctx: ctx, canvas: canvas)
+            } else if cell.isCircle {
                 drawCircularPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
             } else if cell.framed ?? template.overlap {
                 drawFramedPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
@@ -211,6 +215,67 @@ public enum CollageRenderer {
         ctx.translateBy(x: cx, y: cy)
         ctx.rotate(by: -degrees * .pi / 180)
         ctx.translateBy(x: -cx, y: -cy)
+    }
+
+    // MARK: Polígonos
+
+    /// Polígono en píxeles (origen arriba), encogido hacia dentro: cada lado se desplaza la mitad
+    /// de la separación, o la separación entera si va por el borde del lienzo (como las celdas rectas).
+    public static func polygonInPixels(_ normalized: [CGPoint], canvas: PixelSize, imageAreaTop: Double, gap: Double) -> [CGPoint] {
+        let width = Double(canvas.width), height = Double(canvas.height) - imageAreaTop
+        let pts = normalized.map { CGPoint(x: $0.x * width, y: imageAreaTop + $0.y * height) }
+        let offsets = pts.indices.map { i -> Double in
+            let a = normalized[i], b = normalized[(i + 1) % normalized.count]
+            let onBorder = (a.x < 0.001 && b.x < 0.001) || (a.x > 0.999 && b.x > 0.999)
+                || (a.y < 0.001 && b.y < 0.001) || (a.y > 0.999 && b.y > 0.999)
+            return onBorder ? gap : gap / 2
+        }
+        return insetPolygon(pts, offsets: offsets)
+    }
+
+    /// Encoge un polígono convexo: el lado `i` (de la esquina `i` a la `i+1`) se mueve hacia dentro
+    /// `offsets[i]`, y cada esquina nueva es el cruce de los dos lados que la forman.
+    public static func insetPolygon(_ pts: [CGPoint], offsets: [Double]) -> [CGPoint] {
+        let n = pts.count
+        guard n >= 3 else { return pts }
+        let center = CGPoint(x: pts.map(\.x).reduce(0, +) / Double(n), y: pts.map(\.y).reduce(0, +) / Double(n))
+        // Cada lado desplazado: un punto y su dirección.
+        let lines: [(p: CGPoint, d: CGPoint)] = (0..<n).map { i in
+            let a = pts[i], b = pts[(i + 1) % n]
+            let d = CGPoint(x: b.x - a.x, y: b.y - a.y)
+            let len = max(1e-9, (d.x * d.x + d.y * d.y).squareRoot())
+            var normal = CGPoint(x: -d.y / len, y: d.x / len)
+            // La normal que mira hacia dentro (hacia el centro del polígono).
+            if (center.x - a.x) * normal.x + (center.y - a.y) * normal.y < 0 { normal = CGPoint(x: -normal.x, y: -normal.y) }
+            return (CGPoint(x: a.x + normal.x * offsets[i], y: a.y + normal.y * offsets[i]), d)
+        }
+        return (0..<n).map { i in
+            let l1 = lines[(i + n - 1) % n], l2 = lines[i]
+            let cross = l1.d.x * l2.d.y - l1.d.y * l2.d.x
+            guard abs(cross) > 1e-9 else { return l2.p }
+            let t = ((l2.p.x - l1.p.x) * l2.d.y - (l2.p.y - l1.p.y) * l2.d.x) / cross
+            return CGPoint(x: l1.p.x + l1.d.x * t, y: l1.p.y + l1.d.y * t)
+        }
+    }
+
+    /// Caja que contiene unos puntos.
+    public static func boundingBox(_ pts: [CGPoint]) -> CGRect {
+        let xs = pts.map(\.x), ys = pts.map(\.y)
+        return CGRect(x: xs.min() ?? 0, y: ys.min() ?? 0, width: (xs.max() ?? 0) - (xs.min() ?? 0), height: (ys.max() ?? 0) - (ys.min() ?? 0))
+    }
+
+    /// Foto recortada con la forma de la pieza (encuadrada sobre su caja).
+    private static func drawPolygonPhoto(_ photo: CGImage, crop: CGRect, in rect: CGRect, polygon: [CGPoint], ctx: CGContext, canvas: PixelSize) {
+        guard let cropped = photo.croppedTopLeft(crop) else { return }
+        let path = CGMutablePath()
+        path.addLines(between: polygon.map { CGPoint(x: $0.x, y: Double(canvas.height) - $0.y) })
+        path.closeSubpath()
+        ctx.saveGState()
+        ctx.addPath(path)
+        ctx.clip()
+        ctx.interpolationQuality = .high
+        ctx.draw(cropped, in: Drawing.cgRect(rect, canvasHeight: canvas.height))
+        ctx.restoreGState()
     }
 
     /// Cuadrado más grande centrado dentro de un rectángulo (sitio del círculo).

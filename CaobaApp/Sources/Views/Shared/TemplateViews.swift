@@ -22,8 +22,13 @@ struct TemplateView: View {
                 ForEach(Array(template.cells.enumerated()), id: \.offset) { index, cell in
                     let full = CGRect(x: cell.x * size.width + gap / 2, y: cell.y * size.height + gap / 2,
                                       width: max(1, cell.w * size.width - gap), height: max(1, cell.h * size.height - gap))
+                    // Pieza en polígono: encogida para dejar la separación; la foto va en su caja y se recorta con su forma.
+                    let polygon = cell.polygon.map { pts in
+                        CollageRenderer.insetPolygon(pts.map { CGPoint(x: $0.x * size.width, y: $0.y * size.height) },
+                                                     offsets: Array(repeating: Double(gap) / 2, count: pts.count))
+                    }
                     // Círculo perfecto: el cuadrado centrado en la celda, con un aro que lo separa de lo de debajo.
-                    let rect = cell.isCircle ? CollageRenderer.squareInside(full) : full
+                    let rect = polygon.map(CollageRenderer.boundingBox) ?? (cell.isCircle ? CollageRenderer.squareInside(full) : full)
                     if cell.isCircle {
                         let ring = max(1.5, gap)
                         Circle().fill(ringColor)
@@ -34,6 +39,7 @@ struct TemplateView: View {
                     // se pasa a los ejes de la foto en `CellPhotoView`).
                     cellView(index: index, rect: rect, isCircle: cell.isCircle, rotation: cell.angle)
                         .frame(width: rect.width, height: rect.height)
+                        .clipShape(PolygonShape(points: polygon?.map { CGPoint(x: $0.x - rect.minX, y: $0.y - rect.minY) }))
                         .rotationEffect(.degrees(cell.angle))
                         .offset(x: rect.minX, y: rect.minY)
                 }
@@ -58,6 +64,18 @@ struct TemplateView: View {
         }
         .clipShape(isCircle ? AnyShape(Circle()) : AnyShape(Rectangle()))
         .shadow(color: template.overlap ? .black.opacity(0.25) : .clear, radius: template.overlap ? 3 : 0, x: 1, y: 1)
+    }
+}
+
+/// Forma de una pieza en polígono (puntos relativos a su caja); sin puntos, el rectángulo entero.
+struct PolygonShape: Shape {
+    let points: [CGPoint]?
+    func path(in rect: CGRect) -> Path {
+        guard let points, points.count >= 3 else { return Path(rect) }
+        var path = Path()
+        path.addLines(points)
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -203,6 +221,7 @@ struct TemplateFilters: View {
                     if showType { Text("Superpuestas").tag(CollageTemplates.TemplateType?.some(.overlap)) }
                     Text("Redondas").tag(CollageTemplates.TemplateType?.some(.round))
                     Text("Giradas").tag(CollageTemplates.TemplateType?.some(.rotated))
+                    Text("Diagonales").tag(CollageTemplates.TemplateType?.some(.polygon))
                 }
                 .pickerStyle(.segmented).fixedSize()
                 .labelsHidden()

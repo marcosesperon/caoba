@@ -87,6 +87,16 @@
         }
       }
     },
+    "Diagonales" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagonal"
+          }
+        }
+      }
+    },
     "Giradas" : {
       "localizations" : {
         "en" : {

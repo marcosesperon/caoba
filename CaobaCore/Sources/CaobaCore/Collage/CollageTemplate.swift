@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 
 /// Celda de una plantilla, en coordenadas normalizadas (0-1) sobre el lienzo.
 public struct CollageCell: Codable, Sendable, Equatable, Hashable {
@@ -15,12 +16,15 @@ public struct CollageCell: Codable, Sendable, Equatable, Hashable {
     /// Marco blanco y sombra en esta celda: `nil` = lo que diga la plantilla (`overlap`). Lo usan
     /// los tramos de carrusel, que mezclan fotos de fondo sin marco con fotos encima con marco.
     public var framed: Bool?
+    /// Pieza con forma de polígono convexo: sus esquinas en 0-1 sobre el lienzo, en orden.
+    /// `x, y, w, h` son entonces la caja que lo contiene (lo que usan el encuadre y el reparto).
+    public var points: [[Double]]?
 
     public enum Shape: String, Codable, Sendable, Hashable {
         case circle
     }
 
-    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil, rotation: Double? = nil, framed: Bool? = nil) {
+    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil, rotation: Double? = nil, framed: Bool? = nil, points: [[Double]]? = nil) {
         self.x = x
         self.y = y
         self.w = w
@@ -28,6 +32,13 @@ public struct CollageCell: Codable, Sendable, Equatable, Hashable {
         self.shape = shape
         self.rotation = rotation
         self.framed = framed
+        self.points = points
+    }
+
+    /// Esquinas del polígono (0-1 sobre el lienzo), o `nil` si la celda es un rectángulo.
+    public var polygon: [CGPoint]? {
+        guard let points, points.count >= 3 else { return nil }
+        return points.map { CGPoint(x: $0[0], y: $0[1]) }
     }
 
     /// Giro en grados (0 si es recta).
@@ -79,6 +90,9 @@ public struct CollageTemplate: Codable, Sendable, Equatable, Hashable, Identifia
     /// las de marco y sombra). Con `overlap`, tarjetas con marco y sombra; sin él, rejilla girada.
     public var isRotated: Bool { cells.contains { $0.angle != 0 } }
 
+    /// Plantilla con piezas en polígono (tipo «Diagonales»: cortes inclinados, abanicos, figura central).
+    public var isPolygon: Bool { cells.contains { $0.polygon != nil } }
+
     /// Tamaño del lienzo dado el lado mayor.
     public func canvasSize(longestSide: Int) -> PixelSize {
         if aspectRatio >= 1 {
@@ -120,12 +134,13 @@ public enum CollageTemplates {
     /// Tipo de plantilla para filtrar: básicas (celdas en rejilla), superpuestas (marco y
     /// sombra, solo en el Slideshow) o redondas (con un círculo; en Collage y en el Slideshow).
     public enum TemplateType: String, Sendable, Codable, CaseIterable {
-        case basic, overlap, round, rotated
+        case basic, overlap, round, rotated, polygon
     }
 
     /// Tipo de una plantilla.
     public static func type(of t: CollageTemplate) -> TemplateType {
         if t.isRotated { return .rotated }
+        if t.isPolygon { return .polygon }
         return t.overlap ? .overlap : (t.isRound ? .round : .basic)
     }
 

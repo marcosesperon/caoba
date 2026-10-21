@@ -2266,3 +2266,47 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - El arrastre del encuadre sobre la tira con el ratón de verdad.
 - «Componer según el contenido» con tramos anchos: puntúa igual que con collages (proporción de celda y sujeto); no se ha evaluado con fotos reales.
+
+## 2026-10-21 — Cortes en diagonal y polígonos
+
+### 1. La petición tal como se ha entendido
+Las plantillas de collage podrán tener **celdas con forma de polígono** (cada una definida por sus esquinas), en tres familias:
+- **Cortes inclinados:** rejillas de 2 a 5 fotos con líneas que no son horizontales ni verticales (diagonal completa, cortes en ángulo, «Y» de tres piezas…).
+- **Abanicos:** triángulos que salen de una esquina o del centro (3 a 6 fotos).
+- **Figura central:** un rombo o un hexágono en el centro, con 4 o 6 piezas alrededor.
+
+Además:
+- **Separación real:** cada pieza se encoge hacia dentro, de modo que el hueco entre fotos mide lo mismo que la «Separación» en todas las direcciones y deja ver el fondo, también el de color. En los bordes del lienzo, igual que en las demás plantillas.
+- Serán un **tipo propio, «Diagonales»**, en el filtro «Tipo», en **Collage y en el Slideshow**.
+- La foto se recorta con la forma de su pieza en todos los sitios: selector, editor de encuadre, timeline, resultado y vídeo. El encuadre se sigue arrastrando igual.
+- **Antes de añadir nada,** el usuario ve una hoja de muestras dibujada con el motor y elige cuáles entran.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué familias: cortes inclinados, abanicos, figura central?** → Las tres.
+- **¿Separación real (cada pieza encoge hacia dentro) o líneas pintadas encima?** → Separación real: el hueco mide la «Separación» en todas las direcciones y deja ver el fondo.
+- **¿Dónde salen?** → En Collage y en el Slideshow, como tipo propio «Diagonales» en el filtro «Tipo».
+- **¿Hoja de muestras antes de añadirlas?** → Sí, dibujada con el motor: unos 15–18 diseños de las tres familias en sus proporciones.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.13.0).
+- Modelo: `CollageCell.points` y `polygon`; la caja (`x, y, w, h`) contiene la pieza, así el resto del código no cambia. `CollageTemplate.isPolygon`, `TemplateType.polygon`.
+- Motor: `polygonInPixels` e `insetPolygon` (cada lado desplazado la mitad de la separación, o entera por el borde; esquinas = cruce de lados desplazados) y `drawPolygonPhoto` (encuadre sobre la caja encogida, recorte con la forma). Solo piezas convexas, para que la cuenta sea exacta.
+- App: `PolygonShape` en `TemplateView` y «Diagonales» en el filtro «Tipo».
+- Diseños: 16 × 7 = 112 (8 cortes inclinados, 5 abanicos, 3 figura central), propuestos con un script que comprueba que cada pieza es convexa y que cubren el lienzo sin huecos ni solapes, y enseñados en una hoja dibujada con el motor. Aprobados todos («todas ok»), también en las proporciones verticales.
+- Tests: suite «Collage en polígonos» (en `poly_diag_2` con separación 40, el blanco a lo largo de la perpendicular a la diagonal mide 40 ± 3 px; cada triángulo con su foto; encoger un cuadrado da el cuadrado centrado) y en `CollageTemplatesTests`: antiguas sin polígono, cada pieza convexa y dentro de su caja, y que entre todas cubren el lienzo (área 1). Pasan los 144 tests.
+- Comprobado en la app: selector de Collage con «Diagonales», editor del Slideshow con «Hexágono + 6» (también en el timeline) y vídeo generado.
+- Número de plantillas actualizado en `documentacion.md`, `README.md` y la landing.
+- Versión 3.13.0. Con esto se cierra la lista de la revisión de `collages/`.
+
+### 3. Fuentes analizadas
+- Capturas `collages/IMG_1066`, `IMG_1081`, `IMG_1083`, `IMG_1085`; `CaobaCore/Sources/CaobaCore/Collage/CollageTemplate.swift`, `CollageRenderer.swift`; `CaobaApp/Sources/Views/Shared/TemplateViews.swift`.
+
+### 5. Alternativas descartadas
+- Líneas del color del fondo pintadas encima (fotos tocándose): descartado por el usuario; las esquinas donde se cruzan las líneas quedan peor y no deja ver un fondo de color de forma limpia.
+- Mezclarlas con las Básicas: descartado por el usuario.
+- Piezas no convexas: el encogido por lados ya no es exacto; ninguno de los diseños las necesita.
+
+### 6. Pendiente de comprobar
+- Las esquinas redondeadas («Esquinas») no se aplican a las piezas en polígono.
+- En vertical, los cortes verticales dejan piezas estrechas (el usuario las aceptó así).

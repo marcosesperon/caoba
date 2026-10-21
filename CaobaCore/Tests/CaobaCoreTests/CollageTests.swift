@@ -8,7 +8,7 @@ struct CollageTemplatesTests {
     @Test("El catálogo se carga del JSON y tiene las cuentas esperadas")
     func catalog() {
         let all = CollageTemplates.all
-        #expect(all.count == 937)
+        #expect(all.count == 1049)
         // 112 superpuestas rectas + 49 tarjetas giradas (que cuentan como «Giradas»).
         #expect(all.filter(\.overlap).count == 161)
         // Sin identificadores repetidos y con tantas celdas como fotos.
@@ -23,7 +23,8 @@ struct CollageTemplatesTests {
         #expect(CollageTemplates.aspectLabels.first == "3:1")
         // Filtro por tipo: las superpuestas solo salen si se piden, y el tipo acota.
         #expect(CollageTemplates.filter(includeOverlap: true, type: .overlap).count == 112)
-        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 937 - 112 - 70 - 77)
+        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 1049 - 112 - 70 - 77 - 112)
+        #expect(CollageTemplates.filter(type: .polygon).count == 112)
         // Las giradas salen siempre, también las de marco y sombra (van en Collage).
         #expect(CollageTemplates.filter(type: .rotated).count == 77)
         // Las redondas salen también sin pedir superpuestas (van en Collage).
@@ -68,6 +69,26 @@ struct CollageTemplatesTests {
         }
         let data = #"{"x":0,"y":0,"w":0.5,"h":0.5,"rotation":-6}"#.data(using: .utf8)!
         #expect(try JSONDecoder().decode(CollageCell.self, from: data).angle == -6)
+    }
+
+    @Test("Polígonos: las antiguas no llevan, cada pieza es convexa, la caja la contiene y entre todas cubren el lienzo")
+    func polygonCells() throws {
+        #expect(CollageTemplates.template(id: "grid_2x2")?.cells.allSatisfy { $0.points == nil } == true)
+        for t in CollageTemplates.filter(type: .polygon) {
+            var total = 0.0
+            for c in t.cells {
+                let p = try #require(c.polygon, "\(t.id) sin polígono")
+                // Convexa: todos los giros hacia el mismo lado.
+                let turns = p.indices.map { i -> Double in
+                    let a = p[i], b = p[(i + 1) % p.count], d = p[(i + 2) % p.count]
+                    return (b.x - a.x) * (d.y - b.y) - (b.y - a.y) * (d.x - b.x)
+                }
+                #expect(turns.allSatisfy { $0 > 0 } || turns.allSatisfy { $0 < 0 }, "\(t.id) no es convexa")
+                #expect(p.allSatisfy { $0.x >= c.x - 1e-6 && $0.x <= c.x + c.w + 1e-6 && $0.y >= c.y - 1e-6 && $0.y <= c.y + c.h + 1e-6 })
+                total += abs(p.indices.reduce(0.0) { s, i in s + p[i].x * p[(i + 1) % p.count].y - p[(i + 1) % p.count].x * p[i].y }) / 2
+            }
+            #expect(abs(total - 1) < 1e-4, "\(t.id) no cubre el lienzo: \(total)")
+        }
     }
 
     @Test("Tamaño del lienzo según el lado mayor")
@@ -115,6 +136,38 @@ struct RotatedCollageTests {
         // Y un punto a la derecha del cuadro sin girar, cerca de su esquina de arriba, solo cae
         // dentro si la foto gira hacia la derecha (con el giro al revés quedaría fuera).
         #expect(TestImages.isRed(TestImages.pixel(image, x: 620, y: 300)))
+    }
+}
+
+@Suite("Collage en polígonos")
+struct PolygonCollageTests {
+    @Test("En una diagonal, el hueco entre las dos fotos mide la separación y cada triángulo tiene su foto")
+    func diagonal() throws {
+        let folder = try TestImages.makeTempFolder()
+        let red = try TestImages.write(TestImages.solid(width: 800, height: 800, r: 1, g: 0, b: 0), to: folder.appendingPathComponent("r.jpg"))
+        let blue = try TestImages.write(TestImages.solid(width: 800, height: 800, r: 0, g: 0, b: 1), to: folder.appendingPathComponent("b.jpg"))
+        let t = try #require(CollageTemplates.template(id: "poly_diag_2"))
+        let gap = 40.0
+        let image = try CollageRenderer.render(CollageRow(template: t, files: [red, blue]), options: CollageOptions(longestSide: 1000, gap: gap, background: .white))
+        #expect(TestImages.isRed(TestImages.pixel(image, x: 250, y: 250)))
+        #expect(TestImages.isBlue(TestImages.pixel(image, x: 750, y: 750)))
+        // Sobre la diagonal (500, 500): blanco; a lo largo de la perpendicular, el blanco ocupa la separación.
+        #expect(TestImages.isWhite(TestImages.pixel(image, x: 500, y: 500)))
+        var whiteSteps = 0
+        for s in stride(from: -40.0, through: 40.0, by: 1) {
+            let x = Int(500 + s / 2.0.squareRoot()), y = Int(500 + s / 2.0.squareRoot())
+            if TestImages.isWhite(TestImages.pixel(image, x: x, y: y)) { whiteSteps += 1 }
+        }
+        #expect(abs(Double(whiteSteps) - gap) <= 3, "hueco de \(whiteSteps) px")
+        // Esquina de la caja del triángulo rojo que queda fuera de él: fondo.
+        #expect(TestImages.isWhite(TestImages.pixel(image, x: 990, y: 980)) || TestImages.isBlue(TestImages.pixel(image, x: 990, y: 980)))
+    }
+
+    @Test("Encoger un cuadrado deja un cuadrado más pequeño, centrado")
+    func inset() {
+        let square = [CGPoint(x: 0, y: 0), CGPoint(x: 100, y: 0), CGPoint(x: 100, y: 100), CGPoint(x: 0, y: 100)]
+        let inner = CollageRenderer.insetPolygon(square, offsets: [10, 10, 10, 10])
+        #expect(CollageRenderer.boundingBox(inner) == CGRect(x: 10, y: 10, width: 80, height: 80))
     }
 }
 
