@@ -245,7 +245,8 @@ struct TemplateFilters: View {
                     Text("Giradas").tag(CollageTemplates.TemplateType?.some(.rotated))
                     Text("Diagonales").tag(CollageTemplates.TemplateType?.some(.polygon))
                 }
-                .pickerStyle(.segmented).fixedSize()
+                // Desplegable, como «Fotos» y «Proporción»: con seis tipos los botones no caben en la hoja.
+                .frame(maxWidth: 220, alignment: .leading)
                 .labelsHidden()
             }
         }

@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- La hoja «Componer secuencia» del Slideshow se salía por los lados (etiquetas y «Diagonales» cortadas): el filtro «Tipo» pasa a ser un desplegable, como «Fotos» y «Proporción», en todas las hojas de elegir plantillas.
+
 ## 3.13.1 — 2026-10-21
 
 - Al elegir plantillas para Componer o «Aleatorias», se avisa de las que siguen marcadas pero no se ven con los filtros actuales (Componer también las usa) y se pueden desmarcar de un clic. Antes salían collages con plantillas que no se veían marcadas.

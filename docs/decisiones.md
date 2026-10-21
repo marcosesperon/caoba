@@ -2335,3 +2335,28 @@ Confirmada por el usuario al elegir el arreglo.
 
 ### 6. Pendiente de comprobar
 - La carpeta del usuario sigue con sus 225 marcadas: verá el aviso y podrá desmarcar las ocultas.
+
+## 2026-10-21 — La hoja «Componer secuencia» se sale por los lados
+
+### 1. La petición tal como se ha entendido
+*(arreglo de un fallo)* En el Slideshow, la hoja «Componer secuencia» se ve cortada: las etiquetas de la izquierda («rto», «rción»…) y la opción «Diagonales» de la derecha no caben. Causa: el filtro «Tipo» son seis botones seguidos que, sumados a la columna de etiquetas, miden más que los 720 pt de la hoja; SwiftUI centra el contenido y lo recorta por los dos lados. Arreglo: «Tipo» pasa a ser un desplegable, como «Fotos» y «Proporción».
+Confirmada por el usuario al aprobar el plan.
+
+### 2. Preguntas y respuestas
+- Ninguna: el usuario aprobó directamente el plan propuesto («si»). Además pidió no hacer commit hasta que lo indique.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/TemplateViews.swift` (`TemplateFilters`).
+- Hojas que lo usan: `Slideshow/SlideshowView.swift` (`TemplatePickerSheet`), `Shared/CollageSequenceEditor.swift` (Componer y Añadir), `CollageView.swift` («Aleatorias»).
+
+### 4. Decisiones
+- «Tipo» como desplegable de hasta 220 pt, alineado a la izquierda. Al estar en `TemplateFilters`, el arreglo llega a todas las hojas de elegir plantillas.
+- Comprobado con capturas: Componer del Slideshow en oscuro y Componer del Collage en claro (con «Diagonales» elegido); todo cabe y queda alineado.
+- Sin commit ni versión nueva: el cambio queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+
+### 5. Alternativas descartadas
+- Ensanchar la hoja: con cada tipo nuevo volvería a pasar, y en pantallas pequeñas no hay sitio.
+- Botones en dos filas o con textos más cortos: más frágil y se lee peor que un desplegable, que ya es lo que usan los otros filtros.
+
+### 6. Pendiente de comprobar
+- Nada.
