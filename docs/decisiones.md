@@ -2436,6 +2436,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar» (las entradas de la previsualización de antes se han rehecho, porque ninguna se había publicado).
+- Publicado después, a petición del usuario, como versión 3.14.0 (junto con el desplegable «Tipo»), con release en GitHub. La landing añade «Toda la secuencia a la vista» y el encuadre por tramo del carrusel.
 - `CollageSequenceEditor` solo lo usa Collage (el Slideshow tiene su propio editor), así que se ha convertido entero en el bloque de abajo sin tocar el Slideshow.
 - Tira interactiva: `CollagePreview` con `onSelect`, `onMove` y el menú de cada modo; las acciones van en `SequenceItemActions` (clic, arrastrar, soltar, menú) y `moveSequenceItem`, compartidos por los tres modos.
 - Carrusel: se sigue dibujando de una pieza (cortes exactos) y encima van zonas invisibles por tramo para el clic, el arrastre y el menú. Al arrastrar se ve la plantilla del tramo en pequeño.

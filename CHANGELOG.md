@@ -2,7 +2,7 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.14.0 — 2026-10-21
 
 - **Collage, nueva distribución**: arriba las opciones y las fotos; abajo, a todo el ancho, la secuencia tal como saldrá (fondo, separación, esquinas, título y logo), con sus botones. Clic en un collage para editar el encuadre, arrastrar para cambiar el orden y clic derecho para quitarlo. Un divisor reparte el alto y recuerda dónde lo dejas.
 - En «Aleatorias» el reparto ya no se sortea a escondidas al generar: se ve abajo, se puede retocar y reordenar, «Otro reparto» lo vuelve a sortear y Generar saca exactamente ese.
