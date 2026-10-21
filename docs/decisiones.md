@@ -2310,3 +2310,28 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - Las esquinas redondeadas («Esquinas») no se aplican a las piezas en polígono.
 - En vertical, los cortes verticales dejan piezas estrechas (el usuario las aceptó así).
+
+## 2026-10-21 — Componer usaba plantillas marcadas que no se ven
+
+### 1. La petición tal como se ha entendido
+*(arreglo de un fallo)* El usuario marca una sola plantilla en «Componer secuencia» (filtros: 3 fotos, Diagonales) y salen collages que no tienen que ver. Causa: el proyecto guardaba 225 plantillas marcadas de otras veces; la hoja solo enseña las que pasan los filtros, pero Componer usa todas las marcadas, también las ocultas. Arreglo elegido: seguir usando todas las marcadas (así se pueden elegir de varios filtros), pero **avisar** de cuántas hay ocultas por los filtros y poder **desmarcarlas** de un clic. Vale para las tres listas con filtros y casillas: Componer del Collage, «Aleatorias» del Collage y Componer del Slideshow. El Componer del carrusel no tiene filtros y no lo necesita.
+Confirmada por el usuario al elegir el arreglo.
+
+### 2. Preguntas y respuestas
+- **¿Componer solo con las visibles, o avisar de las ocultas y poder quitarlas?** → Avisar de las ocultas y poder desmarcarlas; se siguen usando todas las marcadas.
+
+### 3. Fuentes analizadas
+- `.caoba` de la carpeta del usuario (solo lectura): 225 plantillas en `collage.compose.selectedTemplates`, filtros 3 fotos y `polygon`.
+- `CaobaApp/Sources/Views/Shared/CollageSequenceEditor.swift` (hoja Componer), `CollageView.swift` («Aleatorias»), `Slideshow/SlideshowView.swift` (`TemplatePickerSheet`).
+
+### 4. Decisiones
+- Plan aprobado («si»), con release y publicación (versión 3.13.1).
+- `HiddenSelectionNotice` en `TemplateViews.swift`, junto a «Todas las visibles» en las tres listas (sustituye al «N plantillas elegidas» de «Aleatorias»). «Desmarcar las ocultas» quita solo las marcadas que no pasan los filtros.
+- Comprobado con una carpeta de prueba con 8 plantillas marcadas de varios tipos y los filtros «3 fotos · Diagonales»: la hoja de Componer muestra «8 elegidas · 6 ocultas por los filtros» y el botón. El botón es una resta de conjuntos y no se ha pulsado en la prueba.
+- Versión 3.13.1.
+
+### 5. Alternativas descartadas
+- Componer solo con las visibles: descartado por el usuario; impediría elegir plantillas de varios filtros para un mismo Componer.
+
+### 6. Pendiente de comprobar
+- La carpeta del usuario sigue con sus 225 marcadas: verá el aviso y podrá desmarcar las ocultas.

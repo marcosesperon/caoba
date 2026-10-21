@@ -123,6 +123,7 @@ struct CollageSequenceEditor: View {
                     get: { !visibleTemplates.isEmpty && visibleTemplates.allSatisfy { selectedTemplates.contains($0.id) } },
                     set: { on in if on { selectedTemplates.formUnion(visibleTemplates.map(\.id)) } else { selectedTemplates.subtract(visibleTemplates.map(\.id)) } }
                 )).toggleStyle(.checkbox)
+                HiddenSelectionNotice(selection: $selectedTemplates, visible: visibleTemplates)
                 Spacer()
                 Button("Cancelar") { showComposePicker = false }.keyboardShortcut(.cancelAction)
                 Button("Componer") { compose(); showComposePicker = false }

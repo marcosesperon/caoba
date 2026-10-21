@@ -348,6 +348,7 @@ struct TemplatePickerSheet: View {
                         get: { !visible.isEmpty && visible.allSatisfy { selection.contains($0.id) } },
                         set: { on in if on { selection.formUnion(visible.map(\.id)) } else { selection.subtract(visible.map(\.id)) } }
                     )).toggleStyle(.checkbox)
+                    HiddenSelectionNotice(selection: $selection, visible: visible)
                 }
                 Spacer()
                 Button("Cancelar") { dismiss() }.keyboardShortcut(.cancelAction)

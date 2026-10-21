@@ -237,7 +237,7 @@ struct CollageView: View {
                 .labelsHidden()
             }
             HStack {
-                Text("\(randomSelection.count) plantillas elegidas").font(.caption).foregroundStyle(.secondary)
+                HiddenSelectionNotice(selection: $randomSelection, visible: visibleTemplates)
                 Spacer()
                 Toggle("Todas las visibles", isOn: Binding(
                     get: { !visibleTemplates.isEmpty && visibleTemplates.allSatisfy { randomSelection.contains($0.id) } },

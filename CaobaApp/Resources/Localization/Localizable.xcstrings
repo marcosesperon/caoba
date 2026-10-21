@@ -17,152 +17,42 @@
         }
       }
     },
-    "%lld de %lld diapositivas · %lld de %lld fotos · %lld tramos" : {
+    "%lld elegidas" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld of %lld slides · %lld of %lld photos · %lld sections"
+            "value" : "%lld selected"
           }
         }
       }
     },
-    "Arrastra para cambiar el orden; clic derecho para cambiar o quitar" : {
+    "Desmarcar las ocultas" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag to change the order; right-click to change or remove"
+            "value" : "Unselect hidden ones"
           }
         }
       }
     },
-    "Añadir tramo" : {
+    "Están marcadas pero no se ven con los filtros actuales; Componer también las usa" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add section"
+            "value" : "They are selected but hidden by the current filters; Compose uses them too"
           }
         }
       }
     },
-    "Cambiar tramo %lld" : {
+    "· %lld ocultas por los filtros" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Change section %lld"
-          }
-        }
-      }
-    },
-    "Cambiar tramo…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change section…"
-          }
-        }
-      }
-    },
-    "Carrusel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carousel"
-          }
-        }
-      }
-    },
-    "Componer carrusel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compose carousel"
-          }
-        }
-      }
-    },
-    "Diagonales" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diagonal"
-          }
-        }
-      }
-    },
-    "Giradas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rotated"
-          }
-        }
-      }
-    },
-    "Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho %lld diapositivas." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Press Compose or Add to start. A carousel has at most %lld slides."
-          }
-        }
-      }
-    },
-    "Quedan %lld diapositivas y %lld fotos sin asignar." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld slides and %lld photos left unassigned."
-          }
-        }
-      }
-    },
-    "Redondas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Round"
-          }
-        }
-      }
-    },
-    "Se borra lo guardado para esta carpeta: todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, textos, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.\n\nNo se tocan las fotos, los presets guardados ni el historial del Renombrador, que se puede seguir deshaciendo. Esto no se puede deshacer." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This deletes what is saved for this folder: the whole Slideshow project (photo order and selection, collages, framing, texts, captions, cover and credits, music, watermark and video settings), the Collage «Compose» settings and the manual photo order.\n\nYour photos, saved presets and the Renamer history are not touched (you can still undo renames). This cannot be undone."
-          }
-        }
-      }
-    },
-    "Todos" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All"
-          }
-        }
-      }
-    },
-    "¿Reiniciar la configuración de esta carpeta?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reset this folder's settings?"
+            "value" : "· %lld hidden by the filters"
           }
         }
       }
@@ -216,6 +106,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sort by name?"
+          }
+        }
+      }
+    },
+    "¿Reiniciar la configuración de esta carpeta?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset this folder's settings?"
           }
         }
       }
@@ -344,6 +244,16 @@
     "%@" : {
 
     },
+    "%@ · %lld×%lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$lld×%3$lld"
+          }
+        }
+      }
+    },
     "%@ (%@) · %lld×%lld" : {
       "localizations" : {
         "es" : {
@@ -440,6 +350,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld of %lld"
+          }
+        }
+      }
+    },
+    "%lld de %lld diapositivas · %lld de %lld fotos · %lld tramos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of %lld slides · %lld of %lld photos · %lld sections"
           }
         }
       }
@@ -882,6 +802,16 @@
         }
       }
     },
+    "Añadir tramo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add section"
+          }
+        }
+      }
+    },
     "Analizando %lld de %lld fotos…" : {
       "localizations" : {
         "en" : {
@@ -1077,6 +1007,9 @@
         }
       }
     },
+    "Arrastra cada foto para encuadrarla. Las líneas rojas son los cortes entre diapositivas." : {
+
+    },
     "Arrastra cada foto para encuadrarla. Los encuadres manuales se conservan al usar «Ajustar foco»." : {
       "localizations" : {
         "en" : {
@@ -1093,6 +1026,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Drag to change the order"
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el orden; clic derecho para cambiar o quitar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order; right-click to change or remove"
           }
         }
       }
@@ -1166,6 +1109,9 @@
           }
         }
       }
+    },
+    "Así quedará cada diapositiva con las opciones de salida actuales. Las líneas rojas son los cortes." : {
+
     },
     "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
       "localizations" : {
@@ -1430,6 +1376,26 @@
         }
       }
     },
+    "Cambiar tramo %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change section %lld"
+          }
+        }
+      }
+    },
+    "Cambiar tramo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change section…"
+          }
+        }
+      }
+    },
     "Cambiar…" : {
       "localizations" : {
         "en" : {
@@ -1542,6 +1508,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Empty folder"
+          }
+        }
+      }
+    },
+    "Carrusel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carousel"
           }
         }
       }
@@ -1819,6 +1795,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Compose"
+          }
+        }
+      }
+    },
+    "Componer carrusel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compose carousel"
           }
         }
       }
@@ -2264,6 +2250,16 @@
         }
       }
     },
+    "Diagonales" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagonal"
+          }
+        }
+      }
+    },
     "Dígitos" : {
 
     },
@@ -2670,6 +2666,19 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose which templates may be used. They will be distributed randomly across the %lld checked photos."
+          }
+        }
+      }
+    },
+    "Elige qué tramos pueden usarse. Se analizarán las fotos para dar a cada grupo el tramo que mejor le encaje, hasta %lld diapositivas." : {
+
+    },
+    "Elige qué tramos pueden usarse. Se repartirán al azar entre las %lld fotos marcadas, hasta %lld diapositivas." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Elige qué tramos pueden usarse. Se repartirán al azar entre las %1$lld fotos marcadas, hasta %2$lld diapositivas."
           }
         }
       }
@@ -3525,6 +3534,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Generate video"
+          }
+        }
+      }
+    },
+    "Giradas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotated"
           }
         }
       }
@@ -5400,6 +5419,16 @@
         }
       }
     },
+    "Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho %lld diapositivas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press Compose or Add to start. A carousel has at most %lld slides."
+          }
+        }
+      }
+    },
     "px" : {
 
     },
@@ -5415,6 +5444,16 @@
     },
     "Q (25 %)" : {
 
+    },
+    "Quedan %lld diapositivas y %lld fotos sin asignar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld slides and %lld photos left unassigned."
+          }
+        }
+      }
     },
     "Quedan %lld fotos sin asignar." : {
       "localizations" : {
@@ -5597,6 +5636,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resize"
+          }
+        }
+      }
+    },
+    "Redondas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Round"
           }
         }
       }
@@ -5788,6 +5837,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "It is added before the element selected on the timeline, or at the end; you can drag it elsewhere afterwards."
+          }
+        }
+      }
+    },
+    "Se borra lo guardado para esta carpeta: todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, textos, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.\n\nNo se tocan las fotos, los presets guardados ni el historial del Renombrador, que se puede seguir deshaciendo. Esto no se puede deshacer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes what is saved for this folder: the whole Slideshow project (photo order and selection, collages, framing, texts, captions, cover and credits, music, watermark and video settings), the Collage «Compose» settings and the manual photo order.\n\nYour photos, saved presets and the Renamer history are not touched (you can still undo renames). This cannot be undone."
           }
         }
       }
@@ -6556,6 +6615,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All visible"
+          }
+        }
+      }
+    },
+    "Todos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         }
       }

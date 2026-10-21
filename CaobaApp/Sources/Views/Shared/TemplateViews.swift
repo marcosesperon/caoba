@@ -67,6 +67,28 @@ struct TemplateView: View {
     }
 }
 
+/// «N elegidas» y, si hay plantillas marcadas que los filtros esconden, cuántas son y un botón
+/// para desmarcarlas. Componer usa todas las marcadas, también las que no se ven: así no hay sorpresas.
+struct HiddenSelectionNotice: View {
+    @Binding var selection: Set<String>
+    let visible: [CollageTemplate]
+
+    private var hidden: Set<String> { selection.subtracting(visible.map(\.id)) }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text("\(selection.count) elegidas").foregroundStyle(.secondary)
+            if !hidden.isEmpty {
+                Text("· \(hidden.count) ocultas por los filtros").foregroundStyle(Color.accentColor)
+                    .help("Están marcadas pero no se ven con los filtros actuales; Componer también las usa")
+                Button("Desmarcar las ocultas") { selection.subtract(hidden) }
+                    .controlSize(.small)
+            }
+        }
+        .font(.caption)
+    }
+}
+
 /// Forma de una pieza en polígono (puntos relativos a su caja); sin puntos, el rectángulo entero.
 struct PolygonShape: Shape {
     let points: [CGPoint]?

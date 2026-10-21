@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.13.1 — 2026-10-21
+
+- Al elegir plantillas para Componer o «Aleatorias», se avisa de las que siguen marcadas pero no se ven con los filtros actuales (Componer también las usa) y se pueden desmarcar de un clic. Antes salían collages con plantillas que no se veían marcadas.
+
 ## 3.13.0 — 2026-10-21
 
 - **Plantillas en diagonal y con polígonos**: 112 nuevas (1049 en total), en Collage y en el Slideshow. Cortes inclinados, abanicos desde una esquina o el centro, y un rombo o un hexágono en el centro con piezas alrededor. La separación entre fotos mide lo mismo en todas las direcciones. El filtro «Tipo» tiene ahora «Diagonales».
