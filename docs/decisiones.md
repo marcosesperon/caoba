@@ -2178,3 +2178,45 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - En el selector y el editor, el aro usa el color de fondo de los controles (no el del collage); en el resultado y el vídeo usa el del fondo del collage. Con fondos de collage muy distintos al de la ventana, el aro del editor no coincide con el final.
+
+## 2026-10-21 — Fotos giradas (grupo de coste medio, 3 de 3)
+
+### 1. La petición tal como se ha entendido
+Las plantillas de collage podrán tener **fotos giradas**, en dos estilos:
+- **Tarjetas:** fotos sueltas con marco blanco y sombra, algo giradas (de unos 3 a 12 grados) y montadas unas sobre otras sobre el fondo, como fotos impresas.
+- **Rejilla girada:** celdas de una rejilla normal, sin marco, cada una algo girada, dejando huecos del color del fondo.
+
+Además:
+- Serán un **tipo propio, «Giradas»**, en el filtro «Tipo», que sale **en Collage y en el Slideshow** (también las de marco y sombra).
+- **En el editor de encuadre**, la celda se ve girada como en el resultado, y al arrastrar la foto se mueve en la dirección de la propia foto. Lo mismo en el selector, el timeline y el resultado, y en el vídeo la foto sale girada igual.
+- **Antes de añadir nada,** el usuario ve una hoja de muestras dibujada con el motor real y elige cuáles entran.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué estilo: tarjetas con marco y sombra, rejilla con celdas giradas sin marco o las dos?** → Las dos.
+- **¿Dónde salen: Collage y Slideshow como tipo «Giradas», o como las superpuestas?** → Tipo propio «Giradas» en el filtro «Tipo», en Collage y en el Slideshow (también las de marco y sombra).
+- **En el editor de encuadre, ¿la foto girada se arrastra siguiendo la foto o se ve recta?** → Se ve girada, como en el resultado, y arrastrar la mueve en la dirección de la propia foto.
+- **¿Hoja de muestras antes de añadirlas?** → Sí, dibujada con el motor real: unos 10–12 diseños en sus proporciones; el usuario elige.
+
+### 4. Decisiones
+- Plan aprobado («dale»), con release y publicación (versión 3.11.0).
+- Modelo: `CollageCell.rotation` (grados) y `angle`; `CollageTemplate.isRotated`; `TemplateType.rotated`, que manda en `type(of:)`; `filter` saca las giradas siempre, aunque sean `overlap`. El estilo lo decide `overlap`: tarjetas con marco y sombra o rejilla girada sin marco.
+- Motor: el contexto se gira alrededor del centro de la celda antes de dibujarla (marco, sombra y foto); el encuadre se calcula sobre la celda sin girar.
+- App: `TemplateView` aplica `rotationEffect`. El arrastre del encuadre se mide en coordenadas de la ventana y se gira al revés que la celda (`CellPhotoView(rotation:)`), en vez de fiarse de cómo pasa SwiftUI los gestos por un `rotationEffect`. Filtro «Tipo» con «Giradas».
+- Diseños: 11 × 7 = 77 (49 tarjetas, 28 rejilla girada), propuestos con un script temporal que encoge cada diseño lo justo para que ninguna celda girada se salga del lienzo, y enseñados en una hoja dibujada con el motor. Aprobados todos («todo»).
+- Tests: suite «Collage girado» (centro con la foto, hueco del giro con el fondo, y un punto que solo cae dentro si el giro es a la derecha) y en `CollageTemplatesTests`: antiguas sin giro, ninguna celda girada fuera del lienzo y cuentas (937; 77 giradas; 161 con marco). Corregido el test que suponía que sin superpuestas no salía ninguna plantilla con marco. Pasan los 137 tests.
+- Comprobado en la app: selector de Collage con «Giradas», editor del Slideshow con tarjetas giradas (también en el timeline) y vídeo generado con las tarjetas giradas.
+- Número de plantillas actualizado en `documentacion.md`, `README.md` y la landing.
+- Versión 3.11.0. Con esto se cierra el grupo de coste medio.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Collage/CollageTemplate.swift`, `CollageRenderer.swift` (`drawFramedPhoto`, dibujo de celdas), `templates.json` («Disperso» y «Pila», rectos); `CaobaApp/Sources/Views/Shared/TemplateViews.swift` (`TemplateView`, `CellPhotoView`, `TemplateFilters`).
+
+### 5. Alternativas descartadas
+- Solo tarjetas o solo rejilla girada: el usuario quiso las dos.
+- Giradas como las superpuestas (solo en el Slideshow): descartado por el usuario.
+- Celdas rectas en el editor y giro solo en el resultado: descartado por el usuario.
+
+### 6. Pendiente de comprobar
+- El arrastre del encuadre en una celda girada con el ratón de verdad (no se puede simular desde aquí); la cuenta del giro se revisó en el código.
+- La sombra de las tarjetas gira con la tarjeta (en una foto real la sombra iría siempre hacia el mismo lado); con giros pequeños apenas se nota.

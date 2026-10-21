@@ -9,18 +9,25 @@ public struct CollageCell: Codable, Sendable, Equatable, Hashable {
     /// Forma de la celda: `nil` = rectángulo; `.circle` = foto recortada en redondo (el círculo
     /// va en el cuadrado centrado dentro de la celda, con un aro del color del fondo).
     public var shape: Shape?
+    /// Giro de la celda en grados (positivo = hacia la derecha), alrededor de su centro.
+    /// `nil` = recta. El encuadre se calcula sobre la celda sin girar.
+    public var rotation: Double?
 
     public enum Shape: String, Codable, Sendable, Hashable {
         case circle
     }
 
-    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil) {
+    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil, rotation: Double? = nil) {
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.shape = shape
+        self.rotation = rotation
     }
+
+    /// Giro en grados (0 si es recta).
+    public var angle: Double { rotation ?? 0 }
 
     public var isCircle: Bool { shape == .circle }
     public var aspectRatio: Double { isCircle ? 1 : (h > 0 ? w / h : 1) }
@@ -60,6 +67,10 @@ public struct CollageTemplate: Codable, Sendable, Equatable, Hashable, Identifia
 
     /// Plantilla con alguna celda redonda (tipo «Redondas»: sale en Collage y en el Slideshow).
     public var isRound: Bool { cells.contains(where: \.isCircle) }
+
+    /// Plantilla con fotos giradas (tipo «Giradas»: sale en Collage y en el Slideshow, también
+    /// las de marco y sombra). Con `overlap`, tarjetas con marco y sombra; sin él, rejilla girada.
+    public var isRotated: Bool { cells.contains { $0.angle != 0 } }
 
     /// Tamaño del lienzo dado el lado mayor.
     public func canvasSize(longestSide: Int) -> PixelSize {
@@ -101,18 +112,20 @@ public enum CollageTemplates {
     /// Tipo de plantilla para filtrar: básicas (celdas en rejilla), superpuestas (marco y
     /// sombra, solo en el Slideshow) o redondas (con un círculo; en Collage y en el Slideshow).
     public enum TemplateType: String, Sendable, Codable, CaseIterable {
-        case basic, overlap, round
+        case basic, overlap, round, rotated
     }
 
     /// Tipo de una plantilla.
     public static func type(of t: CollageTemplate) -> TemplateType {
-        t.overlap ? .overlap : (t.isRound ? .round : .basic)
+        if t.isRotated { return .rotated }
+        return t.overlap ? .overlap : (t.isRound ? .round : .basic)
     }
 
     /// Filtra por número de fotos, proporción, si se admiten overlap y, opcionalmente, tipo.
     public static func filter(photos: Int? = nil, aspectLabel: String? = nil, includeOverlap: Bool = false, type: TemplateType? = nil) -> [CollageTemplate] {
         all.filter { t in
-            (includeOverlap || !t.overlap)
+            // Las giradas salen siempre, aunque sean de marco y sombra.
+            (includeOverlap || !t.overlap || t.isRotated)
                 && (photos == nil || t.photos == photos)
                 && (aspectLabel == nil || t.aspectLabel == aspectLabel)
                 && (type == nil || Self.type(of: t) == type)

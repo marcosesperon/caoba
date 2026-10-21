@@ -8,21 +8,24 @@ struct CollageTemplatesTests {
     @Test("El catálogo se carga del JSON y tiene las cuentas esperadas")
     func catalog() {
         let all = CollageTemplates.all
-        #expect(all.count == 860)
-        #expect(all.filter(\.overlap).count == 112)
+        #expect(all.count == 937)
+        // 112 superpuestas rectas + 49 tarjetas giradas (que cuentan como «Giradas»).
+        #expect(all.filter(\.overlap).count == 161)
         // Sin identificadores repetidos y con tantas celdas como fotos.
         #expect(Set(all.map(\.id)).count == all.count)
         #expect(all.allSatisfy { $0.cells.count == $0.photos })
         // Hay plantillas de 7, 8 y 9 fotos para que «Componer» pueda formar grupos grandes.
         #expect((7...9).allSatisfy { n in CollageTemplates.filter(photos: n).count >= 40 })
         #expect(CollageTemplates.template(id: "16_9_strips_v9")?.cells.count == 9)
-        #expect(CollageTemplates.filter(photos: 4).allSatisfy { $0.photos == 4 && !$0.overlap })
+        #expect(CollageTemplates.filter(photos: 4).allSatisfy { $0.photos == 4 && (!$0.overlap || $0.isRotated) })
         #expect(CollageTemplates.filter(photos: 2, aspectLabel: "16:9").isEmpty == false)
         #expect(CollageTemplates.template(id: "grid_2x2")?.cells.count == 4)
         #expect(CollageTemplates.aspectLabels.first == "3:1")
         // Filtro por tipo: las superpuestas solo salen si se piden, y el tipo acota.
         #expect(CollageTemplates.filter(includeOverlap: true, type: .overlap).count == 112)
-        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 860 - 112 - 70)
+        #expect(CollageTemplates.filter(includeOverlap: true, type: .basic).count == 937 - 112 - 70 - 77)
+        // Las giradas salen siempre, también las de marco y sombra (van en Collage).
+        #expect(CollageTemplates.filter(type: .rotated).count == 77)
         // Las redondas salen también sin pedir superpuestas (van en Collage).
         #expect(CollageTemplates.filter(type: .round).count == 70)
         #expect(CollageTemplates.filter().contains { $0.isRound })
@@ -47,6 +50,24 @@ struct CollageTemplatesTests {
         // Se lee y se guarda la forma.
         let data = #"{"x":0,"y":0,"w":0.5,"h":0.5,"shape":"circle"}"#.data(using: .utf8)!
         #expect(try JSONDecoder().decode(CollageCell.self, from: data).isCircle)
+    }
+
+    @Test("Fotos giradas: las plantillas antiguas no giran y ninguna celda girada se sale del lienzo")
+    func rotatedCells() throws {
+        #expect(CollageTemplates.template(id: "grid_2x2")?.cells.allSatisfy { $0.rotation == nil } == true)
+        for t in CollageTemplates.filter(type: .rotated) {
+            let canvas = t.canvasSize(longestSide: 1000)
+            let W = Double(canvas.width), H = Double(canvas.height)
+            for c in t.cells {
+                // Caja del rectángulo girado alrededor de su centro.
+                let r = c.angle * .pi / 180, hw = c.w * W / 2, hh = c.h * H / 2
+                let ex = abs(hw * cos(r)) + abs(hh * sin(r)), ey = abs(hw * sin(r)) + abs(hh * cos(r))
+                let cx = (c.x + c.w / 2) * W, cy = (c.y + c.h / 2) * H
+                #expect(cx - ex >= -1 && cx + ex <= W + 1 && cy - ey >= -1 && cy + ey <= H + 1, "\(t.id) se sale")
+            }
+        }
+        let data = #"{"x":0,"y":0,"w":0.5,"h":0.5,"rotation":-6}"#.data(using: .utf8)!
+        #expect(try JSONDecoder().decode(CollageCell.self, from: data).angle == -6)
     }
 
     @Test("Tamaño del lienzo según el lado mayor")
@@ -75,6 +96,25 @@ struct RoundCollageTests {
         // Justo fuera del círculo, el aro blanco.
         let edge = TestImages.pixel(image, x: cx, y: Int(circle.y * 800) - 2)
         #expect(TestImages.isWhite(edge))
+    }
+}
+
+@Suite("Collage girado")
+struct RotatedCollageTests {
+    @Test("Una celda girada tiene su foto en el centro y el fondo donde el giro deja hueco")
+    func render() throws {
+        let folder = try TestImages.makeTempFolder()
+        let red = try TestImages.write(TestImages.solid(width: 800, height: 800, r: 1, g: 0, b: 0), to: folder.appendingPathComponent("r.jpg"))
+        // Una sola celda girada 20° en el centro del lienzo.
+        let cell = CollageCell(x: 0.25, y: 0.25, w: 0.5, h: 0.5, rotation: 20)
+        let t = CollageTemplate(id: "test_rot", name: "Prueba", photos: 1, aspect: [1, 1], cells: [cell])
+        let image = try CollageRenderer.render(CollageRow(template: t, files: [red]), options: CollageOptions(longestSide: 800, gap: 0, background: .white))
+        #expect(TestImages.isRed(TestImages.pixel(image, x: 400, y: 400)))
+        // La esquina de arriba a la izquierda del cuadro sin girar queda fuera de la foto girada.
+        #expect(TestImages.isWhite(TestImages.pixel(image, x: 206, y: 206)))
+        // Y un punto a la derecha del cuadro sin girar, cerca de su esquina de arriba, solo cae
+        // dentro si la foto gira hacia la derecha (con el giro al revés quedaría fuera).
+        #expect(TestImages.isRed(TestImages.pixel(image, x: 620, y: 300)))
     }
 }
 

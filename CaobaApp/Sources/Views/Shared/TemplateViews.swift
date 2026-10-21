@@ -30,8 +30,11 @@ struct TemplateView: View {
                             .frame(width: rect.width + 2 * ring, height: rect.height + 2 * ring)
                             .offset(x: rect.minX - ring, y: rect.minY - ring)
                     }
-                    cellView(index: index, rect: rect, isCircle: cell.isCircle)
+                    // Girada alrededor de su centro, como en el resultado (el arrastre del encuadre
+                    // se pasa a los ejes de la foto en `CellPhotoView`).
+                    cellView(index: index, rect: rect, isCircle: cell.isCircle, rotation: cell.angle)
                         .frame(width: rect.width, height: rect.height)
+                        .rotationEffect(.degrees(cell.angle))
                         .offset(x: rect.minX, y: rect.minY)
                 }
             }
@@ -40,13 +43,14 @@ struct TemplateView: View {
     }
 
     @ViewBuilder
-    private func cellView(index: Int, rect: CGRect, isCircle: Bool) -> some View {
+    private func cellView(index: Int, rect: CGRect, isCircle: Bool, rotation: Double = 0) -> some View {
         let url = files.indices.contains(index) ? files[index] : nil
         let focus = focusPoints.indices.contains(index) ? (focusPoints[index] ?? CGPoint(x: 0.5, y: 0.5)) : CGPoint(x: 0.5, y: 0.5)
         ZStack(alignment: .topLeading) {
             Rectangle().fill(template.overlap ? Color.white.opacity(0.9) : Color.secondary.opacity(0.25))
             if let url {
-                CellPhotoView(url: url, focus: focus, size: rect.size, onFocusChange: onFocusChange.map { handler in { handler(index, $0) } })
+                CellPhotoView(url: url, focus: focus, size: rect.size, onFocusChange: onFocusChange.map { handler in { handler(index, $0) } },
+                              rotation: rotation)
             }
             if highlightIndex == index {
                 if isCircle { Circle().strokeBorder(Color.accentColor, lineWidth: 2) } else { Rectangle().strokeBorder(Color.accentColor, lineWidth: 2) }
@@ -67,6 +71,8 @@ struct CellPhotoView: View {
     /// Ampliación extra sobre el encuadre "cover" (1 = sin zoom).
     var zoom: Double = 1
     var onFocusChange: ((CGPoint) -> Void)?
+    /// Giro de la celda en grados: el arrastre se pasa a los ejes de la foto girada.
+    var rotation: Double = 0
 
     @State private var image: CGImage?
     @State private var dragStartFocus: CGPoint?
@@ -116,14 +122,19 @@ struct CellPhotoView: View {
     }
 
     private func dragGesture() -> some Gesture {
-        DragGesture(minimumDistance: 1)
+        // Medido en la ventana (sin giros) y girado aquí al revés que la celda, para que la foto
+        // se mueva en la dirección en que se arrastra aunque la celda esté girada.
+        DragGesture(minimumDistance: 1, coordinateSpace: .global)
             .onChanged { value in
                 guard let onFocusChange, let scaled = scaledSize else { return }
                 if dragStartFocus == nil { dragStartFocus = focus }
                 guard let start = dragStartFocus else { return }
+                let r = -rotation * .pi / 180
+                let t = CGSize(width: value.translation.width * cos(r) - value.translation.height * sin(r),
+                               height: value.translation.width * sin(r) + value.translation.height * cos(r))
                 // Arrastrar la foto a la derecha significa mirar más a la izquierda.
-                let fx = scaled.width > size.width ? start.x - value.translation.width / scaled.width : 0.5
-                let fy = scaled.height > size.height ? start.y - value.translation.height / scaled.height : 0.5
+                let fx = scaled.width > size.width ? start.x - t.width / scaled.width : 0.5
+                let fy = scaled.height > size.height ? start.y - t.height / scaled.height : 0.5
                 onFocusChange(CGPoint(x: min(1, max(0, fx)), y: min(1, max(0, fy))))
             }
             .onEnded { _ in dragStartFocus = nil }
@@ -191,6 +202,7 @@ struct TemplateFilters: View {
                     Text("Básicas").tag(CollageTemplates.TemplateType?.some(.basic))
                     if showType { Text("Superpuestas").tag(CollageTemplates.TemplateType?.some(.overlap)) }
                     Text("Redondas").tag(CollageTemplates.TemplateType?.some(.round))
+                    Text("Giradas").tag(CollageTemplates.TemplateType?.some(.rotated))
                 }
                 .pickerStyle(.segmented).fixedSize()
                 .labelsHidden()

@@ -17,6 +17,16 @@
         }
       }
     },
+    "Giradas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotated"
+          }
+        }
+      }
+    },
     "Redondas" : {
       "localizations" : {
         "en" : {

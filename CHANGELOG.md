@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.11.0 — 2026-10-21
+
+- **Plantillas con fotos giradas**: 77 nuevas (937 en total), en Collage y en el Slideshow. Tarjetas sueltas con marco blanco y sombra (2 a 6 fotos, pila y diagonal) y rejillas con cada foto algo girada. El filtro «Tipo» tiene ahora «Giradas». En el editor de encuadre, la foto se arrastra siguiendo su giro.
+
 ## 3.10.0 — 2026-10-20
 
 - **Plantillas con una foto en redondo**: 70 nuevas (860 en total), en Collage y en el Slideshow. Un solo círculo, o un círculo encima de 2, 3, 4 o 6 fotos o de una foto grande, separado por un aro del color del fondo. El filtro «Tipo» tiene ahora «Redondas», también en Collage.

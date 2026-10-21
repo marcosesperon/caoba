@@ -176,6 +176,10 @@ public enum CollageRenderer {
             let focus = row.focusPoints.indices.contains(i) ? (row.focusPoints[i] ?? CGPoint(x: 0.5, y: 0.5)) : CGPoint(x: 0.5, y: 0.5)
             let crop = CropGeometry.rect(in: photo.pixelSize, ratio: rect.width / rect.height, focus: focus)
 
+            // Celda girada: se dibuja todo (marco, sombra y foto) girado alrededor de su centro.
+            ctx.saveGState()
+            defer { ctx.restoreGState() }
+            if cell.angle != 0 { rotate(ctx, degrees: cell.angle, around: rect, canvasHeight: canvas.height) }
             if cell.isCircle {
                 drawCircularPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
             } else if template.overlap {
@@ -198,6 +202,15 @@ public enum CollageRenderer {
 
         guard let image = ctx.makeImage() else { throw CaobaError.invalidParameters("collage.render") }
         return image
+    }
+
+    /// Gira el contexto alrededor del centro de `rect` (coordenadas con origen arriba). En Core
+    /// Graphics la Y va hacia arriba, así que un giro a la derecha es un ángulo negativo.
+    private static func rotate(_ ctx: CGContext, degrees: Double, around rect: CGRect, canvasHeight: Int) {
+        let cx = rect.midX, cy = Double(canvasHeight) - rect.midY
+        ctx.translateBy(x: cx, y: cy)
+        ctx.rotate(by: -degrees * .pi / 180)
+        ctx.translateBy(x: -cx, y: -cy)
     }
 
     /// Cuadrado más grande centrado dentro de un rectángulo (sitio del círculo).
