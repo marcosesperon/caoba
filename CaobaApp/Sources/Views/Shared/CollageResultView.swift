@@ -7,6 +7,8 @@ import CaobaCore
 struct CollageResultView: View {
     let row: CollageRow
     let options: CollageOptions
+    /// Con margen y sombra alrededor (en el carrusel va a sangre, para que encaje con los cortes).
+    var framed = true
 
     /// Lado mayor del render de pantalla: suficiente para juzgar el resultado sin esperar al tamaño final.
     static let previewSide = 1600
@@ -23,8 +25,8 @@ struct CollageResultView: View {
         ZStack {
             if let image {
                 Image(decorative: image, scale: 1).resizable().scaledToFit()
-                    .shadow(color: .black.opacity(0.25), radius: 8, y: 3)
-                    .padding(12)
+                    .shadow(color: .black.opacity(framed ? 0.25 : 0), radius: 8, y: 3)
+                    .padding(framed ? 12 : 0)
             } else if let errorText {
                 ContentUnavailableView("No se pudo renderizar", systemImage: "exclamationmark.triangle", description: Text(errorText))
             } else {

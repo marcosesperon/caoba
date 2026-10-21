@@ -177,6 +177,17 @@ Cuatro planes, todos devuelven `[RenameEntry]` (original → nombre nuevo) con c
 - `render(row, options)` compone un collage; `generate(rows:options:outputFolder:)` escribe `collage.jpg` o `collage_01.jpg`, `collage_02.jpg`…
 - Las fotos se decodifican ya reducidas al tamaño de su celda (`PhotoLoader`) para no cargar originales de 50 MP enteros.
 
+
+### Carrusel de Instagram (`Carousel`, `CarouselFormat`, `CarouselTemplates`)
+
+Tercera opción de «Plantillas» en Collage (Secuencia, Aleatorias, **Carrusel**; `CollageMode` en la app). Un carrusel es una tira ancha de hasta 10 diapositivas (`Carousel.maxSlides`, el máximo de Instagram) que se exporta cortada.
+- **Formatos** (`CarouselFormat`): 4:5 (1080×1350), 1:1 (1080×1080) y 3:4 (1080×1440); cada diapositiva mide 1080 px de ancho (`Carousel.slideWidth`).
+- **Tramos**: catálogo propio en `Collage/carousel_templates.json` (30 tramos, sin formato: `id`, `name`, `slides` de 1 a 5 y `cells` en 0-1 sobre el tramo entero). `CarouselTemplates` los ofrece en los tres formatos como plantillas normales (`carousel_<formato>_<id>`, con `slides` y `aspect` = slides × proporción); no salen en los selectores de collage, pero `CollageTemplates.template(id:)` los encuentra, así la secuencia (`SequenceItem`) sirve igual. Las celdas de fondo van primero; las de encima, después: sin marco (como en los carruseles de referencia) o con `framed: true` (marco blanco y sombra; `CollageCell.framed` manda sobre el `overlap` de la plantilla).
+- **Encadenar y cortar**: `Carousel.combine` une los tramos en una plantilla de N diapositivas; `renderPanorama` la dibuja con `CollageRenderer` a `N × 1080` px de ancho (sin título); `slices` la corta en diapositivas exactas; `generate` escribe en una subcarpeta nueva de la carpeta de salida (`carrusel`, `carrusel_2`…) `01.jpg`…`NN.jpg` (orden de subida) y `panoramica.jpg`. `limited` recorta a 10 diapositivas.
+- **Pantalla** (`CarouselEditor`): formato, Componer (al azar o según el contenido, con los tramos marcados y hasta 10 diapositivas), Añadir, Ajustar foco, Vaciar, «N de 10 diapositivas», la tira con los cortes en rojo y el número de cada diapositiva (encuadre arrastrable sobre la tira; «Resultado» a sangre, `CollageResultView(framed: false)`), y los tramos debajo (arrastrar para reordenar; clic derecho o doble clic para cambiar o quitar). Al cambiar de formato cada tramo pasa al mismo tramo del formato nuevo.
+- **Se guarda por carpeta** (sección `collage`, `CarouselSettings`): formato, modo de Componer, reordenar y tramos marcados (sin formato). La secuencia, como la del Collage, no se guarda.
+- Pruebas: `--state collage.tab=carousel`, `carousel.compose=1` (compone al azar en cuanto hay fotos), `carousel.result=1` y `collage.run=1` (pulsa «Generar»).
+
 ### Reparto por contenido (`PhotoProfile`, `ContentComposer`)
 
 Al componer una secuencia de collages, además del reparto aleatorio, se puede pedir «Según el contenido»: la app analiza cada foto marcada (caras y, si no hay, objetos salientes, con Vision sobre una miniatura y con caché) y el motor decide, para cada grupo de fotos consecutivas, qué plantilla permitida les sienta mejor, cuántas fotos entran en el grupo y qué foto va en cada celda.

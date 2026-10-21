@@ -182,7 +182,7 @@ public enum CollageRenderer {
             if cell.angle != 0 { rotate(ctx, degrees: cell.angle, around: rect, canvasHeight: canvas.height) }
             if cell.isCircle {
                 drawCircularPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
-            } else if template.overlap {
+            } else if cell.framed ?? template.overlap {
                 drawFramedPhoto(photo, crop: crop, in: rect, options: options, ctx: ctx, canvas: canvas)
             } else {
                 Drawing.drawImage(photo, crop: crop, into: rect, cornerRadius: options.cornerRadius, in: ctx, canvasHeight: canvas.height)

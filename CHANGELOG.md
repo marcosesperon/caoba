@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.12.0 — 2026-10-21
+
+- **Carrusel de Instagram** en Collage («Plantillas» → «Carrusel»): una tira de hasta 10 diapositivas en 4:5, 1:1 o 3:4, montada con 30 tramos de 1 a 5 diapositivas (fotos de fondo que pasan de una diapositiva a la siguiente, fotos encima, franjas y bloques). Componer la monta sola; se ven los cortes y el resultado. Al generar sale una carpeta con 01.jpg, 02.jpg… listas para subir y la panorámica.
+
 ## 3.11.0 — 2026-10-21
 
 - **Plantillas con fotos giradas**: 77 nuevas (937 en total), en Collage y en el Slideshow. Tarjetas sueltas con marco blanco y sombra (2 a 6 fotos, pila y diagonal) y rejillas con cada foto algo girada. El filtro «Tipo» tiene ahora «Giradas». En el editor de encuadre, la foto se arrastra siguiendo su giro.

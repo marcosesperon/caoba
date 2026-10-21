@@ -2220,3 +2220,49 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - El arrastre del encuadre en una celda girada con el ratón de verdad (no se puede simular desde aquí); la cuenta del giro se revisó en el código.
 - La sombra de las tarjetas gira con la tarjeta (en una foto real la sombra iría siempre hacia el mismo lado); con giros pequeños apenas se nota.
+
+## 2026-10-21 — Carrusel de Instagram
+
+### 1. La petición tal como se ha entendido
+Una forma nueva de hacer collages para **publicaciones en carrusel de Instagram**: un collage muy ancho que se corta en N diapositivas y se sube junto.
+- **Dónde:** dentro de **Collage**, como tercera opción de «Plantillas» (Secuencia, Aleatorias, **Carrusel**). Reutiliza la lista de fotos, el editor de encuadre, el fondo (también el personalizado), la separación, las esquinas, la sombra y la salida.
+- **Formato de diapositiva,** a elegir: **4:5** (1080×1350), **1:1** (1080×1080) o **3:4** (1080×1440).
+- **Montaje:** el carrusel se forma **encadenando tramos** de un catálogo propio. Cada tramo ocupa 1, 2 o 3 diapositivas y puede tener **fotos de fondo que cruzan los cortes** y fotos encima, alguna también a caballo de un corte. Los tramos se añaden, se cambian, se quitan y se reordenan, hasta **10 diapositivas** (el máximo de Instagram). Además, **«Componer»** lo monta solo con las fotos marcadas.
+- **Vista:** la tira completa con las **líneas de corte** marcadas y el número de cada diapositiva; el encuadre de cada foto se arrastra como en las demás plantillas.
+- **Exportar:** una carpeta con **una imagen por diapositiva** numerada en el orden de subida (01.jpg, 02.jpg…) y además **la panorámica completa**.
+- **Antes de añadir los tramos,** el usuario ve una **hoja de muestras** dibujada con el motor, con los cortes marcados, y elige cuáles entran.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Con cuál de los dos de coste alto se empieza: carrusel o diagonales y polígonos?** → Carrusel de Instagram.
+- **¿Dónde va: dentro de Collage o como módulo nuevo?** → Dentro de Collage, como tercera opción de «Plantillas» (Secuencia, Aleatorias, Carrusel), reutilizando lista de fotos, editor de encuadre, fondo, separación y salida.
+- **¿Formato de cada diapositiva?** → A elegir entre 4:5 (1080×1350), 1:1 (1080×1080) y 3:4 (1080×1440).
+- **¿Cómo se monta: encadenando tramos o con plantillas completas cerradas?** → Encadenando tramos de un catálogo de diseños de carrusel (de 1 a 3 diapositivas de ancho, con fotos de fondo que cruzan los cortes y fotos encima) hasta 10 diapositivas, y «Componer» para que lo monte solo con las fotos marcadas.
+- **¿Qué se exporta?** → Una carpeta con una imagen por diapositiva numerada en el orden de subida (01.jpg, 02.jpg…) y además la panorámica completa.
+- **¿Hoja de muestras de los tramos antes de añadirlos?** → Sí, dibujada con el motor, con las líneas de corte marcadas; el usuario elige.
+- Tramos de carrusel: 15 primeros aprobados («esas estan bien»); el usuario pidió además diseños como los de IMG_1073–1078 y franjas verticales. Se propusieron 11 más (16–26, fotos encima sin marco como en las capturas); descartados el 22 y el 23 («se pueden generar como diapositivas sueltas»: las franjas caen justo en los cortes). Catálogo final: 24 tramos × 3 formatos.
+- Petición añadida a mitad de trabajo: más combinaciones de franjas y bloques de al menos 4 o 5 diapositivas, incluidas franjas horizontales que ocupen todo el ancho de la diapositiva. Se proponen 6 tramos más (27–32) en otra hoja.
+
+### 4. Decisiones
+- Plan aprobado («dale»), todo seguido; con release y publicación (versión 3.12.0). Tramos 25–30 aprobados («todo ok»): catálogo final de 30 tramos × 3 formatos.
+- Motor (`Collage/Carousel.swift`): `CarouselFormat`, `CarouselTemplates` (catálogo `carousel_templates.json` sin formato, ofrecido en los tres; ids `carousel_<formato>_<id>`, fuera de los selectores de collage pero encontrables con `CollageTemplates.template(id:)`), `Carousel.combine`, `renderPanorama`, `slices`, `limited` y `generate` (subcarpeta `carrusel`, `carrusel_2`…; `01…NN.jpg` y `panoramica.jpg`). Nuevos `CollageCell.framed` (marco por celda, para mezclar fondo sin marco y fotos encima con marco) y `CollageTemplate.slides`.
+- Cada tramo es una plantilla normal: se reutilizan la secuencia (`SequenceItem`), Componer (`CollageRenderer.group` y `ContentComposition`, recortados a 10 diapositivas) y el motor de dibujo. La panorámica se dibuja entera y se corta, así las fotos que cruzan un corte siguen sin salto.
+- App: `CollageMode` (secuencia, aleatorias, carrusel) y `CarouselEditor`. Ajustes del carrusel guardados por carpeta en `CollageFolderSettings.carousel` (`CarouselSettings`); la secuencia no se guarda, como la del Collage.
+- Fallo encontrado al probar: «Resultado» salía desplazado respecto a los cortes por el margen y la sombra de `CollageResultView`; nuevo parámetro `framed` (a sangre en el carrusel).
+- Tests nuevos (suite «Carrusel»): catálogo (30 × 3, celdas dentro, ids encontrables y separados de las plantillas de collage), tamaños exactos en los tres formatos, continuidad de una foto al cruzar un corte (degradado), tope de 10 y escritura de `01…NN` + panorámica sin pisar una carpeta anterior. Pasan los 141 tests.
+- Comprobado en la app: modo Carrusel con Componer (tira con cortes y números; «Resultado» alineado) y «Generar» de punta a punta: 8 diapositivas de 1080×1350 y panorámica de 8640×1350.
+- Opciones de prueba nuevas: `collage.tab=carousel`, `carousel.compose=1`, `carousel.result=1`, `collage.run=1`.
+
+### 3. Fuentes analizadas
+- Capturas `collages/IMG_1073`–`IMG_1078`; `CaobaApp/Sources/Views/Modules/CollageView.swift`, `CollageSequenceEditor.swift`, `CollageResultView.swift`, `ContentComposition.swift`; `CaobaCore/Sources/CaobaCore/Collage/CollageRenderer.swift`, `CollageTemplate.swift`, `Config/ComposeSettings.swift`.
+
+### 5. Alternativas descartadas
+- Módulo nuevo «Carrusel»: descartado por el usuario (va dentro de Collage).
+- Plantillas de carrusel completas y cerradas: descartado por el usuario (se encadenan tramos).
+- Solo las diapositivas sin la panorámica: descartado por el usuario.
+- Los tramos 22 y 23 (franjas que caen justo en los cortes): descartados por el usuario.
+- Meter los tramos en `templates.json`: se mezclarían con las plantillas de collage en todos los selectores.
+
+### 6. Pendiente de comprobar
+- El arrastre del encuadre sobre la tira con el ratón de verdad.
+- «Componer según el contenido» con tramos anchos: puntúa igual que con collages (proporción de celda y sujeto); no se ha evaluado con fotos reales.

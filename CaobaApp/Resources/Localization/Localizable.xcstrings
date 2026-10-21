@@ -17,12 +17,102 @@
         }
       }
     },
+    "%lld de %lld diapositivas · %lld de %lld fotos · %lld tramos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld of %lld slides · %lld of %lld photos · %lld sections"
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el orden; clic derecho para cambiar o quitar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order; right-click to change or remove"
+          }
+        }
+      }
+    },
+    "Añadir tramo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add section"
+          }
+        }
+      }
+    },
+    "Cambiar tramo %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change section %lld"
+          }
+        }
+      }
+    },
+    "Cambiar tramo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change section…"
+          }
+        }
+      }
+    },
+    "Carrusel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carousel"
+          }
+        }
+      }
+    },
+    "Componer carrusel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compose carousel"
+          }
+        }
+      }
+    },
     "Giradas" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rotated"
+          }
+        }
+      }
+    },
+    "Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho %lld diapositivas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press Compose or Add to start. A carousel has at most %lld slides."
+          }
+        }
+      }
+    },
+    "Quedan %lld diapositivas y %lld fotos sin asignar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld slides and %lld photos left unassigned."
           }
         }
       }
@@ -43,6 +133,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This deletes what is saved for this folder: the whole Slideshow project (photo order and selection, collages, framing, texts, captions, cover and credits, music, watermark and video settings), the Collage «Compose» settings and the manual photo order.\n\nYour photos, saved presets and the Renamer history are not touched (you can still undo renames). This cannot be undone."
+          }
+        }
+      }
+    },
+    "Todos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         }
       }

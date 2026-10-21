@@ -20,6 +20,7 @@ let package = Package(
             resources: [
                 // Plantillas de collage exportadas de la app antigua (ver docs).
                 .process("Collage/templates.json"),
+                .process("Collage/carousel_templates.json"),
             ]
         ),
         .testTarget(

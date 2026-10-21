@@ -18,7 +18,7 @@ La aplicación se organiza en **9 módulos** agrupados en dos categorías. Todos
 ### Creadores
 
 1. **Slideshow** — Vídeos MP4 a partir de fotos o collages, con música, fundidos y efectos Ken Burns
-2. **Collage** — Collages fotográficos con 937 plantillas y editor de encuadre
+2. **Collage** — Collages fotográficos con 937 plantillas y editor de encuadre, y carruseles de Instagram
 3. **Contact Sheet** — Hojas de contacto con las miniaturas de tus fotos
 
 ### Utilidades

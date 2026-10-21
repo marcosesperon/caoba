@@ -12,18 +12,22 @@ public struct CollageCell: Codable, Sendable, Equatable, Hashable {
     /// Giro de la celda en grados (positivo = hacia la derecha), alrededor de su centro.
     /// `nil` = recta. El encuadre se calcula sobre la celda sin girar.
     public var rotation: Double?
+    /// Marco blanco y sombra en esta celda: `nil` = lo que diga la plantilla (`overlap`). Lo usan
+    /// los tramos de carrusel, que mezclan fotos de fondo sin marco con fotos encima con marco.
+    public var framed: Bool?
 
     public enum Shape: String, Codable, Sendable, Hashable {
         case circle
     }
 
-    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil, rotation: Double? = nil) {
+    public init(x: Double, y: Double, w: Double, h: Double, shape: Shape? = nil, rotation: Double? = nil, framed: Bool? = nil) {
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.shape = shape
         self.rotation = rotation
+        self.framed = framed
     }
 
     /// Giro en grados (0 si es recta).
@@ -42,14 +46,17 @@ public struct CollageTemplate: Codable, Sendable, Equatable, Hashable, Identifia
     public var aspect: [Int]
     public var overlap: Bool
     public var cells: [CollageCell]
+    /// Solo en los tramos de carrusel: cuántas diapositivas ocupa. `nil` en las de collage.
+    public var slides: Int?
 
-    public init(id: String, name: String, photos: Int, aspect: [Int], overlap: Bool = false, cells: [CollageCell]) {
+    public init(id: String, name: String, photos: Int, aspect: [Int], overlap: Bool = false, cells: [CollageCell], slides: Int? = nil) {
         self.id = id
         self.name = name
         self.photos = photos
         self.aspect = aspect
         self.overlap = overlap
         self.cells = cells
+        self.slides = slides
     }
 
     /// Proporción del lienzo (ancho / alto).
@@ -105,8 +112,9 @@ public enum CollageTemplates {
         all.first { $0.aspectLabel == label }
     }
 
+    /// Busca en las plantillas de collage y, si no está, en los tramos de carrusel.
     public static func template(id: String) -> CollageTemplate? {
-        all.first { $0.id == id }
+        all.first { $0.id == id } ?? CarouselTemplates.template(id: id)
     }
 
     /// Tipo de plantilla para filtrar: básicas (celdas en rejilla), superpuestas (marco y
