@@ -1,9 +1,11 @@
 import SwiftUI
 import CaobaCore
 
-/// Modo Carrusel del Collage: tramos encadenados que forman una tira ancha, que se
-/// exporta cortada en diapositivas de Instagram. Reutiliza la secuencia del Collage
-/// (cada tramo es un `SequenceItem`), Componer y el encuadre por celda.
+/// Bloque de abajo de Collage en modo Carrusel: tramos encadenados que forman una tira ancha,
+/// que se exporta cortada en diapositivas de Instagram. Cabecera con Componer, Añadir, Ajustar
+/// foco y Vaciar; debajo, el carrusel dibujado de verdad (clic en un tramo para encuadrarlo,
+/// arrastrar para reordenar, clic derecho para cambiarlo o quitarlo). El formato se elige
+/// en la columna de opciones. Cada tramo es un `SequenceItem`, como en la secuencia.
 struct CarouselEditor: View {
     @Environment(AppState.self) private var appState
     @Binding var format: CarouselFormat
@@ -13,13 +15,13 @@ struct CarouselEditor: View {
     @Binding var composeMode: ComposeMode
     @Binding var allowReorder: Bool
     let files: [URL]
-    /// Opciones reales de salida, para la vista «Resultado».
+    /// Opciones reales de salida, para dibujar el carrusel.
     let options: CollageOptions
 
     @State private var showComposePicker = false
     @State private var showAddPicker = false
     @State private var changingIndex: Int?
-    @State private var showResult = false
+    @State private var editingIndex: Int?
     @State private var isAdjustingFocus = false
     @State private var composeProgress: ComposeProgress?
     @State private var composeTask: Task<Void, Never>?
@@ -29,131 +31,46 @@ struct CarouselEditor: View {
     private var slides: Int { Carousel.slideCount(rows) }
     private var assignedCount: Int { rows.reduce(0) { $0 + $1.files.count } }
     private var catalog: [CollageTemplate] { CarouselTemplates.templates(for: format) }
-    private var combined: CollageRow? { Carousel.combine(rows, format: format) }
 
     var body: some View {
-        OptionGroup(title: "Carrusel") {
-            LabeledRow("Formato") {
-                Picker("", selection: $format) {
-                    ForEach(CarouselFormat.allCases) { f in
-                        Text("\(f.label) · \(f.slideSize.width)×\(f.slideSize.height)").tag(f)
-                    }
-                }
-                .pickerStyle(.segmented).fixedSize().labelsHidden()
+        SequenceBlock(title: "Carrusel") {
+            Button("Componer") { showComposePicker = true }.disabled(files.isEmpty)
+            Button("Añadir") { showAddPicker = true }.disabled(slides >= Carousel.maxSlides || assignedCount >= files.count)
+            Menu("Ajustar foco") {
+                Button("Automático (saliencia)") { adjustFocus(.saliency) }
+                Button("Caras") { adjustFocus(.faces) }
+                Button("Centrar todo") { adjustFocus(.center) }
             }
-            HStack {
-                Button("Componer") { showComposePicker = true }.disabled(files.isEmpty)
-                Button("Añadir") { showAddPicker = true }.disabled(slides >= Carousel.maxSlides || assignedCount >= files.count)
-                Menu("Ajustar foco") {
-                    Button("Automático (saliencia)") { adjustFocus(.saliency) }
-                    Button("Caras") { adjustFocus(.faces) }
-                    Button("Centrar todo") { adjustFocus(.center) }
-                }
-                .fixedSize()
-                .disabled(sequence.isEmpty || isAdjustingFocus)
-                Button("Vaciar") { sequence = [] }.disabled(sequence.isEmpty)
-                if isAdjustingFocus { ProgressView().controlSize(.small) }
-                if let composeProgress { ComposeProgressView(progress: composeProgress) { composeTask?.cancel() } }
-                Spacer()
-                CollageViewModePicker(showResult: $showResult)
-            }
+            .fixedSize()
+            .disabled(sequence.isEmpty || isAdjustingFocus)
+            Button("Vaciar") { sequence = [] }.disabled(sequence.isEmpty)
+            if isAdjustingFocus { ProgressView().controlSize(.small) }
+            if let composeProgress { ComposeProgressView(progress: composeProgress) { composeTask?.cancel() } }
+            Spacer()
             Text("\(slides) de \(Carousel.maxSlides) diapositivas · \(assignedCount) de \(files.count) fotos · \(rows.count) tramos")
                 .font(.caption).foregroundStyle(slides > Carousel.maxSlides ? Color.accentColor : .secondary)
-            strip
-            segmentChips
+        } content: {
+            CollagePreview(rows: rows, options: options, carouselFormat: format,
+                           emptyMessage: "Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho \(Carousel.maxSlides) diapositivas.",
+                           onSelect: { editingIndex = $0 },
+                           onMove: { moveSequenceItem(&sequence, moved: $0, onto: $1) }) { index in
+                Button("Editar encuadre") { editingIndex = index }
+                Button("Cambiar tramo…") { changingIndex = index }
+                Button("Quitar", role: .destructive) { if rows.indices.contains(index) { let id = rows[index].id; sequence.removeAll { $0.id == id } } }
+            }
         }
         .onChange(of: format) { switchFormat() }
         .onChange(of: files) { prune(); autoComposeIfRequested() }
+        .onChange(of: sequence) { openEditorIfRequested() }
         .onAppear { autoComposeIfRequested() }
         .sheet(isPresented: $showComposePicker) { composeSheet }
         .sheet(isPresented: $showAddPicker) { addSheet }
         .sheet(item: Binding(get: { changingIndex.map { Target(index: $0) } }, set: { changingIndex = $0?.index })) { target in
             changeSheet(index: target.index)
         }
-    }
-
-    // MARK: Tira
-
-    /// La tira completa con las líneas de corte y el número de cada diapositiva. En «Encuadre»
-    /// cada foto se arrastra para encuadrarla; en «Resultado», con las opciones reales.
-    @ViewBuilder
-    private var strip: some View {
-        if let combined {
-            let height: CGFloat = 230
-            let slideW = height * CGFloat(format.aspect.width) / CGFloat(format.aspect.height)
-            let total = combined.template.slides ?? 1
-            ScrollView(.horizontal) {
-                ZStack(alignment: .topLeading) {
-                    if showResult {
-                        CollageResultView(row: combined, options: stripOptions, framed: false)
-                    } else {
-                        TemplateView(template: combined.template, files: combined.files, focusPoints: combined.focusPoints, gap: 2) { cell, point in
-                            updateFocus(globalCell: cell, point: point)
-                        }
-                        .background(Color(cgColor: options.background.fill))
-                    }
-                    // Cortes y números de diapositiva (no estorban al arrastre).
-                    ForEach(0..<total, id: \.self) { i in
-                        if i > 0 {
-                            Rectangle().fill(Color.accentColor).frame(width: 2, height: height)
-                                .offset(x: slideW * CGFloat(i) - 1)
-                        }
-                        Text("\(i + 1)").font(.caption2.monospacedDigit().bold()).foregroundStyle(.white)
-                            .padding(.horizontal, 4).padding(.vertical, 1)
-                            .background(.black.opacity(0.55), in: RoundedRectangle(cornerRadius: 3))
-                            .offset(x: slideW * CGFloat(i) + 4, y: 4)
-                    }
-                    .allowsHitTesting(false)
-                }
-                .frame(width: slideW * CGFloat(total), height: height)
-            }
-            Text(showResult
-                 ? "Así quedará cada diapositiva con las opciones de salida actuales. Las líneas rojas son los cortes."
-                 : "Arrastra cada foto para encuadrarla. Las líneas rojas son los cortes entre diapositivas.")
-                .font(.caption).foregroundStyle(.secondary)
-        } else {
-            Text("Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho \(Carousel.maxSlides) diapositivas.")
-                .font(.callout).foregroundStyle(.secondary).padding(.vertical, 20)
+        .sheet(item: Binding(get: { editingIndex.map { Target(index: $0) } }, set: { editingIndex = $0?.index })) { target in
+            CarouselFocusEditorSheet(sequence: $sequence, rows: rows, index: target.index, format: format, options: options)
         }
-    }
-
-    /// Opciones para la vista «Resultado»: más pequeña que la salida real, mismo aspecto.
-    private var stripOptions: CollageOptions {
-        var o = options
-        o.title = ""
-        o.longestSide = 360 * max(1, slides)
-        o.gap = options.gap / 3
-        return o
-    }
-
-    /// Tramos en orden: se reordenan arrastrando; clic derecho para cambiar o quitar.
-    private var segmentChips: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                    VStack(spacing: 2) {
-                        TemplateView(template: row.template).frame(height: 36)
-                        Text(row.template.name).font(.caption2).lineLimit(1).foregroundStyle(.secondary)
-                    }
-                    .frame(width: 30 * CGFloat(row.template.slides ?? 1) + 24)
-                    .help("Arrastra para cambiar el orden; clic derecho para cambiar o quitar")
-                    .contextMenu {
-                        Button("Cambiar tramo…") { changingIndex = index }
-                        Button("Quitar", role: .destructive) { sequence.removeAll { $0.id == row.id } }
-                    }
-                    .onTapGesture(count: 2) { changingIndex = index }
-                    .draggable(row.id.uuidString)
-                    .dropDestination(for: String.self) { items, _ in
-                        guard let moved = items.first.flatMap(UUID.init), let from = sequence.firstIndex(where: { $0.id == moved }),
-                              let to = sequence.firstIndex(where: { $0.id == row.id }) else { return false }
-                        sequence.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
-                        return true
-                    }
-                }
-            }
-            .padding(.vertical, 2)
-        }
-        .frame(height: 60)
     }
 
     // MARK: Hojas
@@ -252,12 +169,11 @@ struct CarouselEditor: View {
     }
 
     /// Para capturas: `--state carousel.compose=1` compone al azar con los tramos marcados en
-    /// cuanto hay fotos (con `carousel.result=1`, en la vista «Resultado»).
+    /// cuanto hay fotos (con `carousel.editor=1`, abre además el editor del primer tramo).
     private func autoComposeIfRequested() {
         guard sequence.isEmpty, !files.isEmpty, appState.launchState["carousel.compose"] != nil else { return }
         composeMode = .random
         compose()
-        showResult = appState.launchState["carousel.result"] != nil
     }
 
     /// Los primeros tramos de una secuencia que caben en 10 diapositivas.
@@ -278,19 +194,6 @@ struct CarouselEditor: View {
     }
 
     /// Encuadre arrastrado en la tira: la celda global se pasa a su tramo y su celda.
-    private func updateFocus(globalCell: Int, point: CGPoint) {
-        var cell = globalCell
-        for row in rows {
-            if cell < row.template.photos {
-                guard let i = sequence.firstIndex(where: { $0.id == row.id }), sequence[i].focusPoints.indices.contains(cell) else { return }
-                sequence[i].focusPoints[cell] = point
-                sequence[i].manualCells.insert(cell)
-                return
-            }
-            cell -= row.template.photos
-        }
-    }
-
     private func prune() {
         var count = 0
         sequence = sequence.filter { item in
@@ -317,5 +220,89 @@ struct CarouselEditor: View {
         }
     }
 
+    private func openEditorIfRequested() {
+        guard appState.launchState["carousel.editor"] != nil, editingIndex == nil, !rows.isEmpty else { return }
+        editingIndex = 0
+    }
+
     private struct Target: Identifiable { let index: Int; var id: Int { index } }
+}
+
+/// Editor de encuadre de un tramo del carrusel: el tramo en grande con los cortes entre
+/// diapositivas; cada foto se arrastra dentro de su celda. Flechas para pasar de tramo.
+struct CarouselFocusEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var sequence: [SequenceItem]
+    let rows: [CollageRow]
+    @State var index: Int
+    let format: CarouselFormat
+    let options: CollageOptions
+    @State private var showResult = false
+
+    private var row: CollageRow? { rows.indices.contains(index) ? rows[index] : nil }
+    private var item: SequenceItem? { row.flatMap { r in sequence.first { $0.id == r.id } } }
+    /// Número de la primera diapositiva del tramo dentro del carrusel.
+    private var firstSlide: Int { Carousel.slideCount(Array(rows.prefix(index))) + 1 }
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Button { index -= 1 } label: { Image(systemName: "chevron.left") }.disabled(index <= 0)
+                Text("Tramo \(index + 1) de \(rows.count)").font(.headline)
+                Button { index += 1 } label: { Image(systemName: "chevron.right") }.disabled(index >= rows.count - 1)
+                CollageViewModePicker(showResult: $showResult).padding(.leading, 8)
+                Spacer()
+                if !showResult { Button("Centrar celdas") { resetFocus() } }
+            }
+            if let row, let item {
+                segmentView(row: row, item: item)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(nsColor: .windowBackgroundColor))
+            } else {
+                ContentUnavailableView("Sin tramo", systemImage: "rectangle.split.3x1")
+            }
+            Text(showResult
+                 ? "Así quedará el tramo con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto."
+                 : "Arrastra cada foto para encuadrarla. Las líneas rojas son los cortes entre diapositivas.")
+                .font(.caption).foregroundStyle(.secondary)
+            HStack { Spacer(); Button("Hecho") { dismiss() }.keyboardShortcut(.defaultAction) }
+        }
+        .padding(16)
+        .frame(minWidth: 960, minHeight: 560)
+    }
+
+    /// El tramo ajustado al hueco, con sus cortes encima.
+    private func segmentView(row: CollageRow, item: SequenceItem) -> some View {
+        let slides = row.template.slides ?? 1
+        let ratio = CGFloat(format.aspect.width * slides) / CGFloat(format.aspect.height)
+        return GeometryReader { geo in
+            let width = min(geo.size.width, geo.size.height * ratio)
+            let height = width / ratio
+            ZStack(alignment: .topLeading) {
+                if showResult {
+                    CollageResultView(row: row, options: CarouselPreviewOptions.make(options, format: format, slides: slides), framed: false)
+                } else {
+                    TemplateView(template: row.template, files: row.files, focusPoints: item.focusPoints, gap: 4) { cell, point in
+                        updateFocus(cell: cell, point: point)
+                    }
+                    .background(Color(cgColor: options.background.fill))
+                }
+                CarouselCuts(slides: slides, slideWidth: width / CGFloat(slides), height: height, firstNumber: firstSlide)
+            }
+            .frame(width: width, height: height)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private func updateFocus(cell: Int, point: CGPoint) {
+        guard let row, let i = sequence.firstIndex(where: { $0.id == row.id }), sequence[i].focusPoints.indices.contains(cell) else { return }
+        sequence[i].focusPoints[cell] = point
+        sequence[i].manualCells.insert(cell)
+    }
+
+    private func resetFocus() {
+        guard let row, let i = sequence.firstIndex(where: { $0.id == row.id }) else { return }
+        sequence[i].focusPoints = Array(repeating: nil, count: row.template.photos)
+        sequence[i].manualCells = []
+    }
 }

@@ -2360,3 +2360,99 @@ Confirmada por el usuario al aprobar el plan.
 
 ### 6. Pendiente de comprobar
 - Nada.
+
+## 2026-10-21 — Previsualización en la pantalla de Collage
+
+### 1. La petición tal como se ha entendido
+En la pantalla de Collage, la columna derecha se divide en dos: arriba la lista de fotos y abajo una **previsualización de toda la secuencia**, con un divisor que se arrastra (empieza mitad y mitad).
+- **Qué se ve**: los collages dibujados con el motor real y las opciones de Salida y Logo (fondo, separación, esquinas, título, logo), en una **tira horizontal** con scroll y numerados. Se vuelven a dibujar al cambiar esas opciones o la secuencia.
+- **Secuencia**: los collages de la secuencia. Pulsar uno abre el editor de enfoque.
+- **Aleatorias**: se sortea un reparto con las plantillas marcadas y ese reparto es **el que usa Generar** (ya no sortea por su cuenta). Hay un botón «Otro reparto» para volver a sortear; también se vuelve a sortear solo al cambiar las fotos o las plantillas marcadas (perdiendo los encuadres retocados). El «Enfoque» (Centro / Automático / Caras) se aplica al sortear. Pulsar un collage abre el editor de enfoque. Como la secuencia, no se guarda en el `.caoba`.
+- **Carrusel**: la tira con las diapositivas y sus cortes, con el resultado real. Se quita el conmutador «Encuadre / Resultado» de su panel, que queda solo para encuadrar.
+- **Además**: la columna izquierda deja de cortarse por la derecha (valores de los deslizadores y botón «Generar» siempre visibles).
+Confirmada por el usuario («dale»).
+
+### 2. Preguntas y respuestas
+- **¿Qué enseña la previsualización bajo la lista de fotos: el collage seleccionado, la secuencia completa o la foto seleccionada?** → La secuencia completa.
+- **En «Aleatorias» (sin secuencia fija), ¿qué enseña: un reparto de muestra orientativo, el reparto que luego se usa al generar, o nada?** → Usar el reparto que se ve: Generar usa exactamente el reparto mostrado.
+- **¿Render real con las opciones de Salida y Logo, o esquema rápido de plantillas?** → Render real.
+- **¿Cómo se reparte la columna derecha: divisor ajustable, mitad fija o plegable?** → Divisor ajustable, empezando mitad y mitad.
+- **¿Rejilla con scroll vertical, uno debajo de otro o tira horizontal?** → Tira horizontal.
+- **En el carrusel, ¿quitar el conmutador «Encuadre / Resultado» o dejarlo?** → Quitar «Resultado»: el panel del carrusel queda para encuadrar y el resultado se ve en la previsualización.
+- **¿Pulsar un collage de la previsualización abre el editor de enfoque o es solo para mirar?** → Abre el editor de enfoque (también en Aleatorias; en el carrusel se encuadra en su panel).
+- **La columna izquierda se corta por la derecha («10 px», «90», «Generar»): ¿se arregla en este cambio?** → Sí, en este cambio.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/CollageView.swift` (`HSplitView` con opciones a la izquierda y `FileListView` a la derecha).
+- `CaobaApp/Sources/Views/Modules/CarouselEditor.swift` y `Shared/CollageResultView.swift` (vista «Resultado» ya existente).
+- `CaobaCore/Sources/CaobaCore/Collage/CollageRenderer.swift` (`CollageOptions`, `group`: las fotos de cada collage van seguidas, así que el reparto se puede guardar como secuencia).
+- `Shared/FileListView.swift` (cabecera con «Orden» y «Orientación», que fija el ancho mínimo de la lista).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit ni versión: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Vista nueva `CollagePreview` (`Shared/CollagePreview.swift`): tira horizontal, un `CollageResultView` por collage a 900 px de lado mayor, para que al tocar un collage solo se redibuje ese. Carrusel: la tira entera con las opciones reales del carrusel (1080 px por diapositiva, sin título), a 500 px por diapositiva.
+- `CollageOptions.scaled(toLongestSide:)` en el motor: al dibujar pequeño, separación y esquinas bajan en proporción. Antes la vista «Resultado» del editor de foco los dejaba en píxeles de la salida y salían más gruesos; ahora se ve igual que el fichero (afecta también al editor de foco y al inspector del Slideshow, para bien). Sustituye al `gap / 3` a ojo del carrusel. Test nuevo.
+- Columna derecha con `VSplitView` (lista arriba, previsualización abajo, 400 pt ideales cada una, mínimo 180).
+- Aleatorias: `randomSequence` en `CollageView`. Se sortea al entrar, al cambiar fotos, plantillas marcadas o «Enfoque», y con «Otro reparto» (en la fila de «Enfoque»). Los focos se calculan después en segundo plano; Generar se desactiva hasta que acaban, para que salga lo que se ve. Si mientras tanto se retoca un encuadre a mano, se respeta. En otros modos el reparto se tira y se sortea al volver.
+- El editor de enfoque se abre desde la previsualización con una hoja propia de `CollageView` (sobre `sequence` o `randomSequence`).
+- Carrusel: fuera el conmutador «Encuadre / Resultado», el texto de «Resultado» y el `carousel.result` de pruebas. Las líneas de corte pasan a `CarouselCuts`, compartido. El formato pasa a desplegable: como botones (más la etiqueta) medía unos 530 pt.
+- Recorte de la columna izquierda: venía de controles que no encogen (el formato del carrusel y el conmutador). Además el mínimo de la columna sube de 360 a 400 pt. Con 420 la lista de fotos se cortaba a 1000 pt de ventana: su cabecera mide unos 350 pt. Con 400 caben las dos a 1000 pt, comprobado con capturas.
+- Comprobado con capturas a 1000×625: Secuencia (oscuro), Aleatorias (claro) y Carrusel (claro y oscuro). Generar en Aleatorias (`collage.run=1`) ha sacado los mismos tres collages que la previsualización. 145 tests en verde.
+
+### 5. Alternativas descartadas
+- Previsualizar solo el collage seleccionado o la foto seleccionada: el usuario prefiere ver la secuencia entera.
+- Reparto de muestra orientativo en Aleatorias (Generar sorteando otro): descartado por el usuario; lo que se ve tiene que ser lo que sale.
+- Esquema rápido con `TemplateView` en vez del render real: no enseña fondo, esquinas, título ni logo.
+- Rejilla o uno debajo de otro: el usuario eligió tira horizontal.
+- Dibujar toda la secuencia en una sola imagen: cualquier cambio obligaría a redibujarla entera.
+- Mínimo de 420 pt en la columna izquierda: a 1000 pt de ventana cortaba la lista de fotos.
+- Tocar la cabecera de `FileListView` para que encoja: la usan otros módulos; no hacía falta.
+
+### 6. Pendiente de comprobar
+- Con carpetas grandes (más de 100 fotos) y enfoque «Automático» o «Caras», cada nuevo sorteo vuelve a pedir los focos; van con caché, pero la primera vez Generar tarda en activarse.
+- No se ha probado a mano el clic en la previsualización ni «Otro reparto» (solo compilación y capturas).
+
+## 2026-10-21 — Selección y previsualización de Collage en un solo bloque abajo; encuadre manual en el carrusel
+
+### 1. La petición tal como se ha entendido
+La pantalla de Collage pasa a tener **arriba** las opciones (izquierda) y la lista de fotos entera (derecha), y **abajo, a todo el ancho**, un único bloque con la secuencia, separado por un divisor que se arrastra (el bloque empieza con unos 260 pt).
+- **El bloque de abajo** une selección y previsualización. Su cabecera lleva los botones y el recuento del modo; debajo, la tira con los collages dibujados de verdad (fondo, separación, esquinas, título, logo).
+  - **Secuencia**: cabecera con Componer, Añadir, Ajustar foco, Vaciar y «N de M fotos asignadas · K collages». Sobre cada collage: clic → editor de enfoque; arrastrar → cambia el orden; clic derecho → «Editar enfoque» y «Quitar». Desaparecen las tarjetas de la izquierda y el grupo «Secuencia».
+  - **Aleatorias**: cabecera con «Otro reparto» y el recuento; los collages del reparto con las mismas acciones. A la izquierda se quedan los filtros, el «Enfoque» y la lista de plantillas permitidas.
+  - **Carrusel**: cabecera con Componer, Añadir, Ajustar foco, Vaciar y «N de 10 diapositivas…»; la tira real con los cortes y el número de cada diapositiva. Sobre cada tramo: clic → **editor de encuadre del carrusel** (nuevo); arrastrar → cambia el orden; clic derecho → cambiar o quitar el tramo. A la izquierda queda solo el «Formato»; desaparecen la tira de encuadre y las fichas de tramos.
+- **Editor de encuadre del carrusel** (hoja, como el de Secuencia): el tramo en grande con los cortes entre diapositivas, cada foto se arrastra dentro de su celda, flechas para pasar de un tramo a otro, «Centrar celdas» y conmutador «Encuadre / Resultado».
+- «Generar» sigue al pie de la columna de opciones.
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué se puede hacer sobre cada collage del bloque unificado de abajo?** → Todo lo que hacían las tarjetas de «Secuencia»: clic abre el editor de enfoque, arrastrar cambia el orden, clic derecho «Editar enfoque» y «Quitar».
+- **¿Cómo se reparte la altura entre la parte de arriba y el bloque de abajo?** → Divisor ajustable; el bloque empieza con unos 260 pt.
+- **¿Dónde van los botones de la secuencia (Componer, Añadir, Ajustar foco, Vaciar) y el recuento?** → En la cabecera del bloque de abajo; a la izquierda quedan solo las opciones.
+- **En el carrusel, ¿cómo se ajusta a mano el encuadre?** → Con un editor que se abre al pulsar un tramo, como en Secuencia (fotos arrastrables, cortes visibles, flechas entre tramos, «Encuadre / Resultado»).
+
+### 3. Fuentes analizadas
+- Captura del usuario: tira de tarjetas de «Secuencia» tachada; recuadro a todo el ancho en la parte baja (de «Título» hasta «Generar», más la previsualización).
+- `CollageView.swift`, `Shared/CollageSequenceEditor.swift`, `Shared/CollagePreview.swift`, `Modules/CarouselEditor.swift`.
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar» (las entradas de la previsualización de antes se han rehecho, porque ninguna se había publicado).
+- `CollageSequenceEditor` solo lo usa Collage (el Slideshow tiene su propio editor), así que se ha convertido entero en el bloque de abajo sin tocar el Slideshow.
+- Tira interactiva: `CollagePreview` con `onSelect`, `onMove` y el menú de cada modo; las acciones van en `SequenceItemActions` (clic, arrastrar, soltar, menú) y `moveSequenceItem`, compartidos por los tres modos.
+- Carrusel: se sigue dibujando de una pieza (cortes exactos) y encima van zonas invisibles por tramo para el clic, el arrastre y el menú. Al arrastrar se ve la plantilla del tramo en pequeño.
+- Editor nuevo `CarouselFocusEditorSheet` (en `CarouselEditor.swift`), hecho a semejanza de `FocusEditorSheet`; los números de diapositiva siguen la numeración del carrusel. Opción de arranque `carousel.editor=1` para capturas.
+- Divisor propio `BottomSplit` en vez de `VSplitView`: con `VSplitView` el bloque salía con 340 pt en un modo y con 180 en otro; el propio empieza en 260 y guarda la altura en las preferencias (`collage.sequenceBlockHeight`).
+- «Otro reparto» pasa de la fila de «Enfoque» a la cabecera del bloque «Reparto».
+- Se quitan `PreviewTarget`, la vista `preview` y el `VSplitView` de la columna derecha de la versión anterior, la tira de encuadre y las fichas de tramos del carrusel, y el `updateFocus(globalCell:)`.
+- El `body` de `CollageView` se ha partido (`setUp`, `modeChanged`, `randomEditingTarget`) porque el compilador no podía comprobar los tipos de la expresión entera.
+- Comprobado con capturas: Secuencia a 1000×625 (oscuro), Aleatorias a 1440×900 (claro), Carrusel (claro y oscuro) y el editor del carrusel. Generar en Aleatorias ha vuelto a sacar los mismos cuatro collages que se ven.
+
+### 5. Alternativas descartadas
+- Encuadrar el carrusel arrastrando sobre la propia tira: la tira es pequeña y el arrastre chocaría con el de reordenar (descartado por el usuario).
+- Dejar los botones de la secuencia en la columna izquierda (descartado por el usuario).
+- Altura fija del bloque (el usuario prefirió divisor ajustable).
+- `VSplitView`: no respeta la altura inicial.
+- Dibujar cada tramo del carrusel por separado: los bordes entre tramos no saldrían exactamente como en el fichero.
+
+### 6. Pendiente de comprobar
+- A 1000×625 la parte de arriba queda baja (unos 250 pt para las opciones) y hay que hacer scroll; se puede bajar el divisor.
+- No se ha probado a mano: arrastrar para reordenar en la tira, el menú del clic derecho, el divisor, «Otro reparto», ni la vista «Resultado» del editor del carrusel.

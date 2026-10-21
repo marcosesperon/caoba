@@ -4,6 +4,10 @@ Cada versión con lo que cambia para quien usa la app. La sección de la versió
 
 ## Sin publicar
 
+- **Collage, nueva distribución**: arriba las opciones y las fotos; abajo, a todo el ancho, la secuencia tal como saldrá (fondo, separación, esquinas, título y logo), con sus botones. Clic en un collage para editar el encuadre, arrastrar para cambiar el orden y clic derecho para quitarlo. Un divisor reparte el alto y recuerda dónde lo dejas.
+- En «Aleatorias» el reparto ya no se sortea a escondidas al generar: se ve abajo, se puede retocar y reordenar, «Otro reparto» lo vuelve a sortear y Generar saca exactamente ese.
+- **Carrusel**: al pulsar un tramo se abre un editor para encuadrar cada foto a mano, con los cortes entre diapositivas y la vista «Resultado». El formato pasa a la columna de opciones, como desplegable.
+- La columna de opciones de Collage ya no se corta por los lados en ventanas estrechas.
 - La hoja «Componer secuencia» del Slideshow se salía por los lados (etiquetas y «Diagonales» cortadas): el filtro «Tipo» pasa a ser un desplegable, como «Fotos» y «Proporción», en todas las hojas de elegir plantillas.
 
 ## 3.13.1 — 2026-10-21

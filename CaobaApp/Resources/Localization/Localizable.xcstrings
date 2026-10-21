@@ -17,46 +17,6 @@
         }
       }
     },
-    "%lld elegidas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld selected"
-          }
-        }
-      }
-    },
-    "Desmarcar las ocultas" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unselect hidden ones"
-          }
-        }
-      }
-    },
-    "Están marcadas pero no se ven con los filtros actuales; Componer también las usa" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "They are selected but hidden by the current filters; Compose uses them too"
-          }
-        }
-      }
-    },
-    "· %lld ocultas por los filtros" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "· %lld hidden by the filters"
-          }
-        }
-      }
-    },
     "— Marcos Esperón" : {
 
     },
@@ -139,6 +99,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "· %@ mechanical"
+          }
+        }
+      }
+    },
+    "· %lld ocultas por los filtros" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· %lld hidden by the filters"
           }
         }
       }
@@ -364,12 +334,32 @@
         }
       }
     },
+    "%lld de %lld fotos · %lld collages" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld de %2$lld fotos · %3$lld collages"
+          }
+        }
+      }
+    },
     "%lld de %lld fotos asignadas · %lld collages" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld of %lld photos assigned · %lld collages"
+          }
+        }
+      }
+    },
+    "%lld elegidas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld selected"
           }
         }
       }
@@ -429,6 +419,7 @@
       }
     },
     "%lld plantillas elegidas" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1031,6 +1022,7 @@
       }
     },
     "Arrastra para cambiar el orden; clic derecho para cambiar o quitar" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1110,9 +1102,6 @@
         }
       }
     },
-    "Así quedará cada diapositiva con las opciones de salida actuales. Las líneas rojas son los cortes." : {
-
-    },
     "Así quedará el collage con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
       "localizations" : {
         "en" : {
@@ -1122,6 +1111,9 @@
           }
         }
       }
+    },
+    "Así quedará el tramo con las opciones de salida actuales. Vuelve a «Encuadre» para corregir cualquier foto." : {
+
     },
     "Asignar efectos" : {
       "localizations" : {
@@ -1643,6 +1635,9 @@
           }
         }
       }
+    },
+    "Clic para editar el encuadre; arrastra para cambiar el orden; clic derecho para más opciones" : {
+
     },
     "Codificando vídeo…" : {
       "localizations" : {
@@ -2210,6 +2205,16 @@
         }
       }
     },
+    "Desmarcar las ocultas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unselect hidden ones"
+          }
+        }
+      }
+    },
     "Después" : {
       "localizations" : {
         "en" : {
@@ -2447,6 +2452,9 @@
           }
         }
       }
+    },
+    "Editar encuadre" : {
+
     },
     "Editar enfoque" : {
       "localizations" : {
@@ -3004,6 +3012,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This photo does not include the shutter counter."
+          }
+        }
+      }
+    },
+    "Están marcadas pero no se ven con los filtros actuales; Componer también las usa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They are selected but hidden by the current filters; Compose uses them too"
           }
         }
       }
@@ -4218,6 +4236,9 @@
         }
       }
     },
+    "Marca plantillas en «Plantillas permitidas» para sortear un reparto." : {
+
+    },
     "Marcar o desmarcar todas las fotos" : {
 
     },
@@ -4924,6 +4945,9 @@
           }
         }
       }
+    },
+    "Otro reparto" : {
+
     },
     "Pan abajo" : {
       "localizations" : {
@@ -6233,6 +6257,9 @@
         }
       }
     },
+    "Sin tramo" : {
+
+    },
     "Sin vista previa" : {
       "localizations" : {
         "en" : {
@@ -6629,6 +6656,16 @@
         }
       }
     },
+    "Tramo %lld de %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tramo %1$lld de %2$lld"
+          }
+        }
+      }
+    },
     "Transición" : {
       "localizations" : {
         "en" : {
@@ -6988,6 +7025,9 @@
           }
         }
       }
+    },
+    "Vuelve a sortear qué plantilla le toca a cada grupo de fotos" : {
+
     },
     "Web" : {
       "localizations" : {

@@ -28,6 +28,18 @@ public struct CollageOptions: Sendable, Equatable {
         self.quality = quality
         self.logo = logo
     }
+
+    /// Las mismas opciones para un render más pequeño (previsualizaciones): la separación
+    /// y las esquinas, que van en píxeles, se encogen en proporción para que se vea igual.
+    public func scaled(toLongestSide side: Int) -> CollageOptions {
+        guard side < longestSide else { return self }
+        let factor = Double(side) / Double(longestSide)
+        var o = self
+        o.longestSide = side
+        o.gap = gap * factor
+        o.cornerRadius = cornerRadius * factor
+        return o
+    }
 }
 
 /// Un collage concreto: plantilla, fotos en orden de celda y foco por celda.

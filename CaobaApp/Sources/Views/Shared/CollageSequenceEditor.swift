@@ -1,8 +1,9 @@
 import SwiftUI
 import CaobaCore
 
-/// Editor de secuencia de collages compartido por Collage y Slideshow:
-/// Componer, Añadir, Ajustar foco, tarjetas reordenables y editor de enfoque.
+/// Bloque de abajo de Collage en modo Secuencia: Componer, Añadir, Ajustar foco y Vaciar en la
+/// cabecera y, debajo, la secuencia dibujada de verdad (clic para el editor de enfoque,
+/// arrastrar para reordenar, clic derecho para editar o quitar).
 struct CollageSequenceEditor: View {
     @Environment(AppState.self) private var appState
     @Binding var sequence: [SequenceItem]
@@ -41,52 +42,31 @@ struct CollageSequenceEditor: View {
     private var visibleTemplates: [CollageTemplate] { CollageTemplates.filter(photos: composeState.filters.photos, aspectLabel: composeState.filters.aspect, includeOverlap: includeOverlap, type: composeState.filters.type) }
 
     var body: some View {
-        OptionGroup(title: "Secuencia") {
-            HStack {
-                Button("Componer") { showComposePicker = true }.disabled(files.isEmpty)
-                Button("Añadir") { showAddPicker = true }.disabled(assignedCount >= files.count)
-                Menu("Ajustar foco") {
-                    Button("Automático (saliencia)") { adjustFocus(.saliency) }
-                    Button("Caras") { adjustFocus(.faces) }
-                    Button("Centrar todo") { adjustFocus(.center) }
-                }
-                .disabled(sequence.isEmpty || isAdjustingFocus)
-                Button("Vaciar") { sequence = [] }.disabled(sequence.isEmpty)
-                if isAdjustingFocus { ProgressView().controlSize(.small) }
-                if let composeProgress {
-                    ComposeProgressView(progress: composeProgress) { composeTask?.cancel() }
-                }
+        SequenceBlock(title: "Secuencia") {
+            Button("Componer") { showComposePicker = true }.disabled(files.isEmpty)
+            Button("Añadir") { showAddPicker = true }.disabled(assignedCount >= files.count)
+            Menu("Ajustar foco") {
+                Button("Automático (saliencia)") { adjustFocus(.saliency) }
+                Button("Caras") { adjustFocus(.faces) }
+                Button("Centrar todo") { adjustFocus(.center) }
             }
+            .fixedSize()
+            .disabled(sequence.isEmpty || isAdjustingFocus)
+            Button("Vaciar") { sequence = [] }.disabled(sequence.isEmpty)
+            if isAdjustingFocus { ProgressView().controlSize(.small) }
+            if let composeProgress {
+                ComposeProgressView(progress: composeProgress) { composeTask?.cancel() }
+            }
+            Spacer()
             Text("\(assignedCount) de \(files.count) fotos asignadas · \(rows.count) collages")
                 .font(.caption).foregroundStyle(.secondary)
-            ScrollView(.horizontal) {
-                HStack(spacing: 10) {
-                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                        VStack(spacing: 2) {
-                            TemplateView(template: row.template, files: row.files, focusPoints: row.focusPoints)
-                                .frame(height: 90)
-                            Text("\(index + 1)").font(.caption2).foregroundStyle(.secondary)
-                        }
-                        .onTapGesture { editingIndex = index }
-                        .contextMenu {
-                            Button("Editar enfoque") { editingIndex = index }
-                            Button("Quitar", role: .destructive) { sequence.removeAll { $0.id == row.id } }
-                        }
-                        .draggable(row.id.uuidString)
-                        .dropDestination(for: String.self) { items, _ in
-                            guard let moved = items.first.flatMap(UUID.init), let from = sequence.firstIndex(where: { $0.id == moved }),
-                                  let to = sequence.firstIndex(where: { $0.id == row.id }) else { return false }
-                            sequence.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
-                            return true
-                        }
-                    }
-                    if rows.isEmpty {
-                        Text("Pulsa Componer o Añadir para empezar.").font(.callout).foregroundStyle(.secondary).padding()
-                    }
-                }
-                .padding(.vertical, 4)
+        } content: {
+            CollagePreview(rows: rows, options: options, emptyMessage: "Pulsa Componer o Añadir para empezar.",
+                           onSelect: { editingIndex = $0 },
+                           onMove: { moveSequenceItem(&sequence, moved: $0, onto: $1) }) { index in
+                Button("Editar enfoque") { editingIndex = index }
+                Button("Quitar", role: .destructive) { if rows.indices.contains(index) { let id = rows[index].id; sequence.removeAll { $0.id == id } } }
             }
-            .frame(height: 120)
         }
         .onChange(of: files) { prune(); autoComposeIfRequested() }
         .onChange(of: sequence) { openEditorIfRequested() }

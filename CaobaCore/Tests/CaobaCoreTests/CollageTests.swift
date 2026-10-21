@@ -379,3 +379,18 @@ struct FocusDetectorTests {
         #expect(a.hasFaces == false)
     }
 }
+
+@Suite("CollageOptions")
+struct CollageOptionsTests {
+    @Test("Al encoger para previsualizar, separación y esquinas bajan en proporción")
+    func scaled() {
+        let o = CollageOptions(longestSide: 3000, gap: 30, cornerRadius: 60, title: "Hola")
+        let small = o.scaled(toLongestSide: 600)
+        #expect(small.longestSide == 600)
+        #expect(small.gap == 6)
+        #expect(small.cornerRadius == 12)
+        #expect(small.title == "Hola")
+        // Si ya es más pequeño que el tamaño pedido, se deja tal cual.
+        #expect(CollageOptions(longestSide: 500, gap: 10).scaled(toLongestSide: 600).gap == 10)
+    }
+}

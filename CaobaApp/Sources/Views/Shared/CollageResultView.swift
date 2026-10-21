@@ -9,6 +9,8 @@ struct CollageResultView: View {
     let options: CollageOptions
     /// Con margen y sombra alrededor (en el carrusel va a sangre, para que encaje con los cortes).
     var framed = true
+    /// Lado mayor del render; en las tiras de previsualización se pide más pequeño.
+    var side = Self.previewSide
 
     /// Lado mayor del render de pantalla: suficiente para juzgar el resultado sin esperar al tamaño final.
     static let previewSide = 1600
@@ -38,8 +40,8 @@ struct CollageResultView: View {
     }
 
     private func render() async {
-        var scaled = options
-        scaled.longestSide = min(options.longestSide, Self.previewSide)
+        // Más pequeño que la salida real, pero con separación y esquinas en proporción.
+        let scaled = options.scaled(toLongestSide: side)
         let row = row
         // Mientras se calcula el nuevo se deja el anterior a la vista; si cambia la clave, la tarea se cancela.
         let result = await Task.detached(priority: .userInitiated) { () -> Result<CGImage, Error> in
