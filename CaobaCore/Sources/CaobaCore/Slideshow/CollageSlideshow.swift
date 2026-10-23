@@ -14,7 +14,8 @@ public enum CollageSlideshow {
         public var collage: CollageOptions
 
         public init(reveal: Double = 1.5, hold: Double = 3, collage: CollageOptions = CollageOptions(longestSide: 1920)) {
-            self.reveal = max(0.2, reveal)
+            // Como poco 0,1 s: por debajo el fundido de cada foto ni se vería.
+            self.reveal = max(0.1, reveal)
             self.hold = max(0, hold)
             self.collage = collage
         }

@@ -227,6 +227,8 @@ final class SlideshowDocument {
     var rhythmItems: Set<String> = []
     var isAnalyzingRhythm = false
     var rhythmMessage: String?
+    /// Aviso tras cambiar el fichero de una pista (recorte ajustado o fichero ilegible).
+    var trackFileNotice: String?
     var fadeOut = true
     var normalize = false
     var loopPlaylist = true
@@ -757,6 +759,42 @@ final class SlideshowDocument {
     func removeTrack(_ id: UUID) {
         tracks.removeAll { $0.id == id }
         if case .track(let selected) = selection, selected == id { selection = .none }
+    }
+
+    /// Pone otro fichero en una pista sin tocar el resto: inicio en el vídeo, recorte y orden.
+    /// Si la canción nueva es más corta que el recorte, ajusta lo que no quepa y deja
+    /// el aviso en `trackFileNotice` para que la vista lo enseñe.
+    func replaceTrackFile(_ id: UUID, with url: URL) async {
+        guard let duration = try? await AudioPlan.duration(of: url) else {
+            trackFileNotice = String(localized: "No se ha podido leer «\(url.lastPathComponent)»: la pista sigue con su fichero.")
+            return
+        }
+        // Mientras se leía la duración la pista pudo quitarse.
+        guard let i = tracks.firstIndex(where: { $0.id == id }) else { return }
+        tracks[i].url = url
+        trackDurations[id] = duration
+
+        var adjusted: [String] = []
+        // «Hasta» más allá del final: pasa a «hasta el final» del fichero nuevo.
+        if let end = tracks[i].trimEnd, end > duration {
+            tracks[i].trimEnd = nil
+            adjusted.append(String(localized: "«Hasta» pasa al final del fichero (\(TimecodeField.format(duration)))"))
+        }
+        // «Desde» tan tarde que no quedaría ni un segundo: se adelanta lo justo.
+        let latestStart = max(0, duration - 1)
+        if tracks[i].trimStart > latestStart {
+            tracks[i].trimStart = latestStart
+            adjusted.append(String(localized: "«Desde» se adelanta a \(TimecodeField.format(latestStart))"))
+        }
+        if !adjusted.isEmpty {
+            trackFileNotice = String(localized: "La canción nueva dura \(TimecodeField.format(duration)) y no cabía el recorte: ") + adjusted.joined(separator: "; ") + "."
+        }
+    }
+
+    /// Mueve una pista al sitio de otra (arrastrar en la lista de Música). Cada una conserva
+    /// su forma de empezar: las fijas no se mueven y las de «tras la anterior» siguen el orden nuevo.
+    func moveTrack(_ moved: UUID, onto target: UUID) {
+        moveItem(&tracks, moved: moved, onto: target)
     }
 
     func setStart(_ seconds: Double, for id: UUID) {

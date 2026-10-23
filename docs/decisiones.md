@@ -2497,3 +2497,75 @@ Confirmada por el usuario («si»).
 - Metadatos ya salía cortado por los dos lados a 1000×625 antes de este cambio (comprobado con la 3.14.0 instalada): las columnas piden más ancho del que hay. No se ha tocado.
 - No se ha capturado el modo «Sobrescribir originales» con los botones al lado del aviso (no hay opción de arranque para dejarlo puesto); el aviso puede partirse en dos líneas en ventanas estrechas.
 - No se ha probado a mano pulsar cada botón desde la barra (solo compilación y capturas); la acción es la misma de antes.
+
+## 2026-10-23 — Valores más pequeños en «Aparición» del Slideshow
+
+### 1. La petición tal como se ha entendido
+En Slideshow → Vídeo (modo collage), el deslizador «Aparición» (lo que tarda en entrar cada foto de un collage) baja su mínimo de 0,3 s a **0,1 s**, manteniendo el paso de 0,1 s y el máximo de 5 s. El motor (`CollageSlideshow.Options`), que hoy sube a 0,2 s cualquier valor menor, pasa a aceptar 0,1 s para que lo elegido sea lo que sale en el vídeo. El fundido de cada foto sigue durando lo mismo que la aparición (como mucho 1 s).
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Hasta qué valor mínimo debe bajar «Aparición»?** → 0,1 s (fundido muy corto, sin llegar al corte seco).
+
+### 3. Fuentes analizadas
+- `Slideshow/SlideshowInspector.swift` (deslizador `0.3...5`, paso 0,1), `Model/SlideshowDocument.swift` (`reveal`), `CaobaCore/Slideshow/CollageSlideshow.swift` (`max(0.2, reveal)`, fundido `min(1, reveal)`), `SlideshowSpec.swift` (la duración de transición admite cualquier valor ≥ 0), `CollageSlideshowTests.swift`.
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Deslizador `0.1...5` (paso 0,1, sin cambios) y suelo del motor `max(0.1, reveal)`: si solo se tocaba el deslizador, al generar 0,1 se convertía en 0,2 sin avisar.
+- Test nuevo en `CollageSlideshowTests` (0,1 se respeta; 0,05 y 0 suben a 0,1). 146 tests en verde.
+- Comprobado con captura de la pestaña Vídeo: el tirador queda donde corresponde al rango nuevo.
+
+### 5. Alternativas descartadas
+- Tocar solo el deslizador y dejar el motor en 0,2: el vídeo no saldría con el valor elegido.
+- 0,2 s (el límite actual del motor): se queda corto para lo que se pide.
+- 0 s (corte seco): el usuario prefiere conservar un fundido mínimo.
+
+### 6. Pendiente de comprobar
+- No se ha generado un vídeo a 0,1 s ni se ha mirado cómo queda el fundido tan corto (a 30 fps son unos 3 fotogramas).
+- No se ha capturado el deslizador en 0,1: no hay opción de arranque para fijar el valor.
+
+## 2026-10-23 — Cambiar el fichero de una pista de audio sin perder sus ajustes, y reordenar pistas
+
+### 1. La petición tal como se ha entendido
+En el Slideshow, una pista de música ya puesta puede cambiar de fichero conservando todo lo demás: su inicio en el vídeo (un segundo concreto o «tras la anterior»), el recorte «Desde» / «Hasta» y su lugar en la lista.
+- **Dónde**: botón «Cambiar fichero…» en el editor de la pista (junto a «Quitar pista»), opción «Cambiar fichero…» en el clic derecho del bloque de la pista en el timeline (hoy no tiene menú) y botón en cada fila de la pestaña Música (junto a «Editar»).
+- Abre el selector de audio en la carpeta del fichero actual. Solo cambia esa pista, aunque otra use el mismo fichero.
+- **Si el fichero nuevo es más corto que el recorte**: se mantiene lo que quepa. «Hasta» baja al final del fichero nuevo (pasa a «hasta el final») y, si «Desde» también se sale, baja para que suene al menos 1 s. Sale un aviso que dice qué se ha ajustado. La posición en el timeline no cambia.
+- Funciona igual con el fichero original presente o desaparecido («Localizar…» sigue como está).
+
+Confirmada por el usuario («si»). Después, antes de empezar, el usuario amplía la petición:
+- **Reordenar pistas arrastrando** en la lista de la pestaña Música. Cada pista conserva su forma de empezar: las de segundo fijo se quedan donde están y las de «tras la anterior» se encadenan según el nuevo orden (la primera de la lista, si es «tras la anterior», empieza en 0). El orden nuevo es también el de «Repetir la lista».
+
+Ampliación confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Desde dónde se podrá cambiar el fichero?** → Editor de la pista, clic derecho en el timeline y cada fila de la lista de Música.
+- **Si el fichero nuevo es más corto que el recorte, ¿qué hacemos?** → Ajustar lo que no quepa y avisar.
+- **Al reordenar pistas, ¿qué pasa con su posición en el vídeo?** → Se respeta el inicio de cada una: las fijas no se mueven y las de «tras la anterior» siguen el nuevo orden.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Slideshow/SlideshowSpec.swift` (`AudioTrack`: `url`, `startMode`, `trimStart`, `trimEnd`), `Model/SlideshowDocument.swift` (`addTracks`, `relocate`/`replace`, `trimLeading`/`trimTrailing`, `trackDurations`), `Slideshow/SlideshowInspector.swift` (`TrackInspector`, lista de Música, `MissingFileNotice`, `audioFileTypes`), `Slideshow/SlideshowTimelineView.swift` (bloque de pista, sin menú contextual).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- `SlideshowDocument.replaceTrackFile(_:with:)` lee primero la duración del fichero nuevo; si no se puede, no cambia nada y avisa. Cambia solo esa pista (por `id`), su duración y, si hace falta, el recorte. El aviso va en `trackFileNotice` y lo enseña una alerta en `SlideshowView`.
+- Ajuste del recorte: «Hasta» más allá del final → `nil` (hasta el final); «Desde» más tarde que duración − 1 s → duración − 1 s (como mínimo suena 1 s, igual que al recortar arrastrando).
+- Un solo helper `chooseTrackFile(for:doc:)` para los tres sitios. El bloque de la pista en el timeline estrena clic derecho con «Cambiar fichero…» y «Quitar pista».
+- Reordenar: la lista de Música no es una `List` (no vale `onMove`), así que va con `draggable` + `dropDestination`, como la tira de Collage. `moveSequenceItem` pasa a `moveItem`, genérico para cualquier `Identifiable`, y lo usan collages, carrusel y pistas (`moveTrack(_:onto:)`). La fila lleva asa ≡ y el texto «Arrastra una pista para cambiar el orden» cuando hay más de una.
+- Opción de prueba `--state slideshow.replaceTrack=/ruta`. La prueba se hizo sobre una copia clonada de BOOK en el scratchpad, porque en modo captura la configuración de la carpeta también se guarda.
+- Comprobado: con un audio de 3 s sobre la pista «Desde 0:05 Hasta 2:00», el inicio sigue en 0:00, «Desde» pasa a 0:02, «Hasta» al final (0:03) y la alerta lo cuenta; captura de la pestaña Música a 1000×625 con asas y botones. 146 tests en verde.
+
+### 5. Alternativas descartadas
+- Reutilizar `relocate` para cambiar el fichero: cambia todas las referencias a esa ruta (otras pistas, portada…) y busca otros ficheros que falten.
+- Botones ↑/↓ para reordenar: el usuario pidió arrastrar.
+- `onMove`: solo funciona dentro de una `List`.
+- Solo en el editor de la pista (el usuario quiere también el clic derecho y la lista de Música).
+- Ajustar sin avisar o no permitir el cambio si el recorte no cabe (el usuario prefiere ajustar y avisar).
+- Al reordenar, encadenar todas las pistas (se perderían los inicios fijos) o intercambiar sus inicios (el usuario prefiere respetar el de cada una).
+
+### 6. Pendiente de comprobar
+- No se ha probado a mano el arrastre en la lista de Música (no se puede automatizar desde las capturas) ni el clic derecho del timeline.
+- No se ha probado elegir un fichero que no se puede leer (el aviso está, pero sin captura).
+- El análisis de ritmo se guarda por ruta: el fichero nuevo se analiza al pulsar «Ajustar al ritmo»; las duraciones ya ajustadas al ritmo de la canción anterior no se recalculan solas.

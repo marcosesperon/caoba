@@ -2,6 +2,12 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- **Cambiar el fichero de una pista de música** sin perder su sitio en el timeline ni el recorte Desde/Hasta: «Cambiar fichero…» en el editor de la pista, en la pestaña Música y con clic derecho sobre la pista en el timeline. Si la canción nueva es más corta que el recorte, se ajusta lo que no cabe y se avisa.
+- **Reordenar las pistas** de la pestaña Música arrastrándolas. Las que empiezan en un segundo fijo no se mueven; las de «tras la anterior» siguen el nuevo orden.
+- Slideshow de collages: «Aparición» baja hasta 0,1 s (antes, 0,3 s) para que las fotos entren casi de golpe, con un fundido muy corto.
+
 ## 3.15.0 — 2026-10-23
 
 - **El botón principal de cada sección pasa al final de la barra inferior**, como «Generar vídeo» en el Slideshow: Generar (Collage y Contact Sheet), Procesar, Aplicar y Renombrar van a la derecha de la carpeta de salida, con lo que los acompaña delante («Comparar», «N cambios»). Metadatos y Código QR estrenan esa barra para «Escribir metadatos» y «Guardar PNG…».

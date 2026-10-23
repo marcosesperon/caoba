@@ -53,7 +53,7 @@ struct CarouselEditor: View {
             CollagePreview(rows: rows, options: options, carouselFormat: format,
                            emptyMessage: "Pulsa Componer o Añadir para empezar. Un carrusel tiene como mucho \(Carousel.maxSlides) diapositivas.",
                            onSelect: { editingIndex = $0 },
-                           onMove: { moveSequenceItem(&sequence, moved: $0, onto: $1) }) { index in
+                           onMove: { moveItem(&sequence, moved: $0, onto: $1) }) { index in
                 Button("Editar encuadre") { editingIndex = index }
                 Button("Cambiar tramo…") { changingIndex = index }
                 Button("Quitar", role: .destructive) { if rows.indices.contains(index) { let id = rows[index].id; sequence.removeAll { $0.id == id } } }

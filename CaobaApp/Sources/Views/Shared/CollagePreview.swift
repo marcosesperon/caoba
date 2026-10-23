@@ -127,10 +127,11 @@ struct SequenceItemActions<Menu: View>: ViewModifier {
 }
 
 /// Mueve el elemento `moved` a la posición de `target` (antes o después según venga de delante o de detrás).
-func moveSequenceItem(_ sequence: inout [SequenceItem], moved: UUID, onto target: UUID) {
-    guard let from = sequence.firstIndex(where: { $0.id == moved }),
-          let to = sequence.firstIndex(where: { $0.id == target }) else { return }
-    sequence.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
+/// Vale para cualquier lista con `id`: collages de la secuencia, tramos del carrusel, pistas de música…
+func moveItem<Item: Identifiable>(_ items: inout [Item], moved: Item.ID, onto target: Item.ID) {
+    guard let from = items.firstIndex(where: { $0.id == moved }),
+          let to = items.firstIndex(where: { $0.id == target }) else { return }
+    items.move(fromOffsets: IndexSet(integer: from), toOffset: to > from ? to + 1 : to)
 }
 
 /// Opciones con las que de verdad sale el carrusel (cada diapositiva a 1080 px, sin título).

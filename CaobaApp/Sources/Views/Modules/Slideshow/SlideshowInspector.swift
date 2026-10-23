@@ -89,7 +89,7 @@ struct VideoTab: View {
                         }
                     }
                 } else {
-                    LabeledSlider(title: "Aparición", value: $doc.reveal, in: 0.3...5, step: 0.1) { Text("\(doc.reveal, specifier: "%.1f") s") }
+                    LabeledSlider(title: "Aparición", value: $doc.reveal, in: 0.1...5, step: 0.1) { Text("\(doc.reveal, specifier: "%.1f") s") }
                     LabeledSlider(title: "Mantener", value: $doc.hold, in: 0...15, step: 0.5) { Text("\(doc.hold, specifier: "%.1f") s") }
                     if doc.sequence.contains(where: { $0.hold != nil }) {
                         HStack {
@@ -227,8 +227,13 @@ struct MusicTab: View {
                 if doc.tracks.isEmpty {
                     Text("Sin pistas. Añade una canción y colócala arrastrando su bloque en el timeline.").font(.callout).foregroundStyle(.secondary)
                 }
+                if doc.tracks.count > 1 {
+                    Text("Arrastra una pista para cambiar el orden.").font(.caption).foregroundStyle(.secondary)
+                }
                 ForEach(doc.tracks) { track in
                     HStack {
+                        // Asa como la de la lista de fotos: indica que la fila se puede arrastrar.
+                        Image(systemName: "line.3.horizontal").foregroundStyle(.secondary)
                         Image(systemName: "music.note").foregroundStyle(.secondary)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(track.url.lastPathComponent).lineLimit(1).truncationMode(.middle)
@@ -244,7 +249,18 @@ struct MusicTab: View {
                         }
                         Spacer()
                         Button("Editar") { doc.selection = .track(track.id) }.controlSize(.small)
+                        Button("Cambiar fichero…") { chooseTrackFile(for: track, doc: doc) }.controlSize(.small)
                         Button { doc.removeTrack(track.id) } label: { Image(systemName: "minus.circle") }.buttonStyle(.borderless)
+                    }
+                    .contentShape(Rectangle())
+                    // Arrastrar una fila y soltarla sobre otra la pone en su sitio.
+                    .draggable(track.id.uuidString) {
+                        Label(track.url.lastPathComponent, systemImage: "music.note").padding(6)
+                    }
+                    .dropDestination(for: String.self) { items, _ in
+                        guard let moved = items.first.flatMap(UUID.init), moved != track.id else { return false }
+                        doc.moveTrack(moved, onto: track.id)
+                        return true
                     }
                 }
                 Button("Añadir pista…") { addTracks() }
@@ -332,6 +348,17 @@ struct MissingFileNotice: View {
 
 /// Tipos de fichero de las pistas de audio.
 let audioFileTypes: [UTType] = [.mp3, .mpeg4Audio, .wav, .aiff, .audio]
+
+/// «Cambiar fichero…» de una pista (editor, lista de Música y clic derecho en el timeline):
+/// abre el selector en la carpeta del fichero actual y cambia solo el fichero.
+@MainActor
+func chooseTrackFile(for track: AudioTrack, doc: SlideshowDocument) {
+    let panel = NSOpenPanel()
+    panel.allowedContentTypes = audioFileTypes
+    panel.directoryURL = track.url.deletingLastPathComponent()
+    guard panel.runModal() == .OK, let picked = panel.url else { return }
+    Task { await doc.replaceTrackFile(track.id, with: picked) }
+}
 
 func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
     let panel = NSOpenPanel()
@@ -925,7 +952,10 @@ struct TrackInspector: View {
                                                }))
             }
             Text("También puedes arrastrar el bloque en el timeline y estirar sus bordes.").font(.caption).foregroundStyle(.secondary)
-            Button("Quitar pista", role: .destructive) { doc.removeTrack(track.id) }
+            HStack {
+                Button("Cambiar fichero…") { chooseTrackFile(for: track, doc: doc) }
+                Button("Quitar pista", role: .destructive) { doc.removeTrack(track.id) }
+            }
         }
         if let duration = doc.trackDurations[track.id] {
             OptionGroup(title: "Preescucha") {

@@ -259,7 +259,7 @@ struct CollageView: View {
             } content: {
                 CollagePreview(rows: randomRows, options: options, emptyMessage: "Marca plantillas en «Plantillas permitidas» para sortear un reparto.",
                                onSelect: { randomEditingIndex = $0 },
-                               onMove: { moveSequenceItem(&randomSequence, moved: $0, onto: $1) }) { index in
+                               onMove: { moveItem(&randomSequence, moved: $0, onto: $1) }) { index in
                     Button("Editar enfoque") { randomEditingIndex = index }
                     Button("Quitar", role: .destructive) {
                         if randomRows.indices.contains(index) { let id = randomRows[index].id; randomSequence.removeAll { $0.id == id } }

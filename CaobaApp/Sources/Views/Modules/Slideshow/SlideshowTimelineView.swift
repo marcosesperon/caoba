@@ -413,6 +413,11 @@ struct TrackBlock: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { doc.selection = .track(track.id) }
+                .contextMenu {
+                    Button("Cambiar fichero…") { chooseTrackFile(for: track, doc: doc) }
+                    Divider()
+                    Button("Quitar pista", role: .destructive) { doc.removeTrack(track.id) }
+                }
                 .highPriorityGesture(moveGesture)
                 .help(isMissing ? "No se encuentra el fichero: \(track.url.path)" : "Arrastra para mover el inicio; estira los bordes para recortar")
             HStack {

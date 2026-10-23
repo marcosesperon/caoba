@@ -63,7 +63,7 @@ struct CollageSequenceEditor: View {
         } content: {
             CollagePreview(rows: rows, options: options, emptyMessage: "Pulsa Componer o Añadir para empezar.",
                            onSelect: { editingIndex = $0 },
-                           onMove: { moveSequenceItem(&sequence, moved: $0, onto: $1) }) { index in
+                           onMove: { moveItem(&sequence, moved: $0, onto: $1) }) { index in
                 Button("Editar enfoque") { editingIndex = index }
                 Button("Quitar", role: .destructive) { if rows.indices.contains(index) { let id = rows[index].id; sequence.removeAll { $0.id == id } } }
             }

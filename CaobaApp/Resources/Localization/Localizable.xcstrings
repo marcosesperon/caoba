@@ -80,6 +80,26 @@
         }
       }
     },
+    "«Desde» se adelanta a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“From” moves back to %@"
+          }
+        }
+      }
+    },
+    "«Hasta» pasa al final del fichero (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“To” moves to the end of the file (%@)"
+          }
+        }
+      }
+    },
     "·" : {
 
     },
@@ -1052,6 +1072,16 @@
         }
       }
     },
+    "Arrastra una pista para cambiar el orden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag a track to change the order."
+          }
+        }
+      }
+    },
     "Arriba" : {
       "localizations" : {
         "en" : {
@@ -1351,6 +1381,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Change"
+          }
+        }
+      }
+    },
+    "Cambiar fichero de la pista" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change track file"
+          }
+        }
+      }
+    },
+    "Cambiar fichero…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change file…"
           }
         }
       }
@@ -3957,6 +4007,16 @@
     "L (7 %)" : {
 
     },
+    "La canción nueva dura %@ y no cabía el recorte: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new song lasts %@ and the trim didn’t fit: "
+          }
+        }
+      }
+    },
     "La firma de la app descargada no verifica." : {
       "localizations" : {
         "en" : {
@@ -4608,6 +4668,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No clear beat was found in the music."
+          }
+        }
+      }
+    },
+    "No se ha podido leer «%@»: la pista sigue con su fichero." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t read “%@”: the track keeps its file."
           }
         }
       }

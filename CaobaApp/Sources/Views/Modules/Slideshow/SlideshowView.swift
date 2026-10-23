@@ -106,6 +106,20 @@ struct SlideshowView: View {
                     if let selection = firstSelection(kind, in: doc) { doc.selection = selection }
                 }
             }
+            // `--state slideshow.replaceTrack=/ruta.m4a`: cambia el fichero de la primera pista y la
+            // selecciona (para probar el ajuste del recorte y el aviso). Ojo: guarda la configuración
+            // de la carpeta, así que mejor sobre una copia.
+            if let path = appState.launchState["slideshow.replaceTrack"] {
+                Task {
+                    var attempts = 0
+                    while (doc.tracks.first.map { doc.trackDurations[$0.id] == nil } ?? true) && attempts < 40 {
+                        try? await Task.sleep(for: .milliseconds(250)); attempts += 1
+                    }
+                    guard let track = doc.tracks.first else { return }
+                    doc.selection = .track(track.id)
+                    await doc.replaceTrackFile(track.id, with: URL(fileURLWithPath: path))
+                }
+            }
             // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
             if appState.launchState["slideshow.rhythm"] != nil {
                 Task { await autoAdjustToRhythm(doc) }
@@ -123,6 +137,12 @@ struct SlideshowView: View {
             }
         }
         .sheet(item: $doc.previewURL) { url in VideoPreviewSheet(url: url) }
+        // Aviso tras «Cambiar fichero…» de una pista (recorte ajustado o fichero que no se lee).
+        .alert("Cambiar fichero de la pista", isPresented: Binding(get: { doc.trackFileNotice != nil }, set: { if !$0 { doc.trackFileNotice = nil } })) {
+            Button("Vale") { doc.trackFileNotice = nil }
+        } message: {
+            Text(doc.trackFileNotice ?? "")
+        }
         .sheet(isPresented: $showComposePicker) {
             TemplatePickerSheet(title: "Componer secuencia",
                                 subtitle: doc.composeSheet.mode == .random

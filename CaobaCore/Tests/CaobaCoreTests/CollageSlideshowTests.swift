@@ -14,6 +14,13 @@ struct CollageSlideshowTests {
         #expect(own == [0.5, 1, 11])
     }
 
+    @Test("Aparición: 0,1 s se respeta y lo que baje de ahí se sube a 0,1")
+    func minimumReveal() {
+        #expect(CollageSlideshow.Options(reveal: 0.1).reveal == 0.1)
+        #expect(CollageSlideshow.Options(reveal: 0.05).reveal == 0.1)
+        #expect(CollageSlideshow.Options(reveal: 0).reveal == 0.1)
+    }
+
     @Test("Render parcial y fotogramas en disco")
     func frames() async throws {
         let folder = try TestImages.makeTempFolder()
