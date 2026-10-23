@@ -28,19 +28,17 @@ struct ContentView: View {
                 if appState.currentModule.usesSourceFolder {
                     SourceFolderBar()
                 }
-                // Sin carpeta de origen, el módulo y el destino se apagan: lo primero es elegirla arriba.
+                // Sin carpeta de origen, el módulo (con su barra de destino) se apaga: lo primero es elegirla arriba.
+                // La barra de abajo la pone cada módulo, porque lleva su botón principal.
                 let needsFolder = appState.currentModule.usesSourceFolder && appState.sourceFolder == nil
                 Group {
-                    Group {
-                        if appState.currentModule.isAvailable {
-                            moduleView(appState.currentModule)
-                        } else {
-                            ComingSoonView(module: appState.currentModule)
-                        }
+                    if appState.currentModule.isAvailable {
+                        moduleView(appState.currentModule)
+                    } else {
+                        ComingSoonView(module: appState.currentModule)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    DestinationBar(kind: appState.currentModule.destinationKind)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .disabled(needsFolder)
                 .opacity(needsFolder ? 0.45 : 1)
             }

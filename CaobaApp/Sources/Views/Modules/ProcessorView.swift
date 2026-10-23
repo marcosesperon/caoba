@@ -66,84 +66,87 @@ struct ProcessorView: View {
     private var canRun: Bool { !appState.checkedFiles.isEmpty && !operations.isEmpty }
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    ModuleTitle(title: "Procesador")
-                    Spacer()
-                    PresetBar(module: .processor, current: settings, defaults: ProcessorSettings(), apply: apply)
-                }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        OptionGroup(title: "Operaciones") {
-                            Toggle("Autorrotar según EXIF", isOn: $autorotate)
-                            Toggle("Recortar", isOn: $cropEnabled)
-                            if cropEnabled {
-                                LabeledRow("Proporción") {
-                                    Picker("", selection: $cropPreset) {
-                                        ForEach(CropPreset.allCases) { $0.menuText.tag($0) }
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        ModuleTitle(title: "Procesador")
+                        Spacer()
+                        PresetBar(module: .processor, current: settings, defaults: ProcessorSettings(), apply: apply)
+                    }
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            OptionGroup(title: "Operaciones") {
+                                Toggle("Autorrotar según EXIF", isOn: $autorotate)
+                                Toggle("Recortar", isOn: $cropEnabled)
+                                if cropEnabled {
+                                    LabeledRow("Proporción") {
+                                        Picker("", selection: $cropPreset) {
+                                            ForEach(CropPreset.allCases) { $0.menuText.tag($0) }
+                                        }
+                                        .labelsHidden()
                                     }
-                                    .labelsHidden()
+                                    if cropPreset == .custom {
+                                        LabeledRow("Personalizado") {
+                                            Stepper("Ancho \(customRatioW)", value: $customRatioW, in: 1...100).fixedSize()
+                                            Stepper("Alto \(customRatioH)", value: $customRatioH, in: 1...100).fixedSize()
+                                        }
+                                    }
+                                    LabeledRow("Anclaje") {
+                                        Picker("", selection: $cropAnchor) {
+                                            Text("Centro").tag(CropAnchor.center)
+                                            Text("Arriba").tag(CropAnchor.top)
+                                            Text("Abajo").tag(CropAnchor.bottom)
+                                            Text("Izquierda").tag(CropAnchor.left)
+                                            Text("Derecha").tag(CropAnchor.right)
+                                        }
+                                        .labelsHidden()
+                                    }
                                 }
-                                if cropPreset == .custom {
-                                    LabeledRow("Personalizado") {
-                                        Stepper("Ancho \(customRatioW)", value: $customRatioW, in: 1...100).fixedSize()
-                                        Stepper("Alto \(customRatioH)", value: $customRatioH, in: 1...100).fixedSize()
+                                Toggle("Redimensionar", isOn: $resizeEnabled)
+                                if resizeEnabled {
+                                    LabeledRow("Lado mayor") {
+                                        TextField("", value: $maxDimension, format: .number)
+                                            .frame(width: 100)
+                                        Text("px, sin ampliar").foregroundStyle(.secondary)
                                     }
-                                }
-                                LabeledRow("Anclaje") {
-                                    Picker("", selection: $cropAnchor) {
-                                        Text("Centro").tag(CropAnchor.center)
-                                        Text("Arriba").tag(CropAnchor.top)
-                                        Text("Abajo").tag(CropAnchor.bottom)
-                                        Text("Izquierda").tag(CropAnchor.left)
-                                        Text("Derecha").tag(CropAnchor.right)
-                                    }
-                                    .labelsHidden()
                                 }
                             }
-                            Toggle("Redimensionar", isOn: $resizeEnabled)
-                            if resizeEnabled {
-                                LabeledRow("Lado mayor") {
-                                    TextField("", value: $maxDimension, format: .number)
-                                        .frame(width: 100)
-                                    Text("px, sin ampliar").foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        OptionGroup(title: "Salida") {
-                            Toggle("Mantener el formato original", isOn: $keepFormat)
-                            if !keepFormat {
-                                LabeledRow("Formato") {
-                                    Picker("", selection: $outputFormat) {
-                                        ForEach(OutputFormat.allCases, id: \.self) { Text($0.rawValue.uppercased()).tag($0) }
+                            OptionGroup(title: "Salida") {
+                                Toggle("Mantener el formato original", isOn: $keepFormat)
+                                if !keepFormat {
+                                    LabeledRow("Formato") {
+                                        Picker("", selection: $outputFormat) {
+                                            ForEach(OutputFormat.allCases, id: \.self) { Text($0.rawValue.uppercased()).tag($0) }
+                                        }
+                                        .labelsHidden()
                                     }
-                                    .labelsHidden()
+                                }
+                                if keepFormat || outputFormat.supportsQuality {
+                                    LabeledSlider(title: "Calidad", value: $quality, in: 1...100, step: 1) { Text("\(Int(quality))") }
                                 }
                             }
-                            if keepFormat || outputFormat.supportsQuality {
-                                LabeledSlider(title: "Calidad", value: $quality, in: 1...100, step: 1) { Text("\(Int(quality))") }
+                            if let previewError {
+                                Text(previewError).foregroundStyle(.red).font(.callout)
                             }
-                        }
-                        if let previewError {
-                            Text(previewError).foregroundStyle(.red).font(.callout)
                         }
                     }
                 }
-                Spacer()
-                HStack {
-                    Button("Comparar antes / después") { makePreview() }
-                        .disabled(appState.checkedFiles.isEmpty)
-                    Spacer()
-                    Button("Procesar") { run() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(!canRun)
-                }
-            }
-            .padding(.trailing, 8)
-            .frame(minWidth: 340, idealWidth: 380)
+                .padding(.trailing, 8)
+                .frame(minWidth: 340, idealWidth: 380)
 
-            FileListView().frame(minWidth: 320)
+                FileListView().frame(minWidth: 320)
+            }
+            DestinationBar(kind: .folder) {
+                // Texto corto para que la barra quepa a 1000 pt; el largo sale al pasar el ratón.
+                Button("Comparar") { makePreview() }
+                    .help("Comparar antes / después")
+                    .disabled(appState.checkedFiles.isEmpty)
+                Divider().frame(height: 18)
+                Button("Procesar") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canRun)
+            }
         }
         .onAppear {
             // Arranca como se dejó la última vez.

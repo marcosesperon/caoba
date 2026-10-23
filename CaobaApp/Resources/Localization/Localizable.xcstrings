@@ -1744,6 +1744,16 @@
         }
       }
     },
+    "Comparar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare"
+          }
+        }
+      }
+    },
     "Comparar antes / después" : {
       "localizations" : {
         "en" : {

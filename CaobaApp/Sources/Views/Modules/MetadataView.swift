@@ -51,95 +51,98 @@ struct MetadataView: View {
     }
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 8) {
-                ModuleTitle(title: "Metadatos")
-                // Lista compartida: las casillas definen "todas las marcadas"; el clic elige la ficha.
-                FileListView(selection: $selected, markedNames: Set(edits.keys.map(\.lastPathComponent)))
-            }
-            .frame(minWidth: 340, idealWidth: 420)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let selected, let current {
-                        // Ficha de la foto (miniatura, datos y mapa) en un bloque.
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack(alignment: .top, spacing: 16) {
-                                ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 160)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(selected.lastPathComponent).font(.headline)
-                                    infoRow("Cámara", current.camera)
-                                    infoRow("Objetivo", current.lens)
-                                    infoRow("Dimensiones", current.size.map { "\($0.width) × \($0.height)" })
-                                    infoRow("ISO", current.iso.map(String.init))
-                                    infoRow("Apertura", current.fNumber.map { "f/\($0.formatted())" })
-                                    infoRow("Exposición", current.exposureTime.map(formatExposure))
-                                    infoRow("Focal", current.focalLength.map { "\($0.formatted()) mm" })
-                                    infoRow("Software", current.software)
-                                }
-                                Spacer()
-                            }
-                            if let gps = current.gps {
-                                MapSnippet(coordinate: CLLocationCoordinate2D(latitude: gps.latitude, longitude: gps.longitude))
-                                    .frame(height: 180)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                                Button("Abrir en Google Maps") {
-                                    appState.openExternal(URL(string: "https://www.google.com/maps?q=\(gps.latitude),\(gps.longitude)")!)
-                                }
-                                .buttonStyle(.link)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .caobaPanel()
-                    } else {
-                        ContentUnavailableView("Elige una foto", systemImage: "photo", description: Text("Selecciona un archivo de la lista para ver y editar sus metadatos."))
-                            .frame(height: 220)
-                    }
-
-                    OptionGroup(title: "Editar") {
-                        LabeledRow("Aplicar a") {
-                            Picker("", selection: $applyMode) {
-                                Text("Solo esta foto").tag(ApplyMode.single)
-                                Text("Todas las marcadas (\(appState.checkedCount))").tag(ApplyMode.all)
-                            }
-                            .pickerStyle(.segmented)
-                            .labelsHidden()
-                        }
-                        HStack {
-                            TextField("Artista", text: $form.artist)
-                            // Pone el autor de Ajustes aunque la foto ya traiga otro.
-                            Button("Usar mi autor") { form.artist = Preferences.author ?? form.artist }
-                                .disabled(settingsAuthor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                .help("Pone el autor de Ajustes en el campo Artista.")
-                        }
-                        TextField("Copyright", text: $form.copyright)
-                        TextField("Descripción", text: $form.description)
-                        TextField("Fecha (AAAA:MM:DD hh:mm:ss)", text: $form.date)
-                        Toggle("Coordenadas GPS", isOn: $form.hasGPS)
-                        if form.hasGPS {
-                            HStack {
-                                TextField("Latitud", value: $form.latitude, format: .number)
-                                TextField("Longitud", value: $form.longitude, format: .number)
-                            }
-                        }
-                        Toggle("Eliminar el resto de metadatos", isOn: $stripOthers)
-                        Text("La imagen no se recomprime: solo cambian los metadatos.")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    HStack {
-                        if applyMode == .single {
-                            Button("Guardar cambio de esta foto") { stageCurrent() }.disabled(selected == nil)
-                            Text("\(edits.count) pendientes").font(.callout).foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Button("Escribir metadatos") { run() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(applyMode == .single ? edits.isEmpty : appState.checkedFiles.isEmpty)
-                    }
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 8) {
+                    ModuleTitle(title: "Metadatos")
+                    // Lista compartida: las casillas definen "todas las marcadas"; el clic elige la ficha.
+                    FileListView(selection: $selected, markedNames: Set(edits.keys.map(\.lastPathComponent)))
                 }
-                .padding(.leading, 12)
+                .frame(minWidth: 340, idealWidth: 420)
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if let selected, let current {
+                            // Ficha de la foto (miniatura, datos y mapa) en un bloque.
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack(alignment: .top, spacing: 16) {
+                                    ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 160)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(selected.lastPathComponent).font(.headline)
+                                        infoRow("Cámara", current.camera)
+                                        infoRow("Objetivo", current.lens)
+                                        infoRow("Dimensiones", current.size.map { "\($0.width) × \($0.height)" })
+                                        infoRow("ISO", current.iso.map(String.init))
+                                        infoRow("Apertura", current.fNumber.map { "f/\($0.formatted())" })
+                                        infoRow("Exposición", current.exposureTime.map(formatExposure))
+                                        infoRow("Focal", current.focalLength.map { "\($0.formatted()) mm" })
+                                        infoRow("Software", current.software)
+                                    }
+                                    Spacer()
+                                }
+                                if let gps = current.gps {
+                                    MapSnippet(coordinate: CLLocationCoordinate2D(latitude: gps.latitude, longitude: gps.longitude))
+                                        .frame(height: 180)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    Button("Abrir en Google Maps") {
+                                        appState.openExternal(URL(string: "https://www.google.com/maps?q=\(gps.latitude),\(gps.longitude)")!)
+                                    }
+                                    .buttonStyle(.link)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .caobaPanel()
+                        } else {
+                            ContentUnavailableView("Elige una foto", systemImage: "photo", description: Text("Selecciona un archivo de la lista para ver y editar sus metadatos."))
+                                .frame(height: 220)
+                        }
+
+                        OptionGroup(title: "Editar") {
+                            LabeledRow("Aplicar a") {
+                                Picker("", selection: $applyMode) {
+                                    Text("Solo esta foto").tag(ApplyMode.single)
+                                    Text("Todas las marcadas (\(appState.checkedCount))").tag(ApplyMode.all)
+                                }
+                                .pickerStyle(.segmented)
+                                .labelsHidden()
+                            }
+                            HStack {
+                                TextField("Artista", text: $form.artist)
+                                // Pone el autor de Ajustes aunque la foto ya traiga otro.
+                                Button("Usar mi autor") { form.artist = Preferences.author ?? form.artist }
+                                    .disabled(settingsAuthor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                                    .help("Pone el autor de Ajustes en el campo Artista.")
+                            }
+                            TextField("Copyright", text: $form.copyright)
+                            TextField("Descripción", text: $form.description)
+                            TextField("Fecha (AAAA:MM:DD hh:mm:ss)", text: $form.date)
+                            Toggle("Coordenadas GPS", isOn: $form.hasGPS)
+                            if form.hasGPS {
+                                HStack {
+                                    TextField("Latitud", value: $form.latitude, format: .number)
+                                    TextField("Longitud", value: $form.longitude, format: .number)
+                                }
+                            }
+                            Toggle("Eliminar el resto de metadatos", isOn: $stripOthers)
+                            Text("La imagen no se recomprime: solo cambian los metadatos.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.leading, 12)
+                }
+                .frame(minWidth: 420)
             }
-            .frame(minWidth: 420)
+            // Los metadatos se escriben en su sitio: la barra lleva solo las acciones.
+            DestinationBar(kind: .none) {
+                if applyMode == .single {
+                    Button("Guardar cambio de esta foto") { stageCurrent() }.disabled(selected == nil)
+                    Text("\(edits.count) pendientes").font(.callout).foregroundStyle(.secondary)
+                    Divider().frame(height: 18)
+                }
+                Button("Escribir metadatos") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(applyMode == .single ? edits.isEmpty : appState.checkedFiles.isEmpty)
+            }
         }
         .onChange(of: selected) { load() }
         .onChange(of: appState.files) {

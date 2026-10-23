@@ -41,62 +41,62 @@ struct ContactSheetView: View {
     }
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Contact Sheet")
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        OptionGroup(title: "Disposición") {
-                            LabeledRow("Modo") {
-                                Picker("", selection: $layout) {
-                                    Text("Rejilla").tag(ContactSheetOptions.Layout.grid)
-                                    Text("Masonry").tag(ContactSheetOptions.Layout.masonry)
-                                }
-                                .pickerStyle(.segmented)
-                                .labelsHidden()
-                            }
-                            LabeledRow("Columnas") { Stepper("\(columns)", value: $columns, in: 1...20).fixedSize() }
-                            LabeledRow("Miniatura") {
-                                TextField("", value: $thumbSize, format: .number).frame(width: 80)
-                                Text("px").foregroundStyle(.secondary)
-                            }
-                            if layout == .grid {
-                                LabeledRow("Recorte") {
-                                    Picker("", selection: $cropMode) {
-                                        Text("Entera").tag(ContactSheetOptions.CropMode.contain)
-                                        Text("Rellenar").tag(ContactSheetOptions.CropMode.cover)
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ModuleTitle(title: "Contact Sheet")
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            OptionGroup(title: "Disposición") {
+                                LabeledRow("Modo") {
+                                    Picker("", selection: $layout) {
+                                        Text("Rejilla").tag(ContactSheetOptions.Layout.grid)
+                                        Text("Masonry").tag(ContactSheetOptions.Layout.masonry)
                                     }
+                                    .pickerStyle(.segmented)
                                     .labelsHidden()
                                 }
+                                LabeledRow("Columnas") { Stepper("\(columns)", value: $columns, in: 1...20).fixedSize() }
+                                LabeledRow("Miniatura") {
+                                    TextField("", value: $thumbSize, format: .number).frame(width: 80)
+                                    Text("px").foregroundStyle(.secondary)
+                                }
+                                if layout == .grid {
+                                    LabeledRow("Recorte") {
+                                        Picker("", selection: $cropMode) {
+                                            Text("Entera").tag(ContactSheetOptions.CropMode.contain)
+                                            Text("Rellenar").tag(ContactSheetOptions.CropMode.cover)
+                                        }
+                                        .labelsHidden()
+                                    }
+                                }
+                                Text(estimate).font(.caption).foregroundStyle(.secondary)
                             }
-                            Text(estimate).font(.caption).foregroundStyle(.secondary)
-                        }
-                        OptionGroup(title: "Etiquetas y estilo") {
-                            TextField("Título", text: $title)
-                            Toggle("Nombres de archivo", isOn: $showFilenames)
-                            Toggle("Numeración", isOn: $showNumbering)
-                            LabeledRow("Fondo") {
-                                BackgroundPicker(selection: $background)
+                            OptionGroup(title: "Etiquetas y estilo") {
+                                TextField("Título", text: $title)
+                                Toggle("Nombres de archivo", isOn: $showFilenames)
+                                Toggle("Numeración", isOn: $showNumbering)
+                                LabeledRow("Fondo") {
+                                    BackgroundPicker(selection: $background)
+                                }
+                                Toggle("Borde", isOn: $showBorder)
+                                if showBorder { LabeledRow("Grosor") { Stepper("\(Int(borderWidth)) px", value: $borderWidth, in: 1...20).fixedSize() } }
+                                LabeledSlider(title: "Calidad", value: $quality, in: 1...100, step: 1) { Text("\(Int(quality))") }
                             }
-                            Toggle("Borde", isOn: $showBorder)
-                            if showBorder { LabeledRow("Grosor") { Stepper("\(Int(borderWidth)) px", value: $borderWidth, in: 1...20).fixedSize() } }
-                            LabeledSlider(title: "Calidad", value: $quality, in: 1...100, step: 1) { Text("\(Int(quality))") }
+                            LogoOptionsGroup(url: $logoURL, position: $logoPosition, size: $logoSize, opacity: $logoOpacity)
                         }
-                        LogoOptionsGroup(url: $logoURL, position: $logoPosition, size: $logoSize, opacity: $logoOpacity)
                     }
                 }
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button("Generar") { run() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(appState.checkedFiles.isEmpty || appState.destinationFile == nil)
-                }
-            }
-            .padding(.trailing, 8)
-            .frame(minWidth: 340, idealWidth: 380)
+                .padding(.trailing, 8)
+                .frame(minWidth: 340, idealWidth: 380)
 
-            FileListView(allowsReorder: true).frame(minWidth: 320)
+                FileListView(allowsReorder: true).frame(minWidth: 320)
+            }
+            DestinationBar(kind: .file) {
+                Button("Generar") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(appState.checkedFiles.isEmpty || appState.destinationFile == nil)
+            }
         }
         .onAppear { appState.destinationFileDefaultName = "contact_sheet_\(AppState.timestampSuffix()).jpg" }
     }

@@ -2457,3 +2457,42 @@ Confirmada por el usuario («si»).
 ### 6. Pendiente de comprobar
 - A 1000×625 la parte de arriba queda baja (unos 250 pt para las opciones) y hay que hacer scroll; se puede bajar el divisor.
 - No se ha probado a mano: arrastrar para reordenar en la tira, el menú del clic derecho, el divisor, «Otro reparto», ni la vista «Resultado» del editor del carrusel.
+
+## 2026-10-23 — Botón principal de cada módulo al final de la barra inferior
+
+### 1. La petición tal como se ha entendido
+El botón que lanza la acción principal de cada módulo deja el pie de la columna de opciones y pasa al **extremo derecho de la barra inferior**, como «Generar vídeo» en Slideshow.
+- **Con barra de destino** (Collage, Contact Sheet, Procesador, Marca de agua, Renombrador): el botón se añade al final de su barra, tras «Elegir…» (o tras el aviso de «Sobrescribir originales») y separado con una línea vertical.
+- **Sin barra** (Metadatos, Código QR): estrenan una barra inferior con el mismo aspecto, solo para su botón principal y lo que lo acompaña.
+- **Lo que acompaña al botón baja con él**, justo delante y separado con una línea: «Comparar antes / después» (Procesador), «N cambios» (Renombrador), «Guardar cambio de esta foto» y «N pendientes» (Metadatos) y el mensaje de error (QR).
+- El botón conserva su texto, su estilo destacado y sus condiciones para activarse.
+- Slideshow y Shutter Count no cambian («Elegir foto…» de Shutter Count no es una acción de proceso).
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿A qué módulos se aplica?** → A los 7 con botón principal: los 5 con barra de destino y, además, Metadatos y Código QR con una barra nueva.
+- **¿Qué pasa con los botones y textos que acompañan al botón principal?** → Bajan con él a la barra, delante del botón y separados con una línea.
+
+### 3. Fuentes analizadas
+- Captura del usuario: «Generar» de Collage al pie de las opciones, con una flecha hacia el final de la barra «Carpeta de salida».
+- `Shared/DestinationBar.swift`, `ContentView.swift`, `Model/Module.swift` (`destinationKind`), `Slideshow/SlideshowView.swift` (`SlideshowActionBar`), y las vistas `CollageView`, `ContactSheetView`, `ProcessorView`, `WatermarkView`, `RenamerView`, `MetadataView`, `QRView`, `ShutterCountView`.
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- La barra la pone cada módulo debajo de su vista (como el Slideshow) y `ContentView` deja de pintarla: el botón principal y sus condiciones viven en el módulo. `DestinationBar` pasa a ser genérica con un cierre `actions` que se pinta al final tras una línea; con `kind: .none` solo salen las acciones, a la derecha.
+- `Module.destinationKind` se mantiene; cada módulo pasa a la barra el tipo que le toca.
+- A 1000 pt de ventana la barra de carpeta con dos botones no cabía: el Procesador se salía de la ventana y el Renombrador hacía caer la app (excepción de AppKit al recalcular las restricciones de la ventana). Arreglo: «Guardar» como texto pegado al selector (sin la columna ancha de `LabeledRow`), ruta y avisos con `minWidth: 0` (ceden y se acortan por el medio) y acciones, «Guardar» y «Elegir…» con `fixedSize` (no se cortan nunca).
+- «Comparar antes / después» del Procesador pasa a «Comparar» (con el texto largo como ayuda al pasar el ratón; traducción «Compare» añadida): con el texto largo no cabía a 1000 pt.
+- Comprobado con capturas a 1000×625 de los 7 módulos (Collage en Secuencia y Aleatorias, claro y oscuro). 145 tests en verde.
+
+### 5. Alternativas descartadas
+- Dejar la barra en `ContentView` y que cada módulo le pase sus botones por `AppState`: habría que sacar del módulo las condiciones y la acción de cada botón.
+- Selector de guardar como desplegable en vez de segmentado para ganar sitio: cambiaba el aspecto de la barra en todas las secciones.
+- Cambiar solo Collage, o solo los 5 módulos con barra (el usuario quiere los 7).
+- Dejar arriba los botones y textos acompañantes (el usuario prefiere que bajen con el principal).
+
+### 6. Pendiente de comprobar
+- Metadatos ya salía cortado por los dos lados a 1000×625 antes de este cambio (comprobado con la 3.14.0 instalada): las columnas piden más ancho del que hay. No se ha tocado.
+- No se ha capturado el modo «Sobrescribir originales» con los botones al lado del aviso (no hay opción de arranque para dejarlo puesto); el aviso puede partirse en dos líneas en ventanas estrechas.
+- No se ha probado a mano pulsar cada botón desde la barra (solo compilación y capturas); la acción es la misma de antes.

@@ -83,73 +83,77 @@ struct QRView: View {
     }
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Código QR")
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        LabeledRow("Tipo") {
-                            Picker("", selection: $type) {
-                                ForEach(ContentType.allCases) { Text($0.title).tag($0) }
-                            }
-                            .labelsHidden()
-                        }
-                        OptionGroup(title: "Contenido") { contentForm }
-                        OptionGroup(title: "Aspecto") {
-                            LabeledRow("Tamaño") {
-                                Picker("", selection: $size) {
-                                    ForEach([256, 512, 1024, 2048], id: \.self) { Text("\($0) px").tag($0) }
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ModuleTitle(title: "Código QR")
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            LabeledRow("Tipo") {
+                                Picker("", selection: $type) {
+                                    ForEach(ContentType.allCases) { Text($0.title).tag($0) }
                                 }
                                 .labelsHidden()
                             }
-                            LabeledRow("Color") {
-                                ColorPicker("", selection: $foreground, supportsOpacity: false).labelsHidden()
-                                Text("Fondo").foregroundStyle(.secondary).padding(.leading, 12)
-                                ColorPicker("", selection: $background, supportsOpacity: false).labelsHidden()
-                            }
-                            LabeledRow("Corrección de errores") {
-                                Picker("", selection: $correction) {
-                                    Text("L (7 %)").tag(QROptions.ErrorCorrection.low)
-                                    Text("M (15 %)").tag(QROptions.ErrorCorrection.medium)
-                                    Text("Q (25 %)").tag(QROptions.ErrorCorrection.quartile)
-                                    Text("H (30 %)").tag(QROptions.ErrorCorrection.high)
+                            OptionGroup(title: "Contenido") { contentForm }
+                            OptionGroup(title: "Aspecto") {
+                                LabeledRow("Tamaño") {
+                                    Picker("", selection: $size) {
+                                        ForEach([256, 512, 1024, 2048], id: \.self) { Text("\($0) px").tag($0) }
+                                    }
+                                    .labelsHidden()
                                 }
-                                .labelsHidden()
-                            }
-                            LabeledRow("Margen") { Stepper("\(margin) módulos", value: $margin, in: 0...10).fixedSize() }
-                            HStack {
-                                Text(logoURL?.lastPathComponent ?? String(localized: "Sin logo"))
-                                    .lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
-                                Button("Elegir logo…") { chooseLogo() }
-                                if logoURL != nil { Button("Quitar") { logoURL = nil } }
-                            }
-                            if logoURL != nil {
-                                LabeledRow("Tamaño del logo") { Stepper("\(logoPercent) %", value: $logoPercent, in: 5...40, step: 5).fixedSize() }
+                                LabeledRow("Color") {
+                                    ColorPicker("", selection: $foreground, supportsOpacity: false).labelsHidden()
+                                    Text("Fondo").foregroundStyle(.secondary).padding(.leading, 12)
+                                    ColorPicker("", selection: $background, supportsOpacity: false).labelsHidden()
+                                }
+                                LabeledRow("Corrección de errores") {
+                                    Picker("", selection: $correction) {
+                                        Text("L (7 %)").tag(QROptions.ErrorCorrection.low)
+                                        Text("M (15 %)").tag(QROptions.ErrorCorrection.medium)
+                                        Text("Q (25 %)").tag(QROptions.ErrorCorrection.quartile)
+                                        Text("H (30 %)").tag(QROptions.ErrorCorrection.high)
+                                    }
+                                    .labelsHidden()
+                                }
+                                LabeledRow("Margen") { Stepper("\(margin) módulos", value: $margin, in: 0...10).fixedSize() }
+                                HStack {
+                                    Text(logoURL?.lastPathComponent ?? String(localized: "Sin logo"))
+                                        .lineLimit(1).truncationMode(.middle).frame(maxWidth: .infinity, alignment: .leading)
+                                    Button("Elegir logo…") { chooseLogo() }
+                                    if logoURL != nil { Button("Quitar") { logoURL = nil } }
+                                }
+                                if logoURL != nil {
+                                    LabeledRow("Tamaño del logo") { Stepper("\(logoPercent) %", value: $logoPercent, in: 5...40, step: 5).fixedSize() }
+                                }
                             }
                         }
                     }
                 }
-                Spacer()
-                HStack {
-                    if let errorText { Text(errorText).foregroundStyle(.red).font(.callout) }
-                    Spacer()
-                    Button("Guardar PNG…") { save() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(preview == nil)
-                }
-            }
-            .padding(.trailing, 8)
-            .frame(minWidth: 360, idealWidth: 420)
+                .padding(.trailing, 8)
+                .frame(minWidth: 360, idealWidth: 420)
 
-            VStack {
-                if let preview {
-                    Image(decorative: preview, scale: 1).resizable().interpolation(.none).scaledToFit()
-                        .padding(20)
-                } else {
-                    ContentUnavailableView("Completa los datos", systemImage: "qrcode", description: Text("La vista previa aparece en cuanto haya contenido."))
+                VStack {
+                    if let preview {
+                        Image(decorative: preview, scale: 1).resizable().interpolation(.none).scaledToFit()
+                            .padding(20)
+                    } else {
+                        ContentUnavailableView("Completa los datos", systemImage: "qrcode", description: Text("La vista previa aparece en cuanto haya contenido."))
+                    }
                 }
+                .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(minWidth: 300, maxWidth: .infinity, maxHeight: .infinity)
+            // Sin destino que elegir: la barra lleva solo el error (si lo hay) y «Guardar PNG…».
+            DestinationBar(kind: .none) {
+                if let errorText {
+                    Text(errorText).foregroundStyle(.red).font(.callout)
+                    Divider().frame(height: 18)
+                }
+                Button("Guardar PNG…") { save() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(preview == nil)
+            }
         }
         .onChange(of: content) { schedulePreview() }
         .onChange(of: options) { schedulePreview() }

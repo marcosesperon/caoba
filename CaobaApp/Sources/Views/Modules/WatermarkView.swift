@@ -35,93 +35,93 @@ struct WatermarkView: View {
     }
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    ModuleTitle(title: "Marca de agua")
-                    Spacer()
-                    PresetBar(module: .watermark, current: settings, defaults: WatermarkSettings(), apply: apply)
-                }
-                if let presetWarning {
-                    Text(presetWarning).font(.caption).foregroundStyle(Color.accentColor)
-                }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        OptionGroup(title: "Imagen de la marca") {
-                            HStack {
-                                Text(watermarkURL?.lastPathComponent ?? String(localized: "Ningún PNG elegido"))
-                                    .lineLimit(1).truncationMode(.middle)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                Button("Elegir PNG…") { chooseWatermark() }
-                            }
-                        }
-                        OptionGroup(title: "Colocación") {
-                            LabeledRow("Modo") {
-                                Picker("", selection: $options.mode) {
-                                    Text("Una sola").tag(WatermarkOptions.Mode.single)
-                                    Text("Mosaico").tag(WatermarkOptions.Mode.tiled)
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        ModuleTitle(title: "Marca de agua")
+                        Spacer()
+                        PresetBar(module: .watermark, current: settings, defaults: WatermarkSettings(), apply: apply)
+                    }
+                    if let presetWarning {
+                        Text(presetWarning).font(.caption).foregroundStyle(Color.accentColor)
+                    }
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            OptionGroup(title: "Imagen de la marca") {
+                                HStack {
+                                    Text(watermarkURL?.lastPathComponent ?? String(localized: "Ningún PNG elegido"))
+                                        .lineLimit(1).truncationMode(.middle)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    Button("Elegir PNG…") { chooseWatermark() }
                                 }
-                                .pickerStyle(.segmented)
-                                .labelsHidden()
                             }
-                            if options.mode == .single {
-                                LabeledRow("Posición") {
-                                    Picker("", selection: $options.position) {
-                                        Text("Abajo derecha").tag(OverlayPosition.bottomRight)
-                                        Text("Abajo izquierda").tag(OverlayPosition.bottomLeft)
-                                        Text("Arriba derecha").tag(OverlayPosition.topRight)
-                                        Text("Arriba izquierda").tag(OverlayPosition.topLeft)
-                                        Text("Centro").tag(OverlayPosition.center)
+                            OptionGroup(title: "Colocación") {
+                                LabeledRow("Modo") {
+                                    Picker("", selection: $options.mode) {
+                                        Text("Una sola").tag(WatermarkOptions.Mode.single)
+                                        Text("Mosaico").tag(WatermarkOptions.Mode.tiled)
                                     }
+                                    .pickerStyle(.segmented)
                                     .labelsHidden()
                                 }
-                            } else {
-                                LabeledRow("Separación") {
-                                    TextField("", value: $options.spacing, format: .number).frame(width: 80)
-                                    Picker("", selection: $options.spacingUnit) {
-                                        Text("px").tag(WatermarkOptions.SpacingUnit.pixels)
-                                        Text("%").tag(WatermarkOptions.SpacingUnit.percent)
+                                if options.mode == .single {
+                                    LabeledRow("Posición") {
+                                        Picker("", selection: $options.position) {
+                                            Text("Abajo derecha").tag(OverlayPosition.bottomRight)
+                                            Text("Abajo izquierda").tag(OverlayPosition.bottomLeft)
+                                            Text("Arriba derecha").tag(OverlayPosition.topRight)
+                                            Text("Arriba izquierda").tag(OverlayPosition.topLeft)
+                                            Text("Centro").tag(OverlayPosition.center)
+                                        }
+                                        .labelsHidden()
                                     }
-                                    .labelsHidden().fixedSize()
-                                }
-                                LabeledRow("Giro") {
-                                    Picker("", selection: $options.rotation) {
-                                        ForEach([0.0, 30, -30, 45, -45], id: \.self) { Text("\(Int($0))°").tag($0) }
+                                } else {
+                                    LabeledRow("Separación") {
+                                        TextField("", value: $options.spacing, format: .number).frame(width: 80)
+                                        Picker("", selection: $options.spacingUnit) {
+                                            Text("px").tag(WatermarkOptions.SpacingUnit.pixels)
+                                            Text("%").tag(WatermarkOptions.SpacingUnit.percent)
+                                        }
+                                        .labelsHidden().fixedSize()
                                     }
-                                    .labelsHidden()
+                                    LabeledRow("Giro") {
+                                        Picker("", selection: $options.rotation) {
+                                            ForEach([0.0, 30, -30, 45, -45], id: \.self) { Text("\(Int($0))°").tag($0) }
+                                        }
+                                        .labelsHidden()
+                                    }
                                 }
+                                LabeledSlider(title: "Tamaño", value: $options.sizePercent, in: 1...100, step: 1) { Text("\(Int(options.sizePercent)) %") }
+                                LabeledSlider(title: "Opacidad", value: $options.opacity, in: 0...100, step: 1) { Text("\(Int(options.opacity)) %") }
                             }
-                            LabeledSlider(title: "Tamaño", value: $options.sizePercent, in: 1...100, step: 1) { Text("\(Int(options.sizePercent)) %") }
-                            LabeledSlider(title: "Opacidad", value: $options.opacity, in: 0...100, step: 1) { Text("\(Int(options.opacity)) %") }
                         }
                     }
                 }
-                Spacer()
-                HStack {
-                    Spacer()
-                    Button("Aplicar") { run() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(!canRun)
-                }
-            }
-            .padding(.trailing, 8)
-            .frame(minWidth: 340, idealWidth: 380)
+                .padding(.trailing, 8)
+                .frame(minWidth: 340, idealWidth: 380)
 
-            VStack {
-                HStack {
-                    Button { previewIndex = max(0, previewIndex - 1) } label: { Image(systemName: "chevron.left") }
-                        .disabled(previewIndex == 0)
-                    Text(previewFile?.lastPathComponent ?? String(localized: "Vista previa"))
-                        .font(.callout).lineLimit(1).truncationMode(.middle)
-                    Button { previewIndex = min(appState.checkedFiles.count - 1, previewIndex + 1) } label: { Image(systemName: "chevron.right") }
-                        .disabled(previewIndex >= appState.checkedFiles.count - 1)
+                VStack {
+                    HStack {
+                        Button { previewIndex = max(0, previewIndex - 1) } label: { Image(systemName: "chevron.left") }
+                            .disabled(previewIndex == 0)
+                        Text(previewFile?.lastPathComponent ?? String(localized: "Vista previa"))
+                            .font(.callout).lineLimit(1).truncationMode(.middle)
+                        Button { previewIndex = min(appState.checkedFiles.count - 1, previewIndex + 1) } label: { Image(systemName: "chevron.right") }
+                            .disabled(previewIndex >= appState.checkedFiles.count - 1)
+                    }
+                    CGImageView(image: preview)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color(nsColor: .windowBackgroundColor))
+                    FileListView().frame(minHeight: 160)
                 }
-                CGImageView(image: preview)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(nsColor: .windowBackgroundColor))
-                FileListView().frame(minHeight: 160)
+                .frame(minWidth: 360)
             }
-            .frame(minWidth: 360)
+            DestinationBar(kind: .folder) {
+                Button("Aplicar") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canRun)
+            }
         }
         .onAppear {
             // Arranca como se dejó la última vez.

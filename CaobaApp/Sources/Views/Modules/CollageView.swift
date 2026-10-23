@@ -113,13 +113,21 @@ struct CollageView: View {
 
     var body: some View {
         // Arriba opciones y fotos; abajo, a todo el ancho, la secuencia dibujada. Divisor ajustable.
-        BottomSplit(bottomHeight: $sequenceBlockHeight) {
-            HSplitView {
-                optionsColumn
-                FileListView(allowsReorder: true).frame(minWidth: 320)
+        // Debajo de todo, la carpeta de salida con «Generar» al final.
+        VStack(spacing: 12) {
+            BottomSplit(bottomHeight: $sequenceBlockHeight) {
+                HSplitView {
+                    optionsColumn
+                    FileListView(allowsReorder: true).frame(minWidth: 320)
+                }
+            } bottom: {
+                sequenceBlock
             }
-        } bottom: {
-            sequenceBlock
+            DestinationBar(kind: .outputFolder) {
+                Button("Generar") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!canRun)
+            }
         }
         .sheet(item: randomEditingTarget) { target in
             FocusEditorSheet(sequence: $randomSequence, rows: randomRows, index: target.index, options: options)
@@ -172,7 +180,7 @@ struct CollageView: View {
         Binding(get: { randomEditingIndex.map { RandomTarget(index: $0) } }, set: { randomEditingIndex = $0?.index })
     }
 
-    /// Columna de opciones: modo, plantillas o formato, salida, logo y «Generar».
+    /// Columna de opciones: modo, plantillas o formato, salida y logo.
     private var optionsColumn: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -226,13 +234,6 @@ struct CollageView: View {
                     }
                     LogoOptionsGroup(url: $logoURL, position: $logoPosition, size: $logoSize, opacity: $logoOpacity)
                 }
-            }
-            Spacer()
-            HStack {
-                Spacer()
-                Button("Generar") { run() }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(!canRun)
             }
         }
         .padding(.trailing, 8)

@@ -35,102 +35,104 @@ struct RenamerView: View {
     @State private var lastOperation: RenameOperation?
 
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading, spacing: 12) {
-                ModuleTitle(title: "Renombrador")
-                LabeledRow("Modo") {
-                    Picker("", selection: $mode) {
-                        ForEach(Mode.allCases) { Text($0.title).tag($0) }
+        VStack(spacing: 12) {
+            HSplitView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ModuleTitle(title: "Renombrador")
+                    LabeledRow("Modo") {
+                        Picker("", selection: $mode) {
+                            ForEach(Mode.allCases) { Text($0.title).tag($0) }
+                        }
+                        .labelsHidden()
+                        .frame(maxWidth: 260, alignment: .leading)
                     }
-                    .labelsHidden()
-                    .frame(maxWidth: 260, alignment: .leading)
-                }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        switch mode {
-                        case .pattern:
-                            OptionGroup(title: "Patrón") {
-                                TextField("Patrón", text: $pattern)
-                                Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha YYYY MM DD hh mm ss")
-                                    .font(.caption).foregroundStyle(.secondary)
-                                LabeledRow("Ordenar por") {
-                                    Picker("", selection: $sortBy) {
-                                        Text("Nombre").tag(SortMode.name)
-                                        Text("Fecha de captura").tag(SortMode.date)
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            switch mode {
+                            case .pattern:
+                                OptionGroup(title: "Patrón") {
+                                    TextField("Patrón", text: $pattern)
+                                    Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha YYYY MM DD hh mm ss")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                    LabeledRow("Ordenar por") {
+                                        Picker("", selection: $sortBy) {
+                                            Text("Nombre").tag(SortMode.name)
+                                            Text("Fecha de captura").tag(SortMode.date)
+                                        }
+                                        .labelsHidden()
                                     }
-                                    .labelsHidden()
-                                }
-                                LabeledRow("Dígitos") { Stepper("\(digits == 0 ? String(localized: "auto") : String(digits))", value: $digits, in: 0...8).fixedSize() }
-                                LabeledRow("Empezar en") { Stepper("\(start)", value: $start, in: 0...100_000).fixedSize() }
-                                LabeledRow("Mayúsculas") {
-                                    Picker("", selection: $textCase) {
-                                        Text("Sin cambios").tag(TextCase.none)
-                                        Text("minúsculas").tag(TextCase.lowercase)
-                                        Text("MAYÚSCULAS").tag(TextCase.uppercase)
-                                        Text("Capitalizar").tag(TextCase.capitalize)
+                                    LabeledRow("Dígitos") { Stepper("\(digits == 0 ? String(localized: "auto") : String(digits))", value: $digits, in: 0...8).fixedSize() }
+                                    LabeledRow("Empezar en") { Stepper("\(start)", value: $start, in: 0...100_000).fixedSize() }
+                                    LabeledRow("Mayúsculas") {
+                                        Picker("", selection: $textCase) {
+                                            Text("Sin cambios").tag(TextCase.none)
+                                            Text("minúsculas").tag(TextCase.lowercase)
+                                            Text("MAYÚSCULAS").tag(TextCase.uppercase)
+                                            Text("Capitalizar").tag(TextCase.capitalize)
+                                        }
+                                        .labelsHidden()
                                     }
-                                    .labelsHidden()
+                                    Toggle("Quitar acentos", isOn: $sanitize.removeAccents)
+                                    Toggle("Espacios → guion bajo", isOn: $sanitize.removeSpaces)
+                                    Toggle("Quitar caracteres especiales", isOn: $sanitize.removeSpecialCharacters)
                                 }
-                                Toggle("Quitar acentos", isOn: $sanitize.removeAccents)
-                                Toggle("Espacios → guion bajo", isOn: $sanitize.removeSpaces)
-                                Toggle("Quitar caracteres especiales", isOn: $sanitize.removeSpecialCharacters)
-                            }
-                        case .autofix:
-                            OptionGroup(title: "Corregir numeración") {
-                                Text("Detecta secuencias como Foto-1, Foto-2… Foto-100 y rellena con ceros: Foto-001, Foto-002…")
-                                    .font(.callout).foregroundStyle(.secondary)
-                            }
-                        case .searchReplace:
-                            OptionGroup(title: "Buscar y reemplazar") {
-                                TextField("Buscar", text: $search)
-                                TextField("Reemplazar por", text: $replace)
-                            }
-                        case .prefixSuffix:
-                            OptionGroup(title: "Prefijo y sufijo") {
-                                TextField("Prefijo", text: $prefix)
-                                TextField("Sufijo", text: $suffix)
+                            case .autofix:
+                                OptionGroup(title: "Corregir numeración") {
+                                    Text("Detecta secuencias como Foto-1, Foto-2… Foto-100 y rellena con ceros: Foto-001, Foto-002…")
+                                        .font(.callout).foregroundStyle(.secondary)
+                                }
+                            case .searchReplace:
+                                OptionGroup(title: "Buscar y reemplazar") {
+                                    TextField("Buscar", text: $search)
+                                    TextField("Reemplazar por", text: $replace)
+                                }
+                            case .prefixSuffix:
+                                OptionGroup(title: "Prefijo y sufijo") {
+                                    TextField("Prefijo", text: $prefix)
+                                    TextField("Sufijo", text: $suffix)
+                                }
                             }
                         }
                     }
-                }
-                Spacer()
-                if let lastOperation {
-                    HStack {
-                        Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.secondary)
-                        Text("Último renombrado: \(lastOperation.entries.count) archivos, \(lastOperation.date.formatted(date: .abbreviated, time: .shortened))")
-                            .font(.callout).foregroundStyle(.secondary).lineLimit(1)
-                        Spacer()
-                        Button("Deshacer") { undo() }
-                    }
-                    .caobaPanel(padding: 8)
-                }
-                HStack {
-                    Text("\(plan.count) cambios").font(.callout).foregroundStyle(.secondary)
                     Spacer()
-                    Button("Renombrar") { run() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(plan.isEmpty)
-                }
-            }
-            .padding(.trailing, 8)
-            .frame(minWidth: 340, idealWidth: 400)
-
-            VStack(spacing: 8) {
-                Table(plan) {
-                    TableColumn("Original") { Text($0.oldName) }
-                    TableColumn("Nuevo nombre") { Text($0.newName) }
-                }
-                // Sin el fondo propio de la tabla, para que se vea el del bloque.
-                .scrollContentBackground(.hidden)
-                .overlay {
-                    if plan.isEmpty {
-                        ContentUnavailableView("Sin cambios", systemImage: "pencil.slash", description: Text("Ajusta las opciones para ver la vista previa."))
+                    if let lastOperation {
+                        HStack {
+                            Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.secondary)
+                            Text("Último renombrado: \(lastOperation.entries.count) archivos, \(lastOperation.date.formatted(date: .abbreviated, time: .shortened))")
+                                .font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                            Spacer()
+                            Button("Deshacer") { undo() }
+                        }
+                        .caobaPanel(padding: 8)
                     }
                 }
-                .caobaPanel(padding: 4)
-                FileListView().frame(minHeight: 160)
+                .padding(.trailing, 8)
+                .frame(minWidth: 340, idealWidth: 400)
+
+                VStack(spacing: 8) {
+                    Table(plan) {
+                        TableColumn("Original") { Text($0.oldName) }
+                        TableColumn("Nuevo nombre") { Text($0.newName) }
+                    }
+                    // Sin el fondo propio de la tabla, para que se vea el del bloque.
+                    .scrollContentBackground(.hidden)
+                    .overlay {
+                        if plan.isEmpty {
+                            ContentUnavailableView("Sin cambios", systemImage: "pencil.slash", description: Text("Ajusta las opciones para ver la vista previa."))
+                        }
+                    }
+                    .caobaPanel(padding: 4)
+                    FileListView().frame(minHeight: 160)
+                }
+                .frame(minWidth: 360)
             }
-            .frame(minWidth: 360)
+            DestinationBar(kind: .folder) {
+                Text("\(plan.count) cambios").font(.callout).foregroundStyle(.secondary)
+                Divider().frame(height: 18)
+                Button("Renombrar") { run() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(plan.isEmpty)
+            }
         }
         .onAppear {
             // Para capturas desde línea de comandos: `--state renamer.pattern={fecha}_{n}`
