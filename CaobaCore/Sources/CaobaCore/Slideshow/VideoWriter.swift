@@ -27,11 +27,12 @@ public final class VideoWriter {
         context = CIContext(options: [.workingColorSpace: srgb, .outputColorSpace: srgb, .cacheIntermediates: false])
     }
 
-    /// Bitrate medio según resolución (alto, para fotos con detalle).
-    static func bitrate(for size: PixelSize, preview: Bool) -> Int {
+    /// Bitrate medio según resolución (alto, para fotos con detalle). La vista previa usa la
+    /// misma fórmula que el vídeo final: así el codificador recibe los mismos ajustes que al
+    /// generar (antes iba a la cuarta parte y en un iMac Intel la app se cerraba al empezar).
+    static func bitrate(for size: PixelSize) -> Int {
         let pixels = size.width * size.height
-        let base = Int(Double(pixels) * 6.0) // ≈ 12 Mbps a 1080p
-        return preview ? base / 4 : base
+        return Int(Double(pixels) * 6.0) // ≈ 12 Mbps a 1080p
     }
 
     /// Renderiza todo el vídeo en `url`.
@@ -43,7 +44,7 @@ public final class VideoWriter {
             AVVideoWidthKey: size.width,
             AVVideoHeightKey: size.height,
             AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: Self.bitrate(for: size, preview: spec.preview),
+                AVVideoAverageBitRateKey: Self.bitrate(for: size),
                 AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
                 AVVideoExpectedSourceFrameRateKey: spec.fps,
                 AVVideoMaxKeyFrameIntervalKey: spec.fps * 2,

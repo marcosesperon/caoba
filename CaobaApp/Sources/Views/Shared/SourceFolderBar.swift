@@ -46,6 +46,9 @@ struct SourceFolderBar: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
+                // Sin foco de teclado: al abrir la ventana se quedaba con él (y su marco) por ser
+                // el primer control que puede tenerlo. Se usa con el ratón, como «Elegir carpeta…».
+                .focusable(false)
             }
 
             Button("Elegir carpeta…") { appState.chooseSourceFolder() }

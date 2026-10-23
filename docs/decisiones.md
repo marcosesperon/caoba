@@ -2571,3 +2571,156 @@ Ampliación confirmada por el usuario («si»).
 - No se ha probado a mano el arrastre en la lista de Música (no se puede automatizar desde las capturas) ni el clic derecho del timeline.
 - No se ha probado elegir un fichero que no se puede leer (el aviso está, pero sin captura).
 - El análisis de ritmo se guarda por ruta: el fichero nuevo se analiza al pulsar «Ajustar al ritmo»; las duraciones ya ajustadas al ritmo de la canción anterior no se recalculan solas.
+
+## 2026-10-23 — Vista previa completa del Slideshow con fotos reducidas
+
+### 1. La petición tal como se ha entendido
+«Vista previa» del Slideshow pasa a enseñar **el vídeo entero**: todas las fotos o todos los collages, portada, créditos, tarjetas de texto, pies, marca de agua y música, con las mismas duraciones y transiciones que el vídeo final. Hoy se corta en las 10 primeras fotos o los 3 primeros collages.
+- **Tamaño fijo pequeño**: 640 px de lado mayor (640×360 en 16:9, 360×640 en vertical, 512×640 en 4:5…), siempre en píxeles pares.
+- **Fotos reducidas**: cada foto se carga ya reducida a lo que necesita ese tamaño; en modo collage, los pasos de cada collage se dibujan a ese tamaño y no al del vídeo final.
+- **Mismos fotogramas por segundo** que el vídeo final.
+- El audio va sin normalizar (como ahora), para no tener que analizar cada canción antes.
+- **El fallo de Intel**: en el iMac (iMac20,2, macOS 14.6.1) la app se cierra en cuanto empieza la vista previa, pero «Generar vídeo» funciona. No hay informe de fallo (`.ips`); los diagnósticos que hay son avisos de CPU y disco sin acción. La vista previa nueva codificará con los mismos ajustes que «Generar vídeo» (calidad proporcional al tamaño, sin el recorte a la cuarta parte) para no pedir al codificador nada que «Generar» no pida ya. No se puede comprobar aquí: en Rosetta la vista previa actual tampoco falla.
+- Se sigue viendo en la ventana de la app, como ahora.
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Se cae con «Vista previa», con «Generar» o con ambos? ¿Cuándo?** → Solo con «Vista previa», en cuanto empieza el proceso.
+- **¿Hay informe del fallo?** → El usuario dejó en `logs/` cinco `.diag` (avisos de CPU y de escritura en disco, sin acción). Buscado el `.ips`: no hay ninguno.
+- **¿A qué resolución sale la vista previa completa?** → Fija pequeña, 640 px de lado mayor.
+- **¿A cuántos fotogramas por segundo?** → Los mismos que el vídeo final.
+
+### 3. Fuentes analizadas
+- `Model/SlideshowDocument.swift` (`preview`, `launch`: `makePhotos(limit: 10)`, `prefix(3)` de collages, `makeSpec(preview:)`), `CaobaCore/Slideshow/SlideshowSpec.swift` (`renderSize`: mitad en preview), `VideoWriter.swift` (`bitrate(for:preview:)`: cuarta parte en preview; `cachedImage`: `PhotoLoader.load(fittingAtLeast:)` a 1,2× o 2,4× el lienzo), `CollageSlideshow.swift` (pasos a `collage.longestSide`).
+- `logs/` (cinco `.diag` del iMac de Irene, versiones 3.4.1 y 3.15.0).
+- Prueba en Rosetta (x86_64) de la 3.16.0: la vista previa actual genera 22,5 s a 960×540 sin caerse.
+
+### 4. Decisiones
+- Plan aprobado («si»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar». `logs/` no entra en el commit.
+- `SlideshowSpec.previewLongestSide = 640`; `renderSize` en vista previa escala el formato a ese lado mayor, redondea y deja los píxeles pares (16:9 → 640×360, 9:16 → 360×640, 4:5 → 512×640, 2:3 → 426×640).
+- `VideoWriter.bitrate(for:)` sin el parámetro `preview`: misma fórmula para vista previa y final. Es lo único del codificador que distinguía la vista previa (además del tamaño), y la sospecha del cierre en Intel.
+- App: sin `limit: 10` ni `prefix(3)`; `makePhotos` pierde el parámetro `limit` (solo lo usaba la vista previa). Los collages de la vista previa se dibujan con `collageOptionsForPreview` (`scaled(toLongestSide: 640)`). Las fotos sueltas no necesitan cambios: `VideoWriter` ya las carga reducidas a lo que pide el lienzo.
+- Tests: nuevo `previewSize` (tamaños y bitrate) y adaptados los dos que tenían 960×540 fijo (el de fotogramas, con puntos en proporción del lienzo). 147 tests en verde.
+- Comprobado con una copia de BOOK (24 fotos en collages, 50 s en el timeline): la vista previa dura 49,5 s, sale a 640×360 con audio y los collages se ven bien; tarda ~10 s (Debug, M2 Pro), ~9 s (Release, M2 Pro) y ~15 s (Release en Rosetta, x86_64).
+
+### 5. Alternativas descartadas
+- Mitad de la resolución del vídeo o la misma resolución que el final (el usuario prefiere 640 px, lo más rápido).
+- 15 fps (el usuario prefiere la misma fluidez que el vídeo final).
+
+### 6. Pendiente de comprobar
+- **Probar en el iMac Intel** (iMac20,2, macOS 14.6.1): la causa del cierre no se conoce (no hubo `.ips`) y en Rosetta no se reproducía ni antes ni ahora. Igualar el bitrate al de «Generar» es la apuesta razonable, no una certeza.
+- No se ha probado con un vídeo largo en modo fotos (cientos de fotos) para ver el tiempo; cada foto se sigue decodificando del original (reducida al cargarla), sin caché entre vistas previas.
+
+## 2026-10-23 — Cruces entre pistas: duración ajustable, rampas en el timeline y escucha del cruce
+
+### 1. La petición tal como se ha entendido
+El cruce entre pistas de música ya existe (3 s fijos: la que entra sube de 0 a su volumen y la que sale baja a 0 a la vez). Se mejora en tres cosas:
+- **Duración ajustable**:
+  - General, en «Opciones» de la pestaña Música: «Cruce entre pistas», de 0 a 10 s de 0,5 en 0,5 (3 s por defecto, como ahora). Con 0 el cambio es un corte seco.
+  - Propia por pista, en su editor: la duración de **su entrada** (el cruce con la anterior), con vuelta a la general. La primera pista no tiene entrada (no se funde con nada), salvo al repetirse la lista.
+  - Con «tras la anterior», la pista entra tantos segundos antes del final de la anterior como dure su cruce.
+  - El «Fundido de salida» del final sigue siendo una casilla y, marcada, enseña su duración: de 1 a 10 s (3 s por defecto).
+  - Se guarda en la configuración de la carpeta; las antiguas abren con 3 s.
+- **Timeline**: cada bloque de música dibuja su volumen: el principio sube en diagonal durante su entrada y el final baja durante su salida (también el fundido final).
+- **Escuchar el cruce sin generar**: en la «Preescucha» del editor de la pista, «Escuchar entrada» (cruce con la anterior) y «Escuchar salida» (con la siguiente o el fundido final). Suena la mezcla real (las mismas rampas que el vídeo) desde 5 s antes hasta 5 s después del cruce, con play/pausa. Cada botón solo aparece si la pista tiene ese cruce.
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Hay forma de fundir pistas al cambiar?** → Sí, ya existe: 3 s fijos, siempre. Lo que falta es ajustar la duración, verlo en el timeline y oírlo sin generar; el usuario quiere las tres («las 3»).
+- **¿Duración general o por cambio?** → Una general y, en cada pista, una propia opcional.
+- **¿Qué valores?** → De 0 a 10 s, de 0,5 en 0,5; 0 = corte seco; 3 s por defecto.
+- **¿También el fundido de salida del final?** → Sí, de 1 a 10 s.
+- **¿Cómo se marca en el timeline?** → Rampas de volumen en los bloques.
+- **¿Cómo se escucha?** → Botones «Escuchar entrada» / «Escuchar salida» en la Preescucha del editor de la pista.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Audio/AudioPlan.swift` (`build`: inicio automático = final de la anterior − cruce; el tramo que sale se alarga hasta inicio de la siguiente + cruce), `Audio/AudioMuxer.swift` (`makeComposition`: rampas de volumen, repetición del tramo recortado), `Slideshow/SlideshowSpec.swift` (`AudioOptions.crossfadeSeconds = 3`, `fadeOutSeconds = 3`), `Slideshow/SlideshowInspector.swift` (pestaña Música, `TrackInspector`, `TrackPreview`), `Slideshow/SlideshowTimelineView.swift` (`TrackBlock`).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Datos: `AudioOptions.crossfade` y `fadeOutDuration` (3 s por defecto, también al leer configuraciones antiguas); `AudioTrack.crossfade` opcional. Preset: `audio.crossfade`, `audio.fadeoutDuration` y `musicTracks[].crossfade`.
+- `AudioSegment` pasa de `fadeIn`/`fadeOut` (sí/no) a `fadeInSeconds`/`fadeOutSeconds`, y lleva `trackID`. Con él, `effectiveStart` y los tramos de relleno del timeline ya no buscan por ruta y recorte (dos pistas con el mismo fichero y recorte se confundían).
+- `AudioPlan.build`: cada cambio usa el cruce de la pista que entra; «tras la anterior» entra ese tiempo antes; la que sale se alarga lo mismo; con 0, corte seco. `AudioMuxer` aplica esas duraciones con los mismos recortes de antes y `makeComposition` pasa a pública.
+- **Fallo encontrado y corregido**: `AudioPlan` calculaba los cruces en el orden de la lista. Si una pista con inicio fijo iba más abajo y empezaba antes, la otra se quedaba sin duración y desaparecía del vídeo (pasaba ya antes arrastrando un bloque en el timeline; con el reordenado de la 3.16.0 era más fácil). Ahora se ordena por inicio (desempate por orden de llegada). Test que lo reproducía antes del arreglo.
+- «Entrada» en el editor solo aparece si algún tramo de esa pista entra tras otro (al principio se puso «no es la primera o la lista se repite», y salía en la primera pista aunque la lista no llegara a repetirse). El valor muestra solo los segundos; debajo, «Usa el cruce general…».
+- Reproductor del cruce (`MixPreviewPlayer`) en el mismo fichero que `TrackPreviewPlayer`, para no tener que regenerar el proyecto de Xcode.
+- Comprobado sobre una copia de BOOK con dos tonos puros (440 y 1000 Hz) en lugar de las canciones, cruce de 6 s y fundido final de 5 s: midiendo cada frecuencia por separado, entre 0:24 y 0:30 una baja de −21 a −56 dB y la otra sube de −56 a −21; en los últimos 5 s baja la que queda. Igual con la lista invertida. Capturas de Música (oscuro) y del editor (claro). 153 tests en verde.
+
+### 5. Alternativas descartadas
+- Escuchar el cruce generando un trozo de vídeo: montar la mezcla con AVFoundation es instantáneo y suena igual.
+- Solo duración general, o solo por pista (el usuario prefiere general + propia).
+- Rango de 0,5 a 10 s (sin corte seco) o de 0 a 5 s.
+- Dejar fijo el fundido de salida del final.
+- Franja sombreada en el timeline en vez de rampas.
+- Escuchar el cruce pulsando en el timeline (el usuario prefiere los botones del editor).
+
+### 6. Pendiente de comprobar
+- No se han pulsado a mano «Escuchar entrada» / «Escuchar salida» (el audio no se puede comprobar desde una captura); la mezcla que usan es la misma que se ha medido en el vídeo.
+- Con «Normalizar volumen», la escucha del cruce va sin normalizar (como la vista previa).
+
+## 2026-10-23 — «Recientes» no se queda con el foco
+
+### 1. La petición tal como se ha entendido
+El menú «Recientes» de la barra de carpeta deja de quedarse con el foco del teclado (y su marco) al abrir la ventana: no lo recibe nunca. Se sigue usando con el ratón; con Tab se lo salta, como ya pasa con «Reiniciar» y «Elegir carpeta…». Se hace igual que en la hoja de donación (`.focusable(false)`).
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Que no coja el foco nunca, o solo que no lo coja al abrir (sí con Tab)?** → Que no lo coja nunca.
+
+### 3. Fuentes analizadas
+- Captura del usuario: marco de foco alrededor de «Recientes».
+- `Shared/SourceFolderBar.swift` (menú con `.menuStyle(.borderlessButton)`), `Shared/DonationSheet.swift` (precedente con `.focusable(false)`).
+
+### 4. Decisiones
+- Plan aprobado («si»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- `.focusable(false)` en el menú «Recientes» de `SourceFolderBar`, con comentario del porqué.
+
+### 5. Alternativas descartadas
+- Que solo con Tab llegue a él (el usuario prefiere que no lo coja nunca).
+
+### 6. Pendiente de comprobar
+- **Comprobar a mano** que el marco ya no sale y si el foco pasa a otro control (p. ej. «Sin preset» o un selector segmentado). Las capturas no sirven para esto: en modo captura la ventana no es la activa y macOS no dibuja el foco (tampoco salía el marco en «Recientes» en las capturas de antes del cambio).
+
+## 2026-10-23 — Cuadrar los cruces entre pistas con el ritmo
+
+### 1. La petición tal como se ha entendido
+Nuevo botón **«Cuadrar cruces»** en Música → Ritmo, junto a «Ajustar al ritmo». Analiza las canciones (el mismo análisis de golpes que ya hay) y, en cada cambio de pista:
+1. **El cruce empieza en un golpe** de la canción que sale: el inicio de la que entra se mueve al golpe más cercano.
+2. **Los golpes de las dos coinciden** durante el cruce: se ajusta la fase de la que entra para que sus golpes caigan encima de los de la que sale.
+- Cada pista se mueve **como mucho medio golpe** (unas décimas) respecto a donde estaba.
+- Se mueven **todas**, también las de inicio fijo. Las de «tras la anterior» pasan a inicio fijo en su sitio nuevo, para que el ajuste no se pierda si luego cambia la anterior.
+- El cambio se ve en el timeline y en el editor de la pista, y se puede retocar a mano después.
+- **Cuándo no se cuadra un cruce** (y se dice en el mensaje del resultado): si alguna de las dos canciones no tiene ritmo claro, si los tempos son demasiado distintos (más de un 6 % de diferencia, contando como compatibles el doble y la mitad, p. ej. 70 y 140 ppm), si el cruce es un corte seco (0 s) o si falta el fichero.
+- Mensaje al terminar: cuántos cruces se han cuadrado y cuáles no y por qué.
+- No toca las duraciones de las fotos. Si se quiere que los cambios de foto también caigan en los golpes, se pulsa después «Ajustar al ritmo» (que usa las posiciones nuevas de las pistas).
+
+Confirmada por el usuario («ok»).
+
+### 2. Preguntas y respuestas
+- **¿Se puede ajustar el paso de una pista a otra al ritmo?** → Se explicaron tres niveles (cruce en un golpe; golpes coincidentes; igualar tempo). El usuario elige el 2 (que incluye el 1).
+- **¿Cuándo se cuadran?** → Con un botón que mueve de verdad las pistas (se ve en el timeline y se puede retocar).
+- **¿Se pueden mover las pistas de inicio fijo?** → Sí, todas, como mucho medio golpe; las de «tras la anterior» pasan a inicio fijo.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Audio/BeatDetector.swift` (`BeatTrack`: tempo, golpes en segundos del fichero, confianza, `isReliable`), `Slideshow/RhythmPlanner.swift` (`videoBeats`), `Audio/AudioPlan.swift` (cruces por orden de inicio), `Model/SlideshowDocument.swift` (`beatTracks`, `adjustToRhythm`, `rhythmMessage`), pestaña Música (`SlideshowInspector.swift`, grupo Ritmo).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- El cálculo es puro y está en el motor (`CrossfadeAligner`, fichero nuevo), con 6 tests; la app solo lo orquesta (`alignCrossfades`, `nextCrossfade`) y comparte con «Ajustar al ritmo» el análisis de golpes (`analyzePendingBeats`, sacado de `adjustToRhythm`).
+- Para conseguir a la vez «el cruce empieza en un golpe» y «los golpes coinciden», además del inicio se mueve el **Desde** de la que entra (como mucho medio golpe): con mover solo el inicio no se pueden cumplir las dos cosas. Se avisó en el plan.
+- Tolerancia de tempo del 6 % (doble y mitad compatibles) y fotos sin tocar: decididos por mí y aceptados en la confirmación.
+- Comprobado sobre una copia de BOOK con dos pistas de clics a 120 ppm (A: 440 Hz desde 0; B: 1000 Hz desfasada 0,2 s, empezando en 24,15 s): tras «Cuadrar cruces», B queda en 23,998 s con Desde 0,197 s (lo esperado: 24,0 y 0,2) y, en la vista previa, sus clics caen a 0–12 ms de los de A durante el cruce (sin cuadrar, 150 ms). Captura del botón con «1 cruce cuadrado con el ritmo.». 159 tests en verde.
+
+### 5. Alternativas descartadas
+- Solo empezar el cruce en un golpe (nivel 1): el usuario quiere también que coincidan los golpes.
+- Igualar el tempo acelerando o frenando la canción (nivel 3): cambia la velocidad de la canción y es mucho más trabajo.
+- Ajuste automático al generar (sin tocar las pistas) o dentro de «Ajustar al ritmo»: el usuario prefiere un botón propio que mueva las pistas.
+- Mover solo las de «tras la anterior».
+- Cuadrar con el compás («el uno»): la app no detecta dónde empieza el compás.
+
+### 6. Pendiente de comprobar
+- Probado con clics sintéticos; con canciones reales el resultado depende de lo bien que el detector encuentre los golpes (en música sin batería marcada puede decir «sin ritmo claro» o cuadrar a contratiempo).
+- Al mover el Desde de la que entra, cambia unas décimas lo primero que se oye de esa canción.

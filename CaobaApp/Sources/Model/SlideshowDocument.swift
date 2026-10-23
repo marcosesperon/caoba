@@ -227,11 +227,16 @@ final class SlideshowDocument {
     var rhythmItems: Set<String> = []
     var isAnalyzingRhythm = false
     var rhythmMessage: String?
+    /// Resultado de «Cuadrar cruces».
+    var crossfadeMessage: String?
     /// Aviso tras cambiar el fichero de una pista (recorte ajustado o fichero ilegible).
     var trackFileNotice: String?
     var fadeOut = true
     var normalize = false
     var loopPlaylist = true
+    /// Segundos del cruce entre pistas (0 = corte seco) y del fundido final.
+    var crossfade = AudioOptions.crossfadeSeconds
+    var fadeOutDuration = AudioOptions.fadeOutSeconds
     // Ken Burns (por nombre de fichero)
     var kbSettings = KenBurnsSettings()
     var kbChoices: [String: EffectChoice] = [:]
@@ -281,6 +286,13 @@ final class SlideshowDocument {
         let longest = max(format.size.width, format.size.height)
         return CollageSlideshow.Options(reveal: reveal, hold: hold,
                                         collage: CollageOptions(longestSide: longest, gap: csGap, background: csBackground, cornerRadius: csRadius, shadowIntensity: csShadow, quality: 95))
+    }
+
+    /// Las mismas opciones dibujando los collages al tamaño de la vista previa.
+    private var collageOptionsForPreview: CollageSlideshow.Options {
+        var options = collageOptions
+        options.collage = options.collage.scaled(toLongestSide: SlideshowSpec.previewLongestSide)
+        return options
     }
 
     /// Elementos del timeline en orden, sin tiempos todavía.
@@ -524,10 +536,12 @@ final class SlideshowDocument {
 
     var timelineExtent: Double { max(totalDuration, audioExtent) }
 
-    /// Segmentos de audio tal como los calculará el motor (para dibujar los carriles).
+    /// Segmentos de audio tal como los calculará el motor (para dibujar los carriles, con sus
+    /// rampas de volumen, y para escuchar un cruce).
     var audioSegments: [AudioSegment] {
         let durations = tracks.map(timelineDuration(of:))
-        return AudioPlan.build(tracks: tracks, durations: durations, gains: nil, timeline: timeline, fadeOutAtEnd: false, loopPlaylist: loopPlaylist)
+        return AudioPlan.build(tracks: tracks, durations: durations, gains: nil, timeline: timeline, fadeOutAtEnd: fadeOut, loopPlaylist: loopPlaylist,
+                               crossfade: crossfade, fadeOutDuration: fadeOutDuration)
     }
 
     /// Duración del fichero de una pista para dibujarla. Si no se encuentra (o aún no se ha leído),
@@ -579,7 +593,7 @@ final class SlideshowDocument {
 
     /// Inicio efectivo de una pista (resolviendo "tras la anterior").
     func effectiveStart(of track: AudioTrack) -> Double {
-        audioSegments.first { $0.url == track.url && $0.trimStart == track.trimStart }?.start ?? 0
+        audioSegments.first { $0.trackID == track.id }?.start ?? 0
     }
 
     /// Puntos a los que se imanta un bloque de música al arrastrarlo.
@@ -655,15 +669,7 @@ final class SlideshowDocument {
         isAnalyzingRhythm = true
         rhythmMessage = nil
         defer { isAnalyzingRhythm = false }
-        let pending = Array(Set(tracks.filter { !Self.isMissing($0.url) }.map(\.url.path))).filter { beatTracks[$0] == nil }
-        if !pending.isEmpty {
-            await withTaskGroup(of: (String, BeatTrack?).self) { group in
-                for path in pending {
-                    group.addTask { (path, try? await BeatDetector.analyze(url: URL(fileURLWithPath: path))) }
-                }
-                for await (path, track) in group { if let track { beatTracks[path] = track } }
-            }
-        }
+        await analyzePendingBeats()
         guard tracks.contains(where: { beatTracks[$0.url.path]?.isReliable == true }) else {
             rhythmMessage = L("No se ha encontrado un ritmo claro en la música.")
             return
@@ -671,6 +677,78 @@ final class SlideshowDocument {
         // Dos pasadas: las pistas que empiezan en una foto se mueven con las duraciones nuevas.
         applyRhythm()
         applyRhythm()
+    }
+
+    /// Analiza el ritmo de las pistas que aún no lo tienen (se guarda por ruta).
+    private func analyzePendingBeats() async {
+        let pending = Array(Set(tracks.filter { !Self.isMissing($0.url) }.map(\.url.path))).filter { beatTracks[$0] == nil }
+        guard !pending.isEmpty else { return }
+        await withTaskGroup(of: (String, BeatTrack?).self) { group in
+            for path in pending {
+                group.addTask { (path, try? await BeatDetector.analyze(url: URL(fileURLWithPath: path))) }
+            }
+            for await (path, track) in group { if let track { beatTracks[path] = track } }
+        }
+    }
+
+    /// «Cuadrar cruces»: en cada cambio de pista, el cruce empieza en un golpe de la que sale
+    /// y la que entra arranca en uno de sus golpes, para que sus golpes caigan juntos. Mueve el
+    /// inicio (que pasa a fijo) y el Desde de la que entra, como mucho medio golpe cada uno.
+    /// Va en el orden en que suenan y recalcula tras cada ajuste, porque mover una pista cambia
+    /// lo que viene detrás. Las repeticiones de la lista no se tocan: se colocan solas.
+    func alignCrossfades() async {
+        guard tracks.count > 1 else { crossfadeMessage = L("Hace falta más de una pista para cuadrar cruces."); return }
+        isAnalyzingRhythm = true
+        crossfadeMessage = nil
+        defer { isAnalyzingRhythm = false }
+        await analyzePendingBeats()
+
+        var done: Set<UUID> = []
+        var aligned = 0
+        var problems: [String] = []
+        while let pair = nextCrossfade(skipping: done) {
+            let (outgoing, incoming, index) = pair
+            done.insert(tracks[index].id)
+            let name = { (url: URL) in url.deletingPathExtension().lastPathComponent }
+            let label = "«\(name(outgoing.url))» → «\(name(incoming.url))»"
+            guard !Self.isMissing(outgoing.url), !Self.isMissing(incoming.url) else {
+                problems.append(L("\(label): falta el fichero")); continue
+            }
+            let track = tracks[index]
+            let outAsset = trackDurations[outgoing.trackID ?? UUID()] ?? 0
+            let inAsset = trackDurations[track.id] ?? 0
+            let crossfade = CrossfadeAligner.Crossfade(
+                outgoing: outgoing, outgoingUsable: min(outAsset, outgoing.trimEnd ?? outAsset) - outgoing.trimStart,
+                outgoingBeats: beatTracks[outgoing.url.path],
+                incomingStart: incoming.start, incomingTrimStart: track.trimStart, incomingTrimEnd: min(inAsset, track.trimEnd ?? inAsset),
+                incomingFade: incoming.fadeInSeconds, incomingBeats: beatTracks[track.url.path])
+            switch CrossfadeAligner.align(crossfade) {
+            case .aligned(let start, let trimStart):
+                tracks[index].startMode = .atTime(start)
+                tracks[index].trimStart = trimStart
+                aligned += 1
+            case .noRhythm: problems.append(L("\(label): sin ritmo claro"))
+            case .tempoMismatch(let a, let b): problems.append(L("\(label): tempos muy distintos (\(Int(a.rounded())) y \(Int(b.rounded())) ppm)"))
+            case .cut: problems.append(L("\(label): es un corte seco"))
+            case .tooShort: problems.append(L("\(label): no queda canción antes del Hasta"))
+            }
+        }
+        var message = aligned == 1 ? L("1 cruce cuadrado con el ritmo.") : L("\(aligned) cruces cuadrados con el ritmo.")
+        if !problems.isEmpty { message += " " + L("Sin cuadrar: ") + problems.joined(separator: "; ") + "." }
+        crossfadeMessage = message
+    }
+
+    /// Siguiente cambio de pista por cuadrar, en el orden en que suenan: el tramo que sale,
+    /// el que entra y el índice de la pista que entra. Solo la primera vez que suena cada pista.
+    private func nextCrossfade(skipping done: Set<UUID>) -> (AudioSegment, AudioSegment, Int)? {
+        let segments = audioSegments
+        for n in segments.indices.dropFirst() {
+            guard let id = segments[n].trackID, !done.contains(id),
+                  segments.firstIndex(where: { $0.trackID == id }) == n,
+                  let index = tracks.firstIndex(where: { $0.id == id }) else { continue }
+            return (segments[n - 1], segments[n], index)
+        }
+        return nil
     }
 
     private func applyRhythm() {
@@ -925,10 +1003,9 @@ final class SlideshowDocument {
     // MARK: - Generación
 
     /// Fotos del vídeo (modo fotos) y, en paralelo, el id del elemento del timeline al que pertenece cada una.
-    private func makePhotos(limit: Int? = nil) -> (photos: [SlideshowPhoto], owners: [String]) {
+    private func makePhotos() -> (photos: [SlideshowPhoto], owners: [String]) {
         var generator = SystemRandomNumberGenerator()
-        var list = files
-        if let limit { list = Array(list.prefix(limit)) }
+        let list = files
         // Datos de cada foto solo si el patrón de pie los necesita.
         let infos = captionPattern.isEmpty ? [] : Renamer.gatherInfo(files: list, pattern: captionPattern.replacingOccurrences(of: "{fecha}", with: "YYYY"), needsDates: captionPattern.contains("{fecha}"))
         var photos: [SlideshowPhoto] = list.enumerated().map { index, url in
@@ -1024,7 +1101,8 @@ final class SlideshowDocument {
 
     private func makeSpec(output: URL, preview: Bool) -> SlideshowSpec {
         // Lo que no se encuentra no entra en el vídeo (se avisa antes de generar).
-        var audio = AudioOptions(tracks: tracks.filter { !Self.isMissing($0.url) }, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist)
+        var audio = AudioOptions(tracks: tracks.filter { !Self.isMissing($0.url) }, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
+                                 crossfade: crossfade, fadeOutDuration: fadeOutDuration)
         if preview { audio.normalize = false }
         var spec = SlideshowSpec(photos: [], format: format, transition: transitionChoice.hasDuration,
                                  watermark: available(watermarkURL).map { VideoWatermark(url: $0, position: wmPosition, sizePercent: wmSize, opacity: wmOpacity) },
@@ -1058,8 +1136,10 @@ final class SlideshowDocument {
     private func launch(output: URL, preview: Bool) {
         let mode = mode
         let fixedRows = rows
-        let csOptions = collageOptions
-        let (photoList, photoOwners) = makePhotos(limit: preview ? 10 : nil)
+        // La vista previa es el vídeo entero, pero pequeño: los pasos de cada collage se dibujan
+        // ya al tamaño de la vista previa (separación y esquinas en proporción).
+        let csOptions = preview ? collageOptionsForPreview : collageOptions
+        let (photoList, photoOwners) = makePhotos()
         let coverURL = available(coverURL), creditsURL = available(creditsURL), coverDuration = coverDuration, creditsDuration = creditsDuration
         let baseSpec = makeSpec(output: output, preview: preview)
         // Transiciones de entrada de cada collage, portada y créditos, resueltas aquí (estado del documento).
@@ -1083,12 +1163,11 @@ final class SlideshowDocument {
             if mode == .collage {
                 let dir = try TempFiles.makeJobDirectory(prefix: "csshow")
                 frameDir = dir
-                let limited = preview ? Array(fixedRows.prefix(3)) : fixedRows
-                photos = try await CollageSlideshow.makePhotos(rows: limited, options: csOptions, directory: dir, progress: progress)
-                owners = limited.flatMap { row in Array(repeating: row.id.uuidString, count: row.template.photos + 1) }
+                photos = try await CollageSlideshow.makePhotos(rows: fixedRows, options: csOptions, directory: dir, progress: progress)
+                owners = fixedRows.flatMap { row in Array(repeating: row.id.uuidString, count: row.template.photos + 1) }
                 // El primer paso de cada collage entra con la transición del collage.
                 var index = 0
-                for (r, row) in limited.enumerated() where photos.indices.contains(index) {
+                for (r, row) in fixedRows.enumerated() where photos.indices.contains(index) {
                     photos[index].transition = collageEntries[r].0
                     photos[index].transitionDuration = collageEntries[r].1
                     index += row.template.photos + 1
@@ -1096,7 +1175,7 @@ final class SlideshowDocument {
                 // Pie de cada collage en todos sus pasos: entra en el primero y sale en el último.
                 // Cada paso es un fichero temporal: en el progreso sale «Collage n · plantilla».
                 var step = 0
-                for (r, row) in limited.enumerated() {
+                for (r, row) in fixedRows.enumerated() {
                     let text = collageCaptions[r]
                     let label = collageLabels[r]
                     let steps = row.template.photos + 1
@@ -1144,7 +1223,7 @@ final class SlideshowDocument {
         var captionStyle: TextStyle; var captionPattern: String; var itemCaptions: [String: String]
         var watermark: URL?; var wmPosition: OverlayPosition; var wmSize: Double; var wmOpacity: Double
         var durations: [String: Double]
-        var tracks: [AudioTrack]; var fadeOut: Bool; var normalize: Bool; var loopPlaylist: Bool
+        var tracks: [AudioTrack]; var fadeOut: Bool; var normalize: Bool; var loopPlaylist: Bool; var crossfade: Double; var fadeOutDuration: Double
         var kb: KenBurnsSettings; var choices: [String: EffectChoice]; var points: [String: KenBurnsPoints]
         var sequence: [SequenceItem]; var reveal: Double; var hold: Double; var bg: CanvasColor; var gap: Double; var radius: Double; var shadow: Double
         var sortMode: SortMode; var manualOrder: Bool; var orientation: OrientationFilter; var order: [String]; var excluded: Set<String>
@@ -1157,7 +1236,7 @@ final class SlideshowDocument {
                  textCards: textCards,
                  captionStyle: captionStyle, captionPattern: captionPattern, itemCaptions: itemCaptions,
                  watermark: watermarkURL, wmPosition: wmPosition, wmSize: wmSize, wmOpacity: wmOpacity,
-                 durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist,
+                 durations: photoDurations, tracks: tracks, fadeOut: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist, crossfade: crossfade, fadeOutDuration: fadeOutDuration,
                  kb: kbSettings, choices: kbChoices, points: kbPoints,
                  sequence: sequence, reveal: reveal, hold: hold, bg: csBackground, gap: csGap, radius: csRadius, shadow: csShadow,
                  sortMode: app.sortMode, manualOrder: app.isManualOrder, orientation: app.orientationFilter, order: app.files.map(\.name), excluded: app.excludedNames)
@@ -1199,12 +1278,12 @@ final class SlideshowDocument {
         p.cover = coverURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: coverDuration) }
         p.credits = creditsURL.map { SlideshowPreset.ImageWithDuration(path: $0.path, duration: creditsDuration) }
         p.watermark = watermarkURL.map { SlideshowPreset.Watermark(path: $0.path, position: wmPosition.rawValue, size: wmSize, opacity: wmOpacity) }
-        p.audio = SlideshowPreset.Audio(fadeout: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist)
+        p.audio = SlideshowPreset.Audio(fadeout: fadeOut, normalize: normalize, loopPlaylist: loopPlaylist, crossfade: crossfade, fadeoutDuration: fadeOutDuration)
         p.musicTracks = tracks.map { t in
             switch t.startMode {
-            case .atTime(let s): return SlideshowPreset.MusicTrack(path: t.url.path, mode: "time", trimStart: t.trimStart, trimEnd: t.trimEnd, startTime: s)
-            case .atPhoto(let i): return SlideshowPreset.MusicTrack(path: t.url.path, mode: "manual", startPhoto: i, trimStart: t.trimStart, trimEnd: t.trimEnd)
-            case .automatic: return SlideshowPreset.MusicTrack(path: t.url.path, mode: "auto", trimStart: t.trimStart, trimEnd: t.trimEnd)
+            case .atTime(let s): return SlideshowPreset.MusicTrack(path: t.url.path, mode: "time", trimStart: t.trimStart, trimEnd: t.trimEnd, startTime: s, crossfade: t.crossfade)
+            case .atPhoto(let i): return SlideshowPreset.MusicTrack(path: t.url.path, mode: "manual", startPhoto: i, trimStart: t.trimStart, trimEnd: t.trimEnd, crossfade: t.crossfade)
+            case .automatic: return SlideshowPreset.MusicTrack(path: t.url.path, mode: "auto", trimStart: t.trimStart, trimEnd: t.trimEnd, crossfade: t.crossfade)
             }
         }
         var kb = SlideshowPreset.KenBurnsSection()
@@ -1304,6 +1383,8 @@ final class SlideshowDocument {
         fadeOut = preset.audio?.fadeout ?? true
         normalize = preset.audio?.normalize ?? false
         loopPlaylist = preset.audio?.loopPlaylist ?? true
+        crossfade = preset.audio?.crossfade ?? AudioOptions.crossfadeSeconds
+        fadeOutDuration = preset.audio?.fadeoutDuration ?? AudioOptions.fadeOutSeconds
         // Manda el orden manual común de la carpeta (ya aplicado al abrirla). Solo sin él se usa
         // el orden guardado del Slideshow; y si era manual (proyectos de antes, también de la app
         // antigua), pasa a ser el orden común.
@@ -1360,7 +1441,7 @@ final class SlideshowDocument {
             if let s = t.startTime, t.mode == "time" { startMode = .atTime(s) }
             else if t.mode == "manual", let p = t.startPhoto { startMode = .atTime(tl.startTime(ofPhoto: p + photoOffset)) }
             else { startMode = .automatic }
-            return AudioTrack(url: URL(fileURLWithPath: t.path), startMode: startMode, trimStart: t.trimStart ?? 0, trimEnd: t.trimEnd)
+            return AudioTrack(url: URL(fileURLWithPath: t.path), startMode: startMode, trimStart: t.trimStart ?? 0, trimEnd: t.trimEnd, crossfade: t.crossfade)
         }
         for track in tracks where !Self.isMissing(track.url) { Task { if let d = try? await AudioPlan.duration(of: track.url) { trackDurations[track.id] = d } } }
     }
@@ -1373,7 +1454,8 @@ final class SlideshowDocument {
         captionStyle = .caption; captionPattern = ""; itemCaptions = [:]
         watermarkURL = nil; wmPosition = .bottomRight; wmSize = 30; wmOpacity = 80
         tracks = []; trackDurations = [:]; fadeOut = true; normalize = false; loopPlaylist = true
-        beatTracks = [:]; beatsPerCut = nil; rhythmItems = []; rhythmMessage = nil
+        crossfade = AudioOptions.crossfadeSeconds; fadeOutDuration = AudioOptions.fadeOutSeconds
+        beatTracks = [:]; beatsPerCut = nil; rhythmItems = []; rhythmMessage = nil; crossfadeMessage = nil
         kbSettings = KenBurnsSettings(); kbChoices = [:]; kbPoints = [:]
         sequence = []; reveal = 1.5; hold = 3; csBackground = .white; csGap = 10; csRadius = 0; csShadow = 50
         composeSheet = ComposeSheetState(); selectedTemplates = []; addFilters = TemplateFilterState()

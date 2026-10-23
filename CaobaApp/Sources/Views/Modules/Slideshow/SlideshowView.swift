@@ -120,6 +120,16 @@ struct SlideshowView: View {
                     await doc.replaceTrackFile(track.id, with: URL(fileURLWithPath: path))
                 }
             }
+            // `--state slideshow.alignCrossfades=1`: pulsa «Cuadrar cruces» en cuanto haya pistas con duración (para pruebas).
+            if appState.launchState["slideshow.alignCrossfades"] != nil {
+                Task {
+                    var attempts = 0
+                    while (doc.tracks.count < 2 || doc.tracks.contains { doc.trackDurations[$0.id] == nil }) && attempts < 40 {
+                        try? await Task.sleep(for: .milliseconds(250)); attempts += 1
+                    }
+                    await doc.alignCrossfades()
+                }
+            }
             // `--state slideshow.rhythm=1`: ajusta al ritmo en cuanto haya fotos y pistas (para pruebas).
             if appState.launchState["slideshow.rhythm"] != nil {
                 Task { await autoAdjustToRhythm(doc) }

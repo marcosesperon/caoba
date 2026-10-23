@@ -269,9 +269,18 @@ struct MusicTab: View {
                 if doc.tracks.count > 1 {
                     Toggle("Repetir la lista si el vídeo es más largo", isOn: $doc.loopPlaylist)
                 }
-                Toggle("Fundido de salida (3 s)", isOn: $doc.fadeOut)
+                LabeledSlider(title: "Cruce entre pistas", value: $doc.crossfade, in: AudioOptions.crossfadeRange, step: 0.5) {
+                    CrossfadeLabel(seconds: doc.crossfade)
+                }
+                Text("Al cambiar de pista, la que entra sube mientras la anterior baja. Cada pista puede tener su propia entrada en su editor.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Fundido de salida", isOn: $doc.fadeOut)
+                if doc.fadeOut {
+                    LabeledSlider(title: "Duración del fundido", value: $doc.fadeOutDuration, in: AudioOptions.fadeOutRange, step: 0.5) {
+                        Text("\(doc.fadeOutDuration, specifier: "%.1f") s")
+                    }
+                }
                 Toggle("Normalizar volumen (EBU R128, -16 LUFS)", isOn: $doc.normalize)
-                Text("Entre pistas hay siempre un crossfade de 3 segundos.").font(.caption).foregroundStyle(.secondary)
             }
             OptionGroup(title: "Ritmo") {
                 LabeledRow("Golpes por foto") {
@@ -294,6 +303,14 @@ struct MusicTab: View {
                     Text(message).font(.caption).foregroundStyle(Color.accentColor)
                 }
                 Text("Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Divider()
+                Button("Cuadrar cruces") { Task { await doc.alignCrossfades() } }
+                    .disabled(doc.tracks.count < 2 || doc.isAnalyzingRhythm)
+                if let message = doc.crossfadeMessage {
+                    Text(message).font(.caption).foregroundStyle(Color.accentColor)
+                }
+                Text("En cada cambio de pista, el cruce empieza en un golpe de la que sale y la que entra arranca en uno de los suyos, para que los golpes de las dos caigan juntos. Mueve el inicio y el Desde de la que entra como mucho medio golpe. Después puedes pulsar «Ajustar al ritmo» para que las fotos sigan las posiciones nuevas.")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -951,6 +968,18 @@ struct TrackInspector: View {
                                                    doc.tracks[i].trimEnd = v >= asset - 0.5 ? nil : max(track.trimStart + 1, v)
                                                }))
             }
+            // Su entrada: el cruce con la pista anterior (solo si de verdad entra tras otra).
+            if hasEntry {
+                StackedSlider(title: "Entrada (cruce con la anterior)",
+                              value: Binding(get: { track.crossfade ?? doc.crossfade }, set: { v in if let i = index { doc.tracks[i].crossfade = v } }),
+                              in: AudioOptions.crossfadeRange, step: 0.5,
+                              onReset: track.crossfade == nil ? nil : { if let i = index { doc.tracks[i].crossfade = nil } }) {
+                    CrossfadeLabel(seconds: track.crossfade ?? doc.crossfade)
+                }
+                if track.crossfade == nil {
+                    Text("Usa el cruce general de la pestaña Música.").font(.caption).foregroundStyle(.secondary)
+                }
+            }
             Text("También puedes arrastrar el bloque en el timeline y estirar sus bordes.").font(.caption).foregroundStyle(.secondary)
             HStack {
                 Button("Cambiar fichero…") { chooseTrackFile(for: track, doc: doc) }
@@ -960,7 +989,85 @@ struct TrackInspector: View {
         if let duration = doc.trackDurations[track.id] {
             OptionGroup(title: "Preescucha") {
                 TrackPreview(url: track.url, start: track.trimStart, end: track.trimEnd ?? duration)
+                CrossfadeListen(doc: doc, track: track)
             }
+        }
+    }
+
+    /// Si algún tramo de esta pista entra tras otro (no es lo primero que suena, o vuelve al repetir la lista).
+    private var hasEntry: Bool {
+        doc.audioSegments.enumerated().contains { $0.offset > 0 && $0.element.trackID == track.id }
+    }
+}
+
+/// Duración de un cruce, o «Corte seco» con 0.
+struct CrossfadeLabel: View {
+    let seconds: Double
+
+    var body: some View {
+        if seconds == 0 { Text("Corte seco") } else { Text("\(seconds, specifier: "%.1f") s") }
+    }
+}
+
+/// «Escuchar entrada» y «Escuchar salida» de una pista: la mezcla real del vídeo (con las rampas)
+/// desde 5 s antes hasta 5 s después del cruce, sin generar nada.
+struct CrossfadeListen: View {
+    @Bindable var doc: SlideshowDocument
+    let track: AudioTrack
+    @State private var player = MixPreviewPlayer()
+    /// Margen que se escucha antes y después del cruce.
+    private let margin = 5.0
+
+    /// Tramos del vídeo y, de ellos, el principal de esta pista (el que se edita).
+    private var segments: [AudioSegment] { doc.audioSegments }
+    private var ownIndex: Int? { segments.firstIndex { $0.trackID == track.id } }
+
+    /// Cruce de entrada (con el tramo anterior), en segundos del vídeo.
+    private var entryWindow: ClosedRange<Double>? {
+        guard let i = ownIndex, i > 0 else { return nil }
+        let segment = segments[i]
+        let fadeIn = TimelineFades.seconds(segment).fadeIn
+        return max(0, segment.start - margin)...min(doc.totalDuration, segment.start + fadeIn + margin)
+    }
+
+    /// Cruce de salida (con el tramo siguiente o el fundido final).
+    private var exitWindow: ClosedRange<Double>? {
+        guard let i = ownIndex else { return nil }
+        let segment = segments[i]
+        let fadeOut = TimelineFades.seconds(segment).fadeOut
+        guard i + 1 < segments.count || fadeOut > 0 else { return nil }
+        // Sin rampa (corte seco), el cambio es donde empieza el siguiente.
+        let change = fadeOut > 0 ? segment.end - fadeOut : segments[i + 1].start
+        return max(0, change - margin)...min(doc.totalDuration, segment.end + margin)
+    }
+
+    var body: some View {
+        if entryWindow != nil || exitWindow != nil {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 10) {
+                    if let window = entryWindow { listenButton("entry", title: "Escuchar entrada", window: window) }
+                    if let window = exitWindow { listenButton("exit", title: "Escuchar salida", window: window) }
+                    if player.isLoading { ProgressView().controlSize(.small) }
+                    if player.current != nil {
+                        Text("\(TimecodeField.format(player.position)) / \(TimecodeField.format(player.end))").monospacedDigit().foregroundStyle(.secondary)
+                    }
+                }
+                Text("Suena la mezcla del vídeo, con los fundidos, desde 5 s antes hasta 5 s después del cruce.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            // Si cambia algo de la música, lo que sonaba ya no vale.
+            .onChange(of: segments) { player.stop() }
+            .onChange(of: track.id) { player.stop() }
+            .onDisappear { player.stop() }
+        }
+    }
+
+    private func listenButton(_ key: String, title: LocalizedStringKey, window: ClosedRange<Double>) -> some View {
+        let playing = player.current == key && player.isPlaying
+        return Button {
+            Task { await player.play(key, segments: segments, totalDuration: doc.totalDuration, from: window.lowerBound, to: window.upperBound) }
+        } label: {
+            Label(title, systemImage: playing ? "pause.fill" : "play.fill")
         }
     }
 }

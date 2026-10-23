@@ -40,7 +40,8 @@ public enum SlideshowRenderer {
                 }
             }
             segments = AudioPlan.build(tracks: spec.audio.tracks, durations: durations, gains: gains, timeline: timeline,
-                                       fadeOutAtEnd: spec.audio.fadeOut, loopPlaylist: spec.audio.loopPlaylist)
+                                       fadeOutAtEnd: spec.audio.fadeOut, loopPlaylist: spec.audio.loopPlaylist,
+                                       crossfade: spec.audio.crossfade, fadeOutDuration: spec.audio.fadeOutDuration)
         }
 
         // 2. Vídeo sin audio.

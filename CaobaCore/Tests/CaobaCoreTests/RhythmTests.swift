@@ -104,8 +104,8 @@ struct RhythmPlannerTests {
             b.path: BeatTrack(tempo: 60, beats: (0..<40).map { Double($0) * 1.0 }, confidence: 1),
         ]
         let segments = [
-            AudioSegment(url: a, start: 0, end: 13, gain: 1, fadeIn: false, fadeOut: true, trimStart: 2, trimEnd: nil),
-            AudioSegment(url: b, start: 10, end: 30, gain: 1, fadeIn: true, fadeOut: false, trimStart: 0, trimEnd: nil),
+            AudioSegment(url: a, start: 0, end: 13, gain: 1, fadeInSeconds: 0, fadeOutSeconds: 3, trimStart: 2, trimEnd: nil),
+            AudioSegment(url: b, start: 10, end: 30, gain: 1, fadeInSeconds: 3, fadeOutSeconds: 0, trimStart: 0, trimEnd: nil),
         ]
         let beats = RhythmPlanner.videoBeats(segments: segments, tracks: tracks)
         // De la primera: golpes desde el recorte (2 s) hasta que entra la segunda (10 s) → 0, 0.5, … 9.5.

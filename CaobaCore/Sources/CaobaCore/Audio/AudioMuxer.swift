@@ -6,11 +6,12 @@ import AVFoundation
 /// codifica a AAC.
 public enum AudioMuxer {
 
-    /// Composición de audio con todas las pistas en su sitio, en bucle hasta su final.
-    static func makeComposition(segments: [AudioSegment], totalDuration: Double) async throws -> (AVMutableComposition, AVMutableAudioMix) {
+    /// Composición de audio con todas las pistas en su sitio, en bucle hasta su final, y sus
+    /// rampas de volumen. No escribe nada: la usa el vídeo y también la app para escuchar
+    /// un cruce sin generar.
+    public static func makeComposition(segments: [AudioSegment], totalDuration: Double) async throws -> (AVMutableComposition, AVMutableAudioMix) {
         let composition = AVMutableComposition()
         var parameters: [AVMutableAudioMixInputParameters] = []
-        let crossfade = AudioOptions.crossfadeSeconds
 
         for segment in segments {
             let asset = AVURLAsset(url: segment.url)
@@ -35,8 +36,8 @@ public enum AudioMuxer {
             let gain = Float(segment.gain)
             // Las rampas no pueden solaparse: si la pista es corta, las acortamos
             // y la de salida empieza siempre después de la de entrada.
-            let fadeInDuration = segment.fadeIn ? min(crossfade, segment.duration / 2) : 0
-            let fadeOutDuration = segment.fadeOut ? min(AudioOptions.fadeOutSeconds, segment.duration - fadeInDuration) : 0
+            let fadeInDuration = min(segment.fadeInSeconds, segment.duration / 2)
+            let fadeOutDuration = max(0, min(segment.fadeOutSeconds, segment.duration - fadeInDuration))
             if fadeInDuration > 0 {
                 p.setVolumeRamp(fromStartVolume: 0, toEndVolume: gain,
                                 timeRange: CMTimeRange(start: CMTime(seconds: segment.start, preferredTimescale: 44100),

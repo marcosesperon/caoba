@@ -14,9 +14,9 @@ struct AudioPlanTests {
         let b = AudioTrack(url: URL(fileURLWithPath: "/b.mp3"))
         let segments = AudioPlan.build(tracks: [a, b], durations: [20, 60], gains: [0.5, 1.0], timeline: timeline, fadeOutAtEnd: true)
         #expect(segments.count == 2)
-        #expect(segments[0].start == 0 && segments[0].end == 20 && segments[0].fadeIn == false && segments[0].fadeOut == true)
+        #expect(segments[0].start == 0 && segments[0].end == 20 && segments[0].fadeInSeconds == 0 && segments[0].fadeOutSeconds == 3)
         #expect(segments[0].gain == 0.5)
-        #expect(segments[1].start == 17 && segments[1].end == 41 && segments[1].fadeIn == true && segments[1].fadeOut == true)
+        #expect(segments[1].start == 17 && segments[1].end == 41 && segments[1].fadeInSeconds == 3 && segments[1].fadeOutSeconds == 3)
     }
 
     @Test("Inicio en un segundo concreto del vídeo")
@@ -34,8 +34,67 @@ struct AudioPlanTests {
         let a = AudioTrack(url: URL(fileURLWithPath: "/a.mp3"))
         let b = AudioTrack(url: URL(fileURLWithPath: "/b.mp3"), startMode: .atPhoto(2))
         let segments = AudioPlan.build(tracks: [a, b], durations: [100, 100], gains: nil, timeline: timeline, fadeOutAtEnd: false)
-        #expect(segments[0].start == 0 && segments[0].end == 9 && segments[0].fadeOut == true)
-        #expect(segments[1].start == 6 && segments[1].end == 12 && segments[1].fadeOut == false)
+        #expect(segments[0].start == 0 && segments[0].end == 9 && segments[0].fadeOutSeconds == 3)
+        #expect(segments[1].start == 6 && segments[1].end == 12 && segments[1].fadeOutSeconds == 0)
+    }
+}
+
+@Suite("AudioPlan cruces")
+struct AudioPlanCrossfadeTests {
+    let a = AudioTrack(url: URL(fileURLWithPath: "/a.mp3"))
+    let b = AudioTrack(url: URL(fileURLWithPath: "/b.mp3"))
+    let timeline = SlideshowTimeline(durations: Array(repeating: 10, count: 6), transition: 0) // 60 s
+
+    @Test("Cruce general de 6 s: la segunda entra 6 s antes y la primera baja en ese tiempo")
+    func general() {
+        let s = AudioPlan.build(tracks: [a, b], durations: [30, 60], gains: nil, timeline: timeline, fadeOutAtEnd: true, crossfade: 6, fadeOutDuration: 8)
+        #expect(s[0].start == 0 && s[0].end == 30 && s[0].fadeOutSeconds == 6)
+        #expect(s[1].start == 24 && s[1].fadeInSeconds == 6)
+        // El fundido final usa su propia duración.
+        #expect(s[1].end == 60 && s[1].fadeOutSeconds == 8)
+        #expect(s[0].trackID == a.id && s[1].trackID == b.id)
+    }
+
+    @Test("La entrada propia de una pista manda sobre la general")
+    func own() {
+        var own = b; own.crossfade = 1.5
+        let s = AudioPlan.build(tracks: [a, own], durations: [30, 60], gains: nil, timeline: timeline, fadeOutAtEnd: false, crossfade: 6)
+        #expect(s[1].start == 28.5 && s[1].fadeInSeconds == 1.5 && s[0].fadeOutSeconds == 1.5 && s[0].end == 30)
+    }
+
+    @Test("Con 0 es un corte seco, también con inicio fijo")
+    func cut() {
+        var fixed = b; fixed.startMode = .atTime(20)
+        let s = AudioPlan.build(tracks: [a, fixed], durations: [30, 60], gains: nil, timeline: timeline, fadeOutAtEnd: false, crossfade: 0)
+        #expect(s[0].end == 20 && s[0].fadeOutSeconds == 0)
+        #expect(s[1].start == 20 && s[1].fadeInSeconds == 0)
+    }
+
+    @Test("Al repetir la lista, cada vuelta entra con su cruce")
+    func loop() {
+        var own = a; own.crossfade = 2
+        let s = AudioPlan.build(tracks: [own, b], durations: [25, 25], gains: nil, timeline: timeline, fadeOutAtEnd: false, loopPlaylist: true, crossfade: 5)
+        // a (0–25), b entra en 20 con 5 s; a vuelve en 43 (45 − 2) con 2 s.
+        #expect(s.map(\.start) == [0, 20, 43])
+        #expect(s[2].fadeInSeconds == 2 && s[1].fadeOutSeconds == 2)
+    }
+
+    @Test("Los cruces van por orden de inicio en el vídeo, aunque la lista esté en otro orden")
+    func listOrderDiffersFromTime() {
+        var late = b; late.startMode = .atTime(24)
+        var early = a; early.startMode = .atTime(0)
+        // En la lista va primero la que empieza más tarde.
+        let s = AudioPlan.build(tracks: [late, early], durations: [100, 100], gains: nil, timeline: timeline, fadeOutAtEnd: false, crossfade: 6)
+        #expect(s.count == 2)
+        #expect(s[0].trackID == early.id && s[0].start == 0 && s[0].end == 30 && s[0].fadeOutSeconds == 6)
+        #expect(s[1].trackID == late.id && s[1].start == 24 && s[1].end == 60 && s[1].fadeInSeconds == 6)
+    }
+
+    @Test("Las configuraciones antiguas abren con 3 s de cruce y de fundido final")
+    func oldConfig() throws {
+        let json = #"{"tracks":[{"url":"file:///a.mp3"}],"fadeOut":true,"normalize":false}"#
+        let options = try JSONDecoder().decode(AudioOptions.self, from: Data(json.utf8))
+        #expect(options.crossfade == 3 && options.fadeOutDuration == 3 && options.tracks[0].crossfade == nil)
     }
 }
 
@@ -49,7 +108,7 @@ struct AudioPlanLoopTests {
         let segments = AudioPlan.build(tracks: [a, b], durations: [30, 30], gains: nil, timeline: timeline, fadeOutAtEnd: true, loopPlaylist: true)
         #expect(segments.map(\.url.lastPathComponent) == ["a.mp3", "b.mp3", "a.mp3", "b.mp3"])
         #expect(segments.map(\.start) == [0, 27, 54, 81])
-        #expect(segments.last!.end == 100 && segments.last!.fadeOut == true)
+        #expect(segments.last!.end == 100 && segments.last!.fadeOutSeconds == 3)
         // Sin bucle, la última se alarga hasta el final.
         let single = AudioPlan.build(tracks: [a, b], durations: [30, 30], gains: nil, timeline: timeline, fadeOutAtEnd: false, loopPlaylist: false)
         #expect(single.count == 2 && single[1].end == 100)
@@ -153,7 +212,7 @@ struct SlideshowRendererTests {
 
         let result = try await info(output)
         #expect(abs(result.duration - 5.5) < 0.1) // 3 × 1,5 + 1 de transición
-        #expect(result.size == CGSize(width: 960, height: 540)) // preview a la mitad
+        #expect(result.size == CGSize(width: 640, height: 360)) // vista previa: lado mayor de 640
         #expect(result.hasAudio)
         let written = try await tags(output)
         #expect(written[.identifier3GPUserDataDescription] == "Made with CAOBA — https://caobafoto.com")
@@ -175,21 +234,37 @@ struct SlideshowRendererTests {
         spec.kenBurns = KenBurnsSettings(intensity: .normal, easing: .linear, durationPercent: 100)
         let writer = VideoWriter(spec: spec, timeline: SlideshowTimeline(durations: [2, 2], transition: 0))
         let ctx = CIContext()
-        let size = spec.renderSize // 960x540
+        let size = spec.renderSize // 640x360
+        // Puntos en proporción del lienzo, para que no dependan del tamaño de la vista previa.
+        func at(_ fx: Double, _ fy: Double) -> (x: Int, y: Int) { (Int(Double(size.width) * fx), Int(Double(size.height) * fy)) }
 
         // Foto 0: 1200x800 (3:2) en 16:9 → bandas negras a los lados, foto entera.
         try writer.loadWatermarkForTests()
         let f0 = ctx.createCGImage(try writer.composeFrame(at: 0.5), from: CGRect(x: 0, y: 0, width: size.width, height: size.height))!
-        let edge = TestImages.pixel(f0, x: 5, y: 270)
+        let edge = TestImages.pixel(f0, x: 3, y: at(0, 0.5).y)
         #expect(edge.r < 10 && edge.g < 10 && edge.b < 10)
-        #expect(TestImages.isRed(TestImages.pixel(f0, x: 200, y: 150)))   // cuadrante rojo (arriba-izquierda de la foto)
-        #expect(TestImages.isWhite(TestImages.pixel(f0, x: 760, y: 400))) // blanco abajo-derecha
-        #expect(TestImages.isBlue(TestImages.pixel(f0, x: 40, y: 40)))    // marca de agua azul arriba-izquierda
+        #expect(TestImages.isRed(TestImages.pixel(f0, x: at(0.21, 0.28).x, y: at(0.21, 0.28).y)))   // cuadrante rojo (arriba-izquierda de la foto)
+        #expect(TestImages.isWhite(TestImages.pixel(f0, x: at(0.79, 0.74).x, y: at(0.79, 0.74).y))) // blanco abajo-derecha
+        #expect(TestImages.isBlue(TestImages.pixel(f0, x: at(0.04, 0.07).x, y: at(0.04, 0.07).y)))  // marca de agua azul arriba-izquierda
 
         // Foto 1: vertical con Ken Burns → cover: sin bandas negras.
         let f1 = ctx.createCGImage(try writer.composeFrame(at: 2.5), from: CGRect(x: 0, y: 0, width: size.width, height: size.height))!
-        let corner = TestImages.pixel(f1, x: 5, y: 530)
+        let corner = TestImages.pixel(f1, x: 3, y: size.height - 7)
         #expect(!(corner.r < 10 && corner.g < 10 && corner.b < 10))
+    }
+
+    @Test("Vista previa: lado mayor de 640, misma proporción, píxeles pares y la calidad por píxel del vídeo final")
+    func previewSize() {
+        let url = URL(fileURLWithPath: "/tmp/x.mp4")
+        func size(_ format: VideoFormat) -> PixelSize { SlideshowSpec(photos: [], format: format, output: url, preview: true).renderSize }
+        #expect(size(.landscape16x9) == PixelSize(width: 640, height: 360))
+        #expect(size(.portrait9x16) == PixelSize(width: 360, height: 640))
+        #expect(size(.portrait4x5) == PixelSize(width: 512, height: 640))
+        #expect(size(.portrait2x3) == PixelSize(width: 426, height: 640))
+        // El vídeo final no cambia.
+        #expect(SlideshowSpec(photos: [], format: .landscape16x9, output: url).renderSize == PixelSize(width: 1920, height: 1080))
+        // Misma fórmula de bitrate que el final: proporcional a los píxeles.
+        #expect(VideoWriter.bitrate(for: PixelSize(width: 640, height: 360)) * 9 == VideoWriter.bitrate(for: PixelSize(width: 1920, height: 1080)))
     }
 
     @Test("El progreso de codificación enseña la etiqueta de la foto o, sin ella, el nombre del fichero")

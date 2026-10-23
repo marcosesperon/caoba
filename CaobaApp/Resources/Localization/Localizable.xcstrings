@@ -80,26 +80,6 @@
         }
       }
     },
-    "«Desde» se adelanta a %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“From” moves back to %@"
-          }
-        }
-      }
-    },
-    "«Hasta» pasa al final del fichero (%@)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“To” moves to the end of the file (%@)"
-          }
-        }
-      }
-    },
     "·" : {
 
     },
@@ -185,6 +165,26 @@
         }
       }
     },
+    "«Desde» se adelanta a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“From” moves back to %@"
+          }
+        }
+      }
+    },
+    "«Hasta» pasa al final del fichero (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“To” moves to the end of the file (%@)"
+          }
+        }
+      }
+    },
     "(%@)" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -254,8 +254,68 @@
         }
       }
     },
+    "%@ / %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
     "%@ s" : {
 
+    },
+    "%@: es un corte seco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: it’s a hard cut"
+          }
+        }
+      }
+    },
+    "%@: falta el fichero" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: the file is missing"
+          }
+        }
+      }
+    },
+    "%@: no queda canción antes del Hasta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: no song left before To"
+          }
+        }
+      }
+    },
+    "%@: sin ritmo claro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: no clear beat"
+          }
+        }
+      }
+    },
+    "%@: tempos muy distintos (%lld y %lld ppm)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: tempos too different (%lld and %lld BPM)"
+          }
+        }
+      }
     },
     "%lld" : {
 
@@ -330,6 +390,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld with errors:"
+          }
+        }
+      }
+    },
+    "%lld cruces cuadrados con el ritmo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld crossfades beat-matched."
           }
         }
       }
@@ -488,6 +558,16 @@
     "0:00" : {
 
     },
+    "1 cruce cuadrado con el ritmo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 crossfade beat-matched."
+          }
+        }
+      }
+    },
     "Abajo" : {
       "localizations" : {
         "en" : {
@@ -645,6 +725,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fit"
+          }
+        }
+      }
+    },
+    "Al cambiar de pista, la que entra sube mientras la anterior baja. Cada pista puede tener su propia entrada en su editor." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the track changes, the incoming one fades up while the previous one fades down. Each track can have its own fade-in in its editor."
           }
         }
       }
@@ -2075,12 +2165,32 @@
         }
       }
     },
+    "Cruce entre pistas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crossfade between tracks"
+          }
+        }
+      }
+    },
     "Cuadrado, Instagram" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Square, Instagram"
+          }
+        }
+      }
+    },
+    "Cuadrar cruces" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beat-match crossfades"
           }
         }
       }
@@ -2466,6 +2576,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "File duration: %@ · plays %@"
+          }
+        }
+      }
+    },
+    "Duración del fundido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade duration"
           }
         }
       }
@@ -2910,6 +3030,16 @@
     "en" : {
 
     },
+    "En cada cambio de pista, el cruce empieza en un golpe de la que sale y la que entra arranca en uno de los suyos, para que los golpes de las dos caigan juntos. Mueve el inicio y el Desde de la que entra como mucho medio golpe. Después puedes pulsar «Ajustar al ritmo» para que las fotos sigan las posiciones nuevas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At each track change, the crossfade starts on a beat of the outgoing track and the incoming one starts on one of its own, so both tracks’ beats land together. It moves the incoming track’s start and From by half a beat at most. Afterwards you can press “Fit to the beat” so the photos follow the new positions."
+          }
+        }
+      }
+    },
     "Encuadre" : {
       "localizations" : {
         "en" : {
@@ -2973,7 +3103,18 @@
         }
       }
     },
+    "Entrada (cruce con la anterior)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade-in (crossfade with the previous track)"
+          }
+        }
+      }
+    },
     "Entre pistas hay siempre un crossfade de 3 segundos." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3039,6 +3180,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Listen to the section between From and To"
+          }
+        }
+      }
+    },
+    "Escuchar entrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listen to fade-in"
+          }
+        }
+      }
+    },
+    "Escuchar salida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listen to fade-out"
           }
         }
       }
@@ -3515,7 +3676,18 @@
         }
       }
     },
+    "Fundido de salida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fade out"
+          }
+        }
+      }
+    },
     "Fundido de salida (3 s)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3719,6 +3891,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beyond the estimated life; it may keep working, but with no guarantee."
+          }
+        }
+      }
+    },
+    "Hace falta más de una pista para cuadrar cruces." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You need more than one track to beat-match crossfades."
           }
         }
       }
@@ -6244,6 +6426,16 @@
         }
       }
     },
+    "Sin cuadrar: " : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not matched: "
+          }
+        }
+      }
+    },
     "Sin fondo, el texto se superpone al elemento que viene después en el timeline (con entrada y salida del estilo)." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6468,6 +6660,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Subtitle"
+          }
+        }
+      }
+    },
+    "Suena la mezcla del vídeo, con los fundidos, desde 5 s antes hasta 5 s después del cruce." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plays the video’s mix, with the fades, from 5 s before to 5 s after the crossfade."
           }
         }
       }
@@ -6842,6 +7044,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "URL"
+          }
+        }
+      }
+    },
+    "Usa el cruce general de la pestaña Música." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the general crossfade from the Music tab."
           }
         }
       }

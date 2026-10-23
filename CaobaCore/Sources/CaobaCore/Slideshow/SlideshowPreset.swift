@@ -27,8 +27,12 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public var normalize: Bool?
         /// Nuevo: repetir la lista de pistas si el vídeo es más largo.
         public var loopPlaylist: Bool?
-        public init(fadeout: Bool? = nil, normalize: Bool? = nil, loopPlaylist: Bool? = nil) {
+        /// Nuevo: segundos del cruce entre pistas y del fundido final (sin ellos, 3 s).
+        public var crossfade: Double?
+        public var fadeoutDuration: Double?
+        public init(fadeout: Bool? = nil, normalize: Bool? = nil, loopPlaylist: Bool? = nil, crossfade: Double? = nil, fadeoutDuration: Double? = nil) {
             self.fadeout = fadeout; self.normalize = normalize; self.loopPlaylist = loopPlaylist
+            self.crossfade = crossfade; self.fadeoutDuration = fadeoutDuration
         }
     }
 
@@ -42,8 +46,11 @@ public struct SlideshowPreset: Codable, Sendable, Equatable {
         public var trimEnd: Double?
         /// Nuevo: inicio en segundos del vídeo (modo "time"). Sustituye a `startPhoto`.
         public var startTime: Double?
-        public init(path: String, mode: String? = nil, startPhoto: Int? = nil, trimStart: Double? = nil, trimEnd: Double? = nil, startTime: Double? = nil) {
+        /// Nuevo: segundos de su entrada (cruce con la anterior); sin él, el general.
+        public var crossfade: Double?
+        public init(path: String, mode: String? = nil, startPhoto: Int? = nil, trimStart: Double? = nil, trimEnd: Double? = nil, startTime: Double? = nil, crossfade: Double? = nil) {
             self.path = path; self.mode = mode; self.startPhoto = startPhoto; self.trimStart = trimStart; self.trimEnd = trimEnd; self.startTime = startTime
+            self.crossfade = crossfade
         }
     }
 

@@ -125,6 +125,16 @@ struct SlideshowTimelineView: View {
                     TrackBlock(doc: doc, track: track, start: primaryStart, length: effective, videoEnd: total, height: laneHeight)
                         .frame(width: max(12, CGFloat(effective) * pps))
                         .offset(x: CGFloat(primaryStart) * pps)
+                    // Volumen de cada tramo de la pista: sube en su entrada y baja en su salida.
+                    ForEach(Array(segments.filter { $0.trackID == track.id }.enumerated()), id: \.offset) { _, segment in
+                        let fades = TimelineFades.seconds(segment)
+                        if fades.fadeIn > 0 || fades.fadeOut > 0 {
+                            VolumeRamps(fadeIn: CGFloat(fades.fadeIn) * pps, fadeOut: CGFloat(fades.fadeOut) * pps)
+                                .frame(width: CGFloat(segment.duration) * pps, height: laneHeight)
+                                .offset(x: CGFloat(segment.start) * pps)
+                                .allowsHitTesting(false)
+                        }
+                    }
                 }
                 .frame(width: totalWidth, height: laneHeight, alignment: .leading)
             }
@@ -158,7 +168,7 @@ struct SlideshowTimelineView: View {
     /// segmentos posteriores al principal (repetición de la lista).
     private func fillerRanges(for track: AudioTrack, segments: [AudioSegment], effective: Double, primaryStart: Double) -> [ClosedRange<Double>] {
         var ranges: [ClosedRange<Double>] = []
-        let own = segments.filter { $0.url == track.url && $0.trimStart == track.trimStart }
+        let own = segments.filter { $0.trackID == track.id }
         for (n, segment) in own.enumerated() {
             var cursor = segment.start + (n == 0 ? effective : 0)
             while cursor < segment.end - 0.05 {
@@ -362,6 +372,41 @@ private struct ReorderModifier: ViewModifier {
         default:
             content
                 .dropDestination(for: String.self) { items, _ in items.first.map(dropText) ?? false }
+        }
+    }
+}
+
+/// Rampas tal como las aplica el mezclador (más cortas si el tramo no da para ellas).
+enum TimelineFades {
+    static func seconds(_ segment: AudioSegment) -> (fadeIn: Double, fadeOut: Double) {
+        let fadeIn = min(segment.fadeInSeconds, segment.duration / 2)
+        return (fadeIn, max(0, min(segment.fadeOutSeconds, segment.duration - fadeIn)))
+    }
+}
+
+/// Rampas de volumen de un tramo de música: oscurece lo que queda por encima del volumen
+/// (silencio al empezar la entrada y al acabar la salida) y marca la rampa con una línea.
+struct VolumeRamps: View {
+    /// Anchos en puntos de la entrada y de la salida.
+    let fadeIn: CGFloat
+    let fadeOut: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width, h = geo.size.height
+            let top: CGFloat = 3, bottom = h - 2
+            ZStack {
+                Path { p in
+                    if fadeIn > 0 { p.addLines([CGPoint(x: 0, y: top), CGPoint(x: fadeIn, y: top), CGPoint(x: 0, y: bottom)]) }
+                    if fadeOut > 0 { p.addLines([CGPoint(x: w - fadeOut, y: top), CGPoint(x: w, y: top), CGPoint(x: w, y: bottom)]) }
+                }
+                .fill(.black.opacity(0.35))
+                Path { p in
+                    if fadeIn > 0 { p.move(to: CGPoint(x: 0, y: bottom)); p.addLine(to: CGPoint(x: fadeIn, y: top)) }
+                    if fadeOut > 0 { p.move(to: CGPoint(x: w - fadeOut, y: top)); p.addLine(to: CGPoint(x: w, y: bottom)) }
+                }
+                .stroke(.white.opacity(0.8), lineWidth: 1)
+            }
         }
     }
 }

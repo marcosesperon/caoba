@@ -74,13 +74,16 @@ public struct AudioTrack: Sendable, Equatable, Codable, Identifiable {
     public var trimStart: Double
     /// Segundo de la canción en el que se corta; `nil` = hasta el final.
     public var trimEnd: Double?
+    /// Segundos que dura su entrada (el cruce con la pista anterior); `nil` = el general.
+    public var crossfade: Double?
 
-    public init(id: UUID = UUID(), url: URL, startMode: StartMode = .automatic, trimStart: Double = 0, trimEnd: Double? = nil) {
+    public init(id: UUID = UUID(), url: URL, startMode: StartMode = .automatic, trimStart: Double = 0, trimEnd: Double? = nil, crossfade: Double? = nil) {
         self.id = id
         self.url = url
         self.startMode = startMode
         self.trimStart = max(0, trimStart)
         self.trimEnd = trimEnd
+        self.crossfade = crossfade
     }
 
     /// Duración que suena de verdad, dada la duración real del fichero.
@@ -89,7 +92,7 @@ public struct AudioTrack: Sendable, Equatable, Codable, Identifiable {
         return max(0.5, end - min(trimStart, assetDuration))
     }
 
-    private enum CodingKeys: String, CodingKey { case id, url, startMode, trimStart, trimEnd }
+    private enum CodingKeys: String, CodingKey { case id, url, startMode, trimStart, trimEnd, crossfade }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -98,6 +101,7 @@ public struct AudioTrack: Sendable, Equatable, Codable, Identifiable {
         startMode = try c.decodeIfPresent(StartMode.self, forKey: .startMode) ?? .automatic
         trimStart = try c.decodeIfPresent(Double.self, forKey: .trimStart) ?? 0
         trimEnd = try c.decodeIfPresent(Double.self, forKey: .trimEnd)
+        crossfade = try c.decodeIfPresent(Double.self, forKey: .crossfade)
     }
 }
 
@@ -109,19 +113,30 @@ public struct AudioOptions: Sendable, Equatable, Codable {
     /// Si el vídeo dura más que las pistas, vuelve a empezar la lista (con
     /// crossfade entre cambios). Si no, la última pista se repite sola.
     public var loopPlaylist: Bool
+    /// Segundos que se cruzan dos pistas al cambiar (0 = corte seco). Cada pista puede tener el suyo.
+    public var crossfade: Double
+    /// Segundos del fundido de salida del final del vídeo (si `fadeOut`).
+    public var fadeOutDuration: Double
 
+    /// Valores por defecto (los de siempre, para las configuraciones antiguas).
     public static let crossfadeSeconds = 3.0
     public static let fadeOutSeconds = 3.0
+    /// Márgenes que admite la app.
+    public static let crossfadeRange: ClosedRange<Double> = 0...10
+    public static let fadeOutRange: ClosedRange<Double> = 1...10
     public static let targetLoudness = -16.0
 
-    public init(tracks: [AudioTrack] = [], fadeOut: Bool = true, normalize: Bool = false, loopPlaylist: Bool = true) {
+    public init(tracks: [AudioTrack] = [], fadeOut: Bool = true, normalize: Bool = false, loopPlaylist: Bool = true,
+                crossfade: Double = AudioOptions.crossfadeSeconds, fadeOutDuration: Double = AudioOptions.fadeOutSeconds) {
         self.tracks = tracks
         self.fadeOut = fadeOut
         self.normalize = normalize
         self.loopPlaylist = loopPlaylist
+        self.crossfade = crossfade
+        self.fadeOutDuration = fadeOutDuration
     }
 
-    private enum CodingKeys: String, CodingKey { case tracks, fadeOut, normalize, loopPlaylist }
+    private enum CodingKeys: String, CodingKey { case tracks, fadeOut, normalize, loopPlaylist, crossfade, fadeOutDuration }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -129,6 +144,8 @@ public struct AudioOptions: Sendable, Equatable, Codable {
         fadeOut = try c.decodeIfPresent(Bool.self, forKey: .fadeOut) ?? true
         normalize = try c.decodeIfPresent(Bool.self, forKey: .normalize) ?? false
         loopPlaylist = try c.decodeIfPresent(Bool.self, forKey: .loopPlaylist) ?? true
+        crossfade = try c.decodeIfPresent(Double.self, forKey: .crossfade) ?? Self.crossfadeSeconds
+        fadeOutDuration = try c.decodeIfPresent(Double.self, forKey: .fadeOutDuration) ?? Self.fadeOutSeconds
     }
 }
 
@@ -207,12 +224,14 @@ public struct SlideshowSpec: Sendable, Equatable {
     public var audio: AudioOptions
     public var kenBurns: KenBurnsSettings
     public var output: URL
-    /// Mitad de resolución y bitrate bajo, para la vista previa.
+    /// Vista previa: vídeo pequeño (lado mayor `previewLongestSide`) para que salga rápido.
     public var preview: Bool
     /// Etiquetas del MP4 (software, comentario, autor).
     public var metadata = VideoMetadata()
 
     public static let transitionSeconds = 1.0
+    /// Lado mayor de la vista previa, en píxeles.
+    public static let previewLongestSide = 640
 
     public init(photos: [SlideshowPhoto], format: VideoFormat, fps: Int = 25, transition: Bool = true, watermark: VideoWatermark? = nil,
                 audio: AudioOptions = AudioOptions(), kenBurns: KenBurnsSettings = KenBurnsSettings(), output: URL, preview: Bool = false) {
@@ -227,11 +246,14 @@ public struct SlideshowSpec: Sendable, Equatable {
         self.preview = preview
     }
 
-    /// Tamaño real del vídeo (la preview va a la mitad, en píxeles pares).
+    /// Tamaño real del vídeo. La vista previa se reduce hasta que su lado mayor mida
+    /// `previewLongestSide`, con la misma proporción y en píxeles pares (lo pide el códec).
     public var renderSize: PixelSize {
         guard preview else { return format.size }
         let s = format.size
-        return PixelSize(width: (s.width / 2) & ~1, height: (s.height / 2) & ~1)
+        let scale = min(1, Double(Self.previewLongestSide) / Double(max(s.width, s.height)))
+        let even = { (v: Int) in Int((Double(v) * scale).rounded()) & ~1 }
+        return PixelSize(width: even(s.width), height: even(s.height))
     }
 
     public var transitionDuration: Double { transition ? Self.transitionSeconds : 0 }
