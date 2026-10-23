@@ -2480,6 +2480,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), como versión 3.15.0, con release en GitHub. La landing no cambia (no anuncia nada nuevo y la versión la lee de GitHub).
 - La barra la pone cada módulo debajo de su vista (como el Slideshow) y `ContentView` deja de pintarla: el botón principal y sus condiciones viven en el módulo. `DestinationBar` pasa a ser genérica con un cierre `actions` que se pinta al final tras una línea; con `kind: .none` solo salen las acciones, a la derecha.
 - `Module.destinationKind` se mantiene; cada módulo pasa a la barra el tipo que le toca.
 - A 1000 pt de ventana la barra de carpeta con dos botones no cabía: el Procesador se salía de la ventana y el Renombrador hacía caer la app (excepción de AppKit al recalcular las restricciones de la ventana). Arreglo: «Guardar» como texto pegado al selector (sin la columna ancha de `LabeledRow`), ruta y avisos con `minWidth: 0` (ceden y se acortan por el medio) y acciones, «Guardar» y «Elegir…» con `fixedSize` (no se cortan nunca).

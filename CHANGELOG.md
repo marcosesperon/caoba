@@ -2,7 +2,7 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.15.0 — 2026-10-23
 
 - **El botón principal de cada sección pasa al final de la barra inferior**, como «Generar vídeo» en el Slideshow: Generar (Collage y Contact Sheet), Procesar, Aplicar y Renombrar van a la derecha de la carpeta de salida, con lo que los acompaña delante («Comparar», «N cambios»). Metadatos y Código QR estrenan esa barra para «Escribir metadatos» y «Guardar PNG…».
 - La barra inferior cabe en ventanas estrechas: si falta sitio se acorta la ruta, nunca los botones.
