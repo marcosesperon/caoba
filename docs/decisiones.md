@@ -2513,6 +2513,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.16.0 con release en GitHub.
 - Deslizador `0.1...5` (paso 0,1, sin cambios) y suelo del motor `max(0.1, reveal)`: si solo se tocaba el deslizador, al generar 0,1 se convertía en 0,2 sin avisar.
 - Test nuevo en `CollageSlideshowTests` (0,1 se respeta; 0,05 y 0 suben a 0,1). 146 tests en verde.
 - Comprobado con captura de la pestaña Vídeo: el tirador queda donde corresponde al rango nuevo.
@@ -2550,6 +2551,7 @@ Ampliación confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.16.0 con release en GitHub.
 - `SlideshowDocument.replaceTrackFile(_:with:)` lee primero la duración del fichero nuevo; si no se puede, no cambia nada y avisa. Cambia solo esa pista (por `id`), su duración y, si hace falta, el recorte. El aviso va en `trackFileNotice` y lo enseña una alerta en `SlideshowView`.
 - Ajuste del recorte: «Hasta» más allá del final → `nil` (hasta el final); «Desde» más tarde que duración − 1 s → duración − 1 s (como mínimo suena 1 s, igual que al recortar arrastrando).
 - Un solo helper `chooseTrackFile(for:doc:)` para los tres sitios. El bloque de la pista en el timeline estrena clic derecho con «Cambiar fichero…» y «Quitar pista».
