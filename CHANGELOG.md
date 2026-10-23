@@ -2,16 +2,16 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.17.0 — 2026-10-23
 
-- **Cuadrar cruces con el ritmo** (Música → Ritmo): en cada cambio de canción, el cruce empieza en un golpe y los golpes de las dos caen juntos, como al pinchar. Mueve cada pista como mucho medio golpe y avisa de los cruces que no se pueden cuadrar (sin ritmo claro o con tempos muy distintos).
-- El menú «Recientes» ya no se queda con el foco (y su marco) al abrir la ventana.
+- **Vista previa completa del Slideshow**: enseña el vídeo entero (antes solo las 10 primeras fotos o los 3 primeros collages), con todo lo que llevará el final. Sale pequeña, a 640 px de lado mayor, con las fotos y los collages ya reducidos, así que tarda poco: unos segundos para un vídeo de un minuto.
 - **Cruces entre pistas a tu medida**: en Música → Opciones eliges cuánto se cruzan dos canciones al cambiar (de 0, corte seco, a 10 s) y cuánto dura el fundido del final. Cada pista puede tener su propia entrada desde su editor.
 - **Los cruces se ven en el timeline**: cada pista dibuja cómo sube y baja su volumen.
 - **Escuchar un cruce sin generar**: «Escuchar entrada» y «Escuchar salida» en el editor de la pista suenan la mezcla real, de 5 s antes a 5 s después del cambio.
+- **Cuadrar cruces con el ritmo** (Música → Ritmo): en cada cambio de canción, el cruce empieza en un golpe y los golpes de las dos caen juntos, como al pinchar. Mueve cada pista como mucho medio golpe y avisa de los cruces que no se pueden cuadrar (sin ritmo claro o con tempos muy distintos).
 - Si una pista con inicio fijo iba más abajo en la lista que otra que empieza después, desaparecía del vídeo. Ahora los cruces se calculan por el orden en que suenan.
-- **Vista previa completa del Slideshow**: enseña el vídeo entero (antes solo las 10 primeras fotos o los 3 primeros collages), con todo lo que llevará el final. Sale pequeña, a 640 px de lado mayor, con las fotos y los collages ya reducidos, así que tarda poco: unos segundos para un vídeo de un minuto.
 - La vista previa codifica ahora con los mismos ajustes que «Generar vídeo» (antes usaba una calidad mucho más baja), para evitar que se cerrara la app en algunos Mac con procesador Intel.
+- El menú «Recientes» ya no se queda con el foco (y su marco) al abrir la ventana.
 
 ## 3.16.0 — 2026-10-23
 

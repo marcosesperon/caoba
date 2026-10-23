@@ -2598,6 +2598,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («si»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar». `logs/` no entra en el commit.
+- Publicado después, a petición del usuario («publica»), en la versión 3.17.0 con release en GitHub.
 - `SlideshowSpec.previewLongestSide = 640`; `renderSize` en vista previa escala el formato a ese lado mayor, redondea y deja los píxeles pares (16:9 → 640×360, 9:16 → 360×640, 4:5 → 512×640, 2:3 → 426×640).
 - `VideoWriter.bitrate(for:)` sin el parámetro `preview`: misma fórmula para vista previa y final. Es lo único del codificador que distinguía la vista previa (además del tamaño), y la sospecha del cierre en Intel.
 - App: sin `limit: 10` ni `prefix(3)`; `makePhotos` pierde el parámetro `limit` (solo lo usaba la vista previa). Los collages de la vista previa se dibujan con `collageOptionsForPreview` (`scaled(toLongestSide: 640)`). Las fotos sueltas no necesitan cambios: `VideoWriter` ya las carga reducidas a lo que pide el lienzo.
@@ -2640,6 +2641,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.17.0 con release en GitHub.
 - Datos: `AudioOptions.crossfade` y `fadeOutDuration` (3 s por defecto, también al leer configuraciones antiguas); `AudioTrack.crossfade` opcional. Preset: `audio.crossfade`, `audio.fadeoutDuration` y `musicTracks[].crossfade`.
 - `AudioSegment` pasa de `fadeIn`/`fadeOut` (sí/no) a `fadeInSeconds`/`fadeOutSeconds`, y lleva `trackID`. Con él, `effectiveStart` y los tramos de relleno del timeline ya no buscan por ruta y recorte (dos pistas con el mismo fichero y recorte se confundían).
 - `AudioPlan.build`: cada cambio usa el cruce de la pista que entra; «tras la anterior» entra ese tiempo antes; la que sale se alarga lo mismo; con 0, corte seco. `AudioMuxer` aplica esas duraciones con los mismos recortes de antes y `makeComposition` pasa a pública.
@@ -2676,6 +2678,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («si»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.17.0 con release en GitHub.
 - `.focusable(false)` en el menú «Recientes» de `SourceFolderBar`, con comentario del porqué.
 
 ### 5. Alternativas descartadas
@@ -2709,6 +2712,7 @@ Confirmada por el usuario («ok»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.17.0 con release en GitHub.
 - El cálculo es puro y está en el motor (`CrossfadeAligner`, fichero nuevo), con 6 tests; la app solo lo orquesta (`alignCrossfades`, `nextCrossfade`) y comparte con «Ajustar al ritmo» el análisis de golpes (`analyzePendingBeats`, sacado de `adjustToRhythm`).
 - Para conseguir a la vez «el cruce empieza en un golpe» y «los golpes coinciden», además del inicio se mueve el **Desde** de la que entra (como mucho medio golpe): con mover solo el inicio no se pueden cumplir las dos cosas. Se avisó en el plan.
 - Tolerancia de tempo del 6 % (doble y mitad compatibles) y fotos sin tocar: decididos por mí y aceptados en la confirmación.
