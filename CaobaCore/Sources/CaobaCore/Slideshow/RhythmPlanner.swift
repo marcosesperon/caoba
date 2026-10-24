@@ -16,10 +16,16 @@ public struct RhythmItem: Sendable, Equatable {
     public var fixedDuration: Double?
     public var minimum: Double
     public var maximum: Double
-    public init(fixedDuration: Double? = nil, minimum: Double = 1, maximum: Double = 15) {
+    /// Duración de referencia propia (p. ej. un collage según sus fotos); `nil` = la general.
+    public var target: Double?
+    /// Fotos que muestra: con «golpes por foto» fijo, los golpes se multiplican por ellas.
+    public var photos: Int
+    public init(fixedDuration: Double? = nil, minimum: Double = 1, maximum: Double = 15, target: Double? = nil, photos: Int = 1) {
         self.fixedDuration = fixedDuration
         self.minimum = minimum
         self.maximum = maximum
+        self.target = target
+        self.photos = max(1, photos)
     }
 }
 
@@ -27,6 +33,8 @@ public struct RhythmItem: Sendable, Equatable {
 public enum RhythmPlanner {
     /// Densidades disponibles: potencias de dos, que son las frases musicales.
     public static let densities = [1, 2, 4, 8, 16]
+    /// En automático también vale 32, para collages largos (muchas fotos o «Mantener» alto).
+    static let automaticDensities = densities + [32]
 
     /// Pasa los golpes de cada pista al tiempo del vídeo según los segmentos
     /// de la mezcla: cada segmento aporta sus golpes solo hasta que empieza el
@@ -48,7 +56,7 @@ public enum RhythmPlanner {
     /// Golpes por foto que dejan la duración más cerca del objetivo con ese periodo.
     public static func automaticDensity(period: Double, target: Double) -> Int {
         guard period > 0 else { return 1 }
-        return densities.min { abs(log(Double($0) * period / target)) < abs(log(Double($1) * period / target)) } ?? 1
+        return automaticDensities.min { abs(log(Double($0) * period / target)) < abs(log(Double($1) * period / target)) } ?? 1
     }
 
     /// Duraciones resultantes. Cada elemento empieza en `t`; su cambio visual
@@ -73,12 +81,16 @@ public enum RhythmPlanner {
             // Golpe en el que "aterriza" este elemento y los que vienen después.
             let landing = t + half
             let upcoming = beats.filter { $0.time >= landing - 0.05 }
+            // Cada elemento puede tener su referencia (un collage, según sus fotos).
+            let reference = item.target ?? target
             guard let first = upcoming.first else {
-                durations.append(target)
-                t += target
+                let d = min(item.maximum, max(item.minimum, reference))
+                durations.append(d)
+                t += d
                 continue
             }
-            let density = beatsPerCut ?? automaticDensity(period: first.period, target: target)
+            // Fijo: golpes por cada foto que muestra. Automático: los que más se acercan a su referencia.
+            let density = beatsPerCut.map { $0 * item.photos } ?? automaticDensity(period: first.period, target: reference)
             var chosen: Double?
             var index = density
             // Primero el golpe que toca por densidad; si se sale de los límites, el más cercano que entre.
@@ -95,9 +107,11 @@ public enum RhythmPlanner {
                     if d >= item.minimum { candidates.append(d) }
                     index += 1
                 }
-                chosen = candidates.min { abs($0 - Double(density) * first.period) < abs($1 - Double(density) * first.period) }
+                // Si el que toca no cabe, el que más se acerque: a los golpes pedidos (fijo) o a su referencia (automático).
+                let aim = beatsPerCut != nil ? Double(density) * first.period : reference
+                chosen = candidates.min { abs($0 - aim) < abs($1 - aim) }
             }
-            let d = chosen ?? min(item.maximum, max(item.minimum, target))
+            let d = chosen ?? min(item.maximum, max(item.minimum, reference))
             durations.append(d)
             t += d
         }

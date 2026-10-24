@@ -280,6 +280,38 @@ final class SlideshowDocument {
         photoDurations[url.lastPathComponent] ?? durationPerPhoto
     }
 
+    /// De dónde sale el tiempo de una foto o un collage, para marcarlo en el timeline.
+    enum DurationSource { case general, manual, rhythm }
+
+    /// `nil` para portada, créditos y textos: siempre llevan su propio tiempo, no hay nada que distinguir.
+    func durationSource(of item: TimelineItem) -> DurationSource? {
+        let own: Bool
+        switch item.kind {
+        case .photo(let url): own = photoDurations[url.lastPathComponent] != nil
+        case .collage(let row): own = row.hold != nil
+        case .cover, .credits, .text: return nil
+        }
+        // Con tiempo propio, la lista del ritmo dice si lo puso «Ajustar al ritmo» o el usuario.
+        guard own else { return .general }
+        return rhythmItems.contains(item.id) ? .rhythm : .manual
+    }
+
+    /// Cuántas fotos (o collages, según el modo) tienen tiempo manual y cuántas al ritmo.
+    var ownDurationCounts: (manual: Int, rhythm: Int) {
+        let ids: [String] = mode == .photos
+            ? files.map(\.lastPathComponent).filter { photoDurations[$0] != nil }
+            : rows.filter { $0.hold != nil }.map(\.id.uuidString)
+        let rhythm = ids.filter { rhythmItems.contains($0) }.count
+        return (ids.count - rhythm, rhythm)
+    }
+
+    /// Duración de una foto desde su inspector: es un cambio a mano (o, con `nil`, vuelve a la general),
+    /// así que deja de contar como ajustada al ritmo.
+    func setPhotoDuration(_ seconds: Double?, for name: String) {
+        rhythmItems.remove(name)
+        photoDurations[name] = seconds
+    }
+
     var rows: [CollageRow] { CollageSequenceEditor.rows(from: sequence, files: files) }
 
     var collageOptions: CollageSlideshow.Options {
@@ -525,17 +557,6 @@ final class SlideshowDocument {
 
     var totalDuration: Double { timeline.totalDuration }
 
-    /// Hasta dónde llega el audio (la pista que más tarde termina), aunque el
-    /// vídeo acabe antes. El timeline se dibuja hasta aquí para ver las pistas enteras.
-    var audioExtent: Double {
-        tracks.map { track in
-            let length = track.effectiveDuration(assetDuration: timelineDuration(of: track))
-            return effectiveStart(of: track) + length
-        }.max() ?? 0
-    }
-
-    var timelineExtent: Double { max(totalDuration, audioExtent) }
-
     /// Segmentos de audio tal como los calculará el motor (para dibujar los carriles, con sus
     /// rampas de volumen, y para escuchar un cruce).
     var audioSegments: [AudioSegment] {
@@ -645,7 +666,30 @@ final class SlideshowDocument {
 
     func setHold(_ seconds: Double?, for id: UUID) {
         guard let i = sequence.firstIndex(where: { $0.id == id }) else { return }
+        // Tocar el Mantener a mano (o quitarlo) hace que el ritmo ya no lo cuente como suyo.
+        rhythmItems.remove(id.uuidString)
         sequence[i].hold = seconds.map { max(0, min(60, ($0 * 2).rounded() / 2)) }
+    }
+
+    /// Los collages estrenan identificador cada vez que se abre la carpeta, así que en el
+    /// fichero se apuntan por su posición («collage:3»); las fotos, por su nombre como siempre.
+    private static let savedCollagePrefix = "collage:"
+
+    private var savedRhythmItems: [String] {
+        let positions = Dictionary(uniqueKeysWithValues: sequence.enumerated().map { ($1.id.uuidString, $0) })
+        return rhythmItems.map { id in positions[id].map { Self.savedCollagePrefix + String($0) } ?? id }.sorted()
+    }
+
+    /// Al cargar: «collage:3» vuelve a ser el identificador del cuarto collage de la secuencia.
+    /// Lo que apunte a un collage que ya no existe (o a identificadores de versiones anteriores) se descarta.
+    private func restoredRhythmItems(_ saved: Set<String>) -> Set<String> {
+        Set(saved.compactMap { id in
+            if id.hasPrefix(Self.savedCollagePrefix) {
+                guard let i = Int(id.dropFirst(Self.savedCollagePrefix.count)), sequence.indices.contains(i) else { return nil }
+                return sequence[i].id.uuidString
+            }
+            return UUID(uuidString: id) == nil ? id : nil
+        })
     }
 
     func equalizeDurations() {
@@ -763,9 +807,11 @@ final class SlideshowDocument {
                 return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: 1, maximum: 15)
             case .collage(let row):
                 let own = row.hold != nil && !rhythmItems.contains(entry.id)
-                // Un collage no puede durar menos que su aparición de fotos.
+                // Un collage no puede durar menos que su aparición de fotos, y su referencia es lo que
+                // duraría sin ritmo (según sus fotos): uno de 1 foto queda corto y uno de 5, largo.
                 let fixed = CollageSlideshow.emptyFrameSeconds + reveal * Double(row.template.photos)
-                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: max(1, fixed), maximum: max(15, fixed + 15))
+                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: max(1, fixed), maximum: max(15, fixed + 15),
+                                  target: fixed + hold, photos: row.template.photos)
             }
         }
         let target = mode == .collage ? CollageSlideshow.emptyFrameSeconds + reveal * 3 + hold : durationPerPhoto
@@ -1269,7 +1315,7 @@ final class SlideshowDocument {
         text.captionStyle = captionStyle; text.captionPattern = captionPattern; text.captions = itemCaptions
         p.text = text
         p.beatsPerCut = beatsPerCut
-        p.rhythmItems = rhythmItems.sorted()
+        p.rhythmItems = savedRhythmItems
         p.useTransition = transitionChoice.hasDuration
         p.transitionKind = transitionChoice.rawValue
         p.transitionDuration = transitionDuration
@@ -1424,6 +1470,7 @@ final class SlideshowDocument {
             if let holds = cs.holdByRow {
                 for (key, value) in holds { if let i = Int(key), sequence.indices.contains(i) { sequence[i].hold = value } }
             }
+            rhythmItems = restoredRhythmItems(rhythmItems)
             if let focus = cs.focusPoints {
                 for (key, cells) in focus {
                     guard let i = Int(key), sequence.indices.contains(i) else { continue }

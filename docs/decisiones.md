@@ -2728,3 +2728,168 @@ Confirmada por el usuario («ok»).
 ### 6. Pendiente de comprobar
 - Probado con clics sintéticos; con canciones reales el resultado depende de lo bien que el detector encuentre los golpes (en música sin batería marcada puede decir «sin ritmo claro» o cuadrar a contratiempo).
 - Al mover el Desde de la que entra, cambia unas décimas lo primero que se oye de esa canción.
+
+## 2026-10-24 — «Ajustar al ritmo» según las fotos de cada collage
+
+### 1. La petición tal como se ha entendido
+«Ajustar al ritmo», en modo collage, deja de dar a todos los collages la misma duración y tiene en cuenta cuántas fotos lleva cada uno:
+- **Referencia por collage**: la duración que tendría sin ritmo, `0,5 s + Aparición × sus fotos + Mantener`. El ritmo la lleva al golpe más cercano (antes la referencia era la de un collage de 3 fotos para todos).
+- **«Golpes por foto» en Auto**: para cada collage se elige, entre 1, 2, 4, 8, 16 y 32 golpes, el número que deja su duración más cerca de su referencia.
+- **«Golpes por foto» con un número fijo**: se multiplica por las fotos del collage (con 2: 1 foto → 2 golpes; 5 fotos → 10 golpes).
+- En ambos casos, si con esos golpes no cabe la aparición de todas sus fotos, se alarga al golpe siguiente que quepa; y si el golpe que toca no está dentro de los límites, se busca el que deje la duración más cerca de su referencia (hoy se busca el más cerca de los golpes elegidos).
+- Lo demás no cambia: los collages con «Mantener» propio no se tocan, el modo fotos sigue igual (cada elemento es una foto) y portada, créditos y textos tampoco se tocan.
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Qué duración de referencia usa el ritmo para cada collage?** → La que tendría sin ritmo (0,5 s + Aparición × fotos + Mantener).
+- **Con un número fijo en «Golpes por foto», ¿cómo se aplica a los collages?** → Por cada foto del collage (se multiplica por sus fotos).
+
+### 3. Fuentes analizadas
+- `Model/SlideshowDocument.swift` (`applyRhythm`: un solo `target` = `0,5 + reveal × 3 + hold` para todos los collages; mínimo = la aparición de sus fotos), `CaobaCore/Slideshow/RhythmPlanner.swift` (`plan`: un `target` común, densidad automática entre potencias de dos, búsqueda de alternativa por cercanía a `densidad × periodo`; `RhythmItem`).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- `RhythmItem` gana `target` (referencia propia; `nil` = la general) y `photos` (1 por defecto): el modo fotos y lo que no es collage no cambian. Sin golpes a la vista, se usa la referencia propia acotada por los límites.
+- Automático entre 1, 2, 4, 8, 16 y 32 golpes (`automaticDensities`); el selector sigue de 1 a 16. Decidido por mí: con Mantener alto o muchas fotos, 16 golpes se quedaban cortos.
+- Si el golpe que toca no cabe: en fijo, el más cercano a los golpes pedidos (como antes); en automático, el más cercano a la referencia.
+- Tests nuevos (`collageTargets`, `collagePerPhoto`); los de antes siguen igual. 161 tests en verde.
+- Comprobado sobre una copia de BOOK (9 collages de 1 a 5 fotos, Aparición 1,5 s, Mantener 0) con una pista de clics a 120 ppm, «Ajustar al ritmo» con la 3.17.0 y con esta versión: los de 1 foto pasan de ~4 s a 2,5 s, los de 4 fotos de 6,5 s a 8 s, y los de 2, 3 y 5 se quedan como estaban (~4, 5,5 y 8,1 s).
+
+### 5. Alternativas descartadas
+- Un ajuste nuevo de «segundos por foto» como referencia (el usuario prefiere la duración que tendría sin ritmo).
+- «Golpes por collage» igual para todos, como ahora.
+
+### 6. Pendiente de comprobar
+- Con una canción real (golpes menos regulares que los clics) no se ha probado; el reparto depende igual de que el detector encuentre los golpes.
+- Las duraciones que ya se ajustaron al ritmo con la versión anterior no cambian solas: hay que volver a pulsar «Ajustar al ritmo».
+
+## 2026-10-24 — Ver qué diapositivas tienen tiempo manual y que el inspector cuente como manual
+
+### 1. La petición tal como se ha entendido
+Dos cambios en el Slideshow:
+- **Marca en el timeline**: en los bloques de fotos y collages, junto a la cifra de segundos, un icono de mano si la duración es manual y uno de metrónomo si la puso «Ajustar al ritmo». Las que siguen la duración general (o Mantener general), sin icono. Cada icono con su tooltip. Portada, créditos y textos, sin icono.
+- **Recuento separado en el inspector general**: «N fotos con duración propia» / «N collages con duración propia» pasa a distinguir manuales y al ritmo (p. ej. «2 manuales · 5 al ritmo»). «Igualar duraciones» sigue quitando las dos.
+- **Corrección**: cambiar la Duración de una foto o el Mantener de un collage desde su inspector cuenta como manual, igual que estirar el bloque en el timeline; así «Ajustar al ritmo» ya no lo pisa. Deshacer con la flecha la devuelve a la general (sin marca).
+
+Confirmada por el usuario («si»).
+
+Petición original: «¿tenemos forma de saber cuáles son los frames que tienen tiempo manual?». Tras explicar que hoy solo hay un recuento (que mezcla manuales y ajustadas al ritmo) y que un cambio desde el inspector no cuenta como manual para «Ajustar al ritmo», el usuario pide las dos cosas: marcarlas en el timeline y corregir el fallo del inspector.
+
+### 2. Preguntas y respuestas
+- **¿Cómo se marca en el timeline el tiempo de cada diapositiva?** → Icono junto a la duración: mano para las manuales, metrónomo para las ajustadas al ritmo; las que siguen la duración general, sin icono. Con tooltip.
+- **¿Portada, créditos y textos llevan icono?** → No: solo fotos y collages, que son los que pueden seguir la general o el ritmo.
+- **¿Se separa el recuento del inspector general?** → Sí: «N manuales · N al ritmo».
+- **(Encontrado al probar) En modo collage, al reabrir la carpeta los collages reciben un identificador nuevo y se pierde cuáles ajustó el ritmo: salen como manuales y «Ajustar al ritmo» ya no los recalcula. ¿Se corrige aquí?** → Sí, guardándolo por posición en la secuencia (como ya se guarda su Mantener). Los proyectos ya guardados no se recuperan: hay que pulsar «Igualar duraciones» y luego «Ajustar al ritmo».
+
+### 3. Fuentes analizadas
+- `Model/SlideshowDocument.swift` (`rhythmItems`, `setDuration`, `setHold`, `applyRhythm`, guardado y carga del preset: `holdByRow` por posición, `SequenceItem` con `UUID()` nuevo al cargar), `Views/Modules/CollageView.swift` (`SequenceItem`), `Views/Modules/Slideshow/SlideshowInspector.swift` (recuentos de «duración propia», sliders Duración y Mantener que escribían directamente), `SlideshowTimelineView.swift` (bloque del timeline).
+
+### 4. Decisiones
+- Plan aprobado («si»). Sin commit.
+- `DurationSource` (`general`, `manual`, `rhythm`) sale de lo que ya se guardaba: tiempo propio + estar o no en `rhythmItems`. No hace falta guardar nada nuevo para las fotos.
+- Iconos SF Symbols `hand.raised.fill` y `metronome`, con tooltip, en el timeline y en el recuento de Vídeo (`OwnDurationsRow`, compartido por los modos fotos y collage). El recuento cuenta solo las fotos marcadas del vídeo (antes contaba todas las entradas guardadas, también de fotos quitadas).
+- `setPhotoDuration` y `setHold` sacan el elemento de `rhythmItems`; `applyRhythm` sigue escribiendo directo, así que el ritmo no se borra a sí mismo.
+- Collages en el fichero como `collage:<posición>`; al cargar se traducen al identificador del collage. Los identificadores antiguos se descartan (no se pueden recuperar), así que esos collages salen como manuales.
+- Comprobado sobre una copia de BOOK: «Ajustar al ritmo» guarda `collage:0…8`; tras quitar uno de la lista (manual) y otro con su Mantener (general) y reabrir, el timeline muestra la mano, los metrónomos y el collage general sin icono, y Vídeo dice «1 manual · 7 al ritmo».
+
+### 5. Alternativas descartadas
+- Marcar solo las manuales o usar colores en la cifra (el usuario prefiere los dos iconos).
+- Icono también en portada, créditos y textos: siempre tienen tiempo propio, no aporta.
+- Identificador estable para cada collage guardado en el fichero: más cambio para lo mismo; la posición ya es como se guarda su Mantener.
+- Suponer que en los proyectos antiguos todos los collages con Mantener propio eran del ritmo: el usuario prefiere no suponerlo.
+
+### 6. Pendiente de comprobar
+- No se ha probado moviendo el slider del editor en la app (la corrección es una línea en `setPhotoDuration`/`setHold`).
+- En bloques muy estrechos del timeline el icono quita sitio a la cifra (ya se partía antes).
+- Tu BOOK real tiene la lista del ritmo con identificadores antiguos: saldrá con todos los collages como manuales hasta «Igualar duraciones» + «Ajustar al ritmo».
+
+## 2026-10-24 — Saltos al estirar la duración de una diapositiva en el timeline
+
+### 1. La petición tal como se ha entendido
+Al arrastrar el asa del borde derecho de un bloque del timeline para alargar o acortar su duración, el bloque va dando saltos (adelante y atrás) mientras se mantiene pulsado el ratón. Debe seguir al ratón de forma estable, avanzando de 0,5 en 0,5 s como hasta ahora.
+
+Causa encontrada en `SlideshowTimelineView.swift`: el arrastre mide cuánto se ha movido el ratón respecto al propio asa, y el asa se mueve con el borde del bloque al cambiar su duración. Cada cambio de anchura altera la medida del siguiente movimiento y el bloque rebota.
+
+### 2. Preguntas y respuestas
+- Ninguna: la causa se encontró en el código.
+
+Confirmada por el usuario («si»), junto con la solución propuesta.
+
+### 3. Fuentes analizadas
+- `Views/Modules/Slideshow/SlideshowTimelineView.swift`: asa de duración de los bloques (`DragGesture` en coordenadas locales del asa, que se mueve con el borde), arrastre de pistas (`moveGesture`) y asas de recorte de pistas (mismo caso).
+
+### 4. Decisiones
+- `coordinateSpace: .global` en los tres arrastres: la ventana no se mueve, así que la distancia arrastrada es la real y no depende de la anchura que va tomando el bloque.
+- Se incluyen el arrastre y los recortes de las pistas de música aunque no se pidieron: es el mismo fallo (la pista o el asa se mueven bajo el ratón). Avisado al usuario.
+
+### 5. Alternativas descartadas
+- Un espacio de coordenadas con nombre en el contenido del timeline: también vale, pero el global basta porque solo se usan diferencias y el timeline no se desplaza mientras se arrastra.
+
+### 6. Pendiente de comprobar
+- No se ha podido probar arrastrando de verdad (no hay forma de simular el ratón desde aquí): compila, pero falta que el usuario lo pruebe.
+- Si el timeline se desplazara solo mientras se arrastra (no lo hace hoy), la medida global no lo tendría en cuenta.
+
+## 2026-10-24 — El timeline termina en el fin del vídeo
+
+### 1. La petición tal como se ha entendido
+El scroll del timeline del Slideshow acaba en la marca «Fin del vídeo», aunque alguna pista de música dure más: lo que pase de ahí no va a sonar.
+- La regla, los bloques y los carriles de música se dibujan solo hasta el fin del vídeo; la parte de una pista que pase del final se corta (ya no se ve apagada como ahora).
+- El «Hasta» de una pista que pase del final ya no se puede estirar en el timeline (su asa queda fuera): se ajusta desde el editor de la pista.
+- Una pista con inicio fijo que empiece después del final no se verá en el timeline (sigue en la lista de Música).
+- El texto «Fin del vídeo» pasa a la izquierda de la línea, para que quepa sin dejar hueco detrás.
+
+### 2. Preguntas y respuestas
+- **¿Qué se hace con la parte de las pistas que pasa del fin (y con su asa de Hasta)?** → Cortarla en el fin; el Hasta se ajusta desde el editor de la pista.
+
+Confirmada por el usuario («si»).
+
+### 3. Fuentes analizadas
+- `Views/Modules/Slideshow/SlideshowTimelineView.swift` (anchura = `timelineExtent` = máximo entre vídeo y audio; hueco de 60 pt tras el contenido para el texto «Fin del vídeo»; `TrackBlock` con el tramo tras el fin apagado), `Model/SlideshowDocument.swift` (`audioExtent`, `timelineExtent`).
+
+### 4. Decisiones
+- Plan aprobado («dale»). Sin commit.
+- La anchura sale de `totalDuration`; los carriles se recortan con `.clipped()`. Se quitan `audioExtent`, `timelineExtent` y el sombreado del tramo que no suena (`videoEnd` de `TrackBlock`), que ya no se usaban o no se verían.
+- El texto «Fin del vídeo» va a la izquierda de la línea y se quita el hueco de detrás. Las marcas de la regla (y de golpes) que caerían bajo el texto (80 pt) se omiten: en la captura el «0:50» se montaba con él. Decidido por mí.
+- Comprobado con capturas sobre una copia de BOOK (dos pistas que pasan del final): las pistas se cortan en la línea y el texto ya no se monta con la regla.
+
+### 5. Alternativas descartadas
+- Dejar un margen de un par de segundos tras el fin para ver que la pista sigue (el usuario prefiere cortar justo en el fin).
+- Fondo opaco detrás del texto para tapar las marcas: el panel es translúcido y el color no casaría igual en claro y oscuro.
+
+### 6. Pendiente de comprobar
+- No se ha probado arrastrando: una pista cuyo borde derecho queda fuera solo se recorta desde su editor.
+- Una pista con inicio fijo después del final no aparece en el timeline (sí en la lista de Música).
+
+## 2026-10-24 — Marcar en el timeline la parte de una pista que no suena porque entra otra
+
+### 1. La petición tal como se ha entendido
+En el timeline del Slideshow, el tramo del bloque de una pista que no se oye porque ya ha entrado la siguiente (desde el final de su cruce hasta su Hasta) se dibuja **rayado**:
+- Rayas oscuras (negras semitransparentes), no rojas, para no confundirlo con una pista cuyo fichero no se encuentra (que ya va rayada en rojo).
+- Sirve igual para cualquier tramo del bloque que no suene, también si una pista con inicio fijo corta a la anterior.
+- El bloque sigue entero: se puede seleccionar, mover y estirar su Hasta como ahora.
+- Lo que pase del fin del vídeo sigue cortado como en el cambio anterior.
+
+Petición original: «¿podríamos marcar también de alguna forma la parte de pista que ya no va a sonar en el vídeo porque hay otra?» (captura: la primera pista sigue dibujada a todo color después del cruce con la segunda).
+
+### 2. Preguntas y respuestas
+- **¿Cómo se marca la parte que no suena?** → Rayada.
+
+Confirmada por el usuario («si»).
+
+### 3. Fuentes analizadas
+- `Views/Modules/Slideshow/SlideshowTimelineView.swift` (`lanes`, `fillerRanges`, `TrackBlock`), `Views/Shared/Theme.swift` (`MissingStripes`), `Model/SlideshowDocument.swift` (`audioSegments`).
+
+### 4. Decisiones
+- Plan aprobado («si»). Sin commit.
+- Tramos sin sonar = el bloque principal menos los tramos de esa pista en `audioSegments` (incluido su cruce de salida), con 0,05 s de margen para no dibujar astillas.
+- `Stripes` (color y opacidades) pasa a ser la base de `MissingStripes` (rojas) y de la nueva `SilentStripes` (negras), para no duplicar el dibujo.
+- Las rayas van encima del bloque sin capturar el ratón: mover, seleccionar y estirar no cambian.
+- Comprobado con capturas en claro y oscuro sobre una copia de BOOK: la primera pista sale rayada desde el final de su cruce con la segunda hasta el fin del vídeo.
+
+### 5. Alternativas descartadas
+- Oscurecer el tramo o recortar el bloque (el usuario prefiere rayado; recortar quitaría el asa del Hasta).
+- Rayas rojas como las de fichero no encontrado: se confundirían.
+
+### 6. Pendiente de comprobar
+- Con «Repetir la lista» o pistas que se repiten, solo se raya el bloque principal; las vueltas atenuadas siguen como estaban.

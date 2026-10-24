@@ -10,7 +10,10 @@ struct SlideshowTimelineView: View {
     private let laneHeight: CGFloat = 26
 
     private var pps: CGFloat { CGFloat(doc.pixelsPerSecond) }
-    private var totalWidth: CGFloat { max(200, CGFloat(doc.timelineExtent) * pps) }
+    /// Sitio que ocupa el texto «Fin del vídeo» a la izquierda de su línea.
+    private static let endLabelWidth: CGFloat = 80
+    /// El timeline acaba donde acaba el vídeo: la música que siga después no va a sonar.
+    private var totalWidth: CGFloat { max(200, CGFloat(doc.totalDuration) * pps) }
 
     var body: some View {
         VStack(spacing: 4) {
@@ -25,8 +28,7 @@ struct SlideshowTimelineView: View {
                 .overlay(alignment: .topLeading) { if doc.totalDuration > 0 { videoEndMarker } }
                 .padding(.vertical, 6)
                 .padding(.horizontal, 8)
-                .padding(.trailing, 60)
-                .frame(minWidth: totalWidth + 76, alignment: .leading)
+                .frame(minWidth: totalWidth + 16, alignment: .leading)
                 .contentShape(Rectangle())
                 .onTapGesture { doc.selection = .none }
             }
@@ -54,15 +56,17 @@ struct SlideshowTimelineView: View {
         .padding(.top, 6)
     }
 
-    /// Línea vertical donde termina el vídeo; lo que quede a la derecha es audio que no sonará.
+    /// Línea vertical donde termina el vídeo (y el timeline). El texto va a su izquierda,
+    /// porque a la derecha ya no hay sitio.
     private var videoEndMarker: some View {
         let x = CGFloat(doc.totalDuration) * pps
-        return VStack(alignment: .leading, spacing: 0) {
-            Text("Fin del vídeo").font(.caption2).foregroundStyle(Color.accentColor).padding(.leading, 3)
+        let labelWidth: CGFloat = 120   // caja del marcador; el texto ocupa menos (endLabelWidth)
+        return ZStack(alignment: .topTrailing) {
             Rectangle().fill(Color.accentColor).frame(width: 1.5)
+            Text("Fin del vídeo").font(.caption2).foregroundStyle(Color.accentColor).padding(.trailing, 4)
         }
-        .frame(height: 18 + 6 + cardHeight + 6 + CGFloat(doc.tracks.count) * (laneHeight + 3))
-        .offset(x: x)
+        .frame(width: labelWidth, height: 18 + 6 + cardHeight + 6 + CGFloat(doc.tracks.count) * (laneHeight + 3), alignment: .topTrailing)
+        .offset(x: x - labelWidth + 1.5)
         .allowsHitTesting(false)
     }
 
@@ -70,10 +74,12 @@ struct SlideshowTimelineView: View {
 
     private var ruler: some View {
         let step: Double = pps >= 60 ? 1 : (pps >= 30 ? 5 : 10)
-        let total = doc.timelineExtent
+        let total = doc.totalDuration
         return ZStack(alignment: .topLeading) {
             Rectangle().fill(.quaternary).frame(height: 1).offset(y: 14)
-            ForEach(Array(stride(from: 0.0, through: total, by: step)), id: \.self) { t in
+            // Las marcas que caerían bajo el texto «Fin del vídeo» se omiten para que no se monten.
+            let ticks = stride(from: 0.0, through: total, by: step).filter { doc.totalDuration <= 0 || CGFloat(total - $0) * pps > Self.endLabelWidth }
+            ForEach(ticks, id: \.self) { t in
                 VStack(spacing: 1) {
                     Text(SlideshowDocument.formatDuration(t)).font(.caption2.monospacedDigit()).foregroundStyle(.secondary)
                     Rectangle().fill(.secondary).frame(width: 1, height: 4)
@@ -81,7 +87,7 @@ struct SlideshowTimelineView: View {
                 .offset(x: CGFloat(t) * pps)
             }
             // Golpes de la música (solo tras «Ajustar al ritmo»): marcas finas bajo la regla.
-            ForEach(Array(doc.videoBeats.enumerated()), id: \.offset) { _, beat in
+            ForEach(Array(doc.videoBeats.filter { $0.time <= total }.enumerated()), id: \.offset) { _, beat in
                 Rectangle().fill(Color.accentColor.opacity(0.55)).frame(width: 1, height: 5)
                     .offset(x: CGFloat(beat.time) * pps, y: 13)
             }
@@ -108,7 +114,6 @@ struct SlideshowTimelineView: View {
     /// recortada; lo que la rellena (la propia canción repitiéndose o las
     /// vueltas de la lista) se dibuja atenuado y no se puede tocar.
     private var lanes: some View {
-        let total = doc.totalDuration
         let segments = doc.audioSegments
         return VStack(alignment: .leading, spacing: 3) {
             ForEach(doc.tracks) { track in
@@ -122,7 +127,8 @@ struct SlideshowTimelineView: View {
                             .offset(x: CGFloat(range.lowerBound) * pps)
                             .allowsHitTesting(false)
                     }
-                    TrackBlock(doc: doc, track: track, start: primaryStart, length: effective, videoEnd: total, height: laneHeight)
+                    TrackBlock(doc: doc, track: track, start: primaryStart, length: effective, height: laneHeight,
+                               silentRanges: silentRanges(for: track, segments: segments, effective: effective, primaryStart: primaryStart))
                         .frame(width: max(12, CGFloat(effective) * pps))
                         .offset(x: CGFloat(primaryStart) * pps)
                     // Volumen de cada tramo de la pista: sube en su entrada y baja en su salida.
@@ -137,6 +143,8 @@ struct SlideshowTimelineView: View {
                     }
                 }
                 .frame(width: totalWidth, height: laneHeight, alignment: .leading)
+                // Lo que pase del fin del vídeo no suena: se corta ahí (el Hasta, desde el editor).
+                .clipped()
             }
             HStack(spacing: 16) {
                 Button {
@@ -177,6 +185,22 @@ struct SlideshowTimelineView: View {
                 cursor = end + 0.0001
             }
         }
+        return ranges
+    }
+
+    /// Tramos del bloque principal de una pista (relativos a su inicio) en los que no suena:
+    /// lo que queda del bloque fuera de sus tramos de la mezcla, p. ej. tras el cruce con la siguiente.
+    private func silentRanges(for track: AudioTrack, segments: [AudioSegment], effective: Double, primaryStart: Double) -> [ClosedRange<Double>] {
+        let blockEnd = primaryStart + effective
+        let sounding = segments.filter { $0.trackID == track.id && $0.end > primaryStart && $0.start < blockEnd }
+            .sorted { $0.start < $1.start }
+        var ranges: [ClosedRange<Double>] = []
+        var cursor = primaryStart
+        for segment in sounding {
+            if segment.start > cursor + 0.05 { ranges.append((cursor - primaryStart)...(segment.start - primaryStart)) }
+            cursor = max(cursor, segment.end)
+        }
+        if blockEnd > cursor + 0.05 { ranges.append((cursor - primaryStart)...effective) }
         return ranges
     }
 
@@ -221,6 +245,10 @@ struct TimelineCard: View {
                     HStack {
                         Text(label).font(.caption2).lineLimit(1).foregroundStyle(.white.opacity(0.9))
                         Spacer()
+                        // Mano o metrónomo: de dónde sale este tiempo (sin icono = la duración general).
+                        if let source = doc.durationSource(of: item), source != .general {
+                            Image(systemName: source.symbol).font(.caption2).foregroundStyle(.white).help(source.help)
+                        }
                         Text("\(item.duration, specifier: "%.1f") s").font(.caption2.monospacedDigit()).foregroundStyle(.white)
                     }
                 }
@@ -233,7 +261,9 @@ struct TimelineCard: View {
                         Rectangle().fill(isSelected || hovering ? Color.accentColor : .clear)
                             .frame(width: 6)
                             .contentShape(Rectangle().inset(by: -3))
-                            .highPriorityGesture(DragGesture(minimumDistance: 1)
+                            // Medido respecto a la ventana: el asa se mueve con el borde al estirar,
+                            // y medido respecto a ella misma cada cambio de anchura falseaba el siguiente (saltos).
+                            .highPriorityGesture(DragGesture(minimumDistance: 1, coordinateSpace: .global)
                                 .onChanged { value in
                                     if stretchStart == nil { stretchStart = item.duration }
                                     doc.setDuration((stretchStart ?? item.duration) + Double(value.translation.width / pps), for: item)
@@ -418,9 +448,9 @@ struct TrackBlock: View {
     let track: AudioTrack
     let start: Double
     let length: Double
-    /// Fin del vídeo: la parte del bloque que quede después se dibuja apagada.
-    let videoEnd: Double
     let height: CGFloat
+    /// Tramos del bloque (en segundos desde su inicio) que no suenan: van rayados.
+    var silentRanges: [ClosedRange<Double>] = []
     @State private var dragOrigin: Double?
     @State private var trimAccumulated: Double = 0
 
@@ -436,6 +466,18 @@ struct TrackBlock: View {
                 .fill(Color.accentColor.opacity(isSelected ? 0.55 : 0.35))
                 // Pista que no se encuentra: rayada en rojo (se localiza desde su editor).
                 .overlay { if isMissing { MissingStripes().clipShape(RoundedRectangle(cornerRadius: 5)).allowsHitTesting(false) } }
+                .overlay(alignment: .leading) {
+                    ZStack(alignment: .leading) {
+                        ForEach(Array(silentRanges.enumerated()), id: \.offset) { _, range in
+                            SilentStripes()
+                                .frame(width: CGFloat(range.upperBound - range.lowerBound) * pps)
+                                .offset(x: CGFloat(range.lowerBound) * pps)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)   // del tamaño del bloque, para redondear sus esquinas
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .allowsHitTesting(false)
+                }
                 .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 1.5))
                 .overlay(alignment: .leading) {
                     HStack(spacing: 4) {
@@ -445,16 +487,6 @@ struct TrackBlock: View {
                     }
                     .padding(.horizontal, 10)
                     .foregroundStyle(.white)
-                }
-                .overlay(alignment: .trailing) {
-                    // Tramo que no se oirá porque el vídeo ya ha terminado.
-                    let silent = max(0, min(length, start + length - videoEnd))
-                    if silent > 0 {
-                        Rectangle().fill(.black.opacity(0.45))
-                            .frame(width: CGFloat(silent) * pps)
-                            .clipShape(RoundedRectangle(cornerRadius: 5))
-                            .allowsHitTesting(false)
-                    }
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { doc.selection = .track(track.id) }
@@ -475,7 +507,8 @@ struct TrackBlock: View {
     }
 
     private var moveGesture: some Gesture {
-        DragGesture(minimumDistance: 2)
+        // Respecto a la ventana: la pista se mueve bajo el ratón y, medida respecto a sí misma, daba saltos.
+        DragGesture(minimumDistance: 2, coordinateSpace: .global)
             .onChanged { value in
                 if dragOrigin == nil { dragOrigin = start; doc.selection = .track(track.id) }
                 let candidate = (dragOrigin ?? start) + Double(value.translation.width / pps)
@@ -498,7 +531,7 @@ struct TrackBlock: View {
             .frame(width: 6, height: height - 8)
             .padding(.horizontal, 2)
             .contentShape(Rectangle().inset(by: -4))
-            .highPriorityGesture(DragGesture(minimumDistance: 1)
+            .highPriorityGesture(DragGesture(minimumDistance: 1, coordinateSpace: .global)   // el asa se mueve al recortar
                 .onChanged { value in
                     let delta = Double(value.translation.width / pps) - trimAccumulated
                     trimAccumulated += delta
@@ -507,5 +540,24 @@ struct TrackBlock: View {
                 .onEnded { _ in trimAccumulated = 0 })
             .onHover { inside in if inside { NSCursor.resizeLeftRight.push() } else { NSCursor.pop() } }
             .help(isLeading ? "Desde (recorte del principio)" : "Hasta (recorte del final)")
+    }
+}
+
+extension SlideshowDocument.DurationSource {
+    /// Icono que marca el tiempo en el timeline y en el recuento del inspector.
+    var symbol: String {
+        switch self {
+        case .general: return "clock"
+        case .manual: return "hand.raised.fill"
+        case .rhythm: return "metronome"
+        }
+    }
+
+    var help: String {
+        switch self {
+        case .general: return String(localized: "Duración general")
+        case .manual: return String(localized: "Duración puesta a mano: «Ajustar al ritmo» no la cambia")
+        case .rhythm: return String(localized: "Duración ajustada al ritmo de la música")
+        }
     }
 }

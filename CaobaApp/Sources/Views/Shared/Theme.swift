@@ -57,11 +57,15 @@ extension View {
     }
 }
 
-/// Fondo rojo rayado de lo que no se encuentra (pistas, portada, créditos del timeline).
-struct MissingStripes: View {
+/// Fondo rayado en diagonal de un color: base de las marcas de abajo.
+struct Stripes: View {
+    let color: Color
+    var fillOpacity = 0.18
+    var strokeOpacity = 0.45
+
     var body: some View {
         Canvas { context, size in
-            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(.red.opacity(0.18)))
+            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(color.opacity(fillOpacity)))
             var stripes = Path()
             var x: CGFloat = -size.height
             while x < size.width {
@@ -69,9 +73,20 @@ struct MissingStripes: View {
                 stripes.addLine(to: CGPoint(x: x + size.height, y: 0))
                 x += 10
             }
-            context.stroke(stripes, with: .color(.red.opacity(0.45)), lineWidth: 3)
+            context.stroke(stripes, with: .color(color.opacity(strokeOpacity)), lineWidth: 3)
         }
     }
+}
+
+/// Fondo rojo rayado de lo que no se encuentra (pistas, portada, créditos del timeline).
+struct MissingStripes: View {
+    var body: some View { Stripes(color: .red) }
+}
+
+/// Rayas oscuras del tramo de una pista que no suena (ya ha entrado otra). No rojas,
+/// para no confundirlo con un fichero que no se encuentra.
+struct SilentStripes: View {
+    var body: some View { Stripes(color: .black, fillOpacity: 0.3, strokeOpacity: 0.35) }
 }
 
 /// Bloque de opciones con cabecera: el título encima y los controles en un bloque.

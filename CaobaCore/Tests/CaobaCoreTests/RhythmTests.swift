@@ -96,6 +96,31 @@ struct RhythmPlannerTests {
         #expect(d[0] <= 6 && d[0] >= 1)
     }
 
+    @Test("Collages: en automático cada uno se acerca a su propia referencia (según sus fotos)")
+    func collageTargets() {
+        let grid = beats(period: 0.5, count: 400)   // 120 ppm
+        // Aparición 1,5 s y Mantener 3 s: 1 foto → 0,5 + 1,5 + 3 = 5 s; 5 fotos → 0,5 + 7,5 + 3 = 11 s.
+        let one = RhythmItem(minimum: 2, maximum: 17, target: 5, photos: 1)
+        let five = RhythmItem(minimum: 8, maximum: 23, target: 11, photos: 5)
+        let d = RhythmPlanner.plan(beats: grid, items: [one, five, one], target: 8, beatsPerCut: nil, transition: 0)
+        #expect(d[0] == 4 && d[2] == 4)   // 8 golpes: lo más cerca de 5 s
+        #expect(d[1] == 8)                 // 16 golpes: lo más cerca de 11 s que cabe (32 serían 16 s)
+        #expect(RhythmPlanner.automaticDensity(period: 0.5, target: 14) == 32)
+    }
+
+    @Test("Collages: con golpes por foto fijos se multiplican por sus fotos, y si no cabe la aparición se alarga")
+    func collagePerPhoto() {
+        let grid = beats(period: 0.5, count: 400)
+        let one = RhythmItem(minimum: 2, maximum: 17, target: 5, photos: 1)
+        let five = RhythmItem(minimum: 8, maximum: 23, target: 11, photos: 5)
+        let d = RhythmPlanner.plan(beats: grid, items: [one, five], target: 8, beatsPerCut: 4, transition: 0)
+        // 1 foto: 4 golpes = 2 s; 5 fotos: 20 golpes = 10 s.
+        #expect(d == [2, 10])
+        // Con 1 golpe por foto, 5 fotos serían 2,5 s y no cabe la aparición (8 s): el siguiente golpe que cabe.
+        let short = RhythmPlanner.plan(beats: grid, items: [five], target: 8, beatsPerCut: 1, transition: 0)
+        #expect(short == [8])
+    }
+
     @Test("Los golpes de cada pista pasan al vídeo según su segmento; en el crossfade manda la que entra")
     func videoBeats() {
         let a = URL(fileURLWithPath: "/tmp/a.mp3"), b = URL(fileURLWithPath: "/tmp/b.mp3")

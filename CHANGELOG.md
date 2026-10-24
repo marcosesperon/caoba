@@ -2,6 +2,16 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- **«Ajustar al ritmo» tiene en cuenta las fotos de cada collage**: cada uno parte de lo que duraría sin ritmo, así que un collage de una foto ya no se queda en pantalla lo mismo que uno de cinco. Con un número fijo en «Golpes por foto», los golpes se multiplican por las fotos del collage.
+- **Ver de dónde sale el tiempo de cada diapositiva**: en el timeline, las fotos y collages con duración puesta a mano llevan una mano junto a sus segundos, y las ajustadas al ritmo, un metrónomo. En Vídeo, el recuento separa las manuales de las del ritmo.
+- Cambiar la duración de una foto o el Mantener de un collage desde su editor ya cuenta como cambio a mano: «Ajustar al ritmo» no lo pisa (antes solo pasaba al estirar el bloque en el timeline).
+- En modo collage, al volver a abrir la carpeta se olvidaba qué collages había ajustado el ritmo: salían como propios y «Ajustar al ritmo» ya no los recalculaba. Ahora se recuerda. En proyectos guardados con versiones anteriores, pulsa «Igualar duraciones» y luego «Ajustar al ritmo».
+- Al estirar un bloque del timeline para cambiar su duración ya no da saltos mientras arrastras. Lo mismo al mover una pista de música o recortar sus bordes.
+- El timeline termina en la marca «Fin del vídeo», aunque alguna pista de música dure más: lo que pase de ahí no va a sonar y ya no se dibuja.
+- En el timeline, la parte de una pista que ya no suena porque ha entrado la siguiente se ve rayada.
+
 ## 3.17.0 — 2026-10-23
 
 - **Vista previa completa del Slideshow**: enseña el vídeo entero (antes solo las 10 primeras fotos o los 3 primeros collages), con todo lo que llevará el final. Sale pequeña, a 640 px de lado mayor, con las fotos y los collages ya reducidos, así que tarda poco: unos segundos para un vídeo de un minuto.

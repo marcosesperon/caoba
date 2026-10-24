@@ -354,6 +354,16 @@
         }
       }
     },
+    "%lld al ritmo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld on the beat"
+          }
+        }
+      }
+    },
     "%lld archivos procesados." : {
       "localizations" : {
         "en" : {
@@ -375,6 +385,7 @@
       }
     },
     "%lld collages con duración propia" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -465,11 +476,22 @@
       }
     },
     "%lld fotos con duración propia" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld photos with their own duration"
+          }
+        }
+      }
+    },
+    "%lld manuales" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld manual"
           }
         }
       }
@@ -564,6 +586,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 crossfade beat-matched."
+          }
+        }
+      }
+    },
+    "1 manual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 manual"
           }
         }
       }
@@ -2519,6 +2551,16 @@
         }
       }
     },
+    "Duración ajustada al ritmo de la música" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration fitted to the music's rhythm"
+          }
+        }
+      }
+    },
     "Duración animación" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2586,6 +2628,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fade duration"
+          }
+        }
+      }
+    },
+    "Duración general" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General duration"
+          }
+        }
+      }
+    },
+    "Duración puesta a mano: «Ajustar al ritmo» no la cambia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration set by hand: “Fit to the beat” won't change it"
           }
         }
       }

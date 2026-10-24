@@ -81,23 +81,11 @@ struct VideoTab: View {
                 }
                 if doc.mode == .photos {
                     LabeledSlider(title: "Segundos por foto", value: $doc.durationPerPhoto, in: 1...15, step: 0.5) { Text("\(doc.durationPerPhoto, specifier: "%.1f") s") }
-                    if !doc.photoDurations.isEmpty {
-                        HStack {
-                            Text("\(doc.photoDurations.count) fotos con duración propia").font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            Button("Igualar duraciones") { doc.equalizeDurations() }.controlSize(.small)
-                        }
-                    }
+                    OwnDurationsRow(doc: doc)
                 } else {
                     LabeledSlider(title: "Aparición", value: $doc.reveal, in: 0.1...5, step: 0.1) { Text("\(doc.reveal, specifier: "%.1f") s") }
                     LabeledSlider(title: "Mantener", value: $doc.hold, in: 0...15, step: 0.5) { Text("\(doc.hold, specifier: "%.1f") s") }
-                    if doc.sequence.contains(where: { $0.hold != nil }) {
-                        HStack {
-                            Text("\(doc.sequence.filter { $0.hold != nil }.count) collages con duración propia").font(.caption).foregroundStyle(.secondary)
-                            Spacer()
-                            Button("Igualar duraciones") { doc.equalizeDurations() }.controlSize(.small)
-                        }
-                    }
+                    OwnDurationsRow(doc: doc)
                 }
                 LabeledRow("Transición") {
                     Picker("", selection: $doc.transitionChoice) {
@@ -144,6 +132,32 @@ struct VideoTab: View {
                     LabeledSlider(title: "Sombra", value: $doc.csShadow, in: 0...100, step: 5) { Text("\(Int(doc.csShadow)) %") }
                 }
             }
+        }
+    }
+}
+
+/// Cuántas fotos (o collages) tienen tiempo manual y cuántas al ritmo, con los mismos
+/// iconos que el timeline, y el botón para volver todas a la duración general.
+struct OwnDurationsRow: View {
+    let doc: SlideshowDocument
+
+    var body: some View {
+        let counts = doc.ownDurationCounts
+        if counts.manual + counts.rhythm > 0 {
+            HStack(spacing: 8) {
+                if counts.manual > 0 {
+                    Label(counts.manual == 1 ? String(localized: "1 manual") : String(localized: "\(counts.manual) manuales"),
+                          systemImage: SlideshowDocument.DurationSource.manual.symbol)
+                        .help(SlideshowDocument.DurationSource.manual.help)
+                }
+                if counts.rhythm > 0 {
+                    Label("\(counts.rhythm) al ritmo", systemImage: SlideshowDocument.DurationSource.rhythm.symbol)
+                        .help(SlideshowDocument.DurationSource.rhythm.help)
+                }
+                Spacer()
+                Button("Igualar duraciones") { doc.equalizeDurations() }.controlSize(.small)
+            }
+            .font(.caption).foregroundStyle(.secondary)
         }
     }
 }
@@ -922,8 +936,8 @@ struct PhotoInspector: View {
                 }
             } trailing: {
                 OptionGroup(title: "Tiempo") {
-                    StackedSlider(title: "Duración", value: Binding(get: { doc.duration(of: url) }, set: { doc.photoDurations[name] = $0 }),
-                                  in: 0.5...30, step: 0.5, onReset: doc.photoDurations[name] == nil ? nil : { doc.photoDurations[name] = nil }) {
+                    StackedSlider(title: "Duración", value: Binding(get: { doc.duration(of: url) }, set: { doc.setPhotoDuration($0, for: name) }),
+                                  in: 0.5...30, step: 0.5, onReset: doc.photoDurations[name] == nil ? nil : { doc.setPhotoDuration(nil, for: name) }) {
                         Text("\(doc.duration(of: url), specifier: "%.1f") s")
                     }
                 }
