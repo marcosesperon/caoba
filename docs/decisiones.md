@@ -2750,6 +2750,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit: queda en el árbol de trabajo y en el CHANGELOG bajo «Sin publicar».
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.0 con release en GitHub.
 - `RhythmItem` gana `target` (referencia propia; `nil` = la general) y `photos` (1 por defecto): el modo fotos y lo que no es collage no cambian. Sin golpes a la vista, se usa la referencia propia acotada por los límites.
 - Automático entre 1, 2, 4, 8, 16 y 32 golpes (`automaticDensities`); el selector sigue de 1 a 16. Decidido por mí: con Mantener alto o muchas fotos, 16 golpes se quedaban cortos.
 - Si el golpe que toca no cabe: en fijo, el más cercano a los golpes pedidos (como antes); en automático, el más cercano a la referencia.
@@ -2787,6 +2788,7 @@ Petición original: «¿tenemos forma de saber cuáles son los frames que tienen
 
 ### 4. Decisiones
 - Plan aprobado («si»). Sin commit.
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.0 con release en GitHub.
 - `DurationSource` (`general`, `manual`, `rhythm`) sale de lo que ya se guardaba: tiempo propio + estar o no en `rhythmItems`. No hace falta guardar nada nuevo para las fotos.
 - Iconos SF Symbols `hand.raised.fill` y `metronome`, con tooltip, en el timeline y en el recuento de Vídeo (`OwnDurationsRow`, compartido por los modos fotos y collage). El recuento cuenta solo las fotos marcadas del vídeo (antes contaba todas las entradas guardadas, también de fotos quitadas).
 - `setPhotoDuration` y `setHold` sacan el elemento de `rhythmItems`; `applyRhythm` sigue escribiendo directo, así que el ritmo no se borra a sí mismo.
@@ -2821,6 +2823,7 @@ Confirmada por el usuario («si»), junto con la solución propuesta.
 
 ### 4. Decisiones
 - `coordinateSpace: .global` en los tres arrastres: la ventana no se mueve, así que la distancia arrastrada es la real y no depende de la anchura que va tomando el bloque.
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.0 con release en GitHub.
 - Se incluyen el arrastre y los recortes de las pistas de música aunque no se pidieron: es el mismo fallo (la pista o el asa se mueven bajo el ratón). Avisado al usuario.
 
 ### 5. Alternativas descartadas
@@ -2849,6 +2852,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («dale»). Sin commit.
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.0 con release en GitHub.
 - La anchura sale de `totalDuration`; los carriles se recortan con `.clipped()`. Se quitan `audioExtent`, `timelineExtent` y el sombreado del tramo que no suena (`videoEnd` de `TrackBlock`), que ya no se usaban o no se verían.
 - El texto «Fin del vídeo» va a la izquierda de la línea y se quita el hueco de detrás. Las marcas de la regla (y de golpes) que caerían bajo el texto (80 pt) se omiten: en la captura el «0:50» se montaba con él. Decidido por mí.
 - Comprobado con capturas sobre una copia de BOOK (dos pistas que pasan del final): las pistas se cortan en la línea y el texto ya no se monta con la regla.
@@ -2882,6 +2886,7 @@ Confirmada por el usuario («si»).
 
 ### 4. Decisiones
 - Plan aprobado («si»). Sin commit.
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.0 con release en GitHub.
 - Tramos sin sonar = el bloque principal menos los tramos de esa pista en `audioSegments` (incluido su cruce de salida), con 0,05 s de margen para no dibujar astillas.
 - `Stripes` (color y opacidades) pasa a ser la base de `MissingStripes` (rojas) y de la nueva `SilentStripes` (negras), para no duplicar el dibujo.
 - Las rayas van encima del bloque sin capturar el ratón: mover, seleccionar y estirar no cambian.

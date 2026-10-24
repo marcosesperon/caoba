@@ -2,7 +2,7 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.18.0 — 2026-10-24
 
 - **«Ajustar al ritmo» tiene en cuenta las fotos de cada collage**: cada uno parte de lo que duraría sin ritmo, así que un collage de una foto ya no se queda en pantalla lo mismo que uno de cinco. Con un número fijo en «Golpes por foto», los golpes se multiplican por las fotos del collage.
 - **Ver de dónde sale el tiempo de cada diapositiva**: en el timeline, las fotos y collages con duración puesta a mano llevan una mano junto a sus segundos, y las ajustadas al ritmo, un metrónomo. En Vídeo, el recuento separa las manuales de las del ritmo.
