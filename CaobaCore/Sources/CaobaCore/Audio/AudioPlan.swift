@@ -80,6 +80,9 @@ public enum AudioPlan {
         // con inicio fijo puede ir más abajo en la lista y empezar antes que otra.
         // (Desempate por orden de llegada, para que dos que empiezan a la vez no se crucen.)
         items = items.enumerated().sorted { ($0.element.start, $0.offset) < ($1.element.start, $1.offset) }.map(\.element)
+        // Las que empiezan cuando el vídeo ya ha acabado no suenan: fuera, para que no se lleven
+        // el fundido final ni hagan creer a la anterior que tiene un cruce de salida.
+        items = items.filter { $0.start < total - 0.05 }
 
         var segments: [AudioSegment] = []
         for (n, item) in items.enumerated() {
@@ -98,8 +101,12 @@ public enum AudioPlan {
                                          gain: gains?[item.index] ?? 1, fadeInSeconds: n > 0 ? entry(item.index) : 0, fadeOutSeconds: fadeOut,
                                          trimStart: track.trimStart, trimEnd: track.trimEnd, trackID: track.id))
         }
-        if fadeOutAtEnd, let last = segments.indices.last, segments[last].end >= total - 0.01 {
-            segments[last].fadeOutSeconds = max(0, fadeOutDuration)
+        // Fundido final en todas las que suenan al acabar el vídeo (aunque la canción siga),
+        // sin acortar el cruce de una que ya estuviera saliendo con uno más largo.
+        if fadeOutAtEnd {
+            for i in segments.indices where segments[i].end >= total - 0.01 {
+                segments[i].fadeOutSeconds = max(segments[i].fadeOutSeconds, fadeOutDuration)
+            }
         }
         return segments.filter { $0.duration > 0.05 }
     }

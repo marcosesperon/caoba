@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- Si una pista con inicio fijo empezaba cuando el vídeo ya había acabado (por ejemplo, tras acortarlo), la música que sí sonaba al final se cortaba en seco en vez de hacer el fundido final. Ahora baja siempre al acabar el vídeo, aunque la canción dure más.
+
 ## 3.18.0 — 2026-10-24
 
 - **«Ajustar al ritmo» tiene en cuenta las fotos de cada collage**: cada uno parte de lo que duraría sin ritmo, así que un collage de una foto ya no se queda en pantalla lo mismo que uno de cinco. Con un número fijo en «Golpes por foto», los golpes se multiplican por las fotos del collage.

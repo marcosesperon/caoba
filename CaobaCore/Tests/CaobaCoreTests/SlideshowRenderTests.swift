@@ -79,6 +79,21 @@ struct AudioPlanCrossfadeTests {
         #expect(s[2].fadeInSeconds == 2 && s[1].fadeOutSeconds == 2)
     }
 
+    @Test("Fundido final al acabar el vídeo aunque una pista con inicio fijo empiece después")
+    func fadeOutWithTrackAfterEnd() {
+        // b empieza en 70 s, con el vídeo ya acabado (60 s): no suena, y a baja al final.
+        var after = b; after.startMode = .atTime(70)
+        let s = AudioPlan.build(tracks: [a, after], durations: [100, 100], gains: nil, timeline: timeline, fadeOutAtEnd: true, crossfade: 6, fadeOutDuration: 4)
+        #expect(s.count == 1)
+        #expect(s[0].trackID == a.id && s[0].end == 60 && s[0].fadeOutSeconds == 4)
+        // Si b entra 1 s antes del final, las dos suenan al acabar y bajan juntas; a conserva su cruce de 6 s.
+        var late = b; late.startMode = .atTime(59)
+        let both = AudioPlan.build(tracks: [a, late], durations: [100, 100], gains: nil, timeline: timeline, fadeOutAtEnd: true, crossfade: 6, fadeOutDuration: 4)
+        #expect(both.count == 2)
+        #expect(both[0].end == 60 && both[0].fadeOutSeconds == 6)
+        #expect(both[1].end == 60 && both[1].fadeOutSeconds == 4)
+    }
+
     @Test("Los cruces van por orden de inicio en el vídeo, aunque la lista esté en otro orden")
     func listOrderDiffersFromTime() {
         var late = b; late.startMode = .atTime(24)

@@ -2898,3 +2898,38 @@ Confirmada por el usuario («si»).
 
 ### 6. Pendiente de comprobar
 - Con «Repetir la lista» o pistas que se repiten, solo se raya el bloque principal; las vueltas atenuadas siguen como estaban.
+
+## 2026-10-27 — El fundido final de la música, al acabar el vídeo aunque la pista dure más
+
+### 1. La petición tal como se ha entendido
+Revisar que el fundido final de la música (Música → Opciones, «Fundido al final») se haga al acabar el vídeo, aunque la pista que suena dure más.
+
+Revisión hecha:
+- **Caso normal (bien)**: la última pista que suena se corta en el fin del vídeo y baja en los últimos segundos indicados. Medido sobre una vista previa de una copia de BOOK (52,4 s, fundido 3 s): −11 / −13 dB hasta el segundo 49, −15 dB en el 50, −23 dB en el 51 y −35 dB en el 52.
+- **Fallo encontrado**: si hay una pista con inicio fijo que empieza en el fin del vídeo o después (por ejemplo, porque se acortó el vídeo), el fundido final se le asigna a esa pista (que no llega a sonar) y la que de verdad suena al final se corta en seco. Además, a esa última se le quita su fundido porque «la siguiente no llega a entrar».
+
+Propuesta de corrección (en `AudioPlan.build`):
+- Las pistas que empiezan en el fin del vídeo o después no cuentan para los cruces ni para el fundido final (no suenan).
+- El fundido final se aplica a todas las que estén sonando al acabar el vídeo (si una ya estaba saliendo en un cruce más largo, se queda con el más largo).
+- Test nuevo con estos casos.
+
+### 2. Preguntas y respuestas
+- Ninguna por ahora: la revisión responde a lo pedido y la corrección es la consecuencia directa.
+
+Confirmada por el usuario («si»), junto con la corrección propuesta.
+
+### 3. Fuentes analizadas
+- `CaobaCore/Audio/AudioPlan.swift` (`build`: el fundido final solo iba al último segmento, que podía ser uno de duración 0 que luego se descartaba), `CaobaCore/Audio/AudioMuxer.swift` (rampas: la de salida termina en el `end` del segmento, que ya es el fin del vídeo), configuración de BOOK (dos pistas con inicio fijo, fundido 3 s, lista en bucle).
+
+### 4. Decisiones
+- Sin commit.
+- Se descartan las pistas que empiezan a 0,05 s o menos del fin (mismo margen con el que ya se quitaban los tramos diminutos), antes de calcular los cruces.
+- El fundido final va a todos los tramos que llegan al fin, con `max(su salida, fundido final)`.
+- Test nuevo («Fundido final al acabar el vídeo aunque una pista con inicio fijo empiece después»); 162 tests en verde.
+- Comprobado con una copia de BOOK a la que se añadió una tercera pista con inicio en 70 s (vídeo de 52,4 s): con la 3.18.0 el final se queda en −12/−13 dB hasta el último segundo (corte en seco); con la corrección baja a −15, −23 y −35 dB en los segundos 50, 51 y 52.
+
+### 5. Alternativas descartadas
+- Avisar en la app de las pistas que empiezan después del fin en lugar de corregir el cálculo: el timeline ya no las enseña, y el fundido debe salir bien igualmente.
+
+### 6. Pendiente de comprobar
+- Nada más en el caso normal (ya funcionaba y se midió).
