@@ -2923,6 +2923,7 @@ Confirmada por el usuario («si»), junto con la corrección propuesta.
 
 ### 4. Decisiones
 - Sin commit.
+- Publicado después, a petición del usuario («publica»), en la versión 3.18.1 con release en GitHub.
 - Se descartan las pistas que empiezan a 0,05 s o menos del fin (mismo margen con el que ya se quitaban los tramos diminutos), antes de calcular los cruces.
 - El fundido final va a todos los tramos que llegan al fin, con `max(su salida, fundido final)`.
 - Test nuevo («Fundido final al acabar el vídeo aunque una pista con inicio fijo empiece después»); 162 tests en verde.

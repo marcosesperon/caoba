@@ -2,7 +2,7 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.18.1 — 2026-10-27
 
 - Si una pista con inicio fijo empezaba cuando el vídeo ya había acabado (por ejemplo, tras acortarlo), la música que sí sonaba al final se cortaba en seco en vez de hacer el fundido final. Ahora baja siempre al acabar el vídeo, aunque la canción dure más.
 
