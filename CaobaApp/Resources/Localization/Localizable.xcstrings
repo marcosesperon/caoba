@@ -17,6 +17,46 @@
         }
       }
     },
+    "Anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous"
+          }
+        }
+      }
+    },
+    "Incluida en la selección" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Included in the selection"
+          }
+        }
+      }
+    },
+    "Marca o desmarca la foto, igual que la casilla de su fila (espacio)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check or uncheck the photo, like the box in its row (space)"
+          }
+        }
+      }
+    },
+    "Siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
     "— Marcos Esperón" : {
 
     },

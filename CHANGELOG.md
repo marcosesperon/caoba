@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- **Visor de fotos nuevo** en la lista de fotos de todos los módulos (la lupa de cada fila): se abre ocupando toda la ventana, enseña la foto original a su resolución real y trae «Anterior» y «Siguiente» para recorrer la lista y una casilla para quitar o volver a poner la foto en la selección sin cerrarlo. Con el teclado: ← →, espacio para marcar o desmarcar y Esc para cerrar.
+
 ## 3.19.0 — 2026-10-28
 
 - **Fotos mucho más rápidas en el Slideshow**: «Segundos por foto» baja hasta 0,1 s (antes, 1 s) y va de décima en décima. Lo mismo la duración de cada foto, en su inspector o estirándola en el timeline.

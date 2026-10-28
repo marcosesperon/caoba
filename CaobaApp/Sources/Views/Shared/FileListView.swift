@@ -12,7 +12,8 @@ struct FileListView: View {
     var markedNames: Set<String> = []
     /// Con `false` la lista va sin bloque propio, para quien ya la mete en uno (pestaña Fotos del Slideshow).
     var framed = true
-    @State private var previewURL: URL?
+    /// Foto abierta en el visor (con Anterior / Siguiente y su casilla).
+    @State private var viewerTarget: PhotoViewerTarget?
     /// Orden automático pendiente de confirmar (se pierde el orden manual).
     @State private var pendingSort: SortMode?
 
@@ -41,7 +42,7 @@ struct FileListView: View {
                             isReorderable: allowsReorder) {
                         appState.toggle(file)
                     } onPreview: {
-                        previewURL = file.url
+                        viewerTarget = PhotoViewerTarget(index: index)
                     }
                     .modifier(SelectOnTap(selection: selection, url: file.url))
                 }
@@ -61,7 +62,14 @@ struct FileListView: View {
             }
         }
         .modifier(OptionalPanel(enabled: framed))
-        .sheet(item: $previewURL) { url in PhotoPreviewSheet(url: url) }
+        .sheet(item: $viewerTarget) { target in PhotoViewerSheet(target: target) }
+        // Para capturas y pruebas: `--state preview.photo=3` abre el visor en la tercera foto en cuanto hay lista.
+        .task(id: appState.files.count) {
+            guard let n = appState.launchState["preview.photo"].flatMap(Int.init), appState.files.indices.contains(n - 1) else { return }
+            // Un respiro para que la ventana termine de aparecer: una hoja pedida antes se pierde.
+            try? await Task.sleep(for: .seconds(1))
+            if viewerTarget == nil { viewerTarget = PhotoViewerTarget(index: n - 1) }
+        }
         .confirmationDialog(pendingSort == .date ? "¿Ordenar por fecha?" : "¿Ordenar por nombre?",
                             isPresented: Binding(get: { pendingSort != nil }, set: { if !$0 { pendingSort = nil } })) {
             Button("Ordenar") { if let mode = pendingSort { appState.sortAutomatically(by: mode) }; pendingSort = nil }
@@ -198,25 +206,4 @@ private struct FileRow: View {
 
 extension URL: @retroactive Identifiable {
     public var id: String { absoluteString }
-}
-
-/// Vista previa de una foto a tamaño de ventana.
-struct PhotoPreviewSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let url: URL
-    @State private var image: CGImage?
-
-    var body: some View {
-        VStack {
-            CGImageView(image: image)
-            HStack {
-                Text(url.lastPathComponent).font(.callout).foregroundStyle(.secondary)
-                Spacer()
-                Button("Cerrar") { dismiss() }.keyboardShortcut(.cancelAction)
-            }
-        }
-        .padding()
-        .frame(minWidth: 700, minHeight: 500)
-        .task { image = await Task.detached { ThumbnailProvider.makeThumbnail(url: url, maxPixelSize: 2000) }.value }
-    }
 }

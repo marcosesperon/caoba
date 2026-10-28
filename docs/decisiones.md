@@ -2980,3 +2980,49 @@ Plan aprobado por el usuario («dale»).
 ### 6. Pendiente de comprobar
 - `RhythmPlanner` calcula dónde cae cada corte con la transición sin recortar; con fotos más cortas que su transición, el corte puede quedar unas centésimas desplazado del golpe.
 - En el timeline, una foto de 0,1 s mide 4 puntos y es difícil de pulsar o estirar.
+
+## 2026-10-28 — Previsualización de fotos a pantalla grande con Anterior/Siguiente y casilla
+
+### 1. La petición tal como se ha entendido
+Se cambia la previsualización de la lista de fotos, la que se abre con el botón de cada fila. Como esa lista es la misma en todos los módulos, el cambio llega a todos: Slideshow (modo Fotos), Procesador, Marca de agua, Contact Sheet, Renombrar, Collage y Metadatos.
+
+- **Tamaño**: la hoja se abre ocupando toda la ventana de CAOBA, con un margen pequeño. No es una pantalla completa aparte.
+- **Foto original**: se ve la foto a su resolución real, ajustada al espacio. Ya no es una miniatura de 2000 px como máximo.
+- **Anterior / Siguiente**: dos botones para recorrer todas las fotos de la lista, en su orden y con el filtro de orientación aplicado. También pasa por las desmarcadas. En la primera foto, «Anterior» queda desactivado; en la última, «Siguiente».
+- **Casilla**: marca o desmarca la foto de la selección directamente. Es lo mismo que la casilla de su fila, y la lista se actualiza al momento.
+- **Información**: el nombre del fichero y la posición («3 de 24»).
+- **Teclado**: ← y → para ir a la anterior y la siguiente, espacio para marcar o desmarcar y Esc para cerrar.
+
+### 2. Preguntas y respuestas
+- **¿Solo en Slideshow (modo Fotos) o en todos los módulos que usan la lista de fotos?** (la previsualización es de la lista compartida `FileListView`) → En todos.
+- **¿Hasta dónde llega «el mayor espacio posible»?** → Toda la ventana de CAOBA (la hoja toma el tamaño de la ventana menos un margen pequeño), no pantalla completa aparte.
+- **¿Qué fotos recorren Anterior/Siguiente?** → Todas las de la lista (en su orden y con el filtro de orientación), también las desmarcadas, para poder volver a marcarlas.
+- **¿Atajos de teclado?** → Sí: ← / → para anterior y siguiente, espacio para marcar o desmarcar la foto, Esc para cerrar.
+
+Confirmada por el usuario («sí, publica al finalizar»): se publica al acabar.
+
+Plan aprobado por el usuario («si»).
+
+### 3. Fuentes analizadas
+- `Views/Shared/FileListView.swift` (lupa de cada fila → `PhotoPreviewSheet`: hoja de 700×500 mínimo, miniatura de 2000 px, solo nombre y «Cerrar»; la lista la usan Slideshow, Collage, Contact Sheet, Procesador, Marca de agua, Renombrador y Metadatos), `Model/AppState.swift` (`files` ya filtrado por orientación y en el orden de la lista, `excludedNames`, `toggle`, `--state` y capturas con `capture.sheets`), `CaobaCore/Thumbnails/ThumbnailProvider.swift` (`makeThumbnail` con orientación EXIF; con un máximo enorme da la foto a su resolución real).
+
+### 4. Decisiones
+- Sin commit hasta acabar; el usuario pidió publicar al finalizar.
+- `PhotoViewerSheet` nuevo en `Views/Shared/PhotoViewerSheet.swift` sustituye a `PhotoPreviewSheet` (borrada: nadie más la usaba).
+- Tamaño medido al abrir (`PhotoViewerTarget`): contenido de la ventana principal menos 40 puntos, con un mínimo de 700×500.
+- Carga en dos pasos (1600 px y luego la original) con `.task(id:)`: al pasar de foto se cancela la carga anterior y nunca se queda en blanco.
+- La casilla y los botones leen y cambian `AppState` directamente, así que la lista de fondo y el contador cambian a la vez.
+- Espacio con un botón oculto con atajo: marca o desmarca aunque el foco esté en otro control.
+- `--state preview.photo=N` para capturas (abre el visor un segundo después de tener la lista: pedido antes, la hoja se perdía).
+- Comprobado con capturas en oscuro (foto 3, horizontal) y claro (foto 1, vertical, «Anterior» desactivado): la hoja ocupa la ventana y la foto llena el alto.
+
+### 5. Alternativas descartadas
+- Solo en Slideshow: la lista es compartida y el visor sirve igual en todos los módulos.
+- Pantalla completa aparte: el usuario prefirió la ventana de CAOBA.
+- Recorrer solo las marcadas: no se podría volver a marcar una desmarcada por error.
+- Cargar solo la original: con fotos grandes, al pasar rápido se quedaría un momento vacío.
+
+### 6. Pendiente de comprobar
+- Teclado (← → espacio Esc) y clics en Anterior, Siguiente y la casilla: no se pueden simular aquí (sin permiso de accesibilidad para enviar teclas).
+- Memoria con fotos muy grandes (p. ej. 50 MP, unos 200 MB descomprimida mientras se ve).
+- Con el visor abierto, la app de pruebas no se cerraba sola tras la captura (igual que pasaba con la hoja anterior); revisar si ⌘Q con el visor abierto funciona.
