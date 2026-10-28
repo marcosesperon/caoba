@@ -3008,6 +3008,7 @@ Plan aprobado por el usuario («si»).
 
 ### 4. Decisiones
 - Sin commit hasta acabar; el usuario pidió publicar al finalizar.
+- Publicado después, a petición del usuario («publica al finalizar»), en la versión 3.20.0 con release en GitHub.
 - `PhotoViewerSheet` nuevo en `Views/Shared/PhotoViewerSheet.swift` sustituye a `PhotoPreviewSheet` (borrada: nadie más la usaba).
 - Tamaño medido al abrir (`PhotoViewerTarget`): contenido de la ventana principal menos 40 puntos, con un mínimo de 700×500.
 - Carga en dos pasos (1600 px y luego la original) con `.task(id:)`: al pasar de foto se cancela la carga anterior y nunca se queda en blanco.
