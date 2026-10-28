@@ -299,6 +299,10 @@ public struct SlideshowTimeline: Sendable, Equatable {
     /// mientras entra la i+1 (durante `transitions[i+1]`).
     public init(durations: [Double], transitions: [Double]) {
         precondition(durations.count == transitions.count)
+        // Una foto no puede tardar en entrar más de lo que se ve: si no, la siguiente empezaría
+        // a entrar antes de que esta acabe de aparecer y se verían saltos. Con fotos muy cortas
+        // (0,2 s con un fundido de 1 s, por ejemplo) la transición se recorta a lo que dura la foto.
+        let transitions = zip(durations, transitions).map { min($1, max(0, $0)) }
         self.transition = transitions.first ?? 0
         self.transitions = transitions
         var segments: [Segment] = []

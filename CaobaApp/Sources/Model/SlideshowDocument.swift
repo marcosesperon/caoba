@@ -650,12 +650,14 @@ final class SlideshowDocument {
         // Un cambio a mano convierte la duración en propia: el ritmo ya no la pisa.
         rhythmItems.remove(item.id)
         let value = max(0.5, min(60, (seconds * 2).rounded() / 2))
+        // Las fotos admiten tiempos muy cortos (desde 0,1 s, en décimas); lo demás sigue de medio en medio segundo.
+        let photoValue = max(0.1, min(60, (seconds * 10).rounded() / 10))
         switch item.kind {
         case .cover: coverDuration = value
         case .credits: creditsDuration = value
         case .text(let card):
             if var updated = textCard(card.id) { updated.duration = value; updateTextCard(updated) }
-        case .photo(let url): photoDurations[url.lastPathComponent] = value
+        case .photo(let url): photoDurations[url.lastPathComponent] = photoValue
         case .collage(let row):
             // La duración total de un collage se ajusta a través de su "mantener":
             // lo que no es aparición de fotos ni lienzo vacío.
@@ -804,7 +806,8 @@ final class SlideshowDocument {
                 return RhythmItem(fixedDuration: entry.duration)
             case .photo(let url):
                 let own = photoDurations[url.lastPathComponent] != nil && !rhythmItems.contains(entry.id)
-                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: 1, maximum: 15)
+                // Desde 0,1 s: así «1 golpe por foto» cambia de verdad en cada golpe.
+                return RhythmItem(fixedDuration: own ? entry.duration : nil, minimum: 0.1, maximum: 15)
             case .collage(let row):
                 let own = row.hold != nil && !rhythmItems.contains(entry.id)
                 // Un collage no puede durar menos que su aparición de fotos, y su referencia es lo que

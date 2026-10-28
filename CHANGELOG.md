@@ -2,6 +2,12 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## Sin publicar
+
+- **Fotos mucho más rápidas en el Slideshow**: «Segundos por foto» baja hasta 0,1 s (antes, 1 s) y va de décima en décima. Lo mismo la duración de cada foto, en su inspector o estirándola en el timeline.
+- «Ajustar al ritmo» puede dejar una foto en menos de 1 s: con «1 golpe por foto» cambia de verdad en cada golpe.
+- Si una foto dura menos que su transición, el fundido se acorta solo a lo que dura la foto, para que no haya saltos.
+
 ## 3.18.1 — 2026-10-27
 
 - Si una pista con inicio fijo empezaba cuando el vídeo ya había acabado (por ejemplo, tras acortarlo), la música que sí sonaba al final se cortaba en seco en vez de hacer el fundido final. Ahora baja siempre al acabar el vídeo, aunque la canción dure más.

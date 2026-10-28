@@ -80,7 +80,7 @@ struct VideoTab: View {
                     .labelsHidden()
                 }
                 if doc.mode == .photos {
-                    LabeledSlider(title: "Segundos por foto", value: $doc.durationPerPhoto, in: 1...15, step: 0.5) { Text("\(doc.durationPerPhoto, specifier: "%.1f") s") }
+                    LabeledSlider(title: "Segundos por foto", value: $doc.durationPerPhoto, in: 0.1...15, step: 0.1) { Text("\(doc.durationPerPhoto, specifier: "%.1f") s") }
                     OwnDurationsRow(doc: doc)
                 } else {
                     LabeledSlider(title: "Aparición", value: $doc.reveal, in: 0.1...5, step: 0.1) { Text("\(doc.reveal, specifier: "%.1f") s") }
@@ -937,7 +937,7 @@ struct PhotoInspector: View {
             } trailing: {
                 OptionGroup(title: "Tiempo") {
                     StackedSlider(title: "Duración", value: Binding(get: { doc.duration(of: url) }, set: { doc.setPhotoDuration($0, for: name) }),
-                                  in: 0.5...30, step: 0.5, onReset: doc.photoDurations[name] == nil ? nil : { doc.setPhotoDuration(nil, for: name) }) {
+                                  in: 0.1...30, step: 0.1, onReset: doc.photoDurations[name] == nil ? nil : { doc.setPhotoDuration(nil, for: name) }) {
                         Text("\(doc.duration(of: url), specifier: "%.1f") s")
                     }
                 }

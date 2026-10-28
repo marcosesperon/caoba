@@ -2934,3 +2934,48 @@ Confirmada por el usuario («si»), junto con la corrección propuesta.
 
 ### 6. Pendiente de comprobar
 - Nada más en el caso normal (ya funcionaba y se midió).
+
+## 2026-10-28 — «Segundos por foto» con tiempos más pequeños
+
+### 1. La petición tal como se ha entendido
+En Slideshow, modo Fotos, se podrán poner tiempos por foto mucho más cortos, igual que se hizo con «Aparición» en collage:
+
+- **Segundos por foto** (pestaña Vídeo): mínimo 0,1 s en lugar de 1 s, con pasos de 0,1 s. El máximo sigue en 15 s.
+- **Duración de cada foto**:
+  - En el inspector: mínimo 0,1 s y pasos de 0,1 s. El máximo sigue en 30 s.
+  - Al estirar la foto en el timeline: lo mismo, mínimo 0,1 s y pasos de 0,1 s.
+  - Portada, créditos, textos y collages mantienen sus mínimos de ahora.
+- **Ajustar al ritmo**: una foto puede quedarse en 0,1 s en lugar de 1 s. Así, con «1 golpe por foto», la foto cambia de verdad en cada golpe. Nunca se corta a mitad de golpe.
+- **Transiciones**: al generar el vídeo y la vista previa, la transición de entrada de una foto se acorta sola si dura más que lo que se ve esa foto. Los ajustes guardados no cambian. Así no hay saltos cuando la siguiente foto entra antes de que esta termine de aparecer.
+
+### 2. Preguntas y respuestas
+- **¿Hasta qué mínimo debe bajar «Segundos por foto»?** (hoy 1 s, pasos de 0,5) → 0,1 s, igual que «Aparición».
+- **¿Bajar también a 0,1 s la duración de cada foto (inspector y estirar en el timeline)?** (hoy 0,5 s, pasos de 0,5) → Sí: mínimo 0,1 s y pasos de 0,1 en los dos sitios.
+- **Si la transición dura más que la foto (p. ej. 0,2 s de foto con 1 s de fundido), ¿qué se hace?** → Acortarla sola al generar: la transición de entrada de una foto nunca dura más que lo que se ve esa foto. Los ajustes del usuario no cambian.
+- **¿Bajar también el mínimo de «Ajustar al ritmo» (hoy 1 s)?** → Sí, a 0,1 s, para que «1 golpe por foto» cambie de foto en cada golpe.
+
+Confirmada por el usuario («sí, publica al finalizar»): se publica al acabar.
+
+Plan aprobado por el usuario («dale»).
+
+### 3. Fuentes analizadas
+- `Views/Modules/Slideshow/SlideshowInspector.swift` (deslizadores «Segundos por foto», 1–15 en pasos de 0,5, y «Duración» de la foto, 0,5–30 en pasos de 0,5), `Model/SlideshowDocument.swift` (`setDuration`: mínimo 0,5 y redondeo a medios segundos para todo; `applyRhythm`: mínimo 1 s por foto), `CaobaCore/Slideshow/SlideshowSpec.swift` (`SlideshowTimeline.init(durations:transitions:)`: no comprobaba que la transición cupiera en la foto), `CaobaCore/Slideshow/RhythmPlanner.swift` (densidad mínima 1 golpe; sin música usa el objetivo acotado al mínimo).
+
+### 4. Decisiones
+- Sin commit hasta acabar; el usuario pidió publicar al finalizar.
+- Deslizadores a `0.1...15` y `0.1...30`, paso 0,1.
+- `setDuration`: las fotos redondean a décimas con mínimo 0,1 s; portada, créditos, textos y collages siguen con 0,5 s y medios segundos (no se pidió y en ellos un tiempo tan corto no tiene sentido).
+- `applyRhythm`: mínimo 0,1 s por foto. Arregla también el caso sin música, donde un valor general de 0,3 s subía a 1 s.
+- El recorte de la transición va en `SlideshowTimeline.init` (`min(transición, duración)`): de ahí salen el vídeo, la vista previa y el timeline de la app, así que todo cuadra con un solo cambio. Los ajustes guardados no cambian.
+- Tests nuevos: «Fotos más cortas que su transición…» (Transiciones) y «Fotos muy cortas: con mínimo de 0,1 s…» (RhythmPlanner). 164 tests en verde.
+- Comprobado generando una vista previa de una copia de BOOK con 0,2 s por foto y fundido de 1 s: las fotos cambian cada 0,2 s con fundidos cortos y sin saltos (hoja de contactos a 10 fps).
+
+### 5. Alternativas descartadas
+- Avisar en el inspector cuando la transición dura más que la foto, sin tocarla: el usuario prefirió que se acorte sola.
+- Bajar solo el valor general y dejar la foto suelta en 0,5 s: no podría ponerse a mano lo mismo que el valor general.
+- Mantener el mínimo de 1 s en el ritmo: «1 golpe por foto» seguiría saliendo cada 2 golpes a 120 ppm.
+- Corte seco (0 s) como mínimo: igual que con «Aparición», se queda en 0,1 s.
+
+### 6. Pendiente de comprobar
+- `RhythmPlanner` calcula dónde cae cada corte con la transición sin recortar; con fotos más cortas que su transición, el corte puede quedar unas centésimas desplazado del golpe.
+- En el timeline, una foto de 0,1 s mide 4 puntos y es difícil de pulsar o estirar.

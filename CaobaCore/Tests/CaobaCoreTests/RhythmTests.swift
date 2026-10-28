@@ -96,6 +96,17 @@ struct RhythmPlannerTests {
         #expect(d[0] <= 6 && d[0] >= 1)
     }
 
+    @Test("Fotos muy cortas: con mínimo de 0,1 s, un golpe por foto es de verdad un golpe")
+    func oneBeatPerPhoto() {
+        let grid = beats(period: 0.5, count: 200)   // 120 ppm
+        let items = Array(repeating: RhythmItem(minimum: 0.1, maximum: 15), count: 4)
+        #expect(RhythmPlanner.plan(beats: grid, items: items, target: 4, beatsPerCut: 1, transition: 0) == [0.5, 0.5, 0.5, 0.5])
+        // En automático, un objetivo de 0,3 s también acaba en un golpe por foto.
+        #expect(RhythmPlanner.plan(beats: grid, items: items, target: 0.3, beatsPerCut: nil, transition: 0) == [0.5, 0.5, 0.5, 0.5])
+        // Sin música se respeta el objetivo aunque sea menos de 1 s.
+        #expect(RhythmPlanner.plan(beats: [], items: items, target: 0.3, beatsPerCut: nil, transition: 0) == [0.3, 0.3, 0.3, 0.3])
+    }
+
     @Test("Collages: en automático cada uno se acerca a su propia referencia (según sus fotos)")
     func collageTargets() {
         let grid = beats(period: 0.5, count: 400)   // 120 ppm

@@ -25,6 +25,19 @@ struct TransitionTests {
         #expect(e.fromBlack && e.incoming == nil && abs(e.progress - 0.5) < 1e-9)
     }
 
+    @Test("Fotos más cortas que su transición: la entrada se recorta a lo que dura la foto")
+    func shortPhotosClampTransition() {
+        // 0,2 s de foto con 1 s de fundido: entra en 0,2 s y la siguiente no pisa su entrada.
+        let tl = SlideshowTimeline(durations: [2, 0.2, 0.3, 2], transitions: [1, 1, 1, 0.5])
+        #expect(tl.transitions == [1, 0.2, 0.3, 0.5])
+        #expect(tl.segments.map(\.start) == [0, 2, 2.2, 2.5])
+        // Justo antes de que entre la 2, la 1 ya ha terminado de aparecer.
+        let before = tl.frame(at: 2.19)!
+        #expect(before.current == 0 && before.next == 1 && before.progress > 0.9)
+        #expect(tl.frame(at: 2.21)!.current == 1)
+        #expect(abs(tl.totalDuration - 5) < 1e-9)
+    }
+
     @Test("El spec resuelve la transición de cada foto con los valores por defecto y el atajo antiguo")
     func specResolution() {
         let url = URL(fileURLWithPath: "/tmp/x.jpg")
