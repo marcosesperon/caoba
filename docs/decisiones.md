@@ -2963,6 +2963,7 @@ Plan aprobado por el usuario («dale»).
 
 ### 4. Decisiones
 - Sin commit hasta acabar; el usuario pidió publicar al finalizar.
+- Publicado después, a petición del usuario («publica al finalizar»), en la versión 3.19.0 con release en GitHub.
 - Deslizadores a `0.1...15` y `0.1...30`, paso 0,1.
 - `setDuration`: las fotos redondean a décimas con mínimo 0,1 s; portada, créditos, textos y collages siguen con 0,5 s y medios segundos (no se pidió y en ellos un tiempo tan corto no tiene sentido).
 - `applyRhythm`: mínimo 0,1 s por foto. Arregla también el caso sin música, donde un valor general de 0,3 s subía a 1 s.

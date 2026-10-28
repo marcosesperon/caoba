@@ -2,7 +2,7 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
-## Sin publicar
+## 3.19.0 — 2026-10-28
 
 - **Fotos mucho más rápidas en el Slideshow**: «Segundos por foto» baja hasta 0,1 s (antes, 1 s) y va de décima en décima. Lo mismo la duración de cada foto, en su inspector o estirándola en el timeline.
 - «Ajustar al ritmo» puede dejar una foto en menos de 1 s: con «1 golpe por foto» cambia de verdad en cada golpe.
