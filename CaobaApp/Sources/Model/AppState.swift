@@ -97,6 +97,13 @@ final class AppState {
     func selectSourceFolder(_ url: URL) async {
         var isDir: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else { return }
+        // Con otra carpeta, fuera el destino anterior: si no, un Slideshow o un collage
+        // hecho con la carpeta nueva podría pisar el que se generó con la de antes.
+        // Sin carpeta de salida, Procesador, Marca de agua y Renombrador guardan junto al original con sufijo.
+        if url.standardizedFileURL != sourceFolder?.standardizedFileURL {
+            destinationFolder = nil
+            destinationFile = nil
+        }
         sourceFolder = url
         excludedNames = []
         // Orden manual guardado en la carpeta (común a Slideshow, Collage y Contact Sheet); si no, por nombre o fecha.
@@ -104,8 +111,6 @@ final class AppState {
         isManualOrder = !savedOrder.isEmpty
         manualNames = savedOrder
         recentFolders = RecentFolders.add(url)
-        // Destino por defecto: subcarpeta "caoba" dentro del origen.
-        destinationFolder = url.appendingPathComponent("caoba", isDirectory: true)
         hasFolderConfig = CaobaConfig.hasSettings(in: url)
         await rescan()
     }

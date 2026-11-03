@@ -3027,3 +3027,41 @@ Plan aprobado por el usuario («si»).
 - Teclado (← → espacio Esc) y clics en Anterior, Siguiente y la casilla: no se pueden simular aquí (sin permiso de accesibilidad para enviar teclas).
 - Memoria con fotos muy grandes (p. ej. 50 MP, unos 200 MB descomprimida mientras se ve).
 - Con el visor abierto, la app de pruebas no se cerraba sola tras la captura (igual que pasaba con la hoja anterior); revisar si ⌘Q con el visor abierto funciona.
+
+## 2026-11-03 — Borrar el destino al cambiar la carpeta de origen
+
+### 1. La petición tal como se ha entendido
+Al elegir una carpeta de origen **distinta** de la que había (con «Elegir carpeta», arrastrándola o desde las recientes), se borra todo destino anterior, para que no se pueda pisar sin querer el resultado generado con otra carpeta:
+- **Fichero de destino** (Slideshow y Contact Sheet): queda vacío. Hay que volver a elegir dónde guardar antes de generar.
+- **Carpeta de destino**: queda vacía, ya no pasa sola a `origen/caoba`.
+  - Collage: no deja generar hasta pulsar «Elegir…».
+  - Procesador, Marca de agua y Renombrador: con «Copias nuevas» se ve «Misma carpeta (con sufijo)» y se puede generar enseguida; las copias van junto a los originales con sufijo.
+- Si se vuelve a elegir la misma carpeta que ya estaba abierta, el destino se conserva.
+
+Confirmada por el usuario («correcto»).
+
+### 2. Preguntas y respuestas
+- **En los módulos que guardan en una carpeta (Collage, Procesador, Marca de agua, Renombrador), al cambiar de origen, ¿se mantiene el destino automático `origen/caoba` o se deja vacío para que haya que elegirlo?** → Vacío (opción 2).
+- **En Procesador, Marca de agua y Renombrador, el destino vacío ya significa «Misma carpeta (con sufijo)». ¿Se deja así o se obliga a elegir carpeta también ahí?** → Se deja así (opción 1): vacío equivale a «Misma carpeta (con sufijo)». Solo el Collage obliga a elegir.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Model/AppState.swift` (`selectSourceFolder` pone `destinationFolder = origen/caoba` y no toca `destinationFile`, que comparten Slideshow y Contact Sheet), `Views/Shared/DestinationBar.swift` (con `destinationFolder` vacío y «Copias nuevas» muestra «Misma carpeta (con sufijo)»), `Views/Modules/CollageView.swift` (`canRun` exige `destinationFolder`).
+
+Plan aprobado por el usuario («apruebo»).
+
+### 4. Decisiones
+- En `AppState.selectSourceFolder`, si la carpeta nueva es distinta de la abierta (comparando `standardizedFileURL`), `destinationFolder` y `destinationFile` pasan a `nil`. Se quita el destino por defecto `origen/caoba`.
+- Volver a elegir la misma carpeta conserva el destino: no hay riesgo de pisar nada de otra carpeta y evita volver a elegirlo sin motivo.
+- Procesador, Marca de agua y Renombrador: el botón «Abrir» del aviso final usa `destinationFolder ?? sourceFolder`. Con la carpeta de salida vacía las copias van junto al original, así que lo que hay que abrir es el origen.
+- README y `docs/documentacion.md` actualizados. El `CHANGELOG.md` no tiene sección de cambios sin publicar: la entrada se añade al sacar versión.
+- Sin commit hasta que lo pida el usuario.
+- Comprobado: compila (`xcodebuild … build`) y pasan los 164 tests de `CaobaCore`.
+
+### 5. Alternativas descartadas
+- Mantener `origen/caoba` como destino automático (lo que había): el usuario prefirió dejarlo vacío.
+- Obligar a elegir carpeta también en Procesador, Marca de agua y Renombrador: el destino vacío ya significa «Misma carpeta (con sufijo)», que es seguro porque no pisa nada, y obligar a elegir se habría cargado esa opción.
+- Borrar el destino aunque se vuelva a elegir la misma carpeta: no evita ningún riesgo y obliga a elegirlo otra vez.
+
+### 6. Pendiente de comprobar
+- Probar en la app: generar un Slideshow, cambiar de carpeta y ver que «Generar vídeo» pide destino; lo mismo con el Contact Sheet y el Collage.
+- Las capturas del Collage con `--folder` saldrán ahora con «Elige una carpeta» y Generar desactivado.

@@ -103,7 +103,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 
 - **Nativa de macOS** con los controles del sistema, modo claro y oscuro, tipografía Doto en los títulos y el acento rojo de CAOBA.
 - **Carpeta de origen compartida** con historial de recientes, arrastrar y soltar, y la lista de fotos con casillas, orden por nombre o fecha y filtro de orientación.
-- **Barra de destino compartida**: copias nuevas o sobrescribir, carpeta de salida por defecto `caoba` dentro de la de origen.
+- **Barra de destino compartida**: copias nuevas o sobrescribir y carpeta de salida. Al cambiar de carpeta de origen el destino se vacía, para no pisar lo generado con la carpeta anterior.
 - **Progreso** con fase y fichero actual, cancelable.
 - **Español e inglés**, con selector en Preferencias.
 - **Aviso de nueva versión** comprobando las releases de GitHub. Sin cuentas, sin telemetría: la app no envía nada; solo consulta esa página y, en Metadatos, el mapa.

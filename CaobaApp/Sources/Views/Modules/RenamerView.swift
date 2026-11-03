@@ -185,7 +185,7 @@ struct RenamerView: View {
         let currentPlan = plan
         let saveMode = appState.saveMode
         let label = String(describing: mode)
-        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await Renamer().execute(plan: currentPlan, saveMode: saveMode, modeLabel: label, progress: progress)
         }

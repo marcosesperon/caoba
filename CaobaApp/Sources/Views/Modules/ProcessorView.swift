@@ -184,7 +184,7 @@ struct ProcessorView: View {
         let files = appState.checkedFiles
         let ops = operations
         let mode = appState.saveMode
-        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await ImageProcessor().process(files: files, ops: ops, saveMode: mode, progress: progress)
         }

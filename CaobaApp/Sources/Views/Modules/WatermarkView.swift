@@ -168,7 +168,7 @@ struct WatermarkView: View {
         let files = appState.checkedFiles
         let opts = options
         let mode = appState.saveMode
-        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await Watermarker().process(files: files, watermark: mark, options: opts, saveMode: mode, progress: progress)
         }
