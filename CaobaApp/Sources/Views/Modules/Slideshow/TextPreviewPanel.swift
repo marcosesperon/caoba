@@ -100,7 +100,7 @@ struct TextPreviewPanel: View {
     private func render(_ key: Key) async {
         let canvas = Self.previewCanvas(for: key.format)
         let sampleInfo: RenameSourceInfo? = (key.firstPhoto != nil && doc.mode == .photos && !key.pattern.isEmpty)
-            ? Renamer.gatherInfo(files: [key.firstPhoto!], pattern: key.pattern.replacingOccurrences(of: "{fecha}", with: "YYYY"), needsDates: key.pattern.contains("{fecha}")).first
+            ? Renamer.gatherInfo(files: [key.firstPhoto!], pattern: key.pattern.replacingOccurrences(of: "{fecha}", with: "{YYYY}"), needsDates: key.pattern.contains("{fecha}")).first
             : nil
         // En el inspector de la tarjeta no hace falta el pie.
         let text = content == .card ? nil : doc.caption(for: key.firstCaptionId ?? "", index: 1, total: max(1, key.total), info: sampleInfo, name: key.templateName)

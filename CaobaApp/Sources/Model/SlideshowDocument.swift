@@ -1056,7 +1056,7 @@ final class SlideshowDocument {
         var generator = SystemRandomNumberGenerator()
         let list = files
         // Datos de cada foto solo si el patrón de pie los necesita.
-        let infos = captionPattern.isEmpty ? [] : Renamer.gatherInfo(files: list, pattern: captionPattern.replacingOccurrences(of: "{fecha}", with: "YYYY"), needsDates: captionPattern.contains("{fecha}"))
+        let infos = captionPattern.isEmpty ? [] : Renamer.gatherInfo(files: list, pattern: captionPattern.replacingOccurrences(of: "{fecha}", with: "{YYYY}"), needsDates: captionPattern.contains("{fecha}"))
         var photos: [SlideshowPhoto] = list.enumerated().map { index, url in
             let name = url.lastPathComponent
             let effect: KenBurnsEffect?

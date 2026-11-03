@@ -3066,3 +3066,33 @@ Plan aprobado por el usuario («apruebo»).
 ### 6. Pendiente de comprobar
 - Probar en la app: generar un Slideshow, cambiar de carpeta y ver que «Generar vídeo» pide destino; lo mismo con el Contact Sheet y el Collage.
 - Las capturas del Collage con `--folder` saldrán ahora con «Elige una carpeta» y Generar desactivado.
+
+## 2026-11-03 — Fechas entre llaves en el patrón del Renombrador
+
+### 1. La petición tal como se ha entendido
+En el modo «Patrón» del Renombrador, las fechas pasan a escribirse entre llaves, igual que las demás variables: `{YYYY}` año, `{MM}` mes, `{DD}` día, `{hh}` hora, `{mm}` minuto y `{ss}` segundo (siguen distinguiendo mayúsculas: `{MM}` mes, `{mm}` minuto). Fuera de las llaves, el texto se deja tal cual: «EMMA_{n}» da «EMMA_01» y «JESSICA» no se toca. Los tokens sueltos de antes (`YYYY`, `MM`…) dejan de ser variables. Se actualizan la ayuda bajo el campo, los tests y la documentación. Los rótulos `{fecha}` del Slideshow siguen funcionando igual.
+
+Confirmada por el usuario («si»).
+
+### 2. Preguntas y respuestas
+- **¿Fechas con llaves como las demás variables (`{YYYY}`) o con corchetes (`[YYYY]`)?** → Con llaves (opción 1).
+
+### 3. Fuentes analizadas
+- `CaobaCore/Sources/CaobaCore/Renaming/Renamer.swift` (`expand` sustituye `YYYY MM DD hh mm ss` sueltos en todo el patrón, así que el texto fijo «EMMA» o «JESSICA» se come el mes o los segundos; `patternNeedsDate` busca esos mismos tokens), `CaobaApp/Sources/Views/Modules/RenamerView.swift` (ayuda «Variables: … y fecha YYYY MM DD hh mm ss»; el patrón no se guarda en el `.caoba`, así que no hay patrones antiguos que convertir), `CaobaApp/Sources/Model/SlideshowDocument.swift` y `Views/Modules/Slideshow/TextPreviewPanel.swift` (los rótulos con `{fecha}` cambian `{fecha}` por `YYYY` solo para que `gatherInfo` lea la fecha: hay que adaptarlo), `CaobaCore/Tests/CaobaCoreTests/RenamerTests.swift`.
+
+Plan aprobado por el usuario («si»).
+
+### 4. Decisiones
+- `Renamer.dateTokens` (`{YYYY} {MM} {DD} {hh} {mm} {ss}`) es la única lista de variables de fecha: la usan `expand` y `patternNeedsDate`. La fecha se sigue sustituyendo antes que `{nombre}`.
+- Los tokens sueltos de antes dejan de ser variables, sin compatibilidad: era justo lo que causaba el fallo, y el patrón no se guarda, así que no hay patrones antiguos.
+- Los rótulos `{fecha}` del Slideshow cambian `{fecha}` por `{YYYY}` (antes `YYYY`) para que `gatherInfo` siga leyendo la fecha.
+- Ayuda del campo actualizada en español y en inglés (`Localizable.xcstrings`).
+- Tests: los tres existentes pasan a llaves y hay uno nuevo con texto fijo («EMMA_jessica_{n}», `YYYYMMDD` sin llaves). Pasan los 165 tests y la app compila.
+- `CHANGELOG.md` al publicar. Sin commit hasta que lo pida el usuario.
+
+### 5. Alternativas descartadas
+- Corchetes (`[YYYY]`): el usuario prefirió llaves, igual que las demás variables.
+- Aceptar también los tokens sueltos: el fallo seguiría.
+
+### 6. Pendiente de comprobar
+- Probar en la app el Renombrador con «EMMA_{n}» y con `{YYYY}-{MM}-{DD}`, y un rótulo `{fecha}` en el Slideshow.

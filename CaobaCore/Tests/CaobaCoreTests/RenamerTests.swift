@@ -14,15 +14,25 @@ struct RenamerTests {
         let info = RenameSourceInfo(url: URL(fileURLWithPath: "/tmp/DSC_MM01.jpg"),
                                     date: ExifDate.parse("2024:05:31 14:22:10"), camera: "Nikon Z6",
                                     lens: "50mm", size: PixelSize(width: 600, height: 400))
-        let out = Renamer.expand(pattern: "YYYY-MM-DD_{n}_{n}_{nombre}_{camara}_{orientacion}_{ancho}x{alto}", info: info, sequence: "007")
-        // El "MM" del nombre original no se toca porque la fecha se sustituye antes.
-        #expect(out == "2024-05-31_007_007_DSC_MM01_Nikon Z6_H_600x400")
+        let out = Renamer.expand(pattern: "{YYYY}-{MM}-{DD}_{hh}{mm}{ss}_{n}_{n}_{nombre}_{camara}_{orientacion}_{ancho}x{alto}", info: info, sequence: "007")
+        // El "MM" del nombre original no se toca: la fecha va entre llaves.
+        #expect(out == "2024-05-31_142210_007_007_DSC_MM01_Nikon Z6_H_600x400")
+    }
+
+    @Test("El texto fijo del patrón no se confunde con la fecha")
+    func patternLiteralText() {
+        let info = RenameSourceInfo(url: URL(fileURLWithPath: "/tmp/a.jpg"), date: ExifDate.parse("2024:05:31 14:22:10"))
+        // Antes «EMMA» perdía el «MM» por el mes y «jessica» el «ss» por los segundos.
+        #expect(Renamer.expand(pattern: "EMMA_jessica_{n}", info: info, sequence: "01") == "EMMA_jessica_01")
+        // Los tokens sin llaves ya no son variables.
+        #expect(Renamer.expand(pattern: "YYYYMMDD_{YYYY}", info: info, sequence: "1") == "YYYYMMDD_2024")
+        #expect(!Renamer.patternNeedsDate("EMMA_JESSICA_{n}"))
     }
 
     @Test("Sin fecha los tokens quedan a cero")
     func patternNoDate() {
         let info = RenameSourceInfo(url: URL(fileURLWithPath: "/tmp/a.jpg"))
-        #expect(Renamer.expand(pattern: "YYYYMMDD_hhmmss", info: info, sequence: "1") == "00000000_000000")
+        #expect(Renamer.expand(pattern: "{YYYY}{MM}{DD}_{hh}{mm}{ss}", info: info, sequence: "1") == "00000000_000000")
     }
 
     @Test("Plan de patrón: contador automático, extensión en minúsculas y colisiones")
@@ -97,7 +107,7 @@ struct RenamerTests {
         _ = try TestImages.makePhoto(in: folder, name: "z.jpg", width: 300, height: 400, date: "2023:07:08 09:10:11", make: "Canon", model: "Canon EOS R6", lens: "RF 50")
         _ = try TestImages.makePhoto(in: folder, name: "a.jpg", width: 400, height: 300, date: "2021:01:01 00:00:00")
         let files = try FolderScanner().listImageURLs(in: folder)
-        let plan = Renamer.patternPlan(files: files, options: PatternRenameOptions(pattern: "YYYYMMDD_{camara}_{orientacion}_{n}", sortBy: .date))
+        let plan = Renamer.patternPlan(files: files, options: PatternRenameOptions(pattern: "{YYYY}{MM}{DD}_{camara}_{orientacion}_{n}", sortBy: .date))
         #expect(plan.map(\.newName) == ["20210101_unknown_H_01.jpg", "20230708_Canon EOS R6_V_02.jpg"])
     }
 

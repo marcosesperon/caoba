@@ -7254,12 +7254,12 @@
         }
       }
     },
-    "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha YYYY MM DD hh mm ss" : {
+    "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha {YYYY} {MM} {DD} {hh} {mm} {ss}" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} and date YYYY MM DD hh mm ss"
+            "value" : "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} and date {YYYY} {MM} {DD} {hh} {mm} {ss}"
           }
         }
       }

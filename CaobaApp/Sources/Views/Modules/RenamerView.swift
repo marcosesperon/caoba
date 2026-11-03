@@ -52,7 +52,7 @@ struct RenamerView: View {
                             case .pattern:
                                 OptionGroup(title: "Patrón") {
                                     TextField("Patrón", text: $pattern)
-                                    Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha YYYY MM DD hh mm ss")
+                                    Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha {YYYY} {MM} {DD} {hh} {mm} {ss}")
                                         .font(.caption).foregroundStyle(.secondary)
                                     LabeledRow("Ordenar por") {
                                         Picker("", selection: $sortBy) {

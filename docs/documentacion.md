@@ -143,7 +143,7 @@ La salida mantiene el formato del original (sufijo `_watermarked` si es copia en
 
 Cuatro planes, todos devuelven `[RenameEntry]` (original → nombre nuevo) con colisiones resueltas con `_2`, `_3`…:
 
-- `patternPlan(files:options:)` con `PatternRenameOptions`: patrón con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` (H/V/C) y tokens `YYYY MM DD hh mm ss`; orden por nombre o fecha; dígitos (0 = automático, mínimo 2) e inicio del contador; mayúsculas (`TextCase`); saneado (`SanitizeOptions`: acentos, espacios, especiales). Solo lee EXIF o dimensiones si el patrón los usa.
+- `patternPlan(files:options:)` con `PatternRenameOptions`: patrón con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` (H/V/C) y fecha `{YYYY} {MM} {DD} {hh} {mm} {ss}` (`Renamer.dateTokens`; entre llaves, como las demás, para que el texto fijo del patrón —«EMMA», «JESSICA»— no se confunda con el mes o los segundos; `{MM}` es el mes y `{mm}` el minuto); orden por nombre o fecha; dígitos (0 = automático, mínimo 2) e inicio del contador; mayúsculas (`TextCase`); saneado (`SanitizeOptions`: acentos, espacios, especiales). Solo lee EXIF o dimensiones si el patrón los usa.
 - `autofixPlan(files:)`: `Foto-1` → `Foto-001` si todos comparten prefijo y sufijo.
 - `searchReplacePlan(files:search:replace:)` y `prefixSuffixPlan(files:prefix:suffix:)`.
 
@@ -344,7 +344,7 @@ try MetadataService.write(edit, to: files[0].url)
 print(MetadataService.read(files[0].url).artist ?? "-")
 
 // Renombrar con patrón y vista previa
-let plan = Renamer.patternPlan(files: files.map(\.url), options: PatternRenameOptions(pattern: "YYYY-MM-DD_boda_{n}", sortBy: .date))
+let plan = Renamer.patternPlan(files: files.map(\.url), options: PatternRenameOptions(pattern: "{YYYY}-{MM}-{DD}_boda_{n}", sortBy: .date))
 plan.forEach { print($0.oldName, "→", $0.newName) }
 _ = try await Renamer().execute(plan: plan, saveMode: .overwrite)
 

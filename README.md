@@ -82,7 +82,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 
 ### ✏️ Renombrador
 
-- **Patrón** con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` y fecha de captura `YYYY MM DD hh mm ss`; dígitos e inicio del contador, mayúsculas, acentos, espacios y caracteres especiales.
+- **Patrón** con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` y fecha de captura `{YYYY} {MM} {DD} {hh} {mm} {ss}` (entre llaves, para que un texto fijo como «EMMA» no se confunda con el mes); dígitos e inicio del contador, mayúsculas, acentos, espacios y caracteres especiales.
 - **Corregir numeración** (`Foto-1` → `Foto-001`), **buscar y reemplazar**, **prefijo y sufijo**.
 - Vista previa en vivo y **deshacer**: cada renombrado en sitio queda registrado en la carpeta y se puede revertir, incluso varias operaciones hacia atrás.
 

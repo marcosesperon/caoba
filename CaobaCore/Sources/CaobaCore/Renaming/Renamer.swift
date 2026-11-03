@@ -39,7 +39,7 @@ public struct SanitizeOptions: Sendable, Equatable, Codable {
 /// Opciones del modo "patrón".
 public struct PatternRenameOptions: Sendable, Equatable {
     /// Patrón con placeholders: `{nombre}`, `{n}`, `{camara}`, `{objetivo}`,
-    /// `{ancho}`, `{alto}`, `{orientacion}` y tokens de fecha `YYYY MM DD hh mm ss`.
+    /// `{ancho}`, `{alto}`, `{orientacion}` y fecha `{YYYY} {MM} {DD} {hh} {mm} {ss}`.
     public var pattern: String
     public var sortBy: SortMode
     /// Dígitos del contador. 0 = automático según el número de ficheros (mínimo 2).
@@ -233,20 +233,25 @@ public struct Renamer: Sendable {
 
     // MARK: - Piezas internas (públicas para poder testearlas)
 
-    /// Sustituye tokens de fecha y placeholders. Primero las fechas, para que
-    /// un nombre original que contenga "DD" o "MM" no se vea afectado.
+    /// Variables de fecha del patrón. Van entre llaves como las demás: sueltas, un texto
+    /// fijo como «EMMA» o «JESSICA» perdía el «MM» o el «SS» por el mes o los segundos.
+    /// Distinguen mayúsculas: `{MM}` es el mes y `{mm}` el minuto.
+    public static let dateTokens = ["{YYYY}", "{MM}", "{DD}", "{hh}", "{mm}", "{ss}"]
+
+    /// Sustituye la fecha y los placeholders. Primero la fecha, para que
+    /// un nombre original que contenga "{MM}" o "{DD}" no se vea afectado.
     public static func expand(pattern: String, info: RenameSourceInfo, sequence: String) -> String {
         var result = pattern
         if patternNeedsDate(pattern) {
             let date = info.date
             let parts = date.map { Self.dateParts($0) }
-            // Orden importa: "YYYY" antes que nada, y "MM" (mes) antes que "mm" (minuto) no se pisan por mayúsculas.
-            result = result.replacingOccurrences(of: "YYYY", with: parts?.year ?? "0000")
-            result = result.replacingOccurrences(of: "MM", with: parts?.month ?? "00")
-            result = result.replacingOccurrences(of: "DD", with: parts?.day ?? "00")
-            result = result.replacingOccurrences(of: "hh", with: parts?.hour ?? "00")
-            result = result.replacingOccurrences(of: "mm", with: parts?.minute ?? "00")
-            result = result.replacingOccurrences(of: "ss", with: parts?.second ?? "00")
+            // Sin fecha en la foto, cada variable queda a ceros.
+            result = result.replacingOccurrences(of: "{YYYY}", with: parts?.year ?? "0000")
+            result = result.replacingOccurrences(of: "{MM}", with: parts?.month ?? "00")
+            result = result.replacingOccurrences(of: "{DD}", with: parts?.day ?? "00")
+            result = result.replacingOccurrences(of: "{hh}", with: parts?.hour ?? "00")
+            result = result.replacingOccurrences(of: "{mm}", with: parts?.minute ?? "00")
+            result = result.replacingOccurrences(of: "{ss}", with: parts?.second ?? "00")
         }
         let base = info.url.deletingPathExtension().lastPathComponent
         let orientation: String
@@ -308,7 +313,7 @@ public struct Renamer: Sendable {
     }
 
     public static func patternNeedsDate(_ pattern: String) -> Bool {
-        ["YYYY", "MM", "DD", "hh", "mm", "ss"].contains { pattern.contains($0) }
+        dateTokens.contains { pattern.contains($0) }
     }
 
     public static func patternNeedsCamera(_ pattern: String) -> Bool {
