@@ -3089,6 +3089,7 @@ Plan aprobado por el usuario («si»).
 - Ayuda del campo actualizada en español y en inglés (`Localizable.xcstrings`).
 - Tests: los tres existentes pasan a llaves y hay uno nuevo con texto fijo («EMMA_jessica_{n}», `YYYYMMDD` sin llaves). Pasan los 165 tests y la app compila.
 - `CHANGELOG.md` al publicar. Sin commit hasta que lo pida el usuario.
+- Publicado después, a petición del usuario («haz commit y publica»), en la versión 3.20.2 con release en GitHub.
 
 ### 5. Alternativas descartadas
 - Corchetes (`[YYYY]`): el usuario prefirió llaves, igual que las demás variables.

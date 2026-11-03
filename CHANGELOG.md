@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.20.2 — 2026-11-03
+
+- **Renombrador**: las fechas del patrón se escriben ahora entre llaves, como las demás variables: `{YYYY}-{MM}-{DD}_{hh}{mm}{ss}`. Así un texto fijo como «EMMA» o «JESSICA» ya no se cambia por el mes o los segundos. Si usabas `YYYY`, `MM`… sin llaves, añádeselas.
+
 ## 3.20.1 — 2026-11-03
 
 - Al cambiar de carpeta de origen se vacía el destino que hubiera: así un Slideshow, un Contact Sheet o un collage hecho con la carpeta nueva ya no puede sustituir sin querer al que generaste con la anterior. Hay que volver a elegir dónde guardar. En el Procesador, la Marca de agua y el Renombrador las copias van junto a los originales, con sufijo, hasta que elijas otra carpeta.
