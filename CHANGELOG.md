@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.20.1 — 2026-11-03
+
+- Al cambiar de carpeta de origen se vacía el destino que hubiera: así un Slideshow, un Contact Sheet o un collage hecho con la carpeta nueva ya no puede sustituir sin querer al que generaste con la anterior. Hay que volver a elegir dónde guardar. En el Procesador, la Marca de agua y el Renombrador las copias van junto a los originales, con sufijo, hasta que elijas otra carpeta.
+
 ## 3.20.0 — 2026-10-28
 
 - **Visor de fotos nuevo** en la lista de fotos de todos los módulos (la lupa de cada fila): se abre ocupando toda la ventana, enseña la foto original a su resolución real y trae «Anterior» y «Siguiente» para recorrer la lista y una casilla para quitar o volver a poner la foto en la selección sin cerrarlo. Con el teclado: ← →, espacio para marcar o desmarcar y Esc para cerrar.

@@ -3055,6 +3055,7 @@ Plan aprobado por el usuario («apruebo»).
 - Procesador, Marca de agua y Renombrador: el botón «Abrir» del aviso final usa `destinationFolder ?? sourceFolder`. Con la carpeta de salida vacía las copias van junto al original, así que lo que hay que abrir es el origen.
 - README y `docs/documentacion.md` actualizados. El `CHANGELOG.md` no tiene sección de cambios sin publicar: la entrada se añade al sacar versión.
 - Sin commit hasta que lo pida el usuario.
+- Publicado después, a petición del usuario («haz commit y publica»), en la versión 3.20.1 con release en GitHub.
 - Comprobado: compila (`xcodebuild … build`) y pasan los 164 tests de `CaobaCore`.
 
 ### 5. Alternativas descartadas
