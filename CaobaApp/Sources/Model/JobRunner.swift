@@ -100,6 +100,7 @@ extension JobPhase {
         case .analyzingAudio: return L("Analizando audio…")
         case .mixingAudio: return L("Mezclando audio…")
         case .generatingFrames: return L("Generando fotogramas…")
+        case .organizingFiles: return L("Ordenando por fecha…")
         }
     }
 }

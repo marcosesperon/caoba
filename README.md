@@ -1,6 +1,6 @@
 # CAOBA
 
-**CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR y lectura del contador de disparos. Pensada para trabajar por carpetas y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
+**CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, lectura del contador de disparos y recuperación de fotos borradas de tarjetas. Pensada para trabajar por carpetas y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/marcosesperon)
 [![Descargar](https://img.shields.io/badge/Descargar-macOS%2014%2B-D71921?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/marcosesperon/caoba/releases/latest)
@@ -13,7 +13,7 @@ CAOBA es un proyecto del estudio de fotografía **[CAOBA](https://caobafoto.com/
 
 ## ✨ Funcionalidades
 
-La aplicación se organiza en **9 módulos** agrupados en dos categorías. Todos trabajan sobre una **carpeta de fotos compartida**: la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
+La aplicación se organiza en **10 módulos** agrupados en dos categorías. Casi todos trabajan sobre una **carpeta de fotos compartida**: la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
 
 ### Creadores
 
@@ -29,6 +29,7 @@ La aplicación se organiza en **9 módulos** agrupados en dos categorías. Todos
 7. **Renombrador** — Renombrado masivo con patrones, y con deshacer
 8. **Código QR** — QR a partir de texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento
 9. **Shutter Count** — Disparos del obturador y vida útil estimada de la cámara
+10. **Recuperar fotos** — Recupera fotos y vídeos borrados de tarjetas de memoria
 
 ---
 
@@ -97,6 +98,14 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 - Lee el **contador de disparos** y muestra la vida útil estimada por modelo (Nikon, Canon, Sony, Pentax), número de serie, firmware, objetivo y datos de la foto. Acepta JPG y RAW.
 - Usa **exiftool** empaquetado para leer todas las marcas; sin él, el contador de Nikon se lee de forma nativa.
 
+### 💾 Recuperar fotos
+
+- Recupera **fotos y vídeos borrados** de tarjetas SD y discos externos: JPG, RAW de todas las marcas (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2…), HEIC y vídeo (MOV, MP4, MTS…), y opcionalmente cualquier otro tipo de fichero.
+- Solo **lee** la tarjeta: nunca escribe en ella. Busca en el espacio libre (lo normal tras borrar) o en toda la tarjeta (formateadas o dañadas).
+- Cuadrícula con miniaturas y vista previa de lo recuperado, filtros por tipo y **ordenar por fecha** de captura en `AAAA/MM-DD/AAAA-MM-DD_HHMMSS`, copiando sin tocar los originales.
+- Pide la contraseña de administrador al empezar: leer la tarjeta en bruto lo exige. Solo se usa para abrirla; la búsqueda corre con tu usuario.
+- Usa **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** de TestDisk (GPL), empaquetado dentro de la app.
+
 ---
 
 ## 🎨 Interfaz
@@ -128,9 +137,10 @@ Si macOS avisa de que no puede comprobar el desarrollador, abre la app con clic 
 - **Vision**: detección de caras y saliencia para encuadres automáticos.
 - **Core Text y MapKit**: textos en collages y mapa de metadatos.
 - **exiftool** (Perl, distribución oficial) empaquetado solo para Shutter Count.
+- **PhotoRec 7.2** (TestDisk, GPL v2+) compilado desde el código fuente como programa aparte para Recuperar fotos, con **DiskArbitration** para las tarjetas y **QuickLook** para las miniaturas.
 - **XcodeGen** para el proyecto y **GitHub Actions** para la integración continua.
 
-El motor (`CaobaCore`) es un paquete Swift sin interfaz, con más de 90 tests, independiente de la app.
+El motor (`CaobaCore`) es un paquete Swift sin interfaz, con más de 180 tests, independiente de la app.
 
 ---
 
@@ -139,6 +149,7 @@ El motor (`CaobaCore`) es un paquete Swift sin interfaz, con más de 90 tests, i
 ```bash
 brew install xcodegen
 Tools/fetch-exiftool.sh      # descarga exiftool para Shutter Count (opcional)
+Tools/build-photorec.sh      # compila PhotoRec para Recuperar fotos (obligatorio para publicar)
 xcodegen generate            # crea CAOBA.xcodeproj (no se versiona)
 open CAOBA.xcodeproj         # ⌘R para ejecutar
 cd CaobaCore && swift test   # tests del motor sin abrir Xcode
@@ -147,3 +158,9 @@ Tools/make-release.sh --publish   # además etiqueta la versión y crea la relea
 ```
 
 Requiere Xcode 16 o superior. En `docs/` están la bitácora de decisiones y la documentación del motor.
+
+## 📄 Licencias de terceros
+
+- **PhotoRec** (TestDisk), © Christophe Grenier, con licencia [GNU GPL v2 o posterior](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html). Va dentro de la app como programa aparte (`CAOBA.app/Contents/Resources/photorec`, con su licencia y versión). El código fuente exacto que se usó, con el script de compilación, está adjunto a cada [release](https://github.com/marcosesperon/caoba/releases).
+- **libjpeg** del Independent JPEG Group, enlazada dentro de PhotoRec: «This software is based in part on the work of the Independent JPEG Group».
+- **ExifTool**, © Phil Harvey, con la licencia de Perl.

@@ -2,6 +2,14 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.21.0 — 2026-11-08
+
+- **Nuevo módulo «Recuperar fotos»**, en Utilidades: recupera fotos y vídeos borrados de tarjetas SD y discos externos. Por defecto busca lo que usa un fotógrafo (JPG, RAW de todas las marcas, HEIC y vídeo) y, si quieres, cualquier otro tipo de fichero.
+- Elige la tarjeta, dónde buscar (solo lo borrado o toda la tarjeta, para tarjetas formateadas) y dónde guardar. La tarjeta solo se lee: nunca se escribe en ella. Pide la contraseña de administrador al empezar, porque leer la tarjeta en bruto lo exige.
+- Ves cuántos ficheros van saliendo de cada tipo y puedes cancelar cuando quieras sin perder lo recuperado.
+- Al terminar, una cuadrícula con miniaturas y vista previa (doble clic o espacio), filtros por tipo y **«Ordenar por fecha…»**, que copia lo recuperado a carpetas por año y día con el nombre de la fecha y hora de la foto.
+- Usa PhotoRec (TestDisk, licencia GPL), incluido en la app. Su licencia está en «Acerca de CAOBA» y el código fuente, adjunto a cada versión en GitHub.
+
 ## 3.20.2 — 2026-11-03
 
 - **Renombrador**: las fechas del patrón se escriben ahora entre llaves, como las demás variables: `{YYYY}-{MM}-{DD}_{hh}{mm}{ss}`. Así un texto fijo como «EMMA» o «JESSICA» ya no se cambia por el mes o los segundos. Si usabas `YYYY`, `MM`… sin llaves, añádeselas.

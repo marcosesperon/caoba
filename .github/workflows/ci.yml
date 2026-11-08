@@ -32,6 +32,8 @@ jobs:
         run: brew install xcodegen
       - name: Descargar exiftool
         run: Tools/fetch-exiftool.sh
+      - name: Compilar PhotoRec
+        run: Tools/build-photorec.sh
       - name: Generar proyecto
         run: xcodegen generate
       - name: Compilar

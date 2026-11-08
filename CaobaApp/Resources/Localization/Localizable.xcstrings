@@ -1,6 +1,746 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "PhotoRec no ha llegado a terminar y no ha dejado ningún mensaje (código %@). Vuelve a probar; si se repite, saca la tarjeta y vuelve a meterla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoRec didn't finish and left no message (code %@). Try again; if it happens again, remove the card and insert it again."
+          }
+        }
+      }
+    },
+    "%@ (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (%lld)"
+          }
+        }
+      }
+    },
+    "%lld no se pudieron copiar: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld could not be copied: %@"
+          }
+        }
+      }
+    },
+    "(imagen de disco)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(disk image)"
+          }
+        }
+      }
+    },
+    "Buscando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching"
+          }
+        }
+      }
+    },
+    "Buscando fotos y vídeos borrados. Puede tardar bastante con tarjetas grandes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching for deleted photos and videos. It can take a while with large cards."
+          }
+        }
+      }
+    },
+    "Búsqueda completa. Lo recuperado está en su carpeta; las fotos pueden tener nombres como f0002051.jpg." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search complete. The recovered files are in their folder; photos may have names like f0002051.jpg."
+          }
+        }
+      }
+    },
+    "CAOBA necesita permiso de administrador para leer la tarjeta. No se escribirá nada en ella." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CAOBA needs administrator permission to read the card. Nothing will be written to it."
+          }
+        }
+      }
+    },
+    "CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF… (y TIFF)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2, PEF… (and TIFF)"
+          }
+        }
+      }
+    },
+    "Conecta la tarjeta o el lector. Aparecerá aquí sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect the card or the reader. It will show up here on its own."
+          }
+        }
+      }
+    },
+    "Copia lo que se ve a otra carpeta en AAAA/MM-DD/AAAA-MM-DD_HHMMSS. Los originales no se tocan." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies what is shown to another folder as YYYY/MM-DD/YYYY-MM-DD_HHMMSS. The originals are not touched."
+          }
+        }
+      }
+    },
+    "Deja de usar la tarjeta hasta terminar: no hagas fotos ni copies nada en ella. Cualquier cosa nueva puede escribirse encima de lo borrado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop using the card until you are done: don't take photos or copy anything to it. Anything new can be written over what was deleted."
+          }
+        }
+      }
+    },
+    "Documentos, audio, comprimidos… todo lo que reconoce PhotoRec. La búsqueda tarda más y salen muchos ficheros." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documents, audio, archives… everything PhotoRec knows. The search takes longer and finds many files."
+          }
+        }
+      }
+    },
+    "Dónde buscar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where to search"
+          }
+        }
+      }
+    },
+    "El disco de destino se ha llenado. Lo recuperado hasta ese momento se conserva; libera espacio o elige otro disco para buscar el resto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination disk is full. What was recovered up to that point is kept; free up space or choose another disk to search for the rest."
+          }
+        }
+      }
+    },
+    "Elige dónde guardar lo recuperado (en otro disco, no en la tarjeta)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose where to save the recovered files (on another disk, not on the card)"
+          }
+        }
+      }
+    },
+    "Elige dónde guardar lo recuperado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose where to save the recovered files."
+          }
+        }
+      }
+    },
+    "Elige la carpeta donde copiar lo recuperado ordenado por fecha." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the folder to copy the recovered files into, sorted by date."
+          }
+        }
+      }
+    },
+    "Elige la tarjeta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the card."
+          }
+        }
+      }
+    },
+    "Elige qué tipo de ficheros buscar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which kind of files to look for."
+          }
+        }
+      }
+    },
+    "En el destino quedan %@ libres y lo recuperado puede ocupar hasta %@. Si se llena, PhotoRec parará y se conservará lo recuperado hasta ese momento." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination has %@ free and the recovered files may take up to %@. If it fills up, PhotoRec will stop and what was recovered up to then will be kept."
+          }
+        }
+      }
+    },
+    "Esperando la contraseña de administrador…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for the administrator password…"
+          }
+        }
+      }
+    },
+    "Esta copia de CAOBA no lleva PhotoRec: no se puede recuperar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This copy of CAOBA does not include PhotoRec: recovery is not possible."
+          }
+        }
+      }
+    },
+    "Esta tarjeta no es FAT ni exFAT (o el Mac no la reconoce), así que se buscará en toda la tarjeta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This card is neither FAT nor exFAT (or the Mac doesn't recognize it), so the whole card will be searched."
+          }
+        }
+      }
+    },
+    "FAT, exFAT, NTFS, HFS+ (lo normal)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FAT, exFAT, NTFS, HFS+ (the usual)"
+          }
+        }
+      }
+    },
+    "Fotos de iPhone y de algunas cámaras." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos from iPhone and some cameras."
+          }
+        }
+      }
+    },
+    "HEIC" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HEIC"
+          }
+        }
+      }
+    },
+    "Has parado la búsqueda. Lo recuperado hasta ese momento se conserva." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You stopped the search. What was recovered up to that point is kept."
+          }
+        }
+      }
+    },
+    "JPG" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "JPG"
+          }
+        }
+      }
+    },
+    "La búsqueda se ha parado antes de terminar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The search stopped before finishing."
+          }
+        }
+      }
+    },
+    "La carpeta de destino está en la propia tarjeta. Elige una en otro disco: escribir en la tarjeta pisaría lo que se quiere recuperar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination folder is on the card itself. Choose one on another disk: writing to the card would overwrite what you want to recover."
+          }
+        }
+      }
+    },
+    "La carpeta de destino ha desaparecido mientras se recuperaba. Comprueba que el disco de destino sigue conectado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination folder disappeared during recovery. Check that the destination disk is still connected."
+          }
+        }
+      }
+    },
+    "La tarjeta no es ext2/3/4. Vuelve a probar con «FAT, exFAT, NTFS, HFS+»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card is not ext2/3/4. Try again with “FAT, exFAT, NTFS, HFS+”."
+          }
+        }
+      }
+    },
+    "Las fotos normales de casi todas las cámaras." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The regular photos from almost every camera."
+          }
+        }
+      }
+    },
+    "Leyendo lo recuperado…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the recovered files…"
+          }
+        }
+      }
+    },
+    "Lo normal tras borrar fotos: busca solo donde estaba lo borrado. Es más rápido y no repite lo que sigue en la tarjeta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The usual choice after deleting photos: it only searches where the deleted files were. It is faster and doesn't repeat what is still on the card."
+          }
+        }
+      }
+    },
+    "MOV, MP4, MTS, AVI…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MOV, MP4, MTS, AVI…"
+          }
+        }
+      }
+    },
+    "Mostrar en el Finder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in Finder"
+          }
+        }
+      }
+    },
+    "Nada de este tipo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing of this type"
+          }
+        }
+      }
+    },
+    "No hay permiso para guardar en la carpeta de destino. Elige otra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There is no permission to save in the destination folder. Choose another one."
+          }
+        }
+      }
+    },
+    "No se ha encontrado nada. Prueba con «Toda la tarjeta» o con «Otros archivos»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing was found. Try “Whole card” or “Other files”."
+          }
+        }
+      }
+    },
+    "No se ha podido crear la carpeta de destino: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination folder could not be created: %@"
+          }
+        }
+      }
+    },
+    "No se ha podido leer la tarjeta. Comprueba que sigue conectada y vuelve a probar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card could not be read. Check that it is still connected and try again."
+          }
+        }
+      }
+    },
+    "No se ha podido recuperar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovery failed"
+          }
+        }
+      }
+    },
+    "No se puede desmontar la tarjeta porque alguna app la está usando. Cierra las ventanas del Finder o las apps que tengan algo abierto en ella y vuelve a probar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card can't be unmounted because an app is using it. Close the Finder windows or apps that have something open on it and try again."
+          }
+        }
+      }
+    },
+    "Nueva recuperación" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New recovery"
+          }
+        }
+      }
+    },
+    "Ordenado: %lld con fecha y %lld sin fecha (en «%@»)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorted: %lld with a date and %lld without (in “%@”)."
+          }
+        }
+      }
+    },
+    "Ordenando por fecha…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorting by date…"
+          }
+        }
+      }
+    },
+    "Ordenar aquí" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort here"
+          }
+        }
+      }
+    },
+    "Ordenar por fecha…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sort by date…"
+          }
+        }
+      }
+    },
+    "Otros" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other"
+          }
+        }
+      }
+    },
+    "Otros (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other (%lld)"
+          }
+        }
+      }
+    },
+    "Otros archivos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other files"
+          }
+        }
+      }
+    },
+    "Para tarjetas formateadas, dañadas o que el Mac no reconoce: busca en todo. Tarda más y también recupera lo que no se ha borrado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For formatted or damaged cards, or ones the Mac doesn't recognize: it searches everything. It takes longer and also recovers what wasn't deleted."
+          }
+        }
+      }
+    },
+    "Parando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopping…"
+          }
+        }
+      }
+    },
+    "PhotoRec ha dado un error: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoRec reported an error: %@"
+          }
+        }
+      }
+    },
+    "Qué buscar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to look for"
+          }
+        }
+      }
+    },
+    "RAW" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAW"
+          }
+        }
+      }
+    },
+    "Recuperado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovered"
+          }
+        }
+      }
+    },
+    "Recuperar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recover"
+          }
+        }
+      }
+    },
+    "Recuperar fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recover Photos"
+          }
+        }
+      }
+    },
+    "Sistema de archivos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File system"
+          }
+        }
+      }
+    },
+    "Sistema de archivos desconocido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown file system"
+          }
+        }
+      }
+    },
+    "Solo espacio libre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free space only"
+          }
+        }
+      }
+    },
+    "Tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card"
+          }
+        }
+      }
+    },
+    "Te pedirá la contraseña de administrador: leer la tarjeta en bruto lo exige. La tarjeta se usa solo para leer." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You will be asked for the administrator password: reading the raw card requires it. The card is only read from."
+          }
+        }
+      }
+    },
+    "Terminado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finished"
+          }
+        }
+      }
+    },
+    "Terminado con problemas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finished with problems"
+          }
+        }
+      }
+    },
+    "Toda la tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whole card"
+          }
+        }
+      }
+    },
+    "Todo (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All (%lld)"
+          }
+        }
+      }
+    },
+    "ext2/3/4 (Linux)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ext2/3/4 (Linux)"
+          }
+        }
+      }
+    },
+    "ficheros recuperados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "files recovered"
+          }
+        }
+      }
+    },
+    "macOS no ha dejado lanzar la recuperación: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS did not allow the recovery to start: %@"
+          }
+        }
+      }
+    },
+    "«%@» está desmontada mientras tanto. No la saques hasta que termine." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” is unmounted in the meantime. Don't remove it until it finishes."
+          }
+        }
+      }
+    },
     "" : {
 
     },

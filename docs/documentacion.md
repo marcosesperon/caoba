@@ -292,6 +292,64 @@ Opcional, bajo el botón «Ajustar al ritmo» de la pestaña Música del Slidesh
 - **CR3 de Canon**: el contador no está en los MakerNotes, sino en la pista de metadatos temporizados (CTMD) del fichero. Por eso exiftool se lanza con `-fast` y no con `-fast2`, que se salta esas pistas (cuesta lo mismo, unos 0,12 s). El firmware viene en `CanonFirmwareVersion` como «Firmware Version 1.6.0» y se limpia a «1.6.0».
 - **exiftool empaquetado**: `Tools/fetch-exiftool.sh` descarga la versión fijada (13.59) del espejo de SourceForge, comprueba la suma SHA-256 y la deja en `CaobaApp/Vendor/exiftool` (ignorado por git, unos 20 MB). El proyecto la copia como carpeta opcional a `Resources/exiftool`; si no está, la app se compila y funciona igual. La CI ejecuta el script antes de compilar. Requiere el Perl del sistema (`/usr/bin/perl`), presente en macOS.
 
+### Recuperar fotos: PhotoRec empaquetado
+
+El módulo «Recuperar fotos» usa **PhotoRec 7.2** de TestDisk (GPL v2 o posterior) como programa aparte: CAOBA lo lanza, no enlaza su código, así que CAOBA no pasa a ser GPL. Lo que sí hay que cumplir: licencia y versión dentro de la app, aviso en «Acerca de» y el código fuente exacto disponible.
+
+- **Compilarlo**: `Tools/build-photorec.sh` descarga TestDisk 7.2 y libjpeg 9f (IJG) con la suma SHA-256 fijada (la de TestDisk coincide con la de Homebrew), compila libjpeg estática y PhotoRec en modo solo línea de comandos (`--without-ncurses --disable-qt`, sin ntfs-3g, e2fsprogs, ewf ni reiserfs) para arm64 y x86_64 (macOS 14 como mínimo) y los une con `lipo`. Comprueba que el binario solo enlaza librerías del sistema (`libz`, `libiconv`, `libSystem`). Tarda un par de minutos; si la versión ya está, no hace nada. Lo usa también la CI.
+- **Qué deja**: `CaobaApp/Vendor/photorec/` (`photorec`, `VERSION`, `COPYING`, `LICENSE-libjpeg`), que `project.yml` copia como carpeta opcional a `Resources/photorec`; y `CaobaApp/Vendor/photorec-source/` (los dos tarballs y una copia del script), que **no** va en la app. Las dos carpetas están ignoradas por git (`CaobaApp/Vendor/`).
+- **Release**: `make-release.sh` firma `Resources/photorec/photorec` aparte y antes que la app, con hardened runtime (`--deep` no firma ejecutables sueltos en Resources), y con `--publish` adjunta a la release el contenido de `photorec-source`. PhotoRec es obligatorio: si falta el binario o su código fuente, el script para antes de compilar.
+- **Créditos**: `Resources/es.lproj/Credits.html` y `en.lproj/Credits.html` salen solos en el panel «Acerca de CAOBA»: PhotoRec y su licencia, dónde está el código fuente (releases de GitHub) y la frase que pide la licencia de libjpeg.
+- **Solo espacio libre**: PhotoRec sabe qué está ocupado en FAT y exFAT con código propio; en NTFS y ext2/3/4 necesitaría ntfs-3g o e2fsprogs (no se incluyen) y HFS+ no lo admite. En esos casos solo se ofrece «Toda la tarjeta».
+
+**Sintaxis sin interfaz**, sacada del código de 7.2 (`src/phmain.c`, `src/phcli.c`, `src/poptions.c`) y probada con el binario compilado:
+
+```
+photorec /log /d <carpeta>/recup_dir /cmd <dispositivo o imagen> <órdenes separadas por comas>
+```
+
+- `/log` escribe `photorec.log` **en la carpeta de trabajo** del proceso (o el nombre de `/logname <fichero>`). `/d` es el prefijo de las carpetas de salida: crea `recup_dir.1`, `recup_dir.2`… (500 ficheros por carpeta). **La carpeta que contiene `recup_dir` tiene que existir**: si no, falla con «Cannot create file» y para.
+- Órdenes (se leen de izquierda a derecha y `search` arranca la búsqueda): `options,paranoid` (y otras de `poptions.c`: `paranoid_no`, `keep_corrupted_file`, `mode_ext2`, `expert`, `lowmem`); `fileopt,everything,disable,<familia>,enable,…` activa familias; `freespace` o `wholespace`; un número elige partición (sin él, la primera); `blocksize,<n>`.
+- **`fileopt` va por familia, no por extensión**: compara con la extensión principal de cada familia (`jpg`, `tif`, `mov`, `raf`, `orf`, `rw2`, `mrw`, `crw`, `m2ts`, `riff`, `mpg`, `mkv`…). La familia `tif` incluye CR2, NEF, ARW, DNG y PEF; `mov` incluye MP4, HEIC y CR3. Un nombre de familia que no existe corta la lectura de `fileopt` y el resto da «Syntax error».
+- Además de los ficheros, deja `report.xml` y, de los JPG con miniatura EXIF, una copia `t<número>.jpg` de la miniatura.
+- **El código de salida es 0 aunque falle**: los errores hay que sacarlos de `photorec.log`.
+
+**La lógica, en `CaobaCore/Recovery`** (sin interfaz, con tests en `RecoveryTests`):
+
+- `RecoveryFileGroup`: los grupos para fotógrafos (`jpeg`, `raw`, `heic`, `video`; por defecto, los cuatro). Cada uno sabe qué familias de PhotoRec activa (`photoRecFamilies`) y qué extensiones le tocan al clasificar lo recuperado (`fileExtensions`). Como las familias se solapan (RAW y HEIC necesitan las dos `mov`), elegir un grupo puede traer ficheros de otro: se recuperan igual y luego se clasifican por extensión. TIFF cuenta como RAW porque sale de la misma familia que CR2, NEF, ARW, DNG y PEF.
+- `PhotoRecOptions` y `PhotoRecCommand`: dispositivo, sistema de archivos (`other` o `ext`), ámbito (`freeSpace` o `wholeDisk`), grupos y «Otros archivos». `arguments(for:outputFolder:)` da los argumentos completos, con el log en `<salida>/photorec.log` (`/log /logname`) y los resultados en `<salida>/recup_dir.N`. Con «Otros archivos» se activa todo (`everything,enable`); si no, `everything,disable` y las familias de los grupos elegidos, sin repetir y en orden fijo. Sin grupos ni «Otros» lanza `CaobaError.noFiles`.
+- `PhotoRecReport.parse(log:output:)`: saca del log si llegó al final, lo recuperado por familia, el total y los problemas (`PhotoRecProblem`: no se pudo abrir el disco, destino que no existe, sin permiso o lleno, no es ext, parado desde fuera u otro). `succeeded` solo es cierto si terminó y no hubo ningún problema. El fallo al abrir el disco solo sale por la salida estándar, por eso se le pasa también.
+- `RecoveredFiles`: lista lo que hay en `recup_dir.*` en orden (carpeta y nombre, que es el orden en la tarjeta), sin `report.xml` ni las miniaturas `t*.jpg`, y lo cuenta por grupo. Sirve para el progreso mientras PhotoRec trabaja y para los resultados.
+- `CaptureDateReader.captureDate(of:)`: fecha de captura de los metadatos. Fotos con ImageIO (`DateTimeOriginal`, o `DateTimeDigitized`), vídeos con AVFoundation (`creationDate`, como fecha o como texto ISO 8601). Nunca usa la fecha del fichero: en lo recuperado no significa nada.
+- `PhotoOrganizer.organize(_:into:progress:)`: **copia** a `AAAA/MM-DD/AAAA-MM-DD_HHMMSS.ext` (extensión en minúsculas, hora local) y lo que no tiene fecha a `sin_fecha/` con su nombre. Si el nombre ya existe añade `_2`, `_3`…, también contra lo que ya hubiera en la carpeta. Devuelve un `Summary` con los copiados con y sin fecha y los fallos. Se puede cancelar.
+
+Prueba de referencia: imagen FAT32 de 64 MB con tres fotos (dos JPG y un HEIC), dos de ellas borradas. `freespace` recupera exactamente las dos borradas, idénticas en tamaño; `wholespace`, las tres. Cómo crear la imagen:
+
+```bash
+hdiutil create -size 64m -fs "MS-DOS FAT32" -volname PRUEBA -layout MBRSPUD tarjeta.dmg
+hdiutil attach tarjeta.dmg               # se monta en /Volumes/PRUEBA
+cp foto1.jpg foto2.jpg foto3.heic /Volumes/PRUEBA/ && sync
+rm /Volumes/PRUEBA/foto1.jpg /Volumes/PRUEBA/foto3.heic && sync
+hdiutil detach /dev/diskN                # el disco que mostró attach
+hdiutil convert tarjeta.dmg -format UDTO -o tarjeta   # tarjeta.cdr: imagen en bruto que PhotoRec lee sin root
+photorec /log /d salida/recup_dir /cmd tarjeta.cdr fileopt,everything,disable,jpg,enable,mov,enable,freespace,search
+```
+
+Para probarla **desde la app**, como si fuera una tarjeta: `hdiutil attach -nomount tarjeta.dmg` (sin montar) y `defaults write com.marcosesperon.caoba caoba.dev.recoveryDiskImages -bool YES`, para que el módulo enseñe las imágenes de disco (en una instalación normal solo salen discos físicos). **No la montes otra vez después de borrar**: al montarla, macOS escribe sus ficheros ocultos en el espacio libre y puede pisar lo borrado (pasó en las pruebas: el JPG de 9 MB desapareció). Lo mismo con una tarjeta de verdad.
+
+**Discos y ejecución, en la app** (`CaobaApp/Sources/Model/Recovery`):
+
+- `ExternalDiskMonitor` (`@Observable`): lista con DiskArbitration los discos enteros externos y físicos y se actualiza solo al conectar, quitar, montar o renombrar (callbacks en la cola principal). Nunca ofrece: los internos (`DADeviceInternal`), los virtuales (`Virtual Interface`, como los contenedores APFS sintetizados), los discos físicos del volumen de arranque (`diskutil info -plist /`: `ParentWholeDisk` y `APFSPhysicalStores`) ni las imágenes de disco (salvo con `caoba.dev.recoveryDiskImages`). Cada `ExternalDisk` trae nombre (el del volumen, o el del dispositivo), tamaño, `volumeKind` y `volumeType` de macOS (también sin montar), puntos de montaje, `rawDevice` (`/dev/rdiskN`) y `supportsFreeSpace` (FAT y exFAT).
+- `DiskMounter`: `diskutil unmountDisk` / `mountDisk`, sin expulsar y sin root. Si no puede desmontar (alguna app tiene algo abierto) lanza `.busy` con el texto de `diskutil`.
+- `PhotoRecRunning` / `AuthOpenPhotoRecRunner`: la app pide con Authorization Services el derecho **`sys.openfile.readonly./dev/rdiskN`** (diálogo de macOS con el nombre de CAOBA y un texto propio, contraseña en cada recuperación), se lo pasa en forma externa a `authopen` y recibe el descriptor de la tarjeta abierta en solo lectura. Luego lanza PhotoRec como proceso normal de la app leyendo por ese descriptor. Devuelve `.finished(PhotoRecReport, exitCode:)`, `.cancelled` o `.notAuthorized` (se cerró el diálogo, `errAuthorizationCanceled`). `cancel()` para PhotoRec con SIGTERM. Para cambiar a un helper con SMAppService basta con otra clase que cumpla el protocolo.
+- `AuthOpen` y `PhotoRecLauncher` (en `CaobaCore`, con tests): `AuthOpen.openReadOnly(_:externalAuthorization:)` lanza `/usr/libexec/authopen -stdoutpipe [-extauth] <ruta>` con la salida en un extremo de un `socketpair` y recibe el descriptor por `SCM_RIGHTS` (las macros `CMSG_*` se calculan a mano, alineadas a 4 bytes). Si el usuario ya puede abrir la ruta, `authopen` no pide nada: así se prueba sin contraseña. `PhotoRecLauncher.run(...)` lanza PhotoRec con ese descriptor como entrada estándar (el dispositivo de los argumentos pasa a `/dev/fd/0`) y su salida por pantalla en `photorec-output.txt`; `terminate()` lo para.
+- **Por qué así y no con un script de root** (versión anterior, ya quitada): lo que se lanza con `do shell script … with administrator privileges` queda fuera de los permisos de carpetas (TCC) de CAOBA. Primero, root no podía cambiar el dueño de lo recuperado en el Escritorio; después, ni siquiera el proceso ya sin root podía escribir allí (código 91). Con `authopen`, PhotoRec es hijo de CAOBA y tiene sus mismos permisos, y ningún código nuestro corre como root.
+- `RecoverySession` (`@Observable`, vive en `AppState.recovery` para que la búsqueda siga aunque se cambie de módulo): opciones (tarjeta, sistema de archivos, ámbito, grupos, «Otros archivos», destino recordado en `caoba.recovery.destination`), fases (`setup`, `starting`, `running`, `cancelling`, `finished(RecoveryResult)`), recuento cada medio segundo y el resultado. Al empezar crea dentro del destino `Recuperado <tarjeta> <AAAA-MM-DD HH.mm>`, desmonta la tarjeta y lanza el ejecutor; pasa a «buscando» cuando aparece `photorec.log`, que crea PhotoRec nada más arrancar (es decir, tras la contraseña). Si se cierra el diálogo de la contraseña, borra la subcarpeta vacía, vuelve a montar y regresa a las opciones. Al terminar (bien, con problemas, cancelado o fallido) vuelve a montar la tarjeta. Comprobaciones: el destino no puede estar en la tarjeta (se mira el dispositivo del volumen con `statfs`, no la ruta) y avisa si el espacio libre del destino es menor que lo libre de la tarjeta (o la tarjeta entera con «Toda la tarjeta»). «Solo espacio libre» se desactiva si la tarjeta no es FAT ni exFAT.
+- `RecoveryView` (`Views/Modules/Recovery`): opciones (aviso de no usar la tarjeta, lista de tarjetas, qué buscar, dónde buscar y sistema de archivos), barra de acción (destino, avisos y «Recuperar»), progreso (estado, tiempo, recuento por tipo y «Cancelar») y resultado (mensaje, recuento, «Mostrar en el Finder» y «Nueva recuperación»). Los problemas de PhotoRec se explican en lenguaje llano (`RecoverySession.message(for:)`).
+- **Resultados** (`RecoveryResults`, en `RecoverySession.results` cuando sale algo; `RecoveryResultsView`): lista lo recuperado fuera del hilo principal, filtro por tipo (Todo, JPG, RAW, HEIC, Vídeo y Otros, con recuento), cuadrícula `LazyVGrid` con miniaturas de QuickLook (`QuickLookThumbnails`: caché de 1.500, como mucho la mitad de los núcleos a la vez, y la petición se cancela si la celda sale de la pantalla), vista previa con `.quickLookPreview` (doble clic o espacio; las flechas recorren lo filtrado) y **«Ordenar por fecha…»**: copia lo que se ve (el filtro actual) con `PhotoOrganizer` a la carpeta que se elija, con la hoja de progreso de `JobRunner`, y enseña el resumen (con fecha, sin fecha y fallos) encima de la cuadrícula con «Mostrar en el Finder». Se usa QuickLook y no el `ThumbnailProvider` del motor porque ImageIO no saca fotogramas de vídeo. Probado con 2.000 ficheros (JPG, HEIC, MP4 y PDF falsos). Captura: `--module recovery --state recovery.results=<carpeta recuperada>`.
+- **Módulo**: `Module.recovery` («Recuperar fotos», icono `sdcard`), en Utilidades, sin carpeta de origen y con su propia barra de acción. Mientras se desarrolló estuvo oculto tras `caoba.dev.recovery`; ese interruptor ya no existe. Solo queda, para probar, `caoba.dev.recoveryDiskImages` (ver arriba).
+- **Acceso total al disco: no hace falta.** Probado desde la app con destino en el Escritorio: `authopen` abre `/dev/rdisk7`, PhotoRec lo lee por `/dev/fd/0` en solo lectura (`(RO)`) y sin ser root («User is not root!»), recupera y todo queda a nombre del usuario.
+
 ### Configuración por carpeta (`CaobaConfig`)
 
 Fichero `.caoba` en la carpeta de fotos, mismo formato que la app antigua: `{ "version": 1, "<seccion>": {...} }`. `readSection(_:as:from:)`, `writeSection(_:value:in:)` y `removeSection(_:in:)` con cualquier `Codable`; todas las escrituras pasan por un cerrojo para que dos módulos no se pisen. Hay **secciones protegidas** (`protectedSections`, hoy solo `renameHistory`): `hasSettings(in:)` no las cuenta como configuración y `resetSettings(in:)` (el botón Reiniciar) borra el resto y las conserva; si no queda nada, elimina el fichero. En la app, el botón «Reiniciar» de la barra de carpeta pide antes confirmación, con lo que se borra (montaje del Slideshow, ajustes de «Componer» del Collage, orden manual) y lo que no (fotos, presets, historial del Renombrador). Secciones hoy: `slideshow`, `collage`, `fileOrder` y `renameHistory`.
@@ -394,6 +452,15 @@ try await SlideshowRenderer.generate(spec) { print($0.phase, $0.fraction ?? 0) }
 // Shutter Count
 let analysis = try await ShutterCountReader.read(URL(fileURLWithPath: "/Users/yo/Fotos/DSC_0001.NEF"))
 print(analysis.camera.displayName ?? "-", analysis.shutter.count ?? 0, analysis.shutter.lifeExpectancy ?? 0, analysis.source)
+
+// Recuperar fotos: orden de PhotoRec, resultado y ordenar por fecha
+let options = PhotoRecOptions(device: "/dev/rdisk4", scope: .freeSpace, groups: [.jpeg, .raw])
+let args = try PhotoRecCommand.arguments(for: options, outputFolder: salida)   // la carpeta tiene que existir
+// … lanzar photorec con `args` (con permisos de administrador) …
+let report = PhotoRecReport.parse(log: try String(contentsOf: salida.appendingPathComponent(PhotoRecCommand.logFileName), encoding: .utf8))
+let files = RecoveredFiles.list(in: salida)            // sin miniaturas ni report.xml
+let summary = try await PhotoOrganizer.organize(files, into: ordenadas)
+print(report.succeeded, RecoveredFiles.count(files).total, summary.dated, summary.undated)
 
 // Cancelar un trabajo
 let task = Task { try await ImageProcessor().process(files: urls, ops: ops, saveMode: .overwrite) }

@@ -52,6 +52,16 @@ fi
 
 command -v xcodegen >/dev/null || { echo "Falta xcodegen (brew install xcodegen)" >&2; exit 1; }
 [ -d CaobaApp/Vendor/exiftool ] || echo "Aviso: no hay exiftool en CaobaApp/Vendor (Tools/fetch-exiftool.sh); Shutter Count solo leera Nikon."
+# PhotoRec es obligatorio (sin el, «Recuperar fotos» no funciona) y su codigo fuente tiene que ir a la release (GPL).
+PHOTOREC_SOURCES="CaobaApp/Vendor/photorec-source"
+[ -x CaobaApp/Vendor/photorec/photorec ] || {
+  echo "Falta PhotoRec en CaobaApp/Vendor; lanza Tools/build-photorec.sh." >&2
+  exit 1
+}
+[ -f "$PHOTOREC_SOURCES/testdisk-$(cat CaobaApp/Vendor/photorec/VERSION).tar.bz2" ] || {
+  echo "Falta el codigo fuente de PhotoRec en $PHOTOREC_SOURCES; lanza Tools/build-photorec.sh." >&2
+  exit 1
+}
 
 echo "-- Tests del motor"
 (cd CaobaCore && swift test --parallel 2>&1 | tail -1)
@@ -71,10 +81,14 @@ lipo -info "$APP/Contents/MacOS/CAOBA"
 
 # Firma: con CAOBA_SIGN_IDENTITY (p. ej. "Developer ID Application: Nombre (EQUIPO)") se firma
 # con ese certificado y hardened runtime; sin ella, firma ad hoc como hasta ahora.
+# PhotoRec es un ejecutable suelto en Resources: `--deep` no lo firma, asi que va primero y aparte.
+PHOTOREC_BIN="$APP/Contents/Resources/photorec/photorec"
 if [ -n "${CAOBA_SIGN_IDENTITY:-}" ]; then
+  [ -f "$PHOTOREC_BIN" ] && codesign --force --options runtime --timestamp --sign "$CAOBA_SIGN_IDENTITY" "$PHOTOREC_BIN"
   codesign --force --deep --options runtime --timestamp --sign "$CAOBA_SIGN_IDENTITY" "$APP"
   codesign --verify --deep --strict "$APP" && echo "Firma Developer ID correcta"
 else
+  [ -f "$PHOTOREC_BIN" ] && codesign --force --options runtime --sign - "$PHOTOREC_BIN"
   codesign --force --deep --sign - "$APP" 2>/dev/null
   codesign --verify --deep --strict "$APP" && echo "Firma ad hoc correcta"
 fi
@@ -107,6 +121,10 @@ if [ "$PUBLISH" = "1" ]; then
   # Las notas salen de la seccion de esta version en CHANGELOG.md; sin seccion no se publica.
   NOTES="$(awk -v v="$VERSION" '/^## /{p = ($2 == v)} p && !/^## /' CHANGELOG.md | sed '/^[[:space:]]*$/d')"
   [ -n "$NOTES" ] || { echo "CHANGELOG.md no tiene seccion para $VERSION" >&2; exit 1; }
-  gh release create "$TAG" "$DMG" --title "CAOBA $VERSION" --notes "$NOTES"
+  # Con PhotoRec dentro, su codigo fuente exacto y el script de compilacion van adjuntos (GPL).
+  ASSETS="$DMG"
+  [ -f "$PHOTOREC_BIN" ] && ASSETS="$ASSETS $(ls "$PHOTOREC_SOURCES"/* | tr '\n' ' ')"
+  # shellcheck disable=SC2086 # ASSETS es una lista de rutas sin espacios
+  gh release create "$TAG" $ASSETS --title "CAOBA $VERSION" --notes "$NOTES"
   echo "Release publicada: $(gh release view "$TAG" --json url --jq .url)"
 fi

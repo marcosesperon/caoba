@@ -16,6 +16,7 @@ public enum JobPhase: String, Sendable, Codable {
     case analyzingAudio
     case mixingAudio
     case generatingFrames
+    case organizingFiles
 }
 
 /// Estado de avance que el motor va emitiendo mientras trabaja.

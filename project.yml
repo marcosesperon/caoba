@@ -34,6 +34,13 @@ targets:
         type: folder
         buildPhase: resources
         optional: true
+      # PhotoRec (GPL) compilado por Tools/build-photorec.sh: binario universal,
+      # licencias y versión en Resources/photorec. Opcional como exiftool; el
+      # código fuente (Vendor/photorec-source) no entra en la app: va a la release.
+      - path: CaobaApp/Vendor/photorec
+        type: folder
+        buildPhase: resources
+        optional: true
       # El changelog va dentro de la app para la hoja de novedades.
       - path: CHANGELOG.md
         buildPhase: resources

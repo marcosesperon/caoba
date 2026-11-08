@@ -51,6 +51,8 @@ final class AppState {
 
     // MARK: Trabajo en curso
     let jobRunner = JobRunner()
+    /// Recuperar fotos: aquí y no en la vista, para que una búsqueda larga siga al cambiar de módulo.
+    let recovery = RecoverySession()
     let thumbnails = ThumbnailProvider()
 
     // MARK: Aviso de versión y donativo
