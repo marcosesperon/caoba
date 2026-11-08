@@ -3218,3 +3218,29 @@ Petición original: integrar en CAOBA un frontal de PhotoRec (TestDisk, GPL) emp
 - **Prueba del usuario con contraseña, destino en el Escritorio:** recupera el JPG y el HEIC, todo a su nombre (carpeta, log, salida y ficheros), PhotoRec lee `/dev/fd/0` en solo lectura y sin root, y la tarjeta se vuelve a montar.
 - Al cerrar la app (⌘Q) a mitad de una búsqueda, la sesión para PhotoRec (`willTerminateNotification`). Pendiente: si la app se cuelga, PhotoRec sigue como proceso del usuario hasta acabar (no escribe en la tarjeta, pero la deja desmontada hasta entonces).
 - Publicado a petición del usuario («haz commit y publica») en la versión 3.21.0, con release en GitHub y el código fuente de PhotoRec y libjpeg (y el script de compilación) adjuntos.
+
+## 2026-11-08 — Captura de «Recuperar fotos» para la landing
+
+### 1. La petición tal como se ha entendido
+*(modo directo, sin análisis previo: «hazlo en automático»)* Hacer una captura de la nueva funcionalidad y añadirla a `index.html`.
+
+### 2. Preguntas y respuestas
+Ninguna.
+
+### 3. Fuentes analizadas
+- `index.html` (tarjetas de módulos en rejilla de 12 columnas, captura con `<picture>` WebP + PNG y encuadre con `--x`/`--y`; textos que enumeran los módulos), `assets/screenshots/` (2880×1800, PNG de 256 colores y WebP), `docs/documentacion.md` («Capturas de pantalla») y el bloque de capturas del 16-10-2026 (fotos de ejemplo «A&S», que ya no están en Descargas pero sí en `Escritorio/BOOK`, como confirma la captura publicada del Contact Sheet).
+
+### 4. Decisiones
+- Captura de la pantalla de **resultados** (lo más vistoso: miniaturas, recuento y filtros) con `--state recovery.results`, sobre una carpeta con la estructura de PhotoRec hecha con clones de las fotos de `Escritorio/BOOK` (20 JPG y 4 pasadas a HEIC). Nada de fotos de clientes: los CR3 de la recuperación del usuario no se usan.
+- Repetida tras recompilar: la primera salía con «v3.20.2» porque la app de Debug era anterior a la subida de versión.
+- `assets/screenshots/recovery.png` (pngquant a 256 colores, 696 KB: pesa más que las otras porque casi toda la captura son fotos) y `recovery.webp` (cwebp -q 82, 256 KB). Se instaló `pngquant` con Homebrew para igualar el formato de las demás PNG.
+- Landing: tarjeta **10 «Recuperar fotos»** detrás de Shutter Count, con encuadre `--x:-15%;--y:-27.5%` (empieza en «Mostrar en el Finder», sin la fila del recuento cortada), y los textos que enumeran los módulos (descripción, `og:description`, entradilla en los dos idiomas y «Diez módulos, una carpeta»). Comprobado con una captura de la página hecha con WebKit.
+- `og:image` sigue siendo la del Slideshow.
+
+### 5. Alternativas descartadas
+- Captura de la pantalla de opciones: solo controles, sin fotos; dice menos de lo que hace el módulo.
+- Usar los CR3 reales que tenía el usuario en `Escritorio/RECUPERAR`: son fotos de una sesión de clientes.
+- Dejar la PNG sin reducir (2,4 MB): las demás están en 256 colores.
+
+### 6. Pendiente de comprobar
+- Ver la landing publicada en Pages (móvil y tema claro) con la tarjeta nueva.

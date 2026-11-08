@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CAOBA · Utilidades para fotógrafos</title>
-<meta name="description" content="CAOBA: app nativa para macOS con slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR y contador de disparos. Gratis y de código abierto.">
+<meta name="description" content="CAOBA: app nativa para macOS con slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, contador de disparos y recuperación de fotos borradas. Gratis y de código abierto.">
 <link rel="icon" href="assets/icon.png">
 <meta property="og:title" content="CAOBA · Utilidades para fotógrafos">
-<meta property="og:description" content="Slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR y shutter count. Nativa de macOS.">
+<meta property="og:description" content="Slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR, shutter count y recuperación de fotos. Nativa de macOS.">
 <meta property="og:image" content="https://marcosesperon.github.io/caoba/assets/screenshots/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -211,8 +211,8 @@
   <div class="wrap hero">
     <h1 class="reveal">CAOBA</h1>
     <p class="lede reveal">
-      <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR y contador de disparos. Nativa de macOS, gratis y de código abierto.</span>
-      <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes and shutter count. Native to macOS, free and open source.</span>
+      <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR, contador de disparos y recuperación de fotos borradas. Nativa de macOS, gratis y de código abierto.</span>
+      <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes, shutter count and deleted photo recovery. Native to macOS, free and open source.</span>
     </p>
     <div class="cta reveal">
       <a class="btn primary download-link" id="download-btn" href="https://github.com/marcosesperon/caoba/releases/latest">
@@ -238,7 +238,7 @@
 
   <section id="modulos">
     <div class="wrap">
-      <p class="kicker"><span lang-es>Nueve módulos, una carpeta</span><span lang-en>Nine modules, one folder</span></p>
+      <p class="kicker"><span lang-es>Diez módulos, una carpeta</span><span lang-en>Ten modules, one folder</span></p>
       <h2><span lang-es>Lo que hace</span><span lang-en>What it does</span></h2>
       <p class="intro">
         <span lang-es>Eliges una carpeta de fotos, marcas cuáles entran, las ordenas arrastrando y cambias de módulo sin volver a empezar: el orden es el mismo en Slideshow, Collage y Contact Sheet. La configuración se guarda en la propia carpeta y se restaura al volver.</span>
@@ -333,6 +333,16 @@
           <ul>
             <li><span lang-es>Lee el contador del obturador de un JPG o RAW (NEF, CR2, CR3, ARW, DNG…) con exiftool incluido.</span><span lang-en>Reads the shutter counter from a JPG or RAW (NEF, CR2, CR3, ARW, DNG…) with bundled exiftool.</span></li>
             <li><span lang-es>Estima la vida útil según la marca y el modelo. Nikon, Sony y Pentax lo guardan; Canon, en los RAW CR3 (los JPG y los CR2 antiguos no lo traen).</span><span lang-en>Estimates lifespan by brand and model. Nikon, Sony and Pentax store it; Canon, in CR3 RAW files (JPGs and older CR2 files don’t carry it).</span></li>
+          </ul>
+        </article>
+        <article class="mod">
+          <a class="shot" href="assets/screenshots/recovery.png" target="_blank" rel="noopener" style="--x:-15%;--y:-27.5%"><picture><source srcset="assets/screenshots/recovery.webp" type="image/webp"><img src="assets/screenshots/recovery.png" width="2880" height="1800" loading="lazy" alt="Recuperar fotos: cuadrícula con las fotos recuperadas de una tarjeta"></picture></a>
+          <div class="n">10</div><h3><span lang-es>Recuperar fotos</span><span lang-en>Recover Photos</span></h3>
+          <p><span lang-es>Rescata las fotos y vídeos borrados de una tarjeta SD.</span><span lang-en>Rescues deleted photos and videos from an SD card.</span></p>
+          <ul>
+            <li><span lang-es>JPG, RAW de todas las marcas (CR2, CR3, NEF, ARW, DNG, RAF…), HEIC y vídeo; o cualquier otro fichero si lo pides.</span><span lang-en>JPG, RAW from every brand (CR2, CR3, NEF, ARW, DNG, RAF…), HEIC and video; or any other file if you ask.</span></li>
+            <li><span lang-es>Solo lee la tarjeta, nunca escribe en ella. Lo recuperado se ve en miniaturas y se ordena por fecha de captura en carpetas por año y día.</span><span lang-en>It only reads the card, never writes to it. Recovered files show as thumbnails and are sorted by capture date into folders by year and day.</span></li>
+            <li><span lang-es>Con <a href="https://www.cgsecurity.org/wiki/PhotoRec">PhotoRec</a> (GPL) incluido; su código fuente va con cada versión.</span><span lang-en>With <a href="https://www.cgsecurity.org/wiki/PhotoRec">PhotoRec</a> (GPL) bundled; its source code ships with every release.</span></li>
           </ul>
         </article>
       </div>

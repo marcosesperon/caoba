@@ -64,13 +64,15 @@ Cuando hay una versión nueva, la banda ofrece «Actualizar ahora»: descarga el
 
 ### Capturas de pantalla
 
-La app admite argumentos de arranque pensados para generar las capturas de la landing (y para pruebas): `--folder <ruta>` abre una carpeta, `--module <id>` elige la sección (`slideshow`, `collage`, `contactSheet`, `processor`, `watermark`, `metadata`, `renamer`, `qr`, `shutterCount`), `--window <ancho>x<alto>` fija el tamaño de la ventana, `--state clave=valor` (repetible) deja un módulo con contenido (`collage.tab=random`, `collage.aspect=16:9`, `qr.text=https://…`, `watermark.png=/ruta/marca.png`, `renamer.pattern={YYYY}-{MM}-{DD}_{n}`) y `--screenshot <salida.png>` guarda la ventana pasados `--delay` segundos (8 por defecto) y cierra la app. La captura se hace de la propia ventana, así que no pide permiso de grabación de pantalla, y sale a la resolución de la pantalla (en Retina, el doble del tamaño pedido). Ejemplo:
+La app admite argumentos de arranque pensados para generar las capturas de la landing (y para pruebas): `--folder <ruta>` abre una carpeta, `--module <id>` elige la sección (`slideshow`, `collage`, `contactSheet`, `processor`, `watermark`, `metadata`, `renamer`, `qr`, `shutterCount`, `recovery`), `--window <ancho>x<alto>` fija el tamaño de la ventana, `--state clave=valor` (repetible) deja un módulo con contenido (`collage.tab=random`, `collage.aspect=16:9`, `qr.text=https://…`, `watermark.png=/ruta/marca.png`, `renamer.pattern={YYYY}-{MM}-{DD}_{n}`, `recovery.results=<carpeta recuperada>`) y `--screenshot <salida.png>` guarda la ventana pasados `--delay` segundos (8 por defecto) y cierra la app. La captura se hace de la propia ventana, así que no pide permiso de grabación de pantalla, y sale a la resolución de la pantalla (en Retina, el doble del tamaño pedido). Ejemplo:
 
 ```sh
 open -n build/DerivedData/Build/Products/Debug/CAOBA.app --args \
   --folder "/ruta/a/las/fotos" --module slideshow --window 1440x900 \
   --screenshot /tmp/slideshow.png --delay 10
 ```
+
+La de «Recuperar fotos» (`recovery`) se hace sin tarjeta: una carpeta con la estructura de PhotoRec (`recup_dir.1/f0002051.jpg`…) hecha con clones (`cp -c`) de las fotos de `Escritorio/BOOK` (las mismas «A&S» de las demás capturas; unas cuantas pasadas a HEIC con `sips` para que los filtros enseñen dos tipos) y `--state recovery.results=<esa carpeta>`. Las PNG se reducen a 256 colores con `pngquant --quality=70-90` y los WebP se hacen con `cwebp -q 82`.
 
 Las capturas de la landing están en `assets/screenshots/` a tamaño real (2880×1800) en PNG y WebP: la página usa `<picture>` con WebP y PNG de respaldo, los enlaces a la imagen completa y la imagen social (`og:image`) van en PNG.
 
