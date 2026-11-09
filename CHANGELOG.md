@@ -2,6 +2,13 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.22.0 — 2026-11-09
+
+- **Las copias siempre van a la carpeta que elijas**: en Procesador, Marca de agua y Renombrador, con «Copias nuevas» hay que elegir carpeta de destino antes de lanzar. Ya no se guardan junto a los originales con sufijo.
+- **Nunca en la carpeta de las fotos**: ningún módulo deja guardar en la carpeta de origen (lo nuevo se mezclaría con las originales). Una subcarpeta dentro de ella sí vale.
+- **Cada sección empieza con el destino limpio**: al cambiar de sección se vacía el destino y vuelve a «Copias nuevas», para no escribir sin querer donde se eligió para otra cosa ni sobrescribir originales porque se quedó marcado.
+- **Aviso si la carpeta ha cambiado**: si desde que abriste la carpeta alguien ha borrado, renombrado o añadido fotos, al lanzar un proceso CAOBA no empieza y te dice qué ha cambiado, con un botón para recargar la lista. Y hay un botón «Recargar» junto al número de fotos para releer la carpeta cuando quieras.
+
 ## 3.21.0 — 2026-11-08
 
 - **Nuevo módulo «Recuperar fotos»**, en Utilidades: recupera fotos y vídeos borrados de tarjetas SD y discos externos. Por defecto busca lo que usa un fotógrafo (JPG, RAW de todas las marcas, HEIC y vídeo) y, si quieres, cualquier otro tipo de fichero.

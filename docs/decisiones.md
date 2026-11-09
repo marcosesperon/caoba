@@ -3325,3 +3325,4 @@ Plan aprobado por el usuario («dale»).
 
 ### 6. Pendiente de comprobar
 - El aviso y «Recargar» con cambios reales hechos en el Finder: no se pueden accionar desde aquí; los prueba el usuario con `scratchpad/prueba-recargar`.
+- Publicado junto con la petición anterior (destino obligatorio) a petición del usuario («haz commit y publica») en la versión 3.22.0, con release en GitHub. Las dos peticiones van en un mismo commit porque tocan los mismos ficheros.
