@@ -337,6 +337,8 @@ struct SlideshowActionBar: View {
 
     /// Genera (o previsualiza) y, si faltan ficheros, pide confirmación antes.
     private func run(_ action: @escaping () -> Void) {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
         if doc.missingFiles.isEmpty { action() } else { pendingAction = action }
     }
 }

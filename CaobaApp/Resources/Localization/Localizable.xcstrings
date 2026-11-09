@@ -1,6 +1,86 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Faltan %lld fotos de la lista: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld photos in the list are missing: %@."
+          }
+        }
+      }
+    },
+    "Hay %lld fotos nuevas: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are %lld new photos: %@."
+          }
+        }
+      }
+    },
+    "La carpeta ha cambiado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder has changed"
+          }
+        }
+      }
+    },
+    "Recarga la carpeta y revisa la lista antes de seguir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload the folder and check the list before continuing."
+          }
+        }
+      }
+    },
+    "Recargar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        }
+      }
+    },
+    "Vuelve a leer la carpeta: para cuando se han borrado, renombrado o añadido fotos por fuera." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads the folder again: for when photos have been deleted, renamed or added outside the app."
+          }
+        }
+      }
+    },
+    "No se puede guardar en la carpeta de las fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't save in the photos folder"
+          }
+        }
+      }
+    },
+    "Lo que se genere se mezclaría con las fotos originales. Elige otra carpeta o crea una subcarpeta dentro de esta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you create would get mixed with the original photos. Choose another folder or create a subfolder inside this one."
+          }
+        }
+      }
+    },
     "PhotoRec no ha llegado a terminar y no ha dejado ningún mensaje (código %@). Vuelve a probar; si se repite, saca la tarjeta y vuelve a meterla." : {
       "localizations" : {
         "en" : {
@@ -5430,16 +5510,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "lowercase"
-          }
-        }
-      }
-    },
-    "Misma carpeta (con sufijo)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Same folder (with suffix)"
           }
         }
       }

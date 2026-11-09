@@ -30,6 +30,22 @@ public struct ScannedFile: Sendable, Equatable, Identifiable {
     }
 }
 
+/// Diferencias entre la carpeta tal como se leyó y como está ahora, por nombre de fichero.
+/// Una foto renombrada cuenta como una que falta (el nombre viejo) y una nueva.
+public struct FolderChanges: Sendable, Equatable {
+    /// Estaban al leer la carpeta y ya no (borradas, renombradas o movidas).
+    public var missing: [String]
+    /// Están ahora y no estaban al leerla.
+    public var added: [String]
+
+    public init(missing: [String] = [], added: [String] = []) {
+        self.missing = missing
+        self.added = added
+    }
+
+    public var isEmpty: Bool { missing.isEmpty && added.isEmpty }
+}
+
 /// Lista las imágenes de una carpeta (sin entrar en subcarpetas) y las ordena.
 /// Equivale al `scanAndSortFiles` de la app antigua, pero leyendo solo
 /// cabeceras con ImageIO en vez de decodificar.
@@ -56,6 +72,16 @@ public struct FolderScanner: Sendable {
                 return SupportedFormats.isImage(url, includingRaw: includeRaw)
             }
             .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+    }
+
+    /// Qué ha cambiado en la carpeta respecto a los nombres `known` que se leyeron. Usa el
+    /// mismo criterio que la lista (solo imágenes, sin ocultos ni temporales de CAOBA) y no
+    /// abre ninguna foto, así que es rápido aunque haya miles.
+    public func changes(in folder: URL, known: Set<String>) throws -> FolderChanges {
+        let now = Set(try listImageURLs(in: folder).map(\.lastPathComponent))
+        let byName: (String, String) -> Bool = { $0.localizedStandardCompare($1) == .orderedAscending }
+        return FolderChanges(missing: known.subtracting(now).sorted(by: byName),
+                             added: now.subtracting(known).sorted(by: byName))
     }
 
     /// Escanea, lee cabeceras en paralelo, filtra por orientación y ordena.

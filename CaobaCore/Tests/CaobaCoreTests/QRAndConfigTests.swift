@@ -129,6 +129,32 @@ struct ScannerTests {
         #expect(horizontal.map(\.name) == ["img1.png", "img10.jpg"])
     }
 
+    @Test("Cambios en la carpeta: borradas, renombradas y nuevas; no cuentan ocultos ni lo que no es imagen")
+    func folderChanges() throws {
+        let folder = try TestImages.makeTempFolder()
+        for name in ["a.jpg", "b.jpg", "c.jpg"] { _ = try TestImages.makePhoto(in: folder, name: name) }
+        let scanner = FolderScanner()
+        let known = Set(try scanner.listImageURLs(in: folder).map(\.lastPathComponent))
+        #expect(try scanner.changes(in: folder, known: known).isEmpty)
+
+        // Ruido que la lista no enseña: no debe saltar el aviso.
+        _ = try TestImages.makePhoto(in: folder, name: ".oculta.jpg")
+        _ = try TestImages.makePhoto(in: folder, name: "_caoba_temp.jpg")
+        try "x".write(to: folder.appendingPathComponent("notas.txt"), atomically: true, encoding: .utf8)
+        #expect(try scanner.changes(in: folder, known: known).isEmpty)
+
+        // Se borra una, se renombra otra y aparecen dos nuevas.
+        let fm = FileManager.default
+        try fm.removeItem(at: folder.appendingPathComponent("a.jpg"))
+        try fm.moveItem(at: folder.appendingPathComponent("b.jpg"), to: folder.appendingPathComponent("b2.jpg"))
+        _ = try TestImages.makePhoto(in: folder, name: "img10.jpg")
+        _ = try TestImages.makePhoto(in: folder, name: "img2.jpg")
+        let changes = try scanner.changes(in: folder, known: known)
+        #expect(changes.missing == ["a.jpg", "b.jpg"])
+        #expect(changes.added == ["b2.jpg", "img2.jpg", "img10.jpg"])  // orden natural
+        #expect(!changes.isEmpty)
+    }
+
     @Test("Con miniatura EXIF embebida pequeña, pedir un tamaño grande decodifica la foto real")
     func embeddedThumbnailNotReused() throws {
         let folder = try TestImages.makeTempFolder()

@@ -53,7 +53,9 @@ struct DestinationBar<Actions: View>: View {
             if appState.destinationMode == .newCopy {
                 Image(systemName: "arrow.right").foregroundStyle(.secondary)
                 // La ruta es lo que cede cuando falta sitio: se acorta por el medio.
-                Text(appState.destinationFolder?.path ?? String(localized: "Misma carpeta (con sufijo)"))
+                // Sin carpeta no se puede lanzar: las copias ya no van junto a los originales.
+                Text(appState.destinationFolder?.path ?? String(localized: "Elige una carpeta"))
+                    .foregroundStyle(appState.destinationFolder == nil ? .secondary : .primary)
                     .lineLimit(1).truncationMode(.middle)
                     .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 Button("Elegir…") { appState.chooseDestinationFolder() }.fixedSize()

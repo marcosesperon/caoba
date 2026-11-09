@@ -131,7 +131,7 @@ struct RenamerView: View {
                 Divider().frame(height: 18)
                 Button("Renombrar") { run() }
                     .buttonStyle(.borderedProminent)
-                    .disabled(plan.isEmpty)
+                    .disabled(plan.isEmpty || appState.needsDestinationFolder)
             }
         }
         .onAppear {
@@ -182,10 +182,14 @@ struct RenamerView: View {
     }
 
     private func run() {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
+        // Con «Copias nuevas» hace falta carpeta de destino (el botón ya está desactivado sin ella).
+        guard !appState.needsDestinationFolder else { return }
         let currentPlan = plan
         let saveMode = appState.saveMode
         let label = String(describing: mode)
-        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await Renamer().execute(plan: currentPlan, saveMode: saveMode, modeLabel: label, progress: progress)
         }

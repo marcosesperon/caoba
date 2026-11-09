@@ -63,7 +63,7 @@ struct ProcessorView: View {
         )
     }
 
-    private var canRun: Bool { !appState.checkedFiles.isEmpty && !operations.isEmpty }
+    private var canRun: Bool { !appState.checkedFiles.isEmpty && !operations.isEmpty && !appState.needsDestinationFolder }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -181,13 +181,18 @@ struct ProcessorView: View {
     }
 
     private func run() {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
+        // Con «Copias nuevas» hace falta carpeta de destino (el botón ya está desactivado sin ella).
+        guard !appState.needsDestinationFolder else { return }
         let files = appState.checkedFiles
         let ops = operations
         let mode = appState.saveMode
-        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await ImageProcessor().process(files: files, ops: ops, saveMode: mode, progress: progress)
         }
+        if mode.isOverwrite { appState.rescanWhenJobFinishes() }
     }
 }
 

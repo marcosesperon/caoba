@@ -102,6 +102,8 @@ struct ContactSheetView: View {
     }
 
     private func run() {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
         guard let output = appState.destinationFile else { return }
         let files = appState.checkedFiles
         let opts = options

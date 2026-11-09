@@ -111,8 +111,8 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 ## 🎨 Interfaz
 
 - **Nativa de macOS** con los controles del sistema, modo claro y oscuro, tipografía Doto en los títulos y el acento rojo de CAOBA.
-- **Carpeta de origen compartida** con historial de recientes, arrastrar y soltar, y la lista de fotos con casillas, orden por nombre o fecha y filtro de orientación.
-- **Barra de destino compartida**: copias nuevas o sobrescribir y carpeta de salida. Al cambiar de carpeta de origen el destino se vacía, para no pisar lo generado con la carpeta anterior.
+- **Carpeta de origen compartida** con historial de recientes, arrastrar y soltar, y la lista de fotos con casillas, orden por nombre o fecha y filtro de orientación. Botón «Recargar», y aviso antes de lanzar un proceso si alguien ha borrado, renombrado o añadido fotos en la carpeta desde que se leyó.
+- **Barra de destino compartida**: copias nuevas o sobrescribir y carpeta de salida. Las copias necesitan una carpeta de destino, que nunca puede ser la de las fotos (una subcarpeta sí). El destino se vacía al cambiar de carpeta de origen y al cambiar de sección, que además vuelve a «Copias nuevas».
 - **Progreso** con fase y fichero actual, cancelable.
 - **Español e inglés**, con selector en Preferencias.
 - **Aviso de nueva versión** comprobando las releases de GitHub. Sin cuentas, sin telemetría: la app no envía nada; solo consulta esa página y, en Metadatos, el mapa.

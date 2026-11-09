@@ -25,6 +25,13 @@ struct SourceFolderBar: View {
                 Text("\(appState.files.count) fotos")
                     .font(.callout).foregroundStyle(.secondary)
             }
+            // Para cuando se han tocado fotos por fuera (Finder, Lightroom…) después de abrir la carpeta.
+            if appState.sourceFolder != nil {
+                Button("Recargar") { Task { await appState.reload() } }
+                    .controlSize(.small)
+                    .disabled(appState.isScanning)
+                    .help("Vuelve a leer la carpeta: para cuando se han borrado, renombrado o añadido fotos por fuera.")
+            }
 
             if appState.hasFolderConfig {
                 Label("Configuración restaurada", systemImage: "checkmark.circle")

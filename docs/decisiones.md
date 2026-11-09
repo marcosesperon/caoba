@@ -3244,3 +3244,84 @@ Ninguna.
 
 ### 6. Pendiente de comprobar
 - Ver la landing publicada en Pages (móvil y tema claro) con la tarjeta nueva.
+
+## 2026-11-09 — Destino obligatorio en copias y destino limpio al cambiar de sección
+
+### 1. La petición tal como se ha entendido
+- **Copias con destino obligatorio**: en Procesador, Marca de agua y Renombrador, con «Copias nuevas» hay que elegir carpeta de destino; sin ella no se puede lanzar. Desaparece «Misma carpeta (con sufijo)». Con «Sobrescribir originales» no hace falta destino, como ahora.
+- **Nunca en la carpeta de origen**: en ningún módulo (Procesador, Marca de agua, Renombrador, Collage, Contact Sheet y Slideshow) se puede elegir como destino la carpeta de origen exacta, ni como carpeta ni como carpeta del fichero de salida. Si se elige, se avisa y no se acepta. Las subcarpetas de la de origen sí valen.
+- **Al cambiar de sección**: se vacían la carpeta y el fichero de destino compartidos, y el selector vuelve a «Copias nuevas». Hay que volver a elegir destino en la sección nueva.
+- **Sin cambios**: «Recuperar fotos» conserva su destino propio, recordado entre sesiones. Al cambiar de carpeta de origen el destino se sigue vaciando como hasta ahora.
+
+Confirmada por el usuario («si»).
+
+Petición original: «en todos los procesos, cuando se selecciona copia en lugar de modificar originales, hay que seleccionar destino (no permitir usar la misma carpeta); cada vez que se cambia de sección, se tiene que limpiar el destino».
+
+### 2. Preguntas y respuestas
+- **¿Qué se bloquea al elegir destino para las copias?** (1: solo la carpeta de origen exacta, subcarpetas sí; 2: la de origen y cualquier subcarpeta) → Opción 1.
+- **¿La regla de no guardar en la carpeta de origen vale también para Collage, Contact Sheet y Slideshow?** (1: sí, en todos; 2: solo Collage y Contact Sheet, que crean JPG que se colarían en la lista; 3: no, solo copias) → Opción 1.
+- **¿Se limpia también el destino propio de «Recuperar fotos» (recordado entre sesiones) al cambiar de sección?** (1: sí; 2: no, solo el destino compartido de los demás módulos) → Opción 2.
+- **Al cambiar de sección, ¿el selector «Copias nuevas / Sobrescribir originales» vuelve a «Copias nuevas»?** (1: sí, siempre; 2: se deja como esté) → Opción 1.
+
+### 3. Fuentes analizadas
+- `Model/AppState.swift` (`destinationFolder` y `destinationFile` compartidos por todos los módulos; `saveMode` con `newCopy(outputFolder: nil)` = misma carpeta con sufijo; se vacían al cambiar de carpeta de origen desde el 03-11), `Views/Shared/DestinationBar.swift` («Misma carpeta (con sufijo)» con la carpeta vacía), `ProcessorView`, `WatermarkView`, `RenamerView` (botón «Abrir» con `destinationFolder ?? sourceFolder`), `CollageView`, `ContactSheetView` y `SlideshowView` (destino obligatorio ya), `RecoverySession` (destino propio, recordado en `caoba.recovery.destination`).
+- Decisión del 03-11 (pregunta 2 de aquel bloque): se aceptó «vacío = misma carpeta con sufijo» en Procesador, Marca de agua y Renombrador. Esta petición la cambia.
+
+Plan aprobado por el usuario («dale»).
+
+### 4. Decisiones
+- `AppState`: `clearDestination()` (vacía carpeta y fichero y vuelve a «Copias nuevas»), llamado desde el `didSet` de `currentModule` solo si el módulo cambia de verdad; `needsDestinationFolder`; `isSourceFolder(_:)` comparando rutas normalizadas y con los enlaces resueltos; aviso `NSAlert` en `chooseDestinationFolder()` y `chooseDestinationFile()` si se elige la carpeta de origen (en el fichero se mira su carpeta).
+- Procesador, Marca de agua y Renombrador: el botón principal se desactiva sin carpeta con «Copias nuevas» y `run()` lo vuelve a comprobar. El «Abrir» del aviso final vuelve a ser solo la carpeta de destino (se quita el `?? sourceFolder` del 03-11).
+- `DestinationBar`: «Elige una carpeta» (en gris) en lugar de «Misma carpeta (con sufijo)»; esa cadena se quita del catálogo y se añaden las dos del aviso en inglés.
+- El diálogo de elegir fichero sigue abriéndose en la carpeta de origen si no hay otra: así es fácil crear ahí una subcarpeta, que sí vale.
+- Comprobado con una captura del Procesador con `Escritorio/BOOK`: «Copias nuevas» → «Elige una carpeta» y «Procesar» desactivado.
+
+### 5. Alternativas descartadas
+- Bloquear también las subcarpetas de la de origen: la lista no las lee, así que no hay mezcla, y crear `copias` dentro de la sesión es lo habitual (respuesta 1).
+- Dejar que Slideshow, Collage y Contact Sheet guarden en la carpeta de origen: los JPG del Collage y del Contact Sheet acabarían en la lista de fotos; se aplica la misma regla a todos por coherencia (respuesta 2).
+- Limpiar también el destino de «Recuperar fotos»: es propio y no se comparte con ningún otro módulo (respuesta 3).
+- Mantener «Sobrescribir originales» al cambiar de sección: en Marca de agua o Procesador no se puede deshacer (respuesta 4).
+- Elegir de nuevo el destino automáticamente (abrir el diálogo) al pulsar el botón sin carpeta: el botón desactivado y la barra ya dicen qué falta.
+
+### 6. Pendiente de comprobar
+- El aviso al elegir la carpeta de origen (en carpeta y en fichero) y el cambio de sección con un destino elegido: no se pueden accionar desde aquí; los prueba el usuario.
+
+## 2026-11-09 — Comprobar que la lista de fotos sigue al día antes de lanzar
+
+### 1. La petición tal como se ha entendido
+- **Comprobación antes de lanzar**: en todas las acciones que leen las fotos de la carpeta (Slideshow: «Generar vídeo» y «Vista previa»; Collage y Contact Sheet: «Generar»; Procesador, Marca de agua y Renombrador: su botón principal; Metadatos: guardar), antes de empezar se mira si la carpeta sigue coincidiendo con la lista: fotos de la lista que ya no están (borradas, renombradas, movidas) y fotos nuevas que no salen en la lista. Las modificadas no cuentan.
+- **Si no coincide**: no se lanza. Sale un aviso con lo que ha cambiado (cuántas faltan y cuántas son nuevas, con algunos nombres) y un botón «Recargar» que vuelve a leer la carpeta sin lanzar nada, para revisar la lista y volver a pulsar. Al recargar se conservan el orden manual y las fotos desmarcadas que sigan existiendo; las nuevas entran marcadas.
+- **Botón «Recargar» fijo** en la barra de la carpeta de origen, para releerla cuando se quiera.
+
+Confirmada por el usuario («si»).
+
+Petición original: «en ocasiones tras seleccionar una carpeta origen, hacen cambios en los ficheros (borran, renombran...); tendríamos que controlar antes de lanzar el proceso que la lista coincide, y si no avisar e indicar que hay que recargar los datos».
+
+### 2. Preguntas y respuestas
+- **¿Qué cuenta como «la lista no coincide»?** (1: solo fotos de la lista que ya no están; 2: eso y fotos nuevas que no salen en la lista; 3: además fotos modificadas) → Opción 2.
+- **¿Qué se hace al detectarlo?** (1: avisar con lo que ha cambiado y un botón «Recargar» que relee la carpeta sin lanzar; 2: avisar con «Recargar» o «Continuar igualmente»; 3: recargar sola y avisar) → Opción 1.
+- **¿En qué acciones se comprueba?** (1: en todas las que leen las fotos de la carpeta, también la vista previa del Slideshow y guardar en Metadatos; 2: solo en las que generan o modifican ficheros) → Opción 1.
+- **¿Botón «Recargar» fijo en la barra de la carpeta de origen?** (1: sí; 2: no, solo desde el aviso) → Opción 1.
+
+### 3. Fuentes analizadas
+- `Model/AppState.swift` (`files` se lee al abrir la carpeta y al cambiar orden o filtro con `rescan()`; no se vigila la carpeta ni hay botón de recargar), `Views/Shared/SourceFolderBar.swift` («Reiniciar» borra la configuración, no relee), `Model/SlideshowDocument.swift` (`missingFiles`: el Slideshow ya avisa «Falta N ficheros: se generará sin ellos» para fotos de su proyecto que no están), `RenamerView` (relee la carpeta tras renombrar).
+
+Plan aprobado por el usuario («dale»).
+
+### 4. Decisiones
+- Motor: `FolderChanges` (faltan / nuevas, por nombre, en orden natural) y `FolderScanner.changes(in:known:)`, que reutiliza `listImageURLs` (mismo criterio que la lista y sin abrir ninguna foto: rápido con miles). Test nuevo: sin cambios, ruido que no cuenta (ocultos, `_caoba_`, `.txt`), borrada, renombrada y nuevas. 185 tests.
+- `AppState`: `knownNames` se guarda en `rescan()` antes del filtro de orientación (así una foto que el filtro oculta no cuenta como nueva); `ensureFolderUnchanged()`, `pendingFolderChanges` y `reload()`.
+- Un solo aviso para todos los módulos, en `ContentView` (`.alert` ligado a `pendingFolderChanges`), con hasta 5 nombres de cada tipo. «Recargar» relee y no lanza.
+- Comprobación como primera línea de las siete acciones (en el Slideshow, en la función común de «Vista previa» y «Generar vídeo»). «Guardar cambio de esta foto» en Metadatos no, porque no escribe.
+- Botón «Recargar» en la barra de la carpeta, visible siempre que haya carpeta (no solo con «Configuración restaurada») y desactivado mientras lee.
+- Añadido al revisar: Procesador y Marca de agua, al sobrescribir, releen la carpeta al terminar (`rescanWhenJobFinishes()`): sobrescribir cambiando el formato escribe `foto.png` junto a `foto.jpg`, y sin releer el siguiente proceso daría el aviso por un cambio de la propia app. El Renombrador ya releía.
+- Traducciones de los 6 textos nuevos. Captura del Procesador con «Recargar» junto a «24 fotos».
+
+### 5. Alternativas descartadas
+- Vigilar la carpeta con FSEvents y recargar sola: el usuario prefirió avisar y no lanzar (respuesta 2); además, una lista que cambia mientras se trabaja en ella despista.
+- «Continuar igualmente» en el aviso: se procesaría una lista que no se ha visto (respuesta 2).
+- Contar también las fotos modificadas: se procesan ya con su contenido nuevo (respuesta 1).
+- Comparar con `scan()` completo: abre las cabeceras de todas las fotos; con nombres basta.
+
+### 6. Pendiente de comprobar
+- El aviso y «Recargar» con cambios reales hechos en el Finder: no se pueden accionar desde aquí; los prueba el usuario con `scratchpad/prueba-recargar`.

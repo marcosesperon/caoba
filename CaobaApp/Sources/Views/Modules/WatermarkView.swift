@@ -13,7 +13,7 @@ struct WatermarkView: View {
 
     @State private var presetWarning: String?
 
-    private var canRun: Bool { watermarkURL != nil && !appState.checkedFiles.isEmpty }
+    private var canRun: Bool { watermarkURL != nil && !appState.checkedFiles.isEmpty && !appState.needsDestinationFolder }
 
     private var settings: WatermarkSettings { WatermarkSettings(watermarkPath: watermarkURL?.path, options: options) }
 
@@ -164,13 +164,18 @@ struct WatermarkView: View {
     }
 
     private func run() {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
+        // Con «Copias nuevas» hace falta carpeta de destino (el botón ya está desactivado sin ella).
+        guard !appState.needsDestinationFolder else { return }
         guard let mark = watermarkURL else { return }
         let files = appState.checkedFiles
         let opts = options
         let mode = appState.saveMode
-        let openURL = appState.destinationMode == .newCopy ? (appState.destinationFolder ?? appState.sourceFolder) : appState.sourceFolder
+        let openURL = appState.destinationMode == .newCopy ? appState.destinationFolder : appState.sourceFolder
         appState.jobRunner.run(openURL: openURL) { progress in
             try await Watermarker().process(files: files, watermark: mark, options: opts, saveMode: mode, progress: progress)
         }
+        if mode.isOverwrite { appState.rescanWhenJobFinishes() }
     }
 }

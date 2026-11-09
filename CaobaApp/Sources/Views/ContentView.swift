@@ -48,10 +48,35 @@ struct ContentView: View {
             .navigationSubtitle(appState.currentModule.title)
         }
         .jobPresentation(appState.jobRunner)
+        // Aviso común a todos los módulos: la carpeta ha cambiado desde que se leyó.
+        .alert("La carpeta ha cambiado", isPresented: Binding(get: { appState.pendingFolderChanges != nil },
+                                                              set: { if !$0 { appState.pendingFolderChanges = nil } })) {
+            Button("Recargar") { Task { await appState.reload() } }
+            Button("Cancelar", role: .cancel) { appState.pendingFolderChanges = nil }
+        } message: {
+            Text(folderChangesMessage(appState.pendingFolderChanges))
+        }
         .sheet(isPresented: $state.showDonationPrompt) { DonationSheet() }
         .sheet(isPresented: Binding(get: { appState.whatsNewSections != nil }, set: { if !$0 { appState.whatsNewSections = nil } })) {
             WhatsNewSheet(sections: appState.whatsNewSections ?? [], title: appState.whatsNewTitle)
         }
+    }
+
+    /// «Faltan 2 fotos: a.jpg, b.jpg. Hay 1 nueva: c.jpg.» con hasta 5 nombres de cada.
+    private func folderChangesMessage(_ changes: FolderChanges?) -> String {
+        guard let changes else { return "" }
+        func names(_ list: [String]) -> String {
+            list.prefix(5).joined(separator: ", ") + (list.count > 5 ? "…" : "")
+        }
+        var parts: [String] = []
+        if !changes.missing.isEmpty {
+            parts.append(String(localized: "Faltan \(changes.missing.count) fotos de la lista: \(names(changes.missing))."))
+        }
+        if !changes.added.isEmpty {
+            parts.append(String(localized: "Hay \(changes.added.count) fotos nuevas: \(names(changes.added))."))
+        }
+        parts.append(String(localized: "Recarga la carpeta y revisa la lista antes de seguir."))
+        return parts.joined(separator: "\n\n")
     }
 
     private func sidebarRow(_ module: Module) -> some View {

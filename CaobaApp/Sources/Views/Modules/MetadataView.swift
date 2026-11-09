@@ -192,6 +192,8 @@ struct MetadataView: View {
     }
 
     private func run() {
+        // Si alguien ha borrado, renombrado o añadido fotos desde que se leyó la carpeta, no se lanza: sale el aviso con «Recargar».
+        guard appState.ensureFolderUnchanged() else { return }
         let strip = stripOthers
         let pairs: [(URL, MetadataEdit)]
         switch applyMode {

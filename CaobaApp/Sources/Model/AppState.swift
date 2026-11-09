@@ -11,8 +11,11 @@ final class AppState {
     // MARK: Navegación
     /// Módulo activo. Arranca en el último usado y se recuerda al cambiar
     /// (salvo en modo captura, para no pisar lo que tenga el usuario).
+    /// Cada sección empieza con el destino limpio: así un proceso no escribe sin querer
+    /// donde había elegido otro (ni sobrescribe originales porque se quedó marcado).
     var currentModule: Module = Module(rawValue: UserDefaults.standard.string(forKey: Preferences.lastModuleKey) ?? "") ?? .processor {
         didSet {
+            if currentModule != oldValue { clearDestination() }
             guard !isScreenshotMode else { return }
             UserDefaults.standard.set(currentModule.rawValue, forKey: Preferences.lastModuleKey)
         }
@@ -37,6 +40,11 @@ final class AppState {
     private(set) var isScanning = false
     private(set) var recentFolders: [URL] = []
     private(set) var hasFolderConfig = false
+    /// Nombres de las fotos de la carpeta al leerla (antes del filtro de orientación), para
+    /// saber antes de lanzar un proceso si alguien ha borrado, renombrado o añadido fotos.
+    private var knownNames: Set<String> = []
+    /// Cambios encontrados al ir a lanzar un proceso; mientras no sea `nil` sale el aviso.
+    var pendingFolderChanges: FolderChanges?
     /// Sube cada vez que el usuario pulsa "Reiniciar" para que los módulos vuelvan a sus valores.
     private(set) var configResetToken = 0
 
@@ -121,8 +129,10 @@ final class AppState {
         guard let folder = sourceFolder else { files = []; return }
         isScanning = true
         defer { isScanning = false }
+        let scanner = FolderScanner()
+        knownNames = Set((try? scanner.listImageURLs(in: folder))?.map(\.lastPathComponent) ?? [])
         do {
-            files = try await FolderScanner().scan(folder: folder, sort: sortMode, orientation: orientationFilter)
+            files = try await scanner.scan(folder: folder, sort: sortMode, orientation: orientationFilter)
         } catch {
             files = []
         }
@@ -131,6 +141,34 @@ final class AppState {
         // Si la carpeta ha cambiado por fuera, las exclusiones de ficheros que ya no existen sobran.
         let names = Set(files.map(\.name))
         excludedNames = excludedNames.intersection(names)
+    }
+
+    /// Antes de lanzar un proceso: si la carpeta ya no coincide con la lista (fotos que
+    /// faltan o nuevas), deja los cambios en `pendingFolderChanges` (sale el aviso con
+    /// «Recargar») y devuelve `false`, y el proceso no se lanza. Sin carpeta, deja seguir.
+    func ensureFolderUnchanged() -> Bool {
+        guard let folder = sourceFolder,
+              let changes = try? FolderScanner().changes(in: folder, known: knownNames),
+              !changes.isEmpty else { return true }
+        pendingFolderChanges = changes
+        return false
+    }
+
+    /// Vuelve a leer la carpeta (botón «Recargar» y aviso). Conserva el orden manual y las
+    /// fotos desmarcadas que sigan existiendo; las nuevas entran marcadas.
+    func reload() async {
+        pendingFolderChanges = nil
+        await rescan()
+    }
+
+    /// Relee la carpeta cuando termine el trabajo en curso. Para los procesos que escriben en
+    /// la carpeta de origen (sobrescribir originales, que puede cambiar la extensión): así la
+    /// lista queda al día y el siguiente proceso no lo confunde con un cambio hecho por fuera.
+    func rescanWhenJobFinishes() {
+        Task {
+            while jobRunner.isRunning { try? await Task.sleep(for: .milliseconds(200)) }
+            await rescan()
+        }
     }
 
     /// Reordenación manual desde la lista (arrastrar).
@@ -215,6 +253,35 @@ final class AppState {
 
     // MARK: - Destino
 
+    /// Vacía la carpeta y el fichero de destino y vuelve a «Copias nuevas».
+    func clearDestination() {
+        destinationFolder = nil
+        destinationFile = nil
+        destinationMode = .newCopy
+    }
+
+    /// Con «Copias nuevas» hay que elegir carpeta: ya no se guarda junto a los originales.
+    var needsDestinationFolder: Bool {
+        destinationMode == .newCopy && destinationFolder == nil
+    }
+
+    /// Si `url` es la carpeta de origen (rutas normalizadas y con los enlaces resueltos).
+    /// Ningún módulo guarda ahí: lo nuevo se mezclaría con las fotos de la lista.
+    func isSourceFolder(_ url: URL) -> Bool {
+        guard let sourceFolder else { return false }
+        return url.standardizedFileURL.resolvingSymlinksInPath().path
+            == sourceFolder.standardizedFileURL.resolvingSymlinksInPath().path
+    }
+
+    /// Aviso cuando se elige la carpeta de origen como destino.
+    private func warnSourceFolderNotAllowed() {
+        let alert = NSAlert()
+        alert.messageText = L("No se puede guardar en la carpeta de las fotos")
+        alert.informativeText = L("Lo que se genere se mezclaría con las fotos originales. Elige otra carpeta o crea una subcarpeta dentro de esta.")
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+
     /// Carpeta de salida efectiva para módulos de carpeta.
     var saveMode: SaveMode {
         switch destinationMode {
@@ -230,7 +297,12 @@ final class AppState {
         panel.nameFieldStringValue = destinationFileDefaultName
         panel.directoryURL = destinationFolder ?? sourceFolder
         panel.canCreateDirectories = true
-        if panel.runModal() == .OK, let url = panel.url { destinationFile = url }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        if isSourceFolder(url.deletingLastPathComponent()) {
+            warnSourceFolderNotAllowed()
+        } else {
+            destinationFile = url
+        }
     }
 
     /// Sufijo de fecha y hora para nombres de salida, como la app antigua.
@@ -247,7 +319,12 @@ final class AppState {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = L("Elegir destino")
-        if panel.runModal() == .OK, let url = panel.url { destinationFolder = url }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        if isSourceFolder(url) {
+            warnSourceFolderNotAllowed()
+        } else {
+            destinationFolder = url
+        }
     }
 
     // MARK: - Argumentos de arranque
