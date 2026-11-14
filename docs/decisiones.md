@@ -3480,3 +3480,4 @@ Plan aprobado por el usuario («dale»).
 - La pausa automática con un disco que se llena de verdad.
 - Con la SD real (contraseña): que PhotoRec lee la tarjeta con el parche de `/dev/fd` y que la pausa SIGSTOP no da problemas con el lector.
 - Sin commit ni publicación hasta que lo indique el usuario.
+- Publicado junto con las tres peticiones anteriores del mismo día (tarjeta del lector SD y más datos de cada tarjeta, discos APFS e imágenes, y el arreglo de `/dev/fd`) a petición del usuario («haz commit, push y publica release») en la versión 3.23.0, con release en GitHub. Van en un mismo commit porque tocan los mismos ficheros. La recuperación con la SD real sigue sin probar por el usuario.

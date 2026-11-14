@@ -2,6 +2,14 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.23.0 — 2026-11-14
+
+- **Arreglado: «Recuperar fotos» no podía leer tarjetas reales.** Tras pedir la contraseña terminaba con «No se ha podido leer la tarjeta» (fallaba desde la 3.21.0). Ya lee cualquier tarjeta o disco externo.
+- **Las tarjetas del lector SD del Mac ya salen en la lista.** Y cada tarjeta enseña más pistas para reconocerla: nombre, marca de la cámara que la usó, por dónde está conectada, sistema de archivos y espacio usado (por ejemplo, «EOS_DIGITAL · Canon · Lector SD del Mac · 124,68 GB · exFAT · 69,61 GB usados»). Los discos en APFS también se reconocen. Botón «Recargar» para volver a leer la lista.
+- **Lo encontrado sale mientras busca**, agrupado en bloques, para ir viéndolo sin esperar al final.
+- **Elimina lo que no quieras sobre la marcha**: marca fotos sueltas (con mayúsculas, un tramo seguido), todo lo que se ve con el filtro (por ejemplo, todos los vídeos) o bloques enteros, y elimínalos del disco para dejar sitio mientras la búsqueda sigue.
+- **Pausar y continuar**: puedes pausar la búsqueda cuando quieras, y se pausa sola si el disco de destino se queda con menos de 2 GB libres. Libera espacio, pulsa «Continuar» y sigue justo donde estaba, sin perder nada.
+
 ## 3.22.0 — 2026-11-09
 
 - **Las copias siempre van a la carpeta que elijas**: en Procesador, Marca de agua y Renombrador, con «Copias nuevas» hay que elegir carpeta de destino antes de lanzar. Ya no se guardan junto a los originales con sufijo.
