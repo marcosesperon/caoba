@@ -2,6 +2,15 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.24.0 — 2026-11-14
+
+- **Nuevo módulo «Descargar tarjeta»**, en Utilidades: pasa las fotos y vídeos de la tarjeta a una carpeta del Mac de forma rápida y segura. No pide contraseña y nunca escribe en la tarjeta.
+- **Cada copia se comprueba** con la de la tarjeta antes de darla por buena. Si se corta (cancelas, sacas la tarjeta, se va la luz) no queda ninguna foto a medias: vuelve a descargar y sigue donde se quedó.
+- **Solo lo que falta**: lo que ya está descargado se salta, así que puedes descargar a mitad de sesión y otra vez al terminar. Si dos cámaras usan el mismo nombre de fichero, la segunda se guarda con «_2»; nunca se sobrescribe nada.
+- **Sesiones**: CAOBA agrupa las fotos de la tarjeta por sesiones (según el tiempo entre fotos, ajustable) con unas miniaturas para reconocerlas, y marca solo las que tienen algo pendiente. Así no se cuelan encargos antiguos que sigan en la tarjeta.
+- Elige qué tipos bajar (JPG, RAW, HEIC, vídeo), con sus ficheros acompañantes (.XMP, .WAV…), y si van todas juntas o en carpetas por fecha. Se ven la velocidad y el tiempo restante; puedes pausar, y se pausa sola si el disco de destino se llena.
+- **Varias tarjetas seguidas**: al terminar, puede expulsar la tarjeta sola y, en cuanto metes la siguiente, ofrece descargarla con los mismos ajustes. Si la app está en segundo plano, te avisa al acabar.
+
 ## 3.23.0 — 2026-11-14
 
 - **Arreglado: «Recuperar fotos» no podía leer tarjetas reales.** Tras pedir la contraseña terminaba con «No se ha podido leer la tarjeta» (fallaba desde la 3.21.0). Ya lee cualquier tarjeta o disco externo.

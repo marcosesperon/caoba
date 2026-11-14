@@ -3586,3 +3586,4 @@ Plan aprobado por el usuario («dale»).
 - Con la SD real: sesiones de encargos reales, rapidez de las miniaturas con RAW desde el lector y «Ver todas» con cientos de fotos.
 - Desmarcar una sesión a mano y descargar (comprobado el cálculo, no el clic).
 - Sin commit ni publicación hasta que lo indique el usuario.
+- Publicado junto con la petición anterior («Descargar tarjeta») a petición del usuario («al finalizar haz commit, push y lanza release») en la versión 3.24.0, con release en GitHub. Las dos peticiones van en un mismo commit porque tocan los mismos ficheros.
