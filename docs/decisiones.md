@@ -3481,3 +3481,108 @@ Plan aprobado por el usuario («dale»).
 - Con la SD real (contraseña): que PhotoRec lee la tarjeta con el parche de `/dev/fd` y que la pausa SIGSTOP no da problemas con el lector.
 - Sin commit ni publicación hasta que lo indique el usuario.
 - Publicado junto con las tres peticiones anteriores del mismo día (tarjeta del lector SD y más datos de cada tarjeta, discos APFS e imágenes, y el arreglo de `/dev/fd`) a petición del usuario («haz commit, push y publica release») en la versión 3.23.0, con release en GitHub. Van en un mismo commit porque tocan los mismos ficheros. La recuperación con la SD real sigue sin probar por el usuario.
+
+## 2026-11-14 — Descargar las fotos de una tarjeta a una carpeta del disco
+
+### 1. La petición tal como se ha entendido
+- **Módulo nuevo «Descargar tarjeta»** en Utilidades, con la misma lista de tarjetas que «Recuperar fotos» (nombre, marca, conexión, espacio usado, «Recargar»). Solo tarjetas montadas: se leen como ficheros normales, sin contraseña. Nunca se escribe en la tarjeta.
+- **Qué**: casillas por tipo (JPG, RAW, HEIC, vídeo; todas por defecto). Cada foto o vídeo se lleva sus acompañantes con el mismo nombre (`.XMP`, `.WAV`, `.THM`, `.LRF`). Se ignora lo que la cámara guarda para sí (`MISC`, `CANONMSC`…).
+- **Destino**: carpeta elegida (recordada) y organización «Todo junto» o «Por fecha» (`AAAA/MM-DD/`), recordada. Siempre con el nombre original. La fecha es la que la cámara guarda en el fichero (hora de la foto, rápida de leer).
+- **Resumen antes de empezar**: «N en la tarjeta · M ya descargadas · faltan K (X GB)», con aviso si no cabe, y «Descargar».
+- **Ya descargada**: mismo nombre, tamaño y fecha en su sitio de destino → se salta. Solo el nombre → se guarda con sufijo `_2`. Nunca se sobrescribe.
+- **Copia segura**: nombre temporal, forzada a disco, suma de comprobación al leer de la tarjeta comparada con la de la copia releída, y solo entonces nombre definitivo, conservando la fecha original. Si falla, un reintento; si vuelve a fallar, se apunta como fallida y se sigue.
+- **Durante**: fichero actual, cuántas van, GB, velocidad y tiempo restante; «Pausar», «Continuar», «Cancelar». Si la siguiente no cabe, pausa y avisa. Tras cancelar, sacar la tarjeta o un corte, volver a descargar salta lo completo y rehace lo que quedó a medias.
+- **Al terminar**: resumen (copiadas, ya estaban, fallidas con nombres), «Mostrar en el Finder», «Expulsar tarjeta», «Nueva descarga»; casilla «Expulsar la tarjeta al terminar» (recordada); notificación de macOS si la app está en segundo plano.
+
+Confirmada por el usuario («si»).
+
+Petición original: «otra de las funcionalidades que me gustaría tener en la app es, a partir de una SD (como la selección de recuperar) poder realizar una copia a una carpeta del disco. Esto es interesante para los fotógrafos, para descargar las fotos de forma ágil al ordenador. Me gustaría saber si se puede hacer nativo o podemos usar alguna herramienta para realizar copias fiables. Habría que controlar si se cancela el proceso, si quedamos sin espacio... para poder reanudar. Controlar si existe el mismo fichero, para descargar solo lo restante (por ejemplo a mitad de sesión de fotos descargas al disco y al finalizar vuelves a descargar lo que falte)».
+
+Respuesta a la consulta: se puede hacer nativo en Swift y es lo recomendado. Cada fichero se copia con un nombre temporal (`.caoba-part`), se fuerza a disco, se comprueba (tamaño y suma) y solo entonces se renombra al definitivo, así un corte nunca deja un fichero a medias con nombre bueno. Reanudar es volver a lanzar: lo que ya está completo se salta y lo temporal se rehace. Alternativas: `rsync` (el de macOS cambia según versión, con `openrsync` desde macOS 15, y su salida es incómoda de seguir) y `ditto` (sin reanudar ni comprobar); descartadas frente a nativo por control de progreso, cancelación, espacio y comprobación.
+
+### 2. Preguntas y respuestas
+- **¿Dónde va?** (1: módulo nuevo «Descargar tarjeta» en Utilidades, con la misma lista de tarjetas que «Recuperar fotos»; 2: como modo dentro de «Recuperar fotos») → Opción 1.
+- **¿Cómo se organiza el destino?** (1: igual que en la tarjeta, `DCIM/100EOSR6/…`; 2: todo junto en la carpeta elegida; 3: por fecha de captura `AAAA/MM-DD/`; 4: elegir cada vez entre 2 y 3, recordando la última) → Opción 4. En los dos casos se conserva el nombre original.
+- **¿Cómo se reconoce lo ya descargado?** (1: mismo nombre, tamaño y fecha → se salta; si solo coincide el nombre, es otra foto y va con sufijo `_2`, nunca se sobrescribe; 2: comparar la suma del contenido con lo del disco, infalible pero relee todo; 3: registro de descargas oculto en el destino, que aguanta renombrados) → Opción 1.
+- **¿Qué se descarga?** (1: fotos y vídeos con casillas por tipo como en «Recuperar fotos», más los acompañantes con el mismo nombre `.XMP`, `.WAV`, `.THM`, `.LRF`, ignorando `MISC`, `CANONMSC`…; 2: todo `DCIM`; 3: toda la tarjeta) → Opción 1.
+- **¿Ver y elegir antes de descargar?** (1: descarga directa con resumen previo «N en la tarjeta · M ya descargadas · faltan K (X GB)»; 2: cuadrícula previa con casillas; 3: las dos) → Opción 1. La cuadrícula queda para más adelante.
+- **¿Cómo se comprueba cada copia?** (1: solo tamaño; 2: suma de comprobación al leer la tarjeta y relectura de la copia, con un reintento y aviso si vuelve a fallar; 3: elegible, con suma por defecto) → Opción 2.
+- **¿Qué pasa al terminar?** (1: resumen con copiadas, ya estaban y fallidas, «Mostrar en el Finder», «Expulsar tarjeta», «Nueva descarga» y notificación si la app está en segundo plano; 2: además casilla «Expulsar la tarjeta al terminar», recordada) → Opción 2.
+- **Aportación del usuario al revisar el plan**: «es normal que para una misma sesión haya varias SD o cámaras, así que desde la pantalla al terminar con una SD se expulsará y se meterá otra para seguir... revisa que no habrá problema con eso».
+  Respuesta: se revisó el plan y se corrigió lo que fallaba con varias tarjetas (ver Decisiones). Plan aprobado por el usuario con esos cambios («si»).
+
+### 3. Fuentes analizadas
+- `RecoverySession`, `ExternalDiskMonitor`, `DiskMounter`, `RecoveryFileGroup` y `PhotoOrganizer` (para reutilizar la lista de tarjetas, los grupos de tipos y las carpetas por fecha), `Module` y `ContentView`.
+- Estructura de tarjetas: Canon (`DCIM/100EOSR6`, `CANONMSC/*.CTG`, `MISC`), Sony (vídeo XAVC en `PRIVATE/M4ROOT/CLIP`, con miniaturas en `THMBNL` que no se tocan), Panasonic y Sony AVCHD (`PRIVATE/AVCHD/BDMV/STREAM`).
+
+### 4. Decisiones
+- **Nativo**, en `CaobaCore/CardImport`: escáner, plan, copia comprobada e importador, sin interfaz y con 6 tests (lectura de la tarjeta, organización, saltar lo que ya está, dos tarjetas con los mismos nombres descargadas por turnos y repetidas, copia comprobada y reanudar tras un corte, pausa por espacio y cancelar).
+- **Además de `DCIM`, las carpetas de vídeo de Sony y Panasonic**: si no, su vídeo no se descargaría. Sus miniaturas (`THMBNL`) quedan fuera porque no están en esas carpetas.
+- **Fecha = fecha del fichero** que pone la cámara: se lee al instante (leer los metadatos de miles de RAW desde la tarjeta sería lento) y coincide con la hora de la foto.
+- **«Ya está» mira también los sufijos** (`_2`, `_3`…): sin esto, repetir la segunda tarjeta de una sesión duplicaba sus fotos con nombres repetidos (lo detectó la revisión pedida por el usuario).
+- **Siguiente tarjeta** = disco que no estaba conectado al empezar la descarga y que no es el de destino. En la primera versión valía «cualquier otra», y al probar ofrecía la imagen del simulador que ya estaba conectada (en la vida real, el propio disco USB de destino). La lista de discos avisa a la sesión de cada cambio (`onChange`) para enterarse aunque se esté en otro módulo.
+- **Pausa y espacio**: pausa entre fotos (no a mitad de una); antes de cada foto se mira que quepa con 50 MB de margen y, si no, se pausa y «Continuar» espera a que haya sitio.
+- **`ExternalDiskMonitor` en `AppState.disks`**, compartido por los dos módulos; `ExternalDiskRow` (antes privada de «Recuperar fotos») se reutiliza.
+- Comprobado con dos imágenes FAT32 de prueba (CANON_A con 12 JPG y un `.XMP`, CANON_B con tres JPG con los mismos nombres) y capturas: descarga completa idéntica al byte y con la fecha original; con dos fotos nuevas en A, «2 copiadas · 12 ya estaban»; al meter B tras terminar, botón «Descargar CANON_B (Canon · 209,7 MB)»; B se guarda como `IMG_0001_2.JPG`…, idénticas a las de B y sin tocar las de A; repetir B da «3 ya descargadas · faltan 0». 194 tests.
+- Pruebas por línea de comandos: `--state cardImport.card=<disco>` y `cardImport.start=1`.
+- Traducción al inglés de los 43 textos nuevos.
+
+### 5. Alternativas descartadas
+- `rsync` / `openrsync`: cambia según la versión de macOS y su salida es incómoda de seguir para el progreso; `ditto`: sin reanudar ni comprobar.
+- Comparar contenido (suma) para saber si ya está: relee todo lo descargado en cada repetición (respuesta 3).
+- Registro de descargas en el destino: más complejo y frágil (respuesta 3).
+- Cuadrícula previa para elegir fotos: para más adelante (respuesta 5).
+- Leer la fecha de los metadatos para «Por fecha»: más lento desde la tarjeta y en la práctica igual que la del fichero.
+- Pausar a mitad de una foto: complica la copia comprobada y una foto tarda segundos.
+
+### 6. Pendiente de comprobar
+- Con la SD real y en el lector del Mac: velocidad, expulsión y que al meter otra tarjeta en la misma ranura se ofrezca.
+- La pantalla de progreso con una descarga larga (en la prueba las descargas duran menos de un segundo), la pausa manual y la pausa por espacio con un disco que se llena de verdad.
+- La notificación de macOS con la app en segundo plano (la primera vez pide permiso).
+- Tarjetas Sony y Panasonic con vídeo en `PRIVATE`.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-14 — Descargar tarjeta: elegir qué sesiones descargar
+
+### 1. La petición tal como se ha entendido
+- Al leer la tarjeta, las fotos se agrupan en **sesiones** por la hora de cada foto: si entre una y la siguiente hay más hueco del elegido, empieza otra.
+- Selector «Separar sesiones con más de»: 1 h, 2 h, 4 h, 8 h o «Por días»; empieza en 4 h y se recuerda.
+- Lista de sesiones, de la más reciente a la más antigua, cada una con casilla, fecha y horas, fotos, tamaño, estado («faltan 412», «faltan 12 de 230», «ya descargada»), una tira de unas 6 miniaturas repartidas (cargadas al verse) y «Ver todas» (la sesión entera en QuickLook, con flechas).
+- Por defecto marcadas las que tienen algo pendiente; las ya descargadas, desmarcadas.
+- El resumen y «Descargar» cuentan solo lo marcado («2 sesiones marcadas · faltan 424 (10,1 GB)»). El resto de «Descargar tarjeta» no cambia.
+
+Confirmada por el usuario («si»).
+
+Petición original (llegó mientras se terminaba «Descargar tarjeta»): «me he dado cuenta de una cosa: puede haber fotos en la SD de sesiones pasadas... a lo mejor habría que poder hacer una selección por fechas para la copia o algo que ayude a decidir... lo normal es que haya cierta separación de tiempo en las sesiones».
+
+### 2. Preguntas y respuestas
+- **¿Cómo se elige qué descargar?** (1: sesiones detectadas solas por huecos de tiempo, en una lista con casillas, fecha, horas, fotos, tamaño y lo que falta, marcadas por defecto las que tienen algo pendiente; 2: rango de fechas desde–hasta; 3: lista por días) → Opción 1.
+- **¿Cuánto hueco separa dos sesiones?** (1: fijo en 4 h; 2: ajustable con un selector de 1 h, 2 h, 4 h, 8 h o «por días», empezando en 4 h y recordado; 3: siempre por días naturales) → Opción 2.
+- **¿Cómo se reconoce cada sesión?** (1: tira de unas 6 miniaturas repartidas, leídas de la tarjeta al verse; 2: además «Ver todas», que abre la sesión entera en QuickLook; 3: solo texto) → Opción 2.
+
+### 3. Fuentes analizadas
+- `CardImportSession`, `CardImportView`, `CardImportPlan` y `QuickLookThumbnails` (miniaturas de «Recuperar fotos», que sacan la vista previa que lleva dentro el RAW).
+
+Plan aprobado por el usuario («dale»).
+
+### 4. Decisiones
+- `CardSessions` y `CardSessionGap` en `CaobaCore`, con 2 tests (hueco en el límite, varias sesiones el mismo día, la que cruza medianoche, «por días», orden y muestra repartida). 196 tests.
+- Una sesión se identifica por la hora de su primera foto: así la marca no se pierde al releer la misma tarjeta.
+- **Dos planes**: el de toda la tarjeta (para el estado de cada sesión) y el de lo marcado (lo que se descarga), rehecho entero y no filtrado, para que los sufijos `_2` no cuenten fotos que no se van a copiar.
+- Cambiar el hueco solo reagrupa lo ya leído y vuelve a marcar las sesiones con algo pendiente.
+- **Cambio en «Descargar otra tarjeta»** (pantalla final): descarga directamente solo si la tarjeta nueva tiene una sola sesión pendiente; si tiene varias, se queda en las opciones para elegir. Sin esto, se habrían descargado sin preguntar encargos antiguos que no estuvieran en la carpeta, justo lo que esta petición quiere evitar.
+- Caché de miniaturas en `@State` de la vista: como propiedad normal se recreaba en cada redibujado.
+- Comprobado con una imagen de prueba (PRUEBA_SES) con tres sesiones (24 oct, 1 nov y 14 nov, fechas puestas con `touch -t`) y la más antigua ya descargada: con 4 h salen tres sesiones, la del 24 oct «ya descargada» y desmarcada, resumen «2 sesiones marcadas · faltan 16 (228,2 MB)»; con 1 h, la del 14 nov se parte en dos; con la del 24 oct a medias sale «faltan 4 de 8» y marcada; la descarga copia exactamente las 20 que faltaban, sin sufijos.
+- Al preparar la prueba, el clasificador de permisos bloqueó crear la imagen con el nombre «EOS_DIGITAL»: la SD real del usuario está montada con ese nombre y las copias podían acabar en ella. Se repitió con un nombre propio y comprobando la ruta de montaje antes de escribir. No se escribió nada en la tarjeta del usuario.
+- Traducción al inglés de los textos nuevos.
+
+### 5. Alternativas descartadas
+- Rango de fechas o lista por días (respuesta 1): obligan a pensar en fechas; las sesiones salen solas.
+- Hueco fijo (respuesta 2): no separa dos encargos el mismo día.
+- Filtrar el plan de toda la tarjeta en vez de rehacerlo: los sufijos podían saltar números por fotos no marcadas.
+- Sesiones por EXIF en vez de la fecha del fichero: más lento leyendo de la tarjeta; la fecha del fichero es la de la foto.
+
+### 6. Pendiente de comprobar
+- Con la SD real: sesiones de encargos reales, rapidez de las miniaturas con RAW desde el lector y «Ver todas» con cientos de fotos.
+- Desmarcar una sesión a mano y descargar (comprobado el cálculo, no el clic).
+- Sin commit ni publicación hasta que lo indique el usuario.

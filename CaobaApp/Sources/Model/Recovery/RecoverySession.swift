@@ -25,7 +25,7 @@ final class RecoverySession {
     }
 
     // MARK: Opciones
-    let diskMonitor = ExternalDiskMonitor()
+    let diskMonitor: ExternalDiskMonitor
     var selectedDiskID: String?
     var fileSystem: RecoveryFileSystem = .other
     var scope: RecoveryScope = .freeSpace
@@ -56,7 +56,8 @@ final class RecoverySession {
     @ObservationIgnored private var runner: PhotoRecRunning = AuthOpenPhotoRecRunner()
     @ObservationIgnored private var pollTask: Task<Void, Never>?
 
-    init() {
+    init(diskMonitor: ExternalDiskMonitor) {
+        self.diskMonitor = diskMonitor
         // Al cerrar la app (⌘Q) se para PhotoRec: si no, seguiría como proceso suelto hasta acabar.
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.runner.cancel() }

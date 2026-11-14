@@ -42,6 +42,9 @@ struct ExternalDisk: Identifiable, Equatable, Sendable {
 @Observable
 final class ExternalDiskMonitor {
     private(set) var disks: [ExternalDisk] = []
+    /// Quien quiera enterarse de cada cambio de la lista aunque su pantalla no esté a la vista
+    /// (la descarga de tarjetas, para saber qué tarjeta se ha sacado y cuál se ha metido).
+    @ObservationIgnored var onChange: [() -> Void] = []
 
     /// Solo para probar: enseña también las imágenes de disco montadas (`hdiutil attach`).
     /// Se activa con `defaults write com.marcosesperon.caoba caoba.dev.recoveryDiskImages -bool YES`.
@@ -175,7 +178,10 @@ final class ExternalDiskMonitor {
                                 isDiskImage: (whole["DADeviceModel"] as? String) == "Disk Image")
         }
         let sorted = list.sorted { $0.bsdName.localizedStandardCompare($1.bsdName) == .orderedAscending }
-        if sorted != disks { disks = sorted }
+        if sorted != disks {
+            disks = sorted
+            onChange.forEach { $0() }
+        }
     }
 
     /// Un disco entero externo y físico. Los internos solo si son extraíbles: es el lector SD

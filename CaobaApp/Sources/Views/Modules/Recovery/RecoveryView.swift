@@ -75,7 +75,7 @@ struct RecoverySetupView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(session.diskMonitor.disks) { disk in
-                    DiskRow(disk: disk, isSelected: disk.id == session.selectedDiskID)
+                    ExternalDiskRow(disk: disk, isSelected: disk.id == session.selectedDiskID)
                         .contentShape(Rectangle())
                         .onTapGesture { session.selectedDiskID = disk.id }
                 }
@@ -142,7 +142,7 @@ struct RecoverySetupView: View {
 
 /// Fila de una tarjeta, con todas las pistas para reconocerla: arriba el nombre del volumen
 /// y la cámara; debajo, en gris, conexión, tamaño, sistema de archivos y espacio usado.
-private struct DiskRow: View {
+struct ExternalDiskRow: View {
     let disk: ExternalDisk
     let isSelected: Bool
 

@@ -20,6 +20,11 @@ enum DiskMounter {
         try? await diskutil(["mountDisk", "/dev/" + disk.bsdName])
     }
 
+    /// Expulsa la tarjeta (`diskutil eject`), como el botón del Finder: ya se puede sacar.
+    static func eject(_ disk: ExternalDisk) async throws {
+        try await diskutil(["eject", "/dev/" + disk.bsdName])
+    }
+
     private static func diskutil(_ arguments: [String]) async throws {
         let message: String? = try await withCheckedThrowingContinuation { continuation in
             let process = Process()

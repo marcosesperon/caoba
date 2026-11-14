@@ -1,6 +1,606 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Sesiones en la tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions on the card"
+          }
+        }
+      }
+    },
+    "Separar sesiones con más de" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split sessions after more than"
+          }
+        }
+      }
+    },
+    "1 h" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 h"
+          }
+        }
+      }
+    },
+    "2 h" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 h"
+          }
+        }
+      }
+    },
+    "4 h" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "4 h"
+          }
+        }
+      }
+    },
+    "8 h" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "8 h"
+          }
+        }
+      }
+    },
+    "Por días" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By day"
+          }
+        }
+      }
+    },
+    "Marcar todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check all"
+          }
+        }
+      }
+    },
+    "Desmarcar todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uncheck all"
+          }
+        }
+      }
+    },
+    "Ver todas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View all"
+          }
+        }
+      }
+    },
+    "%lld fotos · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld photos · %2$@"
+          }
+        }
+      }
+    },
+    "ya descargada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "already imported"
+          }
+        }
+      }
+    },
+    "faltan %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld to go"
+          }
+        }
+      }
+    },
+    "faltan %lld de %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld to go"
+          }
+        }
+      }
+    },
+    "%lld sesiones marcadas · faltan %lld (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld sessions checked · %2$lld to go (%3$@)"
+          }
+        }
+      }
+    },
+    "Marca al menos una sesión." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check at least one session."
+          }
+        }
+      }
+    },
+    "Lo de las sesiones marcadas ya está descargado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The checked sessions are already imported."
+          }
+        }
+      }
+    },
+    "Descargar tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Card"
+          }
+        }
+      }
+    },
+    "Qué descargar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to import"
+          }
+        }
+      }
+    },
+    "Cada foto o vídeo se lleva sus ficheros acompañantes con el mismo nombre (.XMP, .WAV, .THM, .LRF)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each photo or video brings its companion files with the same name (.XMP, .WAV, .THM, .LRF)."
+          }
+        }
+      }
+    },
+    "Cómo organizarlas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to organise them"
+          }
+        }
+      }
+    },
+    "Todo junto en la carpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All together in the folder"
+          }
+        }
+      }
+    },
+    "Por fecha (AAAA/MM-DD)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By date (YYYY/MM-DD)"
+          }
+        }
+      }
+    },
+    "Siempre con el nombre original. Lo que ya esté descargado se salta, y una foto distinta con el mismo nombre (de otra cámara) se guarda con sufijo _2. Nunca se sobrescribe nada." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always with the original name. Anything already imported is skipped, and a different photo with the same name (from another camera) is saved with a _2 suffix. Nothing is ever overwritten."
+          }
+        }
+      }
+    },
+    "Elige dónde descargar las fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose where to import the photos"
+          }
+        }
+      }
+    },
+    "Elige dónde descargar las fotos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose where to import the photos."
+          }
+        }
+      }
+    },
+    "Cada copia se comprueba con la de la tarjeta antes de darla por buena. La tarjeta solo se lee." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each copy is checked against the card before it's accepted. The card is only read."
+          }
+        }
+      }
+    },
+    "%lld en la tarjeta · %lld ya descargadas · faltan %lld (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld on the card · %2$lld already imported · %3$lld to go (%4$@)"
+          }
+        }
+      }
+    },
+    "Descargando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing"
+          }
+        }
+      }
+    },
+    "%lld de %lld · %@ de %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld · %3$@ of %4$@"
+          }
+        }
+      }
+    },
+    "No saques «%@» hasta que termine. Si se corta, vuelve a descargar: lo ya copiado se salta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't remove “%@” until it finishes. If it's interrupted, import again: whatever was copied is skipped."
+          }
+        }
+      }
+    },
+    "En pausa. Lo copiado está a salvo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused. What's been copied is safe."
+          }
+        }
+      }
+    },
+    "%@ · quedan %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ left"
+          }
+        }
+      }
+    },
+    "En pausa: no cabe la siguiente foto. Quedan %@ libres y hacen falta %@. Libera espacio en el disco de destino y pulsa «Continuar»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: the next photo doesn't fit. %1$@ free and %2$@ needed. Free up space on the destination disk and click “Resume”."
+          }
+        }
+      }
+    },
+    "copiadas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "copied"
+          }
+        }
+      }
+    },
+    "ya estaban" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "already there"
+          }
+        }
+      }
+    },
+    "con problemas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "with problems"
+          }
+        }
+      }
+    },
+    "y %lld más" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "and %lld more"
+          }
+        }
+      }
+    },
+    "Expulsar la tarjeta al terminar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eject the card when done"
+          }
+        }
+      }
+    },
+    "Expulsar tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eject card"
+          }
+        }
+      }
+    },
+    "Descargar %@%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import %1$@%2$@"
+          }
+        }
+      }
+    },
+    "Nueva descarga" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New import"
+          }
+        }
+      }
+    },
+    "la copia no coincide con la de la tarjeta (dos intentos)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the copy doesn't match the card (two attempts)"
+          }
+        }
+      }
+    },
+    "Descarga terminada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import finished"
+          }
+        }
+      }
+    },
+    "Terminada con problemas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finished with problems"
+          }
+        }
+      }
+    },
+    "Cancelada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "Tarjeta desconectada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card disconnected"
+          }
+        }
+      }
+    },
+    "Todo copiado y comprobado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything copied and checked."
+          }
+        }
+      }
+    },
+    "Algunas fotos no se han podido copiar. Vuelve a descargar para reintentarlo: lo ya copiado se salta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some photos couldn't be copied. Import again to retry: whatever was copied is skipped."
+          }
+        }
+      }
+    },
+    "Has parado la descarga. Lo copiado está a salvo; vuelve a descargar para seguir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You stopped the import. What's been copied is safe; import again to carry on."
+          }
+        }
+      }
+    },
+    "La tarjeta ha desaparecido a mitad. Lo copiado está a salvo; vuelve a meterla y descarga para seguir." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card disappeared midway. What's been copied is safe; put it back and import to carry on."
+          }
+        }
+      }
+    },
+    "Mete la tarjeta en el lector. Aparecerá aquí sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insert the card in the reader. It will show up here."
+          }
+        }
+      }
+    },
+    "Elige qué tipo de ficheros descargar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose which kinds of files to import."
+          }
+        }
+      }
+    },
+    "La carpeta de destino está en la propia tarjeta. Elige una en el Mac o en otro disco." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination folder is on the card itself. Choose one on the Mac or on another disk."
+          }
+        }
+      }
+    },
+    "Leyendo la tarjeta…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the card…"
+          }
+        }
+      }
+    },
+    "Ya está todo descargado en esta carpeta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything is already imported into this folder."
+          }
+        }
+      }
+    },
+    "En el destino quedan %@ libres y faltan %@. Cuando se llene, la descarga se pausará para que liberes espacio y sigas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination has %1$@ free and %2$@ still to copy. When it fills up, the import will pause so you can free up space and carry on."
+          }
+        }
+      }
+    },
+    "No se ha podido expulsar la tarjeta: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card couldn't be ejected: %@"
+          }
+        }
+      }
+    },
+    "%lld copiadas, %lld ya estaban." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld copied, %2$lld already there."
+          }
+        }
+      }
+    },
+    "%lld copiadas, %lld ya estaban y %lld con problemas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld copied, %2$lld already there and %3$lld with problems."
+          }
+        }
+      }
+    },
     "Eliminar" : {
       "localizations" : {
         "en" : {

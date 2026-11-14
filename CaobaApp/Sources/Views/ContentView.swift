@@ -97,6 +97,7 @@ struct ContentView: View {
         case .renamer: RenamerView()
         case .qr: QRView()
         case .shutterCount: ShutterCountView()
+        case .cardImport: CardImportView()
         case .recovery: RecoveryView()
         }
     }

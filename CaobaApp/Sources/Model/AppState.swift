@@ -59,8 +59,12 @@ final class AppState {
 
     // MARK: Trabajo en curso
     let jobRunner = JobRunner()
-    /// Recuperar fotos: aquí y no en la vista, para que una búsqueda larga siga al cambiar de módulo.
-    let recovery = RecoverySession()
+    /// Tarjetas y discos externos conectados, compartidos por «Recuperar fotos» y «Descargar tarjeta».
+    let disks = ExternalDiskMonitor()
+    /// Recuperar fotos y descargar tarjeta: aquí y no en la vista, para que un trabajo largo
+    /// siga al cambiar de módulo.
+    let recovery: RecoverySession
+    let cardImport: CardImportSession
     let thumbnails = ThumbnailProvider()
 
     // MARK: Aviso de versión y donativo
@@ -82,6 +86,8 @@ final class AppState {
 
     init() {
         recentFolders = RecentFolders.load()
+        recovery = RecoverySession(diskMonitor: disks)
+        cardImport = CardImportSession(diskMonitor: disks)
     }
 
     // MARK: - Carpeta de origen

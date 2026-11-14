@@ -53,12 +53,17 @@ public enum PhotoOrganizer {
     public static func relativePath(for file: URL, date: Date?, calendar: Calendar = .current) -> String {
         guard let date else { return undatedFolder + "/" + file.lastPathComponent }
         let c = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-        let year = String(format: "%04d", c.year ?? 0)
-        let monthDay = String(format: "%02d-%02d", c.month ?? 0, c.day ?? 0)
         let time = String(format: "%02d%02d%02d", c.hour ?? 0, c.minute ?? 0, c.second ?? 0)
+        let folder = dateFolder(for: date, calendar: calendar)
         let ext = file.pathExtension.lowercased()
-        let name = "\(year)-\(monthDay)_\(time)" + (ext.isEmpty ? "" : "." + ext)
-        return "\(year)/\(monthDay)/\(name)"
+        let name = folder.replacingOccurrences(of: "/", with: "-") + "_\(time)" + (ext.isEmpty ? "" : "." + ext)
+        return "\(folder)/\(name)"
+    }
+
+    /// Carpeta de un día: `2024/05-31`. La usan también las descargas de tarjeta «Por fecha».
+    public static func dateFolder(for date: Date, calendar: Calendar = .current) -> String {
+        let c = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d/%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }
 
     /// `url` si no existe; si no, el primero libre de `nombre_2.ext`, `nombre_3.ext`…

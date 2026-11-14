@@ -4,12 +4,12 @@ import SwiftUI
 /// muestran un aviso de "próximamente".
 enum Module: String, CaseIterable, Identifiable {
     case slideshow, collage, contactSheet
-    case processor, watermark, metadata, renamer, qr, shutterCount, recovery
+    case processor, watermark, metadata, renamer, qr, shutterCount, cardImport, recovery
 
     var id: String { rawValue }
 
     static let creators: [Module] = [.slideshow, .collage, .contactSheet]
-    static let utilities: [Module] = [.processor, .watermark, .metadata, .renamer, .qr, .shutterCount, .recovery]
+    static let utilities: [Module] = [.processor, .watermark, .metadata, .renamer, .qr, .shutterCount, .cardImport, .recovery]
 
     var title: LocalizedStringKey {
         switch self {
@@ -22,6 +22,7 @@ enum Module: String, CaseIterable, Identifiable {
         case .renamer: return "Renombrador"
         case .qr: return "Código QR"
         case .shutterCount: return "Shutter Count"
+        case .cardImport: return "Descargar tarjeta"
         case .recovery: return "Recuperar fotos"
         }
     }
@@ -37,6 +38,7 @@ enum Module: String, CaseIterable, Identifiable {
         case .renamer: return "pencil.line"
         case .qr: return "qrcode"
         case .shutterCount: return "camera.aperture"
+        case .cardImport: return "square.and.arrow.down"
         case .recovery: return "sdcard"
         }
     }
@@ -49,14 +51,14 @@ enum Module: String, CaseIterable, Identifiable {
         case .collage: return .outputFolder
         case .processor, .watermark, .renamer: return .folder
         case .metadata, .qr, .shutterCount: return .none
-        case .recovery: return .none // tiene su propia barra de acción
+        case .cardImport, .recovery: return .none // tienen su propia barra de acción
         }
     }
 
     /// Si el módulo necesita la carpeta de origen y la lista de ficheros.
     var usesSourceFolder: Bool {
         switch self {
-        case .qr, .shutterCount, .recovery: return false
+        case .qr, .shutterCount, .cardImport, .recovery: return false
         default: return true
         }
     }
