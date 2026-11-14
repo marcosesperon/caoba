@@ -16,6 +16,8 @@ final class RecoverySession {
         case starting
         /// PhotoRec trabajando.
         case running
+        /// PhotoRec detenido donde estaba. `automatic`: lo paró CAOBA porque el destino se llenaba.
+        case paused(automatic: Bool)
         /// Pulsado «Cancelar»: esperando a que PhotoRec pare.
         case cancelling
         /// Terminado (bien, con problemas o cancelado).
@@ -40,11 +42,18 @@ final class RecoverySession {
     private(set) var counts = RecoveredFiles.Counts()
     /// Subcarpeta de esta recuperación (`Recuperado <tarjeta> <fecha>`).
     private(set) var outputFolder: URL?
-    /// Lo recuperado, para la cuadrícula. Solo si ha salido algo.
+    /// Lo recuperado, para la cuadrícula: en directo mientras busca y al terminar.
     private(set) var results: RecoveryResults?
+    /// Lo que ocupa la carpeta de esta recuperación y lo que queda libre en su disco.
+    private(set) var usedSpace: Int64 = 0
+    private(set) var freeSpace: Int64?
+
+    /// Con menos de esto libre en el destino, CAOBA pausa PhotoRec antes de que el disco se
+    /// llene (lleno, PhotoRec se para y la búsqueda no se puede retomar).
+    static let minimumFreeSpace: Int64 = 2_000_000_000
 
     private static let destinationKey = "caoba.recovery.destination"
-    @ObservationIgnored private let runner: PhotoRecRunning = AuthOpenPhotoRecRunner()
+    @ObservationIgnored private var runner: PhotoRecRunning = AuthOpenPhotoRecRunner()
     @ObservationIgnored private var pollTask: Task<Void, Never>?
 
     init() {
@@ -55,7 +64,20 @@ final class RecoverySession {
     }
 
     var selectedDisk: ExternalDisk? { diskMonitor.disks.first { $0.id == selectedDiskID } }
-    var isBusy: Bool { phase == .starting || phase == .running || phase == .cancelling }
+    var isBusy: Bool {
+        switch phase {
+        case .starting, .running, .paused, .cancelling: return true
+        case .setup, .finished: return false
+        }
+    }
+
+    var isPaused: Bool {
+        if case .paused = phase { return true }
+        return false
+    }
+
+    /// Si hay sitio para seguir (para «Continuar» tras una pausa por espacio).
+    var hasEnoughFreeSpace: Bool { (freeSpace ?? .max) >= Self.minimumFreeSpace }
     var isPhotoRecAvailable: Bool { AuthOpenPhotoRecRunner.bundledPhotoRec != nil }
 
     /// «Solo espacio libre» solo si la tarjeta es FAT o exFAT; si no, se busca en toda.
@@ -85,7 +107,7 @@ final class RecoverySession {
         let needed = neededSpace(for: disk)
         guard free < needed else { return nil }
         let format = ByteCountFormatter()
-        return L("En el destino quedan \(format.string(fromByteCount: free)) libres y lo recuperado puede ocupar hasta \(format.string(fromByteCount: needed)). Si se llena, PhotoRec parará y se conservará lo recuperado hasta ese momento.")
+        return L("En el destino quedan \(format.string(fromByteCount: free)) libres y lo recuperado puede ocupar hasta \(format.string(fromByteCount: needed)). Si se va llenando, CAOBA pausará la búsqueda para que elimines lo que no quieras y sigas.")
     }
 
     /// Lo máximo que puede salir: lo libre de la tarjeta (si se sabe) o la tarjeta entera.
@@ -121,12 +143,24 @@ final class RecoverySession {
 
     func cancel() {
         switch phase {
-        case .running:
+        case .running, .paused:
             phase = .cancelling
             runner.cancel()
         default:
             break
         }
+    }
+
+    /// Detiene PhotoRec donde está (a mano o porque el destino se llena).
+    func pause(automatic: Bool = false) {
+        guard phase == .running, runner.pause() else { return }
+        phase = .paused(automatic: automatic)
+    }
+
+    /// Reanuda PhotoRec. Si el destino sigue casi lleno, no: se volvería a parar enseguida.
+    func resume() {
+        guard isPaused, hasEnoughFreeSpace, runner.resume() else { return }
+        phase = .running
     }
 
     /// Enseña los resultados de una carpeta ya recuperada, sin buscar. Para capturas y
@@ -138,6 +172,30 @@ final class RecoverySession {
         phase = .finished(.completed(counts: RecoveredFiles.count(in: folder)))
     }
 
+    #if DEBUG
+    /// Búsqueda de mentira con `DemoPhotoRecRunner`, sin tarjeta ni contraseña, para probar y
+    /// capturar: `--state recovery.demo=<carpeta con fotos>` y `recovery.demoOut=<destino>`.
+    func startDemo(source: URL, destination: URL) {
+        guard !isBusy else { return }
+        runner = DemoPhotoRecRunner(source: source)
+        phase = .starting
+        counts = RecoveredFiles.Counts()
+        Task {
+            guard let output = try? Self.makeOutputFolder(in: destination, diskName: "DEMO") else { phase = .setup; return }
+            outputFolder = output
+            startPolling(output)
+            let outcome = (try? await runner.run(arguments: [], device: "demo", outputFolder: output)) ?? .cancelled
+            stopPolling(output)
+            if case .finished(let report, let exitCode) = outcome {
+                finish(Self.result(of: report, exitCode: exitCode, counts: counts), disk: nil)
+            } else {
+                finish(.cancelled(counts: counts), disk: nil)
+            }
+            runner = AuthOpenPhotoRecRunner()
+        }
+    }
+    #endif
+
     /// Vuelve a las opciones para otra recuperación (lo recuperado se queda en su carpeta).
     func reset() {
         guard !isBusy else { return }
@@ -145,6 +203,8 @@ final class RecoverySession {
         counts = RecoveredFiles.Counts()
         startDate = nil
         results = nil
+        usedSpace = 0
+        freeSpace = nil
     }
 
     private func run(disk: ExternalDisk, options: PhotoRecOptions, destination: URL) async {
@@ -185,7 +245,11 @@ final class RecoverySession {
     }
 
     private func finish(_ result: RecoveryResult, disk: ExternalDisk?) {
-        if let folder = outputFolder, (result.counts?.total ?? 0) > 0 {
+        if let results {
+            // La misma cuadrícula de la búsqueda, ya sin bloque en curso: se relee completa.
+            results.isLive = false
+            Task { await results.refresh() }
+        } else if let folder = outputFolder, (result.counts?.total ?? 0) > 0 {
             results = RecoveryResults(folder: folder)
         }
         phase = .finished(result)
@@ -193,28 +257,46 @@ final class RecoverySession {
     }
 
     /// Cada medio segundo: si PhotoRec ya ha arrancado (crea su log nada más empezar, o sea,
-    /// tras la contraseña) pasa a «buscando», y cuenta lo recuperado.
+    /// tras la contraseña) pasa a «buscando» y prepara la cuadrícula; cuenta lo recuperado, mira
+    /// el espacio (y pausa si el destino se llena) y, cada dos segundos, refresca la cuadrícula.
     private func startPolling(_ folder: URL) {
         pollTask?.cancel()
         let started = folder.appendingPathComponent(PhotoRecCommand.logFileName)
         pollTask = Task { [weak self] in
+            var tick = 0
             while !Task.isCancelled {
-                let counts = await Task.detached { RecoveredFiles.count(in: folder) }.value
+                let (counts, used, free) = await Task.detached {
+                    (RecoveredFiles.count(in: folder), RecoveredFiles.diskUsage(of: folder), Self.freeSpace(at: folder))
+                }.value
                 guard let self else { return }
                 if self.phase == .starting, FileManager.default.fileExists(atPath: started.path) {
                     self.phase = .running
                     self.startDate = Date()
+                    self.results = RecoveryResults(folder: folder, isLive: true)
                 }
                 self.counts = counts
+                self.usedSpace = used
+                self.freeSpace = free
+                if self.phase == .running, !self.hasEnoughFreeSpace { self.pause(automatic: true) }
+                if tick % 4 == 0, let results = self.results { await results.refresh() }
+                tick += 1
                 try? await Task.sleep(for: .milliseconds(500))
             }
         }
+    }
+
+    /// Espacio libre de verdad en el disco de `url` (no el «disponible para lo importante»,
+    /// que cuenta lo que macOS podría purgar: PhotoRec se encuentra el disco lleno antes).
+    nonisolated private static func freeSpace(at url: URL) -> Int64? {
+        (try? url.resourceValues(forKeys: [.volumeAvailableCapacityKey]).volumeAvailableCapacity).map(Int64.init)
     }
 
     private func stopPolling(_ folder: URL) {
         pollTask?.cancel()
         pollTask = nil
         counts = RecoveredFiles.count(in: folder)
+        usedSpace = RecoveredFiles.diskUsage(of: folder)
+        freeSpace = Self.freeSpace(at: folder)
     }
 
     // MARK: Ayudas

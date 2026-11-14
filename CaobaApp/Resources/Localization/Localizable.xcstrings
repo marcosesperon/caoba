@@ -1,6 +1,366 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Eliminar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Continuar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
+    "En pausa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        }
+      }
+    },
+    "Desmarcar todo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uncheck all"
+          }
+        }
+      }
+    },
+    "en curso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in progress"
+          }
+        }
+      }
+    },
+    "%lld ficheros" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld files"
+          }
+        }
+      }
+    },
+    "Bloque %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %lld"
+          }
+        }
+      }
+    },
+    "Marcar bloque" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check block"
+          }
+        }
+      }
+    },
+    "Desmarcar bloque" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uncheck block"
+          }
+        }
+      }
+    },
+    "Eliminar bloque…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete block…"
+          }
+        }
+      }
+    },
+    "Marcar lo que se ve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check what's shown"
+          }
+        }
+      }
+    },
+    "Marca todo lo que deja ver el filtro: por ejemplo, con «Vídeo», todos los vídeos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checks everything the filter shows: for example, with “Video”, every video."
+          }
+        }
+      }
+    },
+    "Eliminar marcadas (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete checked (%lld)"
+          }
+        }
+      }
+    },
+    "%lld eliminados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld deleted"
+          }
+        }
+      }
+    },
+    "Todavía no hay nada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing yet"
+          }
+        }
+      }
+    },
+    "Lo que encuentre PhotoRec irá saliendo aquí." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whatever PhotoRec finds will show up here."
+          }
+        }
+      }
+    },
+    "¿Eliminar %lld ficheros?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld files?"
+          }
+        }
+      }
+    },
+    "¿Eliminar el bloque %lld entero (%lld ficheros)?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the whole block %1$lld (%2$lld files)?"
+          }
+        }
+      }
+    },
+    "Se borran del disco y no se puede deshacer. Siguen en la tarjeta si hace falta volver a buscarlos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They are removed from the disk and this can't be undone. They are still on the card if you need to search for them again."
+          }
+        }
+      }
+    },
+    "Marcar para eliminar (mayúsculas + clic: marca el tramo)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check to delete (Shift-click checks the whole range)"
+          }
+        }
+      }
+    },
+    "No se han podido eliminar %lld ficheros: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld files couldn't be deleted: %2$@"
+          }
+        }
+      }
+    },
+    "No se ha podido eliminar el bloque %lld: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %1$lld couldn't be deleted: %2$@"
+          }
+        }
+      }
+    },
+    "Sigue donde se quedó. Hace falta sitio libre en el destino." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carries on where it stopped. Needs free space on the destination."
+          }
+        }
+      }
+    },
+    "Ocupa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses %@"
+          }
+        }
+      }
+    },
+    "Ocupa %@ · Quedan %@ libres" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses %1$@ · %2$@ free"
+          }
+        }
+      }
+    },
+    "Ya hay sitio. Pulsa «Continuar» para seguir donde se quedó." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's room now. Click “Resume” to carry on where it stopped."
+          }
+        }
+      }
+    },
+    "En pausa: el disco de destino se está llenando. Elimina lo que no quieras (o libera espacio en ese disco) hasta tener al menos %@ libres y pulsa «Continuar»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: the destination disk is filling up. Delete what you don't want (or free up space on that disk) until at least %@ is free, then click “Resume”."
+          }
+        }
+      }
+    },
+    "PhotoRec está detenido donde se quedó; no se pierde nada." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoRec is stopped where it was; nothing is lost."
+          }
+        }
+      }
+    },
+    "En el destino quedan %@ libres y lo recuperado puede ocupar hasta %@. Si se va llenando, CAOBA pausará la búsqueda para que elimines lo que no quieras y sigas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The destination has %1$@ free and the recovered files may take up to %2$@. If it fills up, CAOBA will pause the search so you can delete what you don't want and carry on."
+          }
+        }
+      }
+    },
+    "Disco en RAM" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "RAM disk"
+          }
+        }
+      }
+    },
+    "%@ usados de %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ used of %2$@"
+          }
+        }
+      }
+    },
+    "Disco externo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "External disk"
+          }
+        }
+      }
+    },
+    "Imagen de disco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disk image"
+          }
+        }
+      }
+    },
+    "Lector interno del Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac's built-in reader"
+          }
+        }
+      }
+    },
+    "Lector SD del Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac's SD card reader"
+          }
+        }
+      }
+    },
+    "Sin nombre de volumen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No volume name"
+          }
+        }
+      }
+    },
     "Faltan %lld fotos de la lista: %@." : {
       "localizations" : {
         "en" : {

@@ -1,0 +1,17 @@
+--- a/src/hdaccess.c	2026-11-14 10:34:38
++++ b/src/hdaccess.c	2026-11-14 10:34:38
+@@ -1794,7 +1794,13 @@
+   {
+     testdisk_mode&=~TESTDISK_O_RDWR;
+     mode=O_RDONLY|O_EXCL|mode_basic;
+-    hd_h = open(device, mode);
++    /* CAOBA: /dev/fd/N es un descriptor que ya viene abierto (authopen). En macOS,
++     * abrir /dev/fd/N vuelve a comprobar los permisos del dispositivo (de root),
++     * asi que se duplica el descriptor en vez de abrir la ruta otra vez. */
++    if(strncmp(device, "/dev/fd/", 8)==0)
++      hd_h = dup(atoi(device + 8));
++    else
++      hd_h = open(device, mode);
+     if(hd_h<0 && (errno==EBUSY || errno==EINVAL))
+     {
+       mode=O_RDONLY|mode_basic;

@@ -14,9 +14,14 @@ struct RecoveryView: View {
             case .setup:
                 ScrollView { RecoverySetupView(session: session) }
                 RecoveryActionBar(session: session)
-            case .starting, .running, .cancelling:
+            case .starting, .running, .paused, .cancelling:
                 RecoveryProgressView(session: session)
-                Spacer()
+                // Lo encontrado va saliendo debajo, para ir eliminando lo que no interesa.
+                if let results = session.results {
+                    RecoveryResultsView(results: results)
+                } else {
+                    Spacer()
+                }
             case .finished(let result):
                 RecoveryFinishedView(session: session, result: result)
                 if let results = session.results {
@@ -33,6 +38,13 @@ struct RecoveryView: View {
                 appState.launchState["recovery.results"] = nil
                 session.showResults(of: URL(fileURLWithPath: path))
             }
+            #if DEBUG
+            // Búsqueda de mentira (solo desarrollo): `--state recovery.demo=<fotos>` y `recovery.demoOut=<destino>`.
+            if let source = appState.launchState["recovery.demo"], let out = appState.launchState["recovery.demoOut"] {
+                appState.launchState["recovery.demo"] = nil
+                session.startDemo(source: URL(fileURLWithPath: source), destination: URL(fileURLWithPath: out))
+            }
+            #endif
         }
     }
 }
@@ -68,6 +80,10 @@ struct RecoverySetupView: View {
                         .onTapGesture { session.selectedDiskID = disk.id }
                 }
             }
+        } accessory: {
+            // Vuelve a preguntar a macOS por los discos (por si algo no sale o se ha quedado viejo). No monta nada.
+            Button("Recargar") { session.diskMonitor.reload() }
+                .controlSize(.small)
         }
     }
 
@@ -124,7 +140,8 @@ struct RecoverySetupView: View {
     }
 }
 
-/// Fila de una tarjeta: icono, nombre, tamaño y sistema de archivos.
+/// Fila de una tarjeta, con todas las pistas para reconocerla: arriba el nombre del volumen
+/// y la cámara; debajo, en gris, conexión, tamaño, sistema de archivos y espacio usado.
 private struct DiskRow: View {
     let disk: ExternalDisk
     let isSelected: Bool
@@ -134,13 +151,30 @@ private struct DiskRow: View {
             Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
                 .foregroundStyle(isSelected ? Color.accentColor : .secondary)
             Image(systemName: disk.isDiskImage ? "opticaldiscdrive" : "sdcard").foregroundStyle(.secondary)
-            Text(disk.name).fontWeight(isSelected ? .semibold : .regular)
-            Text(ByteCountFormatter.string(fromByteCount: disk.size, countStyle: .file)).foregroundStyle(.secondary)
-            Text(disk.volumeType ?? String(localized: "Sistema de archivos desconocido")).foregroundStyle(.secondary)
-            if disk.isDiskImage { Text("(imagen de disco)").font(.caption).foregroundStyle(.secondary) }
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 6) {
+                    Text(disk.name).fontWeight(isSelected ? .semibold : .regular)
+                    if let brand = disk.cameraBrand { Text(verbatim: "· \(brand)") }
+                }
+                Text(details).font(.caption).foregroundStyle(.secondary)
+            }
             Spacer()
         }
         .padding(.vertical, 2)
+    }
+
+    /// «Lector SD del Mac · 124,7 GB · ExFAT · 70 GB usados de 124,6 GB»; lo que no se sabe no sale.
+    private var details: String {
+        var parts = [disk.connection, Self.bytes(disk.size),
+                     disk.volumeType ?? L("Sistema de archivos desconocido")]
+        if let used = disk.usedBytes, let capacity = disk.volumeCapacity {
+            parts.append(L("\(Self.bytes(used)) usados de \(Self.bytes(capacity))"))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private static func bytes(_ count: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: count, countStyle: .file)
     }
 }
 
@@ -188,42 +222,88 @@ struct RecoveryActionBar: View {
 
 // MARK: - En marcha
 
-/// Recuento por tipo, tiempo transcurrido y «Cancelar».
+/// Estado, tiempo, recuento, espacio en el destino, «Pausar» / «Continuar» y «Cancelar».
+/// Compacto, porque debajo va la cuadrícula de lo que se va encontrando.
 struct RecoveryProgressView: View {
     let session: RecoverySession
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            OptionGroup(title: "Buscando") {
-                HStack(spacing: 10) {
+        OptionGroup(title: title) {
+            HStack(spacing: 10) {
+                if session.isPaused {
+                    Image(systemName: "pause.circle").foregroundStyle(.orange)
+                } else {
                     ProgressView().controlSize(.small)
-                    Text(statusText)
-                    Spacer()
-                    if let start = session.startDate {
-                        TimelineView(.periodic(from: start, by: 1)) { context in
-                            Text(Duration.seconds(context.date.timeIntervalSince(start)).formatted(.time(pattern: .hourMinuteSecond)))
-                                .monospacedDigit().foregroundStyle(.secondary)
-                        }
+                }
+                Text(statusText)
+                Spacer()
+                if let start = session.startDate {
+                    TimelineView(.periodic(from: start, by: 1)) { context in
+                        Text(Duration.seconds(context.date.timeIntervalSince(start)).formatted(.time(pattern: .hourMinuteSecond)))
+                            .monospacedDigit().foregroundStyle(.secondary)
                     }
                 }
-                RecoveryCountsView(counts: session.counts)
-                if let disk = session.selectedDisk {
-                    Text("«\(disk.name)» está desmontada mientras tanto. No la saques hasta que termine.")
-                        .font(.caption).foregroundStyle(.secondary)
-                }
+                buttons
             }
-            HStack {
+            if case .paused(automatic: true) = session.phase {
+                Label(lowSpaceText, systemImage: "externaldrive.badge.exclamationmark")
+                    .foregroundStyle(.orange)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(8)
+                    .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
+            }
+            HStack(alignment: .bottom) {
+                RecoveryCountsView(counts: session.counts)
                 Spacer()
-                Button("Cancelar") { session.cancel() }
-                    .disabled(session.phase != .running)
+                spaceText.font(.callout).foregroundStyle(.secondary).monospacedDigit()
+            }
+            if let disk = session.selectedDisk {
+                Text("«\(disk.name)» está desmontada mientras tanto. No la saques hasta que termine.")
+                    .font(.caption).foregroundStyle(.secondary)
             }
         }
+    }
+
+    @ViewBuilder
+    private var buttons: some View {
+        switch session.phase {
+        case .running:
+            Button("Pausar") { session.pause() }
+        case .paused:
+            Button("Continuar") { session.resume() }
+                .buttonStyle(.borderedProminent)
+                .disabled(!session.hasEnoughFreeSpace)
+                .help("Sigue donde se quedó. Hace falta sitio libre en el destino.")
+        default:
+            EmptyView()
+        }
+        Button("Cancelar") { session.cancel() }
+            .disabled(!(session.phase == .running || session.isPaused))
+    }
+
+    /// «Ocupa 12,4 GB · Quedan 38 GB libres».
+    private var spaceText: Text {
+        let used = ByteCountFormatter.string(fromByteCount: session.usedSpace, countStyle: .file)
+        guard let free = session.freeSpace else { return Text("Ocupa \(used)") }
+        return Text("Ocupa \(used) · Quedan \(ByteCountFormatter.string(fromByteCount: free, countStyle: .file)) libres")
+    }
+
+    private var lowSpaceText: String {
+        let minimum = ByteCountFormatter.string(fromByteCount: RecoverySession.minimumFreeSpace, countStyle: .file)
+        return session.hasEnoughFreeSpace
+            ? L("Ya hay sitio. Pulsa «Continuar» para seguir donde se quedó.")
+            : L("En pausa: el disco de destino se está llenando. Elimina lo que no quieras (o libera espacio en ese disco) hasta tener al menos \(minimum) libres y pulsa «Continuar».")
+    }
+
+    private var title: LocalizedStringKey {
+        session.isPaused ? "En pausa" : "Buscando"
     }
 
     private var statusText: LocalizedStringKey {
         switch session.phase {
         case .starting: return "Esperando la contraseña de administrador…"
         case .cancelling: return "Parando…"
+        case .paused: return "PhotoRec está detenido donde se quedó; no se pierde nada."
         default: return "Buscando fotos y vídeos borrados. Puede tardar bastante con tarjetas grandes."
         }
     }

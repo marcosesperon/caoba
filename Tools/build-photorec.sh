@@ -9,12 +9,17 @@
 # compruebe y corte bien los JPG danados. Sin ntfs-3g ni e2fsprogs: el modo
 # «solo espacio libre» funciona con FAT y exFAT (codigo propio de PhotoRec).
 #
+# Se aplica un cambio propio, Tools/photorec-fd.patch: si el dispositivo es
+# /dev/fd/N (la tarjeta que abre authopen con la contraseña), PhotoRec duplica
+# ese descriptor en vez de abrir la ruta, porque macOS volveria a comprobar los
+# permisos del dispositivo (de root) y daria «Permission denied».
+#
 # Junto al binario (dentro de la app) deja:
 #   VERSION          version de TestDisk
 #   COPYING          licencia GPL de TestDisk
 #   LICENSE-libjpeg  licencia de libjpeg (README de la IJG)
 # Y en CaobaApp/Vendor/photorec-source (fuera de la app) el codigo fuente exacto
-# de TestDisk y libjpeg, que Tools/make-release.sh adjunta a cada release.
+# de TestDisk y libjpeg, mas el parche, que Tools/make-release.sh adjunta a cada release.
 #
 # Uso: Tools/build-photorec.sh
 set -eu
@@ -27,6 +32,7 @@ JPEG_SHA256="04705c110cb2469caa79fb71fba3d7bf834914706e9641a4589485c1f832565b"
 MIN_MACOS="14.0"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PATCH="$ROOT/Tools/photorec-fd.patch"
 DEST="$ROOT/CaobaApp/Vendor/photorec"
 SOURCES="$ROOT/CaobaApp/Vendor/photorec-source"
 WORK="$ROOT/build/photorec"
@@ -34,7 +40,7 @@ TESTDISK_TAR="testdisk-$TESTDISK_VERSION.tar.bz2"
 JPEG_TAR="jpegsrc.$JPEG_VERSION.tar.gz"
 
 if [ -f "$DEST/VERSION" ] && [ "$(cat "$DEST/VERSION")" = "$TESTDISK_VERSION" ] && [ -x "$DEST/photorec" ] &&
-   [ -f "$SOURCES/$TESTDISK_TAR" ]; then
+   [ -f "$SOURCES/$TESTDISK_TAR" ] && cmp -s "$PATCH" "$SOURCES/photorec-fd.patch"; then
   echo "PhotoRec $TESTDISK_VERSION ya esta en $DEST"
   exit 0
 fi
@@ -82,6 +88,10 @@ build_arch() {
 
   # PhotoRec solo linea de comandos: sin ncurses, Qt, ntfs, ext2fs, ewf ni reiserfs.
   tar xjf "$WORK/src/$TESTDISK_TAR" -C "$dir"
+  patch -s -p1 -d "$dir/testdisk-$TESTDISK_VERSION" <"$PATCH" || {
+    echo "No se pudo aplicar $PATCH" >&2
+    exit 1
+  }
   (cd "$dir/testdisk-$TESTDISK_VERSION" &&
     CFLAGS="$flags" LDFLAGS="-arch $arch -mmacosx-version-min=$MIN_MACOS" ./configure --host="$host" \
       --disable-qt --without-ncurses --without-ntfs --without-ntfs3g --without-ext2fs \
@@ -114,7 +124,7 @@ fi
 echo "$TESTDISK_VERSION" >"$DEST/VERSION"
 cp "$WORK/arm64/testdisk-$TESTDISK_VERSION/COPYING" "$DEST/COPYING"
 cp "$WORK/arm64/jpeg-${JPEG_VERSION#v}/README" "$DEST/LICENSE-libjpeg"
-cp "$WORK/src/$TESTDISK_TAR" "$WORK/src/$JPEG_TAR" "$SOURCES/"
+cp "$WORK/src/$TESTDISK_TAR" "$WORK/src/$JPEG_TAR" "$PATCH" "$SOURCES/"
 # Para que quien descargue el codigo sepa como se compilo el binario.
 cp "$0" "$SOURCES/build-photorec.sh"
 

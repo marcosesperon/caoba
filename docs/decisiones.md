@@ -3326,3 +3326,157 @@ Plan aprobado por el usuario («dale»).
 ### 6. Pendiente de comprobar
 - El aviso y «Recargar» con cambios reales hechos en el Finder: no se pueden accionar desde aquí; los prueba el usuario con `scratchpad/prueba-recargar`.
 - Publicado junto con la petición anterior (destino obligatorio) a petición del usuario («haz commit y publica») en la versión 3.22.0, con release en GitHub. Las dos peticiones van en un mismo commit porque tocan los mismos ficheros.
+
+## 2026-11-14 — La tarjeta del lector SD del Mac no aparece en «Recuperar fotos»; recargar la lista y más pistas en cada tarjeta
+
+### 1. La petición tal como se ha entendido
+- **Lector SD del Mac**: la lista de tarjetas ofrece también los discos que macOS marca como internos pero extraíbles (el lector SD integrado). El SSD del Mac sigue fuera (no es extraíble) y el disco de arranque sigue excluido aparte.
+- **Más pistas en cada tarjeta**: nombre del volumen, cámara que la usó (deducida de los nombres de las carpetas de `DCIM`, como `100CANON` → Canon; sin escribir nada y solo si la tarjeta está montada y se reconoce la marca), por dónde está conectada («Lector SD del Mac» o el modelo del lector USB), tamaño, sistema de archivos y espacio ocupado («38 GB usados de 124,7 GB», solo si está montada). Lo que no se pueda saber, no se enseña.
+- **Botón «Recargar»** en el grupo «Tarjeta»: vuelve a preguntar a macOS por todos los discos y actualiza la lista y sus datos. No monta ni desmonta nada.
+
+Confirmada por el usuario («si»).
+
+Petición original: «¿puedes comprobar si funciona el mostrar una tarjeta SD en recuperar?». Diagnóstico: una SD Canon de 124,7 GB (`EOS_DIGITAL`, exFAT) metida en el lector SD integrado del Mac no salía en la lista, porque macOS marca ese lector como interno (`DADeviceInternal = 1`, aunque `DAMediaRemovable = 1`) y `ExternalDiskMonitor.isOffered` descarta todo lo interno. Propuesta aceptada: ofrecer también los discos internos extraíbles. Ampliación del usuario: «añade también opción en la interfaz de recargar esa lista... y ver si de algún modo podemos mostrar el título o nombre del volumen para dar más pistas».
+
+### 2. Preguntas y respuestas
+- **¿Qué datos se enseñan en cada tarjeta?** (1: nombre del volumen y por dónde está conectada; 2: además la cámara, deducida de las carpetas de `DCIM`; 3: además el espacio ocupado) → Opción 3: nombre del volumen, cámara, conexión, tamaño, sistema de archivos y espacio ocupado.
+- **¿Qué hace «Recargar»?** (1: volver a leer la lista de discos sin tocar nada; 2: además montar las tarjetas conectadas sin montar, con el riesgo de que macOS escriba en ellas) → Opción 1.
+
+### 3. Fuentes analizadas
+- `Model/Recovery/ExternalDiskMonitor.swift` (`isOffered` descartaba todo `DADeviceInternal`; nombre del volumen ya leído de `DAVolumeName`, con el modelo del dispositivo como reserva; `volumeType` leído de `DAVolumeType`), `Views/Modules/Recovery/RecoveryView.swift` (`DiskRow` en una línea), `Views/Shared/Theme.swift` (`OptionGroup`).
+- Descripción de DiskArbitration de la tarjeta real (`disk4`, lector «Built In SDXC Reader», protocolo «Secure Digital»: `DADeviceInternal = 1`, `DAMediaRemovable = 1`; `disk4s1`: `DAVolumeKind = exfat`, `DAVolumeName = EOS_DIGITAL`, y **ninguna clave `DAVolumeType`**) y del SSD (`disk0`: interno, no extraíble, «Apple Fabric»).
+- Contenido de `DCIM` de la tarjeta (solo listado): `100EOSR6` y `CANONMSC`. No hay `100CANON`.
+
+Plan aprobado por el usuario («dale»).
+
+### 4. Decisiones
+- Se ofrecen los discos internos si `DAMediaRemovable` es cierto. El disco de arranque sigue excluido aparte (por si arranca desde algo extraíble).
+- Marca de la cámara en `CaobaCore` (`CameraBrand`, testeable) por votación entre las carpetas de `DCIM`; con empate gana la que va antes en la lista, para que el resultado no dependa del orden del diccionario. Las Canon actuales se reconocen por `EOS…` y `CANONMSC`, comprobado con la tarjeta real.
+- Fila en dos líneas: arriba nombre del volumen y marca; debajo, en gris, conexión, tamaño, sistema de archivos y «X usados de Y» (capacidad del volumen, no del disco: así usado y total salen de la misma fuente). Sin nombre de volumen se enseña «Sin nombre de volumen» en vez del modelo del lector (que ya sale en la conexión).
+- `OptionGroup` gana un hueco opcional (`accessory`) a la derecha del título; con un `init` sin él, los otros 50 usos no cambian.
+- **Añadido al probar**: el sistema de archivos salía siempre «desconocido» porque `DAVolumeType` no existe en la descripción de DiskArbitration (fallo de la versión 3.21.0). Ahora se saca de `DAVolumeKind` (`exfat` → «exFAT», `msdos` → «FAT»…).
+- Traducción al inglés de los 6 textos nuevos (insertados a mano arriba del catálogo, como en las peticiones anteriores).
+
+### 5. Alternativas descartadas
+- Montar las tarjetas sin montar al recargar: macOS escribe sus ficheros ocultos y puede pisar lo borrado (respuesta 2).
+- Reconocer la marca solo por `NNNCANON`, `NNNNIKON`…: la tarjeta real (Canon EOS R6) usa `100EOSR6`, así que habría fallado justo con el caso probado.
+- Leer la marca del EXIF de una foto de la tarjeta: más preciso (daría el modelo), pero abre ficheros de la tarjeta y es más lento; para una pista basta con los nombres de las carpetas.
+- Sacar el sistema de archivos del volumen montado (`volumeLocalizedFormatDescription`): sin montar no da nada, y `DAVolumeKind` sí está aunque no esté montada.
+
+### 6. Pendiente de comprobar
+- Probado con la tarjeta real en el lector SD del Mac (captura): sale «EOS_DIGITAL · Canon» y «Lector SD del Mac · 124,68 GB · exFAT · 69,61 GB usados de 124,64 GB». 186 tests en verde.
+- Botón «Recargar»: no se ha pulsado desde aquí; lo prueba el usuario (por ejemplo, sacando y metiendo la tarjeta o renombrándola).
+- Reglas de marca de Nikon, Sony, Fujifilm, OM System, Panasonic, Pentax, Ricoh, Leica y GoPro: salen de la convención de cada marca, sin tarjeta real. `ND…` para Nikon podría confundir alguna carpeta de otra marca que empiece igual.
+- Lector SD USB: el texto de conexión será el modelo que dé el lector («STORAGE DEVICE» en muchos), que puede no decir mucho.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-14 — Identificar los discos APFS y las imágenes de disco en «Recuperar fotos»
+
+### 1. La petición tal como se ha entendido
+- **Discos APFS**: cuando el volumen de un disco está en un contenedor APFS (un disco virtual aparte, `disk6`, cuyo almacén físico es una partición del disco ofrecido, `disk5s1`), la fila enseña el nombre de ese volumen y «APFS» como sistema de archivos, igual que con FAT o exFAT. Vale para discos reales (USB, SSD externa) y para imágenes.
+- **Imágenes de disco** (solo con el ajuste de desarrollo `caoba.dev.recoveryDiskImages`): en lugar de «Imagen de disco», el nombre del fichero de la imagen («CAOBA-3.17.0.dmg»), o «Disco en RAM» si es un `ram://`.
+- La marca de la cámara y el espacio usado también salen si el volumen APFS está montado.
+
+Confirmada por el usuario («si»).
+
+Petición original: «estos discos iguales no se pueden identificar de algún modo?», con captura de tres filas «Sin nombre de volumen · Imagen de disco · Sistema de archivos desconocido» (el simulador de iOS 26.2, el DMG de CAOBA 3.17.0 y un disco en RAM montado en `/private/tmp/.ws_preview`).
+
+### 2. Preguntas y respuestas
+- **¿Qué se hace?** (1: seguir el contenedor APFS hasta su volumen, que arregla también los discos reales en APFS; 2: nombre del fichero en las imágenes de disco; o las dos) → Las dos.
+
+### 3. Fuentes analizadas
+- `hdiutil info` (las tres filas eran el simulador de iOS 26.2, `dist/CAOBA-3.17.0.dmg` y un `ram://` montado en `/private/tmp/.ws_preview`), `diskutil info -plist disk6` (`APFSPhysicalStores` = `disk5s1`) e `ioreg` (el `IOMedia` del contenedor `disk6` cuelga del de `disk5s1`; las imágenes llevan `DiskImageURL` o `image-path` en sus padres).
+
+Plan aprobado por el usuario («si»), junto con el arreglo de la petición siguiente, que se hizo primero.
+
+### 4. Decisiones
+- Todo con IOKit desde el propio aviso de DiskArbitration (`DADiskCopyIOMedia`), sin lanzar `diskutil` ni `hdiutil`. Lo encontrado se guarda en la descripción con claves propias, así «Recargar» (que borra las descripciones) lo limpia también.
+- Los volúmenes de los contenedores APFS cuentan como volúmenes del disco físico: nombre, «APFS», puntos de montaje, marca y espacio usado salen sin más cambios. De paso, la comprobación de que el destino no esté en la tarjeta (que mira los puntos de montaje) cubre ahora también los discos APFS.
+- Resultado comprobado con captura: «iOS 26.2 Simulator · 043-87504-067.dmg · 17,65 GB · APFS · 17,19 GB usados de 17,65 GB», «CAOBA 3.17.0 · CAOBA-3.17.0.dmg · 59,2 MB · APFS» y «Sin nombre de volumen · Disco en RAM · 361,8 MB».
+
+### 5. Alternativas descartadas
+- `diskutil info -plist` para el almacén APFS y `hdiutil info -plist` para las imágenes: lanzar procesos en cada aviso de disco, más lento y frágil; IOKit da lo mismo directamente.
+- Ocultar los discos en RAM: solo salen con el ajuste de desarrollo, y con el nombre ya no confunden.
+
+### 6. Pendiente de comprobar
+- Un disco USB real formateado en APFS (solo probado con imágenes).
+- «CAOBA 3.17.0» no enseña espacio usado: el volumen de esa imagen no da capacidad (probablemente por ser de solo lectura). No afecta a tarjetas.
+
+## 2026-11-14 — PhotoRec no puede abrir una tarjeta real («No se ha podido leer la tarjeta»)
+
+### 1. La petición tal como se ha entendido
+Al recuperar de la SD (`EOS_DIGITAL` en el lector del Mac), pide la contraseña y luego termina con «No se ha podido leer la tarjeta». Hay que hacer que PhotoRec lea la tarjeta que abre `authopen`. Petición del usuario: «intento recuperar de la SD, me pide password y cuando lanza el proceso da error». Diagnóstico y arreglo propuestos y aprobados («si»).
+
+### 2. Preguntas y respuestas
+- Ninguna: el fallo y el arreglo se explicaron con el diagnóstico y el usuario aprobó el plan.
+
+### 3. Fuentes analizadas
+- `photorec-output.txt` de los dos intentos (`~/Desktop/RECUPERAR/Recuperado EOS_DIGITAL 2026-11-14 10.30` y `10.31`): «Unable to open file or device /dev/fd/0: Permission denied». Sin `photorec.log`.
+- TestDisk 7.2, `src/hdaccess.c` (`file_test_availability`: abre la ruta con `open(device, O_RDONLY|O_EXCL)`; no hay otro `open` del dispositivo) y `src/phmain.c` (modo por defecto `TESTDISK_O_RDONLY`).
+- Permisos: `/dev/rdisk4` es `root:operator` `crw-r-----`; los dispositivos de una imagen montada con `hdiutil attach` son del usuario.
+- Reproducción sin contraseña: fichero abierto en el descriptor 3, luego `chmod 000`, y PhotoRec con `/cmd /dev/fd/0 … <&3` da el mismo «Permission denied».
+
+### 4. Decisiones
+- Causa: en macOS, abrir `/dev/fd/N` no es un simple duplicado; vuelve a comprobar los permisos del fichero o dispositivo de debajo. El descriptor de `authopen` llegaba bien, pero PhotoRec no lo usaba tal cual. En las pruebas de 3.21.0 no se vio porque se usó una imagen de disco, cuyos dispositivos son del usuario. **Las versiones 3.21.0 y 3.22.0 no pueden recuperar de una tarjeta real.**
+- Arreglo: `Tools/photorec-fd.patch` (tres líneas en `hdaccess.c`): si la ruta empieza por `/dev/fd/`, `dup(N)` en lugar de `open`. Lo aplica `build-photorec.sh`, que también lo copia a `photorec-source` (se adjunta a la release con el resto del código, como pide la GPL para versiones modificadas) y recompila si el parche cambia. Créditos (es/en) avisan del cambio.
+- Comprobado con el binario parcheado y la reproducción de arriba: «Disk /dev/fd/0 - 8388 KB (RO)» y búsqueda completa.
+
+### 5. Alternativas descartadas
+- Pasar a PhotoRec una tubería con los datos leídos por CAOBA: PhotoRec necesita saltar de un sitio a otro del disco (`pread`), no vale una tubería.
+- Volver a lanzar PhotoRec como root: es lo que se quitó por los permisos de carpetas (TCC, código 91).
+- Pedir al usuario «Acceso total al disco» o meterlo en el grupo `operator`: no daría permiso sobre un dispositivo de root, y además es pedir demasiado.
+- Cambiar `PhotoRecLauncher` para pasar otra ruta: cualquier ruta que PhotoRec abra pasa por la misma comprobación de permisos.
+
+### 6. Pendiente de comprobar
+- Prueba con la SD real (necesita la contraseña del usuario).
+- Publicar cuanto antes una versión con el arreglo (3.21.0 y 3.22.0 están rotas para tarjetas reales), cuando lo indique el usuario.
+- Los dos intentos fallidos dejaron carpetas con solo `photorec-output.txt` en `~/Desktop/RECUPERAR`; se pueden borrar.
+
+## 2026-11-14 — Ver lo recuperado mientras PhotoRec busca y eliminar lo que no interesa
+
+### 1. La petición tal como se ha entendido
+- **Mientras busca**: bajo el progreso, la cuadrícula de lo encontrado, refrescada cada pocos segundos y agrupada por bloques (cada `recup_dir.N` de PhotoRec es «Bloque N · X ficheros»). El bloque en el que escribe PhotoRec sale «en curso»: no se puede eliminar entero ni tocar el fichero que se está escribiendo.
+- **Marcar y eliminar**: casilla en cada miniatura, mayúsculas + clic para un tramo, «Marcar lo que se ve» (respeta el filtro de tipo), «Desmarcar todo», y en cada cabecera «Marcar bloque» y «Eliminar bloque». «Eliminar marcadas» y «Eliminar bloque» piden confirmación y borran definitivamente. El recuento enseña encontrados y eliminados.
+- **Espacio y pausa**: siempre a la vista «Ocupa X · Quedan Y libres» del destino. Con menos de 2 GB libres, CAOBA pausa PhotoRec y avisa; tras liberar espacio, «Continuar» sigue donde estaba. «Pausar» y «Continuar» también a mano. «Cancelar» como ahora.
+- **Al terminar**: la misma cuadrícula con las mismas formas de marcar y eliminar, y «Ordenar por fecha…» como ahora.
+
+Confirmada por el usuario («si»).
+
+Petición original: «hay herramientas como Wondershare Recoverit que permiten previsualizar los ficheros (jpg, raw...) antes de recuperar. A medida que va realizando análisis de la tarjeta va mostrando un grid con los ficheros y luego se marcan checks para recuperar. ¿Eso es viable? ¿Esa acción requiere espacio en disco?». Se explicaron dos caminos: A (cuadrícula en directo con PhotoRec tal cual, que escribe todo lo que encuentra y necesita espacio temporal) y B (motor propio que solo indexa y lee de la tarjeta, sin espacio pero con mucho trabajo y peor calidad que PhotoRec). Respuesta: «me gusta la primera opción, pero como realmente ya está grabando en disco no veo lo de la check para guardar seleccionadas. A lo mejor puede haber la check pero para eliminar del disco recuperado, incluso por bloques (que veo que PhotoRec va recuperando por carpetas). De ese modo puedes ir limpiando el disco si no son las fotos que quieres recuperar mientras el proceso sigue».
+
+### 2. Preguntas y respuestas
+- **¿Qué se puede eliminar mientras busca?** (1: fotos sueltas con casilla y «Eliminar marcadas»; 2: bloques enteros, una carpeta `recup_dir.N` de PhotoRec; 3: las dos, con la cuadrícula agrupada por bloques) → Opción 3.
+- **¿Qué pasa con lo eliminado?** (1: se borra definitivamente, con confirmación, y libera espacio al momento; 2: a la Papelera, que no libera espacio hasta vaciarla) → Opción 1. Si hay un error, lo borrado sigue en la tarjeta y se puede volver a buscar.
+- **¿Atajos para marcar?** (1: casilla, mayúsculas + clic para un tramo, «Marcar lo que se ve» respetando el filtro, «Desmarcar todo», y «Marcar bloque» / «Eliminar bloque» en cada cabecera; 2: solo casilla y «Desmarcar todo») → Opción 1.
+- **¿Qué se hace con el espacio en disco?** (1: enseñar ocupado y libre y avisar con menos de 2 GB; 2: además pausar PhotoRec sola con menos de 2 GB, con «Continuar» y un botón «Pausar» manual) → Opción 2. El usuario añade: «ahora está pasando que se para y no puedo continuar por donde había quedado tras liberar espacio».
+
+### 3. Fuentes analizadas
+- TestDisk 7.2 `src/photorec.c`: nueva `recup_dir.N` cada 500 ficheros según su propio contador (`params->file_nbr % MAX_FILES_PER_DIR`), no según lo que hay en disco; `photorec_mkdir` salta números que ya existan. Borrar ficheros o carpetas ya cerradas no le afecta.
+- `src/file_jpg.c`: la miniatura de un JPG se llama como el fichero cambiando la `f` inicial por `t`.
+- `RecoverySession` (resultados solo al terminar, recuento cada medio segundo), `RecoveryResults`, `RecoveryResultsView`, `RecoveryView` (progreso), `PhotoRecLauncher` (`Process`, cancelar con SIGTERM), `RecoveredFiles`.
+
+Plan aprobado por el usuario («dale»).
+
+### 4. Decisiones
+- **Mientras busca solo se ve lo «asentado»** (sin cambios en 3 segundos). Es la forma más sencilla de proteger el fichero que PhotoRec está escribiendo (no sale, así que no se puede marcar ni borrar) y de no pedir a QuickLook miniaturas de ficheros a medias. Un vídeo grande aparece cuando PhotoRec termina de escribirlo.
+- **Bloque «en curso»** = el último mientras busca: sin «Eliminar bloque». Sus ficheros asentados sí se pueden marcar y borrar.
+- **Borrar sin molestar a PhotoRec**: comprobado en `photorec.c` que la carpeta nueva sale de su contador, no de lo que hay en disco. Al borrar un JPG se borra también su miniatura `t…jpg` (ocupa y no se ve).
+- **Pausa con SIGSTOP / SIGCONT** (`Process.suspend()` / `resume()`): PhotoRec no se entera y sigue donde estaba. Umbral de 2 GB sobre el espacio libre real (`volumeAvailableCapacity`), no el «disponible para lo importante», que cuenta lo que macOS podría purgar y engaña. Al cancelar en pausa se despierta antes al proceso. Test: el proceso queda en estado `T` y cancelar en pausa lo para en menos de 10 segundos.
+- «Ordenar por fecha…» solo al terminar: mientras busca la lista está incompleta.
+- La comprobación de espacio antes de empezar ahora dice que CAOBA pausará si se llena (antes decía que PhotoRec pararía).
+- **Test endurecido del descriptor**: el test que lanza PhotoRec por `/dev/fd/0` ahora quita los permisos de la imagen tras abrirla, como una tarjeta de root. Sin el parche de la petición anterior fallaría; antes pasaba aunque PhotoRec no pudiera leer tarjetas reales.
+- **Modo de prueba** (`DemoPhotoRecRunner`, solo Debug, `--state recovery.demo` y `recovery.demoOut`) para probar y capturar sin tarjeta ni contraseña. Probado: la cuadrícula se llena en directo por bloques con «en curso», el recuento y «Ocupa · Quedan libres» se actualizan, borrar un bloque desde fuera mientras busca se refleja en el siguiente refresco, y al terminar sale la misma cuadrícula con «Ordenar por fecha…». 188 tests.
+- Traducción al inglés de los 29 textos nuevos.
+
+### 5. Alternativas descartadas
+- Casillas «para guardar» en lugar de «para eliminar»: PhotoRec ya ha escrito todo en el disco; guardar lo marcado no ahorraría nada (propuesta del usuario).
+- Motor propio que solo indexa y lee de la tarjeta (como Recoverit): mucho trabajo y peor que PhotoRec en formatos, validación y ficheros partidos.
+- Papelera en lugar de borrar: no libera espacio hasta vaciarla (respuesta 2).
+- Proteger el fichero en curso buscando el más reciente por nombre: PhotoRec nombra por posición en la tarjeta, no por orden de escritura en todas las pasadas; la fecha de modificación es más fiable.
+- Retomar una búsqueda que PhotoRec ya dio por acabada (sesión `photorec.ses`): en modo `/cmd` no es fiable; con la pausa automática no debería hacer falta.
+
+### 6. Pendiente de comprobar
+- Desde la interfaz, con clics de verdad: casillas, mayúsculas + clic, «Marcar lo que se ve», «Eliminar marcadas», «Eliminar bloque…», «Pausar» y «Continuar». Desde aquí no se puede hacer clic; lo prueba el usuario con el modo de prueba o con la SD.
+- La pausa automática con un disco que se llena de verdad.
+- Con la SD real (contraseña): que PhotoRec lee la tarjeta con el parche de `/dev/fd` y que la pausa SIGSTOP no da problemas con el lector.
+- Sin commit ni publicación hasta que lo indique el usuario.

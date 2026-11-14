@@ -134,6 +134,10 @@ struct RecoveryTests {
         let out = folder.appendingPathComponent("salida")
         try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
         let device = try AuthOpen.openReadOnly(card.disk.path)
+        // Como una tarjeta de verdad, que es de root: ya abierta, el usuario no puede abrirla por la ruta.
+        // Sin el parche de `/dev/fd` (Tools/photorec-fd.patch), PhotoRec daría «Permission denied».
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: card.disk.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: card.disk.path) }
         let args = try PhotoRecCommand.arguments(for: PhotoRecOptions(device: card.disk.path, scope: .wholeDisk), outputFolder: out)
 
         let exit = try await PhotoRecLauncher().run(photoRec: Self.photoRecPath, arguments: args, devicePath: card.disk.path,
@@ -145,6 +149,50 @@ struct RecoveryTests {
         let files = RecoveredFiles.list(in: out)
         #expect(files.count == 1)
         #expect(try Data(contentsOf: files[0]) == card.jpeg)
+    }
+
+    @Test("Pausar detiene PhotoRec y cancelar en pausa lo para igual",
+          .enabled(if: FileManager.default.isExecutableFile(atPath: RecoveryTests.photoRecPath.path)))
+    func launcherPauses() async throws {
+        let folder = try TestImages.makeTempFolder()
+        let big = folder.appendingPathComponent("grande.img")
+        FileManager.default.createFile(atPath: big.path, contents: nil)
+        let handle = try FileHandle(forWritingTo: big)
+        try handle.truncate(atOffset: 8 << 30)
+        try handle.close()
+        defer { try? FileManager.default.removeItem(at: big) }
+        let out = folder.appendingPathComponent("salida")
+        try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        let args = try PhotoRecCommand.arguments(for: PhotoRecOptions(device: big.path, scope: .wholeDisk), outputFolder: out)
+
+        let launcher = PhotoRecLauncher()
+        let state = Task { () -> String in
+            try await Task.sleep(for: .seconds(1))
+            launcher.pause()
+            try await Task.sleep(for: .milliseconds(500))
+            let state = Self.processState(launcher.processIdentifier)
+            launcher.terminate()
+            return state
+        }
+        let start = Date()
+        let exit = try await launcher.run(photoRec: Self.photoRecPath, arguments: args, devicePath: big.path,
+                                          device: try AuthOpen.openReadOnly(big.path), outputFolder: out)
+        // `T` = detenido en `ps`.
+        #expect(try await state.value.hasPrefix("T"))
+        #expect(exit.wasTerminated)
+        #expect(Date().timeIntervalSince(start) < 10)
+    }
+
+    /// Estado de un proceso según `ps` (`R`, `S`, `T`…).
+    static func processState(_ pid: Int32) -> String {
+        let ps = Process()
+        ps.executableURL = URL(fileURLWithPath: "/bin/ps")
+        ps.arguments = ["-o", "state=", "-p", String(pid)]
+        let pipe = Pipe()
+        ps.standardOutput = pipe
+        try? ps.run()
+        ps.waitUntilExit()
+        return String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     @Test("Cancelar para PhotoRec a mitad",
@@ -245,6 +293,43 @@ struct RecoveryTests {
         #expect(counts.total == 5)
     }
 
+    @Test("Bloques: por carpeta, sin lo que se está escribiendo; borrar ficheros con su miniatura y bloques enteros")
+    func recoveredBlocks() throws {
+        let out = try TestImages.makeTempFolder()
+        let fm = FileManager.default
+        for (dir, names) in [("recup_dir.1", ["f0000010.jpg", "t0000010.jpg", "f0000020.cr3"]),
+                             ("recup_dir.3", ["f0000900.mp4", "f0000950.jpg"])] {
+            let folder = out.appendingPathComponent(dir)
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            for name in names { fm.createFile(atPath: folder.appendingPathComponent(name).path, contents: Data([1])) }
+        }
+        // El último JPG «se está escribiendo»: modificado hace un segundo.
+        let writing = out.appendingPathComponent("recup_dir.3/f0000950.jpg")
+        let now = Date()
+        try fm.setAttributes([.modificationDate: now.addingTimeInterval(-1)], ofItemAtPath: writing.path)
+        for name in ["recup_dir.1/f0000010.jpg", "recup_dir.1/f0000020.cr3", "recup_dir.3/f0000900.mp4"] {
+            try fm.setAttributes([.modificationDate: now.addingTimeInterval(-60)], ofItemAtPath: out.appendingPathComponent(name).path)
+        }
+
+        let all = RecoveredFiles.blocks(in: out)
+        #expect(all.map(\.number) == [1, 3])
+        #expect(all.map { $0.files.map(\.lastPathComponent) } == [["f0000010.jpg", "f0000020.cr3"], ["f0000900.mp4", "f0000950.jpg"]])
+        let settled = RecoveredFiles.blocks(in: out, settledFor: 3, now: now)
+        #expect(settled[1].files.map(\.lastPathComponent) == ["f0000900.mp4"])
+
+        // Borrar un JPG se lleva su miniatura; lo que ya no existe no es un fallo.
+        let jpg = out.appendingPathComponent("recup_dir.1/f0000010.jpg")
+        let result = RecoveredFiles.delete([jpg, out.appendingPathComponent("recup_dir.1/no-existe.jpg")])
+        #expect(result.deleted == 1)
+        #expect(result.failures.isEmpty)
+        #expect(!fm.fileExists(atPath: out.appendingPathComponent("recup_dir.1/t0000010.jpg").path))
+        #expect(fm.fileExists(atPath: out.appendingPathComponent("recup_dir.1/f0000020.cr3").path))
+
+        // Borrar un bloque entero.
+        #expect(try RecoveredFiles.deleteBlock(all[1]) == 2)
+        #expect(RecoveredFiles.blocks(in: out).map(\.number) == [1])
+    }
+
     // MARK: Fecha de captura
 
     @Test("Fecha EXIF de la foto; sin EXIF no hay fecha aunque el fichero tenga una")
@@ -301,5 +386,23 @@ struct RecoveryTests {
         // Otra vez a la misma carpeta: no pisa nada, sigue numerando.
         _ = try await PhotoOrganizer.organize([a], into: destination)
         #expect(fm.fileExists(atPath: destination.appendingPathComponent("2024/05-31/2024-05-31_142210_3.jpg").path))
+    }
+
+    // MARK: Marca de la cámara
+
+    @Test("Marca de la cámara por las carpetas de DCIM")
+    func cameraBrand() {
+        // Tarjeta real de una Canon EOS R6.
+        #expect(CameraBrand.detect(dcimFolders: ["100EOSR6", "CANONMSC"]) == "Canon")
+        #expect(CameraBrand.detect(dcimFolders: ["100CANON", "101CANON"]) == "Canon")
+        #expect(CameraBrand.detect(dcimFolders: ["100MSDCF"]) == "Sony")
+        #expect(CameraBrand.detect(dcimFolders: ["100ND850"]) == "Nikon")
+        #expect(CameraBrand.detect(dcimFolders: ["100_FUJI", "101_FUJI"]) == "Fujifilm")
+        #expect(CameraBrand.detect(dcimFolders: ["100gopro"]) == "GoPro")
+        // Gana la que más carpetas tiene.
+        #expect(CameraBrand.detect(dcimFolders: ["100MSDCF", "100CANON", "101CANON"]) == "Canon")
+        // Lo que no se reconoce no da marca.
+        #expect(CameraBrand.detect(dcimFolders: ["100APPLE", "Fotos"]) == nil)
+        #expect(CameraBrand.detect(dcimFolders: []) == nil)
     }
 }

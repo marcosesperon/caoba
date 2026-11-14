@@ -47,8 +47,27 @@ public final class PhotoRecLauncher: @unchecked Sendable {
     }
 
     /// Pide a PhotoRec que pare (SIGTERM): termina limpiamente y `run` vuelve poco después.
+    /// Si estaba en pausa, antes se le despierta: un proceso detenido no atiende la señal.
     public func terminate() {
         lock.withLock { terminated = true }
-        if process.isRunning { process.terminate() }
+        guard process.isRunning else { return }
+        _ = process.resume()
+        process.terminate()
     }
+
+    /// Detiene PhotoRec (SIGSTOP) sin perder nada: se queda justo donde estaba hasta `resume()`.
+    /// Para cuando el destino se está llenando o el usuario quiere revisar con calma.
+    @discardableResult
+    public func pause() -> Bool {
+        process.isRunning && process.suspend()
+    }
+
+    /// Reanuda PhotoRec (SIGCONT) donde se quedó.
+    @discardableResult
+    public func resume() -> Bool {
+        process.isRunning && process.resume()
+    }
+
+    /// Identificador del proceso (0 si no ha arrancado). Para las pruebas.
+    public var processIdentifier: Int32 { process.processIdentifier }
 }

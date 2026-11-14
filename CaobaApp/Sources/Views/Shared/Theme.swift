@@ -90,17 +90,29 @@ struct SilentStripes: View {
 }
 
 /// Bloque de opciones con cabecera: el título encima y los controles en un bloque.
-struct OptionGroup<Content: View>: View {
+/// `accessory` va a la derecha del título (un botón pequeño, por ejemplo); por defecto, nada.
+struct OptionGroup<Content: View, Accessory: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var content: Content
+    @ViewBuilder var accessory: Accessory
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.headline).padding(.leading, 4)
+            HStack {
+                Text(title).font(.headline).padding(.leading, 4)
+                Spacer()
+                accessory
+            }
             VStack(alignment: .leading, spacing: 10) { content }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .caobaPanel()
         }
+    }
+}
+
+extension OptionGroup where Accessory == EmptyView {
+    init(title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
+        self.init(title: title, content: content, accessory: { EmptyView() })
     }
 }
 

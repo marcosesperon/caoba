@@ -30,6 +30,10 @@ protocol PhotoRecRunning: AnyObject {
     func run(arguments: [String], device: String, outputFolder: URL) async throws -> PhotoRecOutcome
     /// Pide que pare. `run` acaba poco después devolviendo `.cancelled`.
     func cancel()
+    /// Detiene PhotoRec donde esté, sin perder nada. `false` si no está buscando.
+    func pause() -> Bool
+    /// Reanuda PhotoRec donde se quedó.
+    func resume() -> Bool
 }
 
 /// Lanzador con `authopen`: la app pide autorización para **leer** esa tarjeta (el diálogo
@@ -79,6 +83,10 @@ final class AuthOpenPhotoRecRunner: PhotoRecRunning {
         cancelRequested = true
         launcher?.terminate()
     }
+
+    func pause() -> Bool { launcher?.pause() ?? false }
+
+    func resume() -> Bool { launcher?.resume() ?? false }
 
     /// Lee el log y la salida que dejó PhotoRec.
     private static func report(in folder: URL) -> PhotoRecReport {
