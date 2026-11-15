@@ -11,54 +11,63 @@ struct SourceFolderBar: View {
 
     var body: some View {
         @Bindable var state = appState
-        HStack(spacing: 10) {
-            Image(systemName: "folder").foregroundStyle(.secondary)
-            Text(appState.sourceFolder?.path ?? String(localized: "Empieza eligiendo o arrastrando una carpeta de fotos"))
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .foregroundStyle(appState.sourceFolder == nil ? Color.accentColor : .primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 10) {
+                Image(systemName: "folder").foregroundStyle(.secondary)
+                Text(appState.sourceFolder?.path ?? String(localized: "Empieza eligiendo o arrastrando una carpeta de fotos"))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .foregroundStyle(appState.sourceFolder == nil ? Color.accentColor : .primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-            if appState.isScanning {
-                ProgressView().controlSize(.small)
-            } else if appState.sourceFolder != nil {
-                Text("\(appState.files.count) fotos")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            // Para cuando se han tocado fotos por fuera (Finder, Lightroom…) después de abrir la carpeta.
-            if appState.sourceFolder != nil {
-                Button("Recargar") { Task { await appState.reload() } }
-                    .controlSize(.small)
-                    .disabled(appState.isScanning)
-                    .help("Vuelve a leer la carpeta: para cuando se han borrado, renombrado o añadido fotos por fuera.")
-            }
-
-            if appState.hasFolderConfig {
-                Label("Configuración restaurada", systemImage: "checkmark.circle")
-                    .font(.callout).foregroundStyle(.secondary)
-                // Borra lo guardado de la carpeta y no se puede deshacer: se pide confirmación.
-                Button("Reiniciar") { confirmReset = true }
-                    .controlSize(.small)
-                    .help("Borra la configuración guardada en esta carpeta. El historial de renombrados se conserva.")
-            }
-
-            if !appState.recentFolders.isEmpty {
-                Menu {
-                    ForEach(appState.recentFolders, id: \.self) { url in
-                        Button(url.lastPathComponent) { Task { await appState.selectSourceFolder(url) } }
-                            .help(url.path)
-                    }
-                } label: {
-                    Label("Recientes", systemImage: "clock")
+                if appState.isScanning {
+                    ProgressView().controlSize(.small)
+                } else if appState.sourceFolder != nil {
+                    Text("\(appState.files.count) fotos")
+                        .font(.callout).foregroundStyle(.secondary)
                 }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
-                // Sin foco de teclado: al abrir la ventana se quedaba con él (y su marco) por ser
-                // el primer control que puede tenerlo. Se usa con el ratón, como «Elegir carpeta…».
-                .focusable(false)
-            }
+                // Para cuando se han tocado fotos por fuera (Finder, Lightroom…) después de abrir la carpeta.
+                if appState.sourceFolder != nil {
+                    Button("Recargar") { Task { await appState.reload() } }
+                        .controlSize(.small)
+                        .disabled(appState.isScanning)
+                        .help("Vuelve a leer la carpeta: para cuando se han borrado, renombrado o añadido fotos por fuera.")
+                }
 
-            Button("Elegir carpeta…") { appState.chooseSourceFolder() }
+                if appState.hasFolderConfig {
+                    Label("Configuración restaurada", systemImage: "checkmark.circle")
+                        .font(.callout).foregroundStyle(.secondary)
+                    // Borra lo guardado de la carpeta y no se puede deshacer: se pide confirmación.
+                    Button("Reiniciar") { confirmReset = true }
+                        .controlSize(.small)
+                        .help("Borra la configuración guardada en esta carpeta. El historial de renombrados se conserva.")
+                }
+
+                // Solo sin sesión: con sesión, el origen ya lo pone ella.
+                if appState.sessions.active == nil && !appState.recentFolders.isEmpty {
+                    Menu {
+                        ForEach(appState.recentFolders, id: \.self) { url in
+                            // Con la sesión o la carpeta de encima delante: muchas se llaman igual (JPG).
+                            Button(appState.sessions.layout.displayName(of: url)) { Task { await appState.selectSourceFolder(url) } }
+                                .help(url.path)
+                        }
+                    } label: {
+                        Label("Recientes", systemImage: "clock")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    // Sin foco de teclado: al abrir la ventana se quedaba con él (y su marco) por ser
+                    // el primer control que puede tenerlo. Se usa con el ratón, como «Elegir carpeta…».
+                    .focusable(false)
+                }
+
+                Button("Elegir carpeta…") { appState.chooseSourceFolder() }
+            }
+            // La sesión activa no tiene carpeta de fotos finales: el origen hay que elegirlo aquí.
+            if appState.sessionLacksFinals {
+                Label("Esta sesión no tiene carpeta \(appState.sessions.layout.finalsFolder): elige el origen a mano.", systemImage: "exclamationmark.triangle")
+                    .font(.callout).foregroundStyle(.orange)
+            }
         }
         .caobaDropPanel(isTargeted: isTargeted, highlighted: appState.sourceFolder == nil)
         .confirmationDialog("¿Reiniciar la configuración de esta carpeta?", isPresented: $confirmReset) {

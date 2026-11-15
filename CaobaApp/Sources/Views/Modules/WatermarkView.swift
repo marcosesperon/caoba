@@ -146,7 +146,7 @@ struct WatermarkView: View {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.png]
         panel.prompt = L("Elegir")
-        if panel.runModal() == .OK { watermarkURL = panel.url }
+        if panel.runFromStartFolder() == .OK { watermarkURL = panel.url }
     }
 
     /// Espera medio segundo sin cambios antes de regenerar la vista previa.

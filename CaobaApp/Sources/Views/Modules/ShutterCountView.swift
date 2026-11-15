@@ -70,7 +70,7 @@ struct ShutterCountView: View {
         for ext in SupportedFormats.rawExtensions { if let t = UTType(filenameExtension: ext) { types.append(t) } }
         panel.allowedContentTypes = types
         panel.prompt = L("Analizar")
-        if panel.runModal() == .OK, let url = panel.url { analyze(url) }
+        if panel.runFromStartFolder() == .OK, let url = panel.url { analyze(url) }
     }
 
     private func analyze(_ url: URL) {

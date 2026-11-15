@@ -208,7 +208,7 @@ struct SlideshowTimelineView: View {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = audioFileTypes
         panel.allowsMultipleSelection = true
-        guard panel.runModal() == .OK else { return }
+        guard panel.runFromStartFolder() == .OK else { return }
         doc.addTracks(panel.urls)
     }
 }

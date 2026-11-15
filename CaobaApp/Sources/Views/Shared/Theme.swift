@@ -90,15 +90,26 @@ struct SilentStripes: View {
 }
 
 /// Bloque de opciones con cabecera: el título encima y los controles en un bloque.
-/// `accessory` va a la derecha del título (un botón pequeño, por ejemplo); por defecto, nada.
-struct OptionGroup<Content: View, Accessory: View>: View {
+/// `accessory` va a la derecha del título (un botón pequeño, por ejemplo) y `leading`
+/// delante (una casilla general, por ejemplo); por defecto, nada.
+struct OptionGroup<Content: View, Accessory: View, Leading: View>: View {
     let title: LocalizedStringKey
-    @ViewBuilder var content: Content
-    @ViewBuilder var accessory: Accessory
+    var content: Content
+    var accessory: Accessory
+    var leading: Leading
+
+    init(title: LocalizedStringKey, @ViewBuilder leading: () -> Leading,
+         @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory) {
+        self.title = title
+        self.leading = leading()
+        self.content = content()
+        self.accessory = accessory()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
+            HStack(spacing: 6) {
+                leading
                 Text(title).font(.headline).padding(.leading, 4)
                 Spacer()
                 accessory
@@ -110,9 +121,15 @@ struct OptionGroup<Content: View, Accessory: View>: View {
     }
 }
 
-extension OptionGroup where Accessory == EmptyView {
+extension OptionGroup where Leading == EmptyView {
+    init(title: LocalizedStringKey, @ViewBuilder content: () -> Content, @ViewBuilder accessory: () -> Accessory) {
+        self.init(title: title, leading: { EmptyView() }, content: content, accessory: accessory)
+    }
+}
+
+extension OptionGroup where Accessory == EmptyView, Leading == EmptyView {
     init(title: LocalizedStringKey, @ViewBuilder content: () -> Content) {
-        self.init(title: title, content: content, accessory: { EmptyView() })
+        self.init(title: title, leading: { EmptyView() }, content: content, accessory: { EmptyView() })
     }
 }
 

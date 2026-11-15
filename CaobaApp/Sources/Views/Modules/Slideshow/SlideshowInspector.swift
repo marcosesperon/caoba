@@ -334,7 +334,7 @@ struct MusicTab: View {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.mp3, .mpeg4Audio, .wav, .aiff, .audio]
         panel.allowsMultipleSelection = true
-        guard panel.runModal() == .OK else { return }
+        guard panel.runFromStartFolder() == .OK else { return }
         doc.addTracks(panel.urls)
     }
 }
@@ -372,7 +372,7 @@ struct MissingFileNotice: View {
         panel.allowedContentTypes = types
         panel.directoryURL = url.deletingLastPathComponent()
         panel.nameFieldStringValue = url.lastPathComponent
-        guard panel.runModal() == .OK, let picked = panel.url else { return }
+        guard panel.runKeepingFolder() == .OK, let picked = panel.url else { return }
         foundMore = doc.relocate(url, to: picked)
     }
 }
@@ -387,14 +387,14 @@ func chooseTrackFile(for track: AudioTrack, doc: SlideshowDocument) {
     let panel = NSOpenPanel()
     panel.allowedContentTypes = audioFileTypes
     panel.directoryURL = track.url.deletingLastPathComponent()
-    guard panel.runModal() == .OK, let picked = panel.url else { return }
+    guard panel.runKeepingFolder() == .OK, let picked = panel.url else { return }
     Task { await doc.replaceTrackFile(track.id, with: picked) }
 }
 
 func pickImage(types: [UTType] = [.jpeg, .png, .heic]) -> URL? {
     let panel = NSOpenPanel()
     panel.allowedContentTypes = types
-    return panel.runModal() == .OK ? panel.url : nil
+    return panel.runFromStartFolder() == .OK ? panel.url : nil
 }
 
 /// Editor de un estilo de texto: fuente, negrita, tamaño, color, posición y fondo.

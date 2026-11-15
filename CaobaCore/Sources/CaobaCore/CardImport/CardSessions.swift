@@ -2,6 +2,7 @@ import Foundation
 
 /// Cuánto hueco sin fotos separa dos sesiones.
 public enum CardSessionGap: String, Sendable, Codable, CaseIterable {
+    case fifteenMinutes, thirtyMinutes, fortyFiveMinutes
     case oneHour, twoHours, fourHours, eightHours
     /// Una sesión por día natural.
     case byDay
@@ -9,6 +10,9 @@ public enum CardSessionGap: String, Sendable, Codable, CaseIterable {
     /// Hueco en segundos; `nil` en «por días».
     public var seconds: TimeInterval? {
         switch self {
+        case .fifteenMinutes: return 900
+        case .thirtyMinutes: return 1_800
+        case .fortyFiveMinutes: return 2_700
         case .oneHour: return 3_600
         case .twoHours: return 7_200
         case .fourHours: return 14_400
@@ -34,8 +38,10 @@ public struct CardSession: Sendable, Equatable, Identifiable {
     public var urls: Set<URL> { Set(items.map(\.file.url)) }
 
     /// Unas cuantas fotos repartidas (primera, del medio y última) para reconocer la sesión.
+    /// Con 0 no devuelve ninguna y con 1, la primera (antes devolvía todas y desbordaba la tira).
     public func sample(_ count: Int) -> [CardItem] {
-        guard items.count > count, count > 1 else { return items }
+        guard count > 1 else { return Array(items.prefix(max(count, 0))) }
+        guard items.count > count else { return items }
         let step = Double(items.count - 1) / Double(count - 1)
         return (0..<count).map { items[Int((Double($0) * step).rounded())] }
     }

@@ -192,6 +192,17 @@ extension CardImportTests {
         #expect(CardSessions.group([], gap: .fourHours).isEmpty)
     }
 
+    @Test("Huecos cortos: 15, 30 y 45 minutos separan minisesiones seguidas")
+    func shortGaps() {
+        let base = Date(timeIntervalSince1970: 1_763_100_000)
+        let m: TimeInterval = 60
+        // Tres minisesiones separadas 20 y 40 minutos.
+        let items = [item("A.JPG", base), item("B.JPG", base + 20 * m + 1), item("C.JPG", base + 60 * m + 2)]
+        #expect(CardSessions.group(items, gap: .fifteenMinutes).count == 3)
+        #expect(CardSessions.group(items, gap: .thirtyMinutes).count == 2)
+        #expect(CardSessions.group(items, gap: .fortyFiveMinutes).count == 1)
+    }
+
     @Test("Muestra repartida para la tira: primera, del medio y última")
     func sessionSample() {
         let base = Date(timeIntervalSince1970: 1_763_100_000)
@@ -199,6 +210,9 @@ extension CardImportTests {
         #expect(many.sample(6).map(\.file.url.lastPathComponent) == ["IMG_0000.JPG", "IMG_0020.JPG", "IMG_0040.JPG", "IMG_0059.JPG", "IMG_0079.JPG", "IMG_0099.JPG"])
         let few = CardSession(items: (0..<3).map { item("F\($0).JPG", base + Double($0)) })
         #expect(few.sample(6).count == 3)
+        // Sin sitio para miniaturas se piden 0: ninguna, no todas.
+        #expect(many.sample(0).isEmpty)
+        #expect(many.sample(1).map(\.file.url.lastPathComponent) == ["IMG_0000.JPG"])
     }
 }
 

@@ -15,7 +15,10 @@ final class AppState {
     /// donde había elegido otro (ni sobrescribe originales porque se quedó marcado).
     var currentModule: Module = Module(rawValue: UserDefaults.standard.string(forKey: Preferences.lastModuleKey) ?? "") ?? .processor {
         didSet {
-            if currentModule != oldValue { clearDestination() }
+            if currentModule != oldValue {
+                clearDestination()
+                applySessionDestination()
+            }
             guard !isScreenshotMode else { return }
             UserDefaults.standard.set(currentModule.rawValue, forKey: Preferences.lastModuleKey)
         }
@@ -66,6 +69,10 @@ final class AppState {
     let recovery: RecoverySession
     let cardImport: CardImportSession
     let thumbnails = ThumbnailProvider()
+    /// Sesiones del estudio y sesión activa (barra lateral y Ajustes).
+    let sessions = StudioSessions()
+    /// La sesión activa no tiene carpeta de fotos finales: el origen se queda vacío y se avisa.
+    private(set) var sessionLacksFinals = false
 
     // MARK: Aviso de versión y donativo
     private(set) var availableUpdate: VersionCheck.Release?
@@ -105,7 +112,7 @@ final class AppState {
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
         panel.prompt = L("Elegir carpeta")
-        if panel.runModal() == .OK, let url = panel.url {
+        if panel.runFromStartFolder() == .OK, let url = panel.url {
             Task { await selectSourceFolder(url) }
         }
     }
@@ -116,11 +123,15 @@ final class AppState {
         // Con otra carpeta, fuera el destino anterior: si no, un Slideshow o un collage
         // hecho con la carpeta nueva podría pisar el que se generó con la de antes.
         // Sin carpeta de salida, Procesador, Marca de agua y Renombrador guardan junto al original con sufijo.
-        if url.standardizedFileURL != sourceFolder?.standardizedFileURL {
+        let isNewFolder = url.standardizedFileURL != sourceFolder?.standardizedFileURL
+        if isNewFolder {
             destinationFolder = nil
             destinationFile = nil
         }
         sourceFolder = url
+        sessionLacksFinals = false
+        // Si la carpeta está dentro de una sesión, el destino sale ya puesto.
+        if isNewFolder { applySessionDestination() }
         excludedNames = []
         // Orden manual guardado en la carpeta (común a Slideshow, Collage y Contact Sheet); si no, por nombre o fecha.
         let savedOrder = FileOrderSettings.load(from: url)?.names ?? []
@@ -257,6 +268,65 @@ final class AppState {
         }
     }
 
+    // MARK: - Sesiones
+
+    /// Activa una sesión (o ninguna). Con sesión, el origen pasa a su carpeta de fotos finales;
+    /// si no la tiene, el origen se queda vacío y sale el aviso. «Sin sesión» no toca el origen.
+    func activateSession(_ session: StudioSession?) async {
+        sessions.activate(session, remember: !isScreenshotMode)
+        guard let session else { sessionLacksFinals = false; return }
+        // Las tarjetas se descargan en la carpeta de descargas de la sesión (`RAW`).
+        cardImport.changeDestination(to: sessions.layout.downloads(of: session))
+        if sessions.lacksFinals(session) {
+            clearSource()
+            sessionLacksFinals = true
+        } else {
+            await selectSourceFolder(sessions.layout.finals(of: session))
+        }
+    }
+
+    /// Deja la app sin carpeta de origen (y sin el destino que dependía de ella).
+    private func clearSource() {
+        sourceFolder = nil
+        files = []
+        excludedNames = []
+        knownNames = []
+        hasFolderConfig = false
+        destinationFolder = nil
+        destinationFile = nil
+    }
+
+    /// Si el origen está dentro de una sesión (la activa u otra elegida a mano), rellena el
+    /// destino del módulo con el nombre de Ajustes. Solo se llama con el destino recién vaciado.
+    func applySessionDestination() {
+        guard let source = sourceFolder, let session = sessions.layout.session(containing: source) else { return }
+        let layout = sessions.layout
+        switch currentModule {
+        case .processor:
+            setSessionFolder(layout.output(.processor, in: session))
+        case .watermark:
+            setSessionFolder(layout.output(.watermark, in: session))
+        case .collage:
+            setSessionFolder(layout.output(.collage, in: session))
+        case .renamer:
+            // El Renombrador trabaja en el sitio (se puede deshacer desde el historial).
+            destinationMode = .overwrite
+        case .slideshow:
+            destinationFile = layout.output(.slideshow, in: session, fileExtension: "mp4")
+        case .contactSheet:
+            destinationFile = layout.output(.contactSheet, in: session, fileExtension: "jpg")
+        case .metadata, .qr, .shutterCount, .cardImport, .recovery:
+            break
+        }
+    }
+
+    /// Carpeta de salida de la sesión, salvo que coincida con el origen (las fotos se mezclarían).
+    private func setSessionFolder(_ folder: URL) {
+        guard !isSourceFolder(folder) else { return }
+        destinationMode = .newCopy
+        destinationFolder = folder
+    }
+
     // MARK: - Destino
 
     /// Vacía la carpeta y el fichero de destino y vuelve a «Copias nuevas».
@@ -300,10 +370,11 @@ final class AppState {
     func chooseDestinationFile(contentTypes: [UTType]) {
         let panel = NSSavePanel()
         panel.allowedContentTypes = contentTypes
-        panel.nameFieldStringValue = destinationFileDefaultName
-        panel.directoryURL = destinationFolder ?? sourceFolder
+        // Si ya hay un fichero puesto (p. ej. el de la sesión), se parte de él.
+        panel.nameFieldStringValue = destinationFile?.lastPathComponent ?? destinationFileDefaultName
+        panel.directoryURL = destinationFile?.deletingLastPathComponent() ?? destinationFolder ?? sourceFolder ?? DialogFolders.startFolder
         panel.canCreateDirectories = true
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runKeepingFolder() == .OK, let url = panel.url else { return }
         if isSourceFolder(url.deletingLastPathComponent()) {
             warnSourceFolderNotAllowed()
         } else {
@@ -325,7 +396,7 @@ final class AppState {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = L("Elegir destino")
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runFromStartFolder() == .OK, let url = panel.url else { return }
         if isSourceFolder(url) {
             warnSourceFolderNotAllowed()
         } else {
@@ -364,6 +435,18 @@ final class AppState {
         }
         if let path = value(after: "--folder") {
             await selectSourceFolder(URL(fileURLWithPath: path))
+        } else if !isScreenshotMode, let session = sessions.active {
+            // Al abrir la app, la sesión que quedó activa vuelve a poner su origen.
+            await activateSession(session)
+        }
+        // Para pruebas y capturas: `--state session.activate=<carpeta de una sesión>` la activa
+        // sin guardarla (en modo captura no cambia la sesión del usuario); con `none`, sin sesión.
+        if let path = launchState["session.activate"] {
+            if path == "none" {
+                await activateSession(nil)
+            } else if let session = sessions.layout.session(containing: URL(fileURLWithPath: path, isDirectory: true)) {
+                await activateSession(session)
+            }
         }
         // Para pruebas: `--state presets.export=/ruta.json` e `--state presets.import=/ruta.json`.
         if let path = launchState["presets.export"] { try? PresetStore.shared.exportData().write(to: URL(fileURLWithPath: path)) }

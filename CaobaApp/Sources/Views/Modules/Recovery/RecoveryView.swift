@@ -216,7 +216,7 @@ struct RecoveryActionBar: View {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = L("Elegir destino")
-        if panel.runModal() == .OK, let url = panel.url { session.destinationFolder = url }
+        if panel.runFromStartFolder() == .OK, let url = panel.url { session.destinationFolder = url }
     }
 }
 

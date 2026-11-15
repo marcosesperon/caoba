@@ -9,7 +9,10 @@ enum Module: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     static let creators: [Module] = [.slideshow, .collage, .contactSheet]
-    static let utilities: [Module] = [.processor, .watermark, .metadata, .renamer, .qr, .shutterCount, .cardImport, .recovery]
+    /// Lo que se hace con las fotos de una sesión, en el orden de trabajo: primero descargar la tarjeta.
+    static let utilities: [Module] = [.cardImport, .processor, .watermark, .metadata, .renamer]
+    /// Lo que no va con una sesión concreta.
+    static let otherTools: [Module] = [.qr, .shutterCount, .recovery]
 
     var title: LocalizedStringKey {
         switch self {

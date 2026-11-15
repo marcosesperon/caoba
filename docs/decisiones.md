@@ -3587,3 +3587,431 @@ Plan aprobado por el usuario («dale»).
 - Desmarcar una sesión a mano y descargar (comprobado el cálculo, no el clic).
 - Sin commit ni publicación hasta que lo indique el usuario.
 - Publicado junto con la petición anterior («Descargar tarjeta») a petición del usuario («al finalizar haz commit, push y lanza release») en la versión 3.24.0, con release en GitHub. Las dos peticiones van en un mismo commit porque tocan los mismos ficheros.
+
+## 2026-11-15 — Ruta por defecto en Ajustes para elegir origen y destino
+
+### 1. La petición tal como se ha entendido
+- En **Ajustes**, una opción nueva «Carpeta inicial de los diálogos» con «Elegir…» y «Quitar». Sin carpeta puesta, todo funciona como ahora.
+- Es **una sola ruta** para todos los diálogos de elegir carpeta o fichero (origen, destino, marca de agua, logo del QR, fotos del collage, presets…) y para los de guardar.
+- **Solo marca dónde se abre el diálogo**: no rellena el origen ni el destino; hay que elegir igual.
+- **Al abrir la app**, el primer diálogo empieza en esa ruta. Desde ahí, cualquier diálogo se abre donde se eligió la última vez, sea del módulo que sea: si se eligió una carpeta, en la carpeta que la contiene (para ver sus hermanas); si se eligió un fichero, en su carpeta. Al cerrar la app se olvida y la siguiente vez vuelve a empezar en la ruta por defecto.
+- Si la ruta ya no existe (por ejemplo, un disco desconectado), el diálogo se abre donde decida macOS, sin avisos.
+- **Excepciones que siguen igual**: guardar un fichero único (se abre en el destino o, si no hay, en el origen), cambiar la música del Slideshow y cambiar otro fichero del Slideshow (se abren en la carpeta del actual).
+- Arrastrar carpetas o usar «Recientes» no cambia la última carpeta: solo cuenta lo elegido en un diálogo.
+
+**No confirmada.** El usuario contestó «no exactamente... vamos a ver cómo adaptarlo» y amplió la petición (ver abajo). Se reabren las preguntas sobre la petición ampliada.
+
+Petición ampliada (resumida con las palabras del usuario):
+- La forma normal de trabajar en el estudio: una carpeta por año (`2026`) y dentro una carpeta por sesión con fecha y nombre (`2026-11-15 ALEX y SOFIA`). Dentro de la sesión: `RAW` (donde se descargan todas las SD), el catálogo de Lightroom y `JPG` con las fotos finales.
+- `JPG` es el origen habitual de Slideshow, Collage, Renombrador…; el destino suele ser la carpeta de la sesión con otro nombre («estaría bien facilitar algo automático»).
+- Casi siempre solo cambia el origen: p. ej. en el Slideshow de las sesiones de Navidad se repite la música, la portada final, etc. → poder prefijar ajustes y cambiar solo el origen, con varios juegos de ajustes.
+- El Renombrador suele usar el nombre de la sesión + un autonumérico.
+- «Quizás la app debería gestionar el concepto de sesión». El objetivo es facilitar la rutina diaria del estudio, que es casi siempre repetitiva.
+- En Ajustes se podrían preestablecer esos aspectos (otros estudios no nombrarán así las sesiones).
+- Algunas herramientas no necesitan una sesión para trabajar con un origen de fotos.
+
+**La petición ampliada tal como se ha entendido** (con las respuestas de abajo):
+
+Objetivo: que CAOBA entienda las **sesiones** del estudio para que la rutina diaria —repetitiva casi siempre— se haga con menos clics. Se entrega por fases, cada una probada antes de la siguiente.
+
+**Fase A — Sesiones**
+- **Ajustes › Sesiones** (campos sencillos, con la estructura del estudio de partida):
+  - Carpeta raíz (p. ej. `~/Fotos/Sesiones`).
+  - Casilla «Una carpeta por año» (marcada).
+  - Nombre de la sesión: formato de fecha (`AAAA-MM-DD`) y si va delante o detrás del nombre → `2026-11-15 ALEX y SOFIA`.
+  - Subcarpetas: `RAW` (descargas), `JPG` (fotos finales), `Lightroom`; se pueden renombrar, quitar o añadir, y se marca cuál es la de descargas y cuál la de finales.
+  - Nombre del destino de cada módulo dentro de la sesión (Procesador → `JPG web`, Marca de agua → `JPG marca`, Collage → `Collages`, Slideshow → `{fecha_sesion} {sesion} - Slideshow`, Contact Sheet → `… - Contact Sheet`).
+- **Sesión activa** arriba en la barra lateral, común a toda la app y recordada al cerrarla: lista de las sesiones encontradas en la raíz (de la más reciente a la más antigua, con buscador), «Nueva sesión» (fecha —hoy por defecto— y nombre; crea la carpeta y sus subcarpetas) y «Sin sesión».
+- Con sesión activa, Slideshow, Collage, Contact Sheet, Procesador, Marca de agua, Renombrador y Metadatos salen con origen `JPG` y, donde lo hay, el destino de Ajustes dentro de la sesión. Se puede cambiar a mano. QR, Shutter Count y Recuperar fotos la ignoran. Si se elige a mano una carpeta que está dentro de otra sesión, también se reconoce para el destino.
+- Si ya existe el destino, lo que la app ya hace hoy (preguntar o sufijo, según el módulo).
+- **Diálogos de elegir carpeta o fichero**: el primero de cada apertura de la app se abre en la sesión activa o, sin sesión, en la raíz; después, en la última carpeta usada en cualquier diálogo (la que contiene a la carpeta elegida, o la del fichero elegido). Siguen igual: guardar un fichero único y cambiar música u otro fichero del Slideshow. Arrastrar o «Recientes» no cuentan. Si la carpeta no existe, donde decida macOS.
+
+**Fase B — Descargar tarjeta**: con sesión activa el destino es su `RAW`; sin sesión, al marcar fotos de la tarjeta se ofrece «Crear sesión» con la fecha de esas fotos (solo se escribe el nombre), se crean las carpetas, se descarga en `RAW` y esa sesión queda activa.
+
+**Fase C — Renombrador**: marcadores `{sesion}` y `{fecha_sesion}` (`{nombre}` sigue siendo el nombre original del fichero), patrones guardados con nombre y, con sesión activa, el patrón por defecto de Ajustes (p. ej. `{sesion}_{n}`).
+
+**Fase D — Plantillas**: plantillas con nombre en el Slideshow que guardan todo menos las fotos (canciones, portada, cierre, textos, marca de agua, transiciones, duraciones, formato), con marcadores `{sesion}` y `{fecha_sesion}` en los textos; y presets con nombre en Contact Sheet como los de Procesador, Marca de agua y Collage.
+
+Confirmada por el usuario («prepara el plan y lánzalo directamente»): el plan de la fase A no espera aprobación.
+
+Petición original: «podría asignarse en ajustes una ruta por defecto para cada vez que se busca un origen o destino en el programa?».
+
+### 2. Preguntas y respuestas
+- **¿Qué hace la ruta por defecto?** (1: el diálogo de elegir carpeta o fichero se abre ya en esa ruta, pero hay que elegir igual; 2: además el origen o destino aparece ya puesto al abrir un módulo, sin elegir nada; 3: depende de si es origen o destino) → Opción 1: solo el punto de partida del diálogo.
+- **¿Cuántas rutas?** (1: una sola para todo; 2: dos, una para origen y otra para destino; 3: una por módulo) → Opción 1: una sola para todo.
+- **¿Siempre en la ruta por defecto, o solo cuando no hay otra mejor?** (1: siempre; 2: la ruta por defecto la primera vez, y después donde se eligió la última vez; 3: si el módulo ya tiene una carpeta relacionada —el origen al elegir destino, la carpeta de la música actual—, se abre ahí, y si no, en la ruta por defecto) → Opción 2: la primera vez en la ruta por defecto, después donde se eligió la última vez.
+- **¿Qué es «la primera vez»?** (1: el primer diálogo cada vez que se abre la app, y desde ahí la última carpeta usada en cualquier diálogo; 2: lo mismo, pero contando cada módulo por separado; 3: la última carpeta se recuerda también entre aperturas de la app, y la ruta por defecto solo vale si nunca se eligió nada o la última ya no existe) → Opción 1: el primer diálogo de cada apertura de la app, y después la última carpeta usada en cualquier diálogo.
+- **Los diálogos que hoy se abren en una carpeta relacionada** (guardar un Slideshow o collage junto al destino u origen; cambiar la música o la imagen en la carpeta de la actual) (1: siguen igual, la regla nueva solo para el resto; 2: todos siguen la regla nueva) → Opción 1: siguen igual.
+
+Preguntas sobre la petición ampliada:
+- **¿La sesión la crea CAOBA o solo la reconoce?** (1: CAOBA la crea —nombre y fecha— con su estructura de carpetas y luego se elige de una lista; 2: CAOBA solo reconoce las carpetas que ya existen dentro de la carpeta raíz; 3: las dos cosas) → Opción 3: reconoce las que existen y además «Nueva sesión» crea la estructura.
+- **¿Cómo se configura la estructura en Ajustes?** (1: campos fijos —carpeta raíz, ¿carpeta por año?, formato del nombre de sesión, nombres de las subcarpetas RAW/JPG/Lightroom—; 2: una plantilla de ruta con marcadores, p. ej. `{año}/{fecha} {nombre}/RAW`; 3: lo del estudio fijo, sin configurar) → Opción 1: campos sencillos, con la estructura del estudio como valor de partida.
+- **¿Cómo se usa la sesión en los módulos?** (1: una «sesión activa» elegida arriba en la barra lateral, común a toda la app, que rellena origen y destino de los módulos que la usan; 2: cada módulo tiene su propio «Elegir sesión» junto a «Elegir carpeta»; 3: no hay sesión activa: al elegir como origen una carpeta que está dentro de una sesión, CAOBA lo detecta solo) → Opción 1: sesión activa común en la barra lateral, combinada con la 3 (si se elige a mano una carpeta dentro de otra sesión, también se reconoce).
+- **¿Qué destino pone la sesión en cada módulo?** (1: dentro de la carpeta de la sesión, con un nombre por módulo configurable en Ajustes —p. ej. Procesador → `JPG web`, Marca de agua → `JPG marca`, Slideshow → fichero `ALEX y SOFIA - Slideshow.mp4`—; 2: igual pero con nombres fijos, sin configurar; 3: siempre la carpeta de la sesión y el nombre lo pone el usuario cada vez) → Opción 1: dentro de la sesión, con nombre por módulo configurable en Ajustes.
+- **Plantillas del Slideshow: ¿qué guardan?** (1: todo menos las fotos —música, portada, cierre, transiciones, duración, formato de salida—; 2: lo mismo, y además los textos de portada pueden llevar marcadores como `{nombre}` o `{fecha}` de la sesión; 3: solo los ajustes de salida, sin música ni portada) → Opción 2: todo menos las fotos, y los textos admiten marcadores de la sesión. (Nota: en el Renombrador `{nombre}` ya es el nombre original del fichero, así que el de la sesión se llamará distinto, p. ej. `{sesion}`.)
+- **Renombrador con sesión** (1: marcadores nuevos `{sesion}` y `{fecha_sesion}` + presets de patrón con nombre, y con sesión activa se propone un patrón por defecto configurable en Ajustes, p. ej. `{sesion}_{n}`; 2: solo los marcadores nuevos; 3: solo el patrón por defecto) → Opción 1: marcadores `{sesion}` y `{fecha_sesion}`, presets de patrón y patrón por defecto en Ajustes.
+- **Descargar tarjeta con sesiones** (1: con sesión activa el destino es su `RAW`; sin sesión, al marcar una sesión de fotos de la tarjeta se ofrece «Crear sesión» con la fecha de esas fotos y solo hay que escribir el nombre; 2: solo destino `RAW` de la sesión activa; 3: no cambia) → Opción 1: destino `RAW` de la sesión activa, o «Crear sesión» con la fecha de las fotos, y esa sesión queda activa.
+- **¿Qué módulos usan la sesión?** (1: Slideshow, Collage, Contact Sheet, Procesador, Marca de agua, Renombrador y Metadatos con origen `JPG` —destino según Ajustes donde lo hay—; Descargar tarjeta con `RAW`; QR, Shutter Count y Recuperar fotos la ignoran; 2: otra lista) → Opción 1: el reparto propuesto.
+- **¿Dónde se abren ahora los diálogos de elegir carpeta?** (1: con sesión activa, en la carpeta de la sesión; sin sesión, en la carpeta raíz de sesiones; y se mantiene lo ya respondido —tras elegir algo, la última carpeta usada, y las tres excepciones—; 2: siempre en la carpeta raíz; 3: se olvida la idea original, ya no hace falta) → Opción 1: en la sesión activa o, sin sesión, en la raíz; luego la última carpeta usada; las tres excepciones siguen igual.
+- **¿Todo de golpe o por fases?** (1: por fases, cada una usable y probada antes de la siguiente —A: Ajustes, sesiones, sesión activa, destinos y diálogos; B: Descargar tarjeta con sesiones; C: Renombrador; D: plantillas del Slideshow y presets de Contact Sheet—; 2: todo junto) → Opción 1: por fases (A, B, C, D).
+
+### 3. Fuentes analizadas
+- `AppState` (`chooseSourceFolder`, `chooseDestinationFolder`, `chooseDestinationFile`), `SettingsView` en `ContentView`, `Preferences` y los `NSOpenPanel` de los módulos (Recuperar, Descargar tarjeta, Marca de agua, QR, Collage, Slideshow, Cuentadisparos).
+
+Plan de la fase A (sin espera de aprobación, a petición del usuario):
+1. `CaobaCore/Sessions/SessionLayout.swift`: la estructura configurable (raíz, carpeta por año, formato de fecha, fecha delante o detrás, subcarpetas, cuál es la de descargas y cuál la de finales, nombres de destino por módulo) y `StudioSession` (carpeta, fecha, nombre). Funciones puras y probadas: nombre de carpeta, reconocer un nombre, buscar sesiones en la raíz, crear una sesión con sus subcarpetas, encontrar la sesión que contiene una carpeta, rellenar `{sesion}` y `{fecha_sesion}`.
+2. `StudioSessions` en la app (`@Observable`): estructura guardada en preferencias, sesión activa recordada, lista y creación.
+3. Ajustes con pestañas «General» y «Sesiones».
+4. Selector de sesión arriba en la barra lateral: lista con buscador, «Nueva sesión…» y «Sin sesión».
+5. Origen y destino automáticos: al activar una sesión, el origen pasa a su `JPG`; al cambiar de módulo o de origen, si el origen está dentro de una sesión, el destino se rellena con el nombre de Ajustes.
+6. Carpeta inicial de los diálogos: un ayudante común que decide dónde se abre cada diálogo y recuerda la última carpeta elegida.
+7. Tests, textos en inglés, documentación y comprobación con la app.
+
+### 4. Decisiones
+Fase A hecha:
+- **Motor** en `CaobaCore/Sessions/SessionLayout.swift` con 7 tests (203 en total): nombres en los 4 formatos y las 2 posiciones, carpetas que no son sesión, crear (con año, sin año, repetida), lista ordenada, sesión que contiene una carpeta, destinos con marcadores y sufijo « 2», y lectura tolerante de lo guardado.
+- Una carpeta es sesión solo si su nombre sigue el formato **exacto** (fecha válida + espacio + nombre). Los formatos de fecha son todos de ancho fijo para separar fecha y nombre sin ambigüedad.
+- Se reconoce una sesión **por el nombre de la carpeta**, esté o no dentro de la raíz: así funciona también con carpetas elegidas a mano en otro disco.
+- La lista mira la raíz y sus carpetas de año (4 cifras) a la vez, sea cual sea la casilla «Una carpeta por año»: encuentra las sesiones de las dos formas de organizarlas.
+- El destino solo se rellena cuando acaba de vaciarse (cambio de módulo o de origen): nunca pisa lo que el usuario eligió a mano en ese módulo.
+- Para ficheros (Slideshow, Contact Sheet), si el nombre ya existe se propone « 2», « 3»…: un destino rellenado solo no pasa por el diálogo de guardar, que es el que preguntaría antes de reemplazar.
+- El destino de la sesión no se pone si coincide con el origen (la app no deja guardar en la carpeta de las fotos).
+- El Renombrador con sesión pasa a «en su sitio» (`overwrite`), que se puede deshacer desde su historial.
+- La sesión activa se guarda por la ruta de su carpeta; si al abrir la app ya no existe, se arranca sin sesión.
+- En modo captura (`--screenshot`) la sesión no pone el origen al arrancar, para que las capturas sean repetibles.
+- «Sin sesión» no vacía el origen: solo deja de haber sesión activa.
+- Selector en la barra lateral con nombre y fecha en dos líneas: la carpeta completa no cabía y salía cortada («2026-11…y SOFIA»).
+- Ajustes pasa a tener pestañas («General» y «Sesiones»): la de sesiones es larga y no cabía en la ventana de antes.
+- Al renombrar o quitar una subcarpeta en Ajustes, si era la de descargas o la de finales, la elección la sigue.
+- Diálogos: un ayudante común (`DialogFolders` + `runFromStartFolder()`/`runKeepingFolder()`) en los 19 sitios que abren un diálogo, en lugar de repetir la lógica en cada uno.
+- Comprobado con sesiones de prueba en el scratchpad (no en la SD del usuario): Procesador → `…/JPG web`, Collage → `…/Collages`, Slideshow → `2026-11-15 ALEX y SOFIA - Slideshow.mp4`, Renombrador en su sitio, lista con tres sesiones (dos años) y la activa marcada, hoja «Nueva sesión» con la ruta que se creará y Ajustes › Sesiones. Las preferencias de prueba se borraron después.
+- Textos nuevos traducidos al inglés.
+
+### 5. Alternativas descartadas
+- Una sola «ruta por defecto» para los diálogos (la petición original): el usuario la amplió a sesiones; la ruta queda como la carpeta raíz de sesiones.
+- Diálogo siempre en la ruta por defecto (pregunta 3, opción 1): obliga a navegar cada vez a la misma carpeta durante el día.
+- Rutas por módulo (pregunta 2): Ajustes mucho más largo para poca ganancia; con las sesiones ya no hace falta.
+- Plantilla de ruta con marcadores en Ajustes (`{año}/{fecha} {nombre}`): más flexible, pero difícil para quien no programa.
+- Elegir sesión en cada módulo: en un día se hacen varias cosas seguidas para la misma sesión.
+- Crear la carpeta `JPG` si falta al activar la sesión: el usuario puede tenerla con otro nombre; mejor avisar y que elija.
+- Reconocer sesiones solo dentro de la raíz: fallaría con discos externos o sesiones antiguas fuera de la raíz.
+- Usar `{nombre}` para el nombre de la sesión: en el Renombrador ya es el nombre original del fichero.
+
+### 6. Pendiente de comprobar
+- Con clics de verdad: elegir sesión, buscar, «Nueva sesión» (crea las carpetas y la deja activa), «Sin sesión» y el aviso de una sesión sin `JPG`.
+- Que los diálogos empiecen en la sesión y luego sigan a la última carpeta (no se puede capturar desde línea de comandos).
+- Editar Ajustes › Sesiones con la estructura real del estudio (raíz en el disco de fotos).
+- Fases B (Descargar tarjeta), C (Renombrador) y D (plantillas del Slideshow y presets de Contact Sheet): se harán cuando el usuario dé por buena la A.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Sesiones: más formatos de fecha en el nombre
+
+### 1. La petición tal como se ha entendido
+- El selector de formato de fecha de Ajustes › Sesiones pasa de 4 a **16 formatos**, todos numéricos y de ancho fijo: separador guion, punto, guion bajo o ninguno × año delante (`2026-11-15`) o día delante (`15-11-2026`) × año de 4 o de 2 cifras (`26-11-15`, `15-11-26`).
+- En el desplegable, agrupados: primero los de año delante y luego los de día delante, cada uno mostrado con la fecha de hoy.
+- Los años de 2 cifras se leen como 20xx.
+- Lo ya guardado (los 4 formatos actuales) sigue valiendo sin tocar nada.
+- Sin mes en letra ni formato libre.
+- **Añadido por el usuario** (con captura de «Nueva sesión»): «no uses estos nombres como ejemplo, algo más genérico, también en ajustes». En la hoja «Nueva sesión» y en el ejemplo de Ajustes › Sesiones se cambia «ALEX y SOFIA» por un texto genérico: «Nombre de la sesión». De paso, la ruta de la hoja se recorta por el principio para que se vea el final (hoy se corta justo en el nombre).
+
+Confirmada por el usuario («si»).
+
+Petición original (con captura del selector de formato de Ajustes › Sesiones): «ofrecer más opciones de formatos en las fechas».
+
+### 2. Preguntas y respuestas
+- **¿Qué formatos?** (1: ampliar la lista con más formatos numéricos de ancho fijo —con guion, punto, guion bajo o junto; año delante o día delante; año con 4 o 2 cifras—; 2: lo mismo y además los que llevan el mes en letra —`15 nov 2026`, `2026-nov-15`—; 3: un campo libre donde escribir el formato, p. ej. `AAAA_MM_DD`) → Opción 1: más formatos numéricos de ancho fijo.
+
+### 3. Fuentes analizadas
+- `SessionDateFormat` y `SessionLayout.parse(folderName:)` (`CaobaCore/Sessions/SessionLayout.swift`), `SessionSettingsView`.
+
+### 4. Decisiones
+- 16 casos en `SessionDateFormat`; los 4 de la primera versión conservan nombre y valor guardado, así lo que ya está en Ajustes sigue valiendo.
+- Año de 2 cifras siempre 20xx (`twoDigitStartDate` = 2000), para que una sesión de 2069 no se lea como 1969.
+- Desplegable con los de año delante, una línea y los de día delante, cada uno con la fecha de hoy.
+- Ejemplos genéricos «Nombre de la sesión» en la hoja, en Ajustes, en los comentarios del código y en la documentación (los tests mantienen sus nombres de prueba).
+- La ruta de la hoja «Nueva sesión» va en una línea recortada por el principio.
+- Test nuevo con los 16 formatos (escribir y volver a leer la misma fecha) y una fecha imposible. 204 tests.
+
+### 5. Alternativas descartadas
+- Mes en letra (`15 nov 2026`): no es de ancho fijo y dependería del idioma.
+- Formato libre: hay que entender la notación; con 16 fijos se cubre lo habitual.
+- Tres desplegables (separador, orden, año): más controles para lo mismo; uno solo se ve de un vistazo.
+
+### 6. Pendiente de comprobar
+- Abrir el desplegable en la app (no se puede capturar abierto desde línea de comandos).
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Sesiones, fase B: Descargar tarjeta con sesiones
+
+### 1. La petición tal como se ha entendido
+La fase B de la petición «Ruta por defecto en Ajustes para elegir origen y destino» (ya confirmada allí, pregunta «Descargar tarjeta con sesiones», opción 1):
+- Con sesión activa, el destino de «Descargar tarjeta» es su carpeta de descargas (`RAW`).
+- Sin sesión (o para un encargo nuevo), al marcar sesiones de la tarjeta se ofrece «Crear sesión…» con la fecha de esas fotos: solo hay que escribir el nombre; se crean las carpetas, se descarga en `RAW` y esa sesión queda activa.
+
+Arrancada por el usuario («si» a «¿Empiezo con la fase B?»), tras señalar con una captura que «Descargar tarjeta» no proponía el `RAW` de su sesión activa.
+
+### 2. Preguntas y respuestas
+- Sin preguntas nuevas: lo decidido en la petición de la fase A.
+
+### 3. Fuentes analizadas
+- `CardImportSession` (destino recordado en `caoba.cardImport.destination`, `scheduleScan`, `regroup`, `isBusy`), `CardImportActionBar`, `NewSessionSheet`, `AppState.activateSession`.
+
+Plan (sin espera de aprobación, como en la fase A):
+1. `AppState.activateSession`: con sesión, el destino de la descarga pasa a su `RAW` (si no hay una descarga en marcha), sin perder las sesiones marcadas de la tarjeta.
+2. `CardImportSession`: cambiar el destino conservando lo marcado, fecha de la primera foto marcada, y «empezar cuando esté listo».
+3. Barra de la descarga: «Crear sesión…» (con la carpeta raíz configurada y algo marcado), la sesión de destino a la vista y un aviso si las fotos marcadas son de otro día que la sesión activa.
+4. `NewSessionSheet` con fecha inicial y «Crear y descargar».
+
+### 4. Decisiones
+- Al activar una sesión, el destino de la descarga pasa a su `RAW` aunque el usuario estuviera en otro módulo; con una descarga en marcha no se toca.
+- Se conservan las sesiones de la tarjeta que estaban marcadas al cambiar el destino: sin esto, crear la sesión volvía a marcar «todo lo pendiente» y se perdía la elección del usuario.
+- «Crear sesión…» está siempre que haya carpeta raíz (también con una sesión activa), porque lo normal es meter la tarjeta de un encargo nuevo con la sesión de ayer aún activa. El botón de la hoja es «Crear y descargar»: crea, activa y empieza en cuanto la tarjeta está leída.
+- Fecha propuesta: la de la primera foto marcada.
+- Aviso (no bloquea) si ninguna foto marcada es del día de la sesión activa: es el error fácil de descargar un encargo en la sesión de otro.
+- De paso: con una tarjeta sin ficheros de los tipos elegidos salía «Ya está todo descargado en esta carpeta»; ahora dice «En la tarjeta no hay ficheros de los tipos elegidos».
+- Para probar sin tocar la sesión del usuario: `--state session.activate=<carpeta>` activa una sesión sin guardarla en modo captura.
+- Comprobado con una imagen FAT32 de solo lectura (`CANON_A`, 14 fotos del 14-11) y la sesión de prueba del 15-11: destino `…/2026-11-15 ALEX y SOFIA/RAW`, aviso de otro día, 14 copiadas y comprobadas en `RAW`. Las preferencias de la descarga que cambió la prueba (tipos y destino) se dejaron como las tenía el usuario, y su sesión activa no cambió.
+- Textos nuevos traducidos al inglés.
+
+### 5. Alternativas descartadas
+- Cambiar el destino solo al entrar en «Descargar tarjeta»: si la sesión se elige estando ya en el módulo, no se enteraría.
+- Bloquear la descarga si las fechas no coinciden: hay encargos de varios días o tarjetas descargadas al día siguiente; basta con avisar.
+- Empezar a descargar al crear la sesión sin decirlo en el botón: por eso se llama «Crear y descargar».
+
+### 6. Pendiente de comprobar
+- Con clics: «Crear sesión…» → «Crear y descargar» con una tarjeta real (crea las carpetas, la activa y descarga en `RAW`).
+- Elegir otra sesión en la barra lateral con la pantalla de descarga abierta y sesiones marcadas: tiene que conservar las marcas.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Descargar tarjeta: huecos más cortos entre sesiones y no perder lo marcado al cambiar el destino
+
+### 1. La petición tal como se ha entendido
+- «Separar sesiones con más de» suma 15 min, 30 min y 45 min a lo que había (1 h, 2 h, 4 h, 8 h y «Por días»).
+- Las sesiones de la tarjeta marcadas se conservan al cambiar el destino con «Elegir…», y también al cambiar los tipos de fichero o la organización (todo junto / por fecha). Solo se vuelve a «marcar lo pendiente» al cambiar de tarjeta.
+
+Confirmada por el usuario («si»).
+
+Petición original: «para descargar tarjeta: hay que reducir por lo menos a media hora la diferencia entre fotos para separar sesiones. Si tengo seleccionado qué descargar y cambio el destino, vuelve a recargar la pantalla y pierdo lo seleccionado».
+
+### 2. Preguntas y respuestas
+- **¿Qué huecos cortos se añaden?** (1: solo 30 min; 2: 15 y 30 min; 3: 15, 30 y 45 min) → Opción 3: 15, 30 y 45 min.
+
+### 3. Fuentes analizadas
+- `CardSessionGap` (`CaobaCore/CardImport/CardSessions.swift`), `CardImportSession` (`regroup`, `selectionToKeep`, `changeDestination`), `CardImportActionBar.chooseDestination`.
+
+### 4. Decisiones
+- `CardSessionGap` con `fifteenMinutes`, `thirtyMinutes` y `fortyFiveMinutes` delante de los que había; lo guardado sigue valiendo (los valores antiguos no cambian). Test nuevo con tres minisesiones separadas 20 y 40 min. 205 tests.
+- La causa de perder lo marcado: cada cambio de opción relee la tarjeta y, al agrupar, se volvía a «marcar lo pendiente». Ahora `scheduleScan` guarda lo marcado y la lectura lo respeta (solo las sesiones que sigan existiendo); si no queda ninguna (p. ej. al cambiar el hueco, que cambia las sesiones), se marca lo pendiente como antes.
+- Con otra tarjeta, al volver a las opciones tras descargar y en «Descargar otra tarjeta» se marca lo pendiente (`keepingSelection: false`): lo marcado ya no aplica.
+- «Elegir…» del destino usa `changeDestination(to:)`: si se elige la misma carpeta, no se relee la tarjeta.
+
+### 5. Alternativas descartadas
+- Solo 30 min (respuesta 1): el usuario quiso más precisión para minisesiones seguidas.
+- Conservar lo marcado solo al cambiar el destino: cambiar los tipos o la organización también lo perdía, y es el mismo fallo.
+
+### 6. Pendiente de comprobar
+- Con clics: marcar/desmarcar sesiones, cambiar destino, tipos u organización, y que las marcas sigan.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Descargar tarjeta: sesiones en una columna a la derecha
+
+### 1. La petición tal como se ha entendido
+- Si la ventana es lo bastante ancha (unos 1100 pt de contenido), la pantalla de opciones de «Descargar tarjeta» se parte en dos columnas: a la izquierda «Tarjeta», «Qué descargar» y «Cómo organizarlas»; a la derecha «Sesiones en la tarjeta», que ocupa todo el alto y se desplaza por su cuenta (una tarjeta puede tener muchas sesiones).
+- Si no cabe, todo en una columna como hoy.
+- En la columna derecha la tira de miniaturas se ajusta al ancho (menos miniaturas si no caben las 6).
+- La barra de abajo (destino, «Crear sesión…», «Descargar») sigue igual, a todo lo ancho.
+
+*Confirmada por el usuario («si»).*
+
+Petición original (llegó mientras se terminaba la anterior): «si hay espacio en esa pantalla, que la selección de secciones sea una columna a la derecha del resto de opciones» («secciones» se entiende como las sesiones de la tarjeta).
+
+### 2. Preguntas y respuestas
+- Sin preguntas: el «si hay espacio» deja claro que con poco ancho se queda como está.
+
+### 3. Fuentes analizadas
+- `CardImportView`, `CardImportSetupView`, `CardSessionsView`.
+
+### 4. Decisiones
+- Umbral de 1.100 pt medido con `GeometryReader` (la app va desde macOS 14). Columna de opciones fija de 400 pt: lo que piden «Tarjeta» y los tipos sin apretar; el resto, para las sesiones.
+- Sin sesiones en la tarjeta (o sin tarjeta) se queda en una columna: una columna derecha vacía no aporta nada.
+- Las tres tarjetas de opciones se sacan a `CardImportOptionsView` para usarlas en los dos montajes sin duplicar código.
+- Miniaturas con `ViewThatFits`: 6, 4, 2 o ninguna; «Ver todas» siempre queda.
+
+### 5. Alternativas descartadas
+- `ViewThatFits` para elegir entre una y dos columnas: con `ScrollView` dentro no mide bien el ancho que necesita cada opción.
+- `onGeometryChange`: más limpio, pero no hay garantías con el mínimo de macOS 14.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas a 1.500 y 1.000 de ancho con la tarjeta de prueba `CANON_A`. Falta probarlo con una tarjeta con muchas sesiones (el desplazamiento de la columna derecha).
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Descargar tarjeta: casilla general de sesiones y dos columnas desde 900 pt
+
+### 1. La petición tal como se ha entendido
+- Los botones «Marcar todas» y «Desmarcar todas» desaparecen. En su lugar, una casilla general delante del título «Sesiones en la tarjeta», al estilo del Finder o de Mail:
+  - marcada si están todas las sesiones marcadas;
+  - vacía si no hay ninguna;
+  - con un guion si solo hay algunas.
+  - Al pulsarla con guion o vacía, se marcan todas; al pulsarla marcada, se desmarcan todas.
+- Las dos columnas aparecen desde 900 pt de ancho de contenido (antes, 1.100). Por debajo, todo en una columna como hasta ahora.
+
+*Confirmada por el usuario («sí»), que añade:*
+- La casilla de cada sesión, alineada arriba con la primera línea del texto (la fecha), no centrada.
+- «Ver todas» deja de ser un botón bajo el texto y pasa a ser una miniatura más, al final de la tira, con una lupa en el centro.
+
+Petición original: «el marcar/desmarcar todas como una check principal donde el titulo Secciones de la tarjeta / ventana ancha a partir de 900 puntos» (con captura de la cabecera de sesiones).
+
+### 2. Preguntas y respuestas
+- Sin preguntas: el comportamiento de la casilla con guion es el habitual de macOS.
+
+### 3. Fuentes analizadas
+- `CardImportView` (`CardSessionsView`, `CardImportSetupView`), `OptionGroup` en `Theme.swift`, `CardImportSession` (`selectAllSessions`, `deselectAllSessions`).
+
+### 4. Decisiones
+- `OptionGroup` gana un `leading` opcional delante del título (con inicializadores que mantienen igual todas las llamadas de antes), para no copiar la cabecera solo en este módulo.
+- Casilla general con `Toggle(sources:)` y dos fuentes («todas marcadas» y «alguna marcada»): es la forma de SwiftUI de sacar el guion. Al pulsar, la segunda llamada no hace nada, así el plan solo se rehace una vez.
+- «Ver todas» (`SeeAllTile`) va siempre, también cuando no cabe ninguna miniatura.
+- Al probar se vieron dos fallos de anchos, ya corregidos: en dos columnas la tira se salía (ahora la columna derecha tiene un ancho exacto) y en una columna salían 2 miniaturas cabiendo 6 (la fila repartía el hueco a partes iguales; ahora la tira va con `layoutPriority`).
+
+### 5. Alternativas descartadas
+- Una casilla de dos estados (marcar o desmarcar todas): no deja ver de un vistazo que solo hay algunas marcadas.
+- Hacer la cabecera a mano en `CardSessionsView`: duplicaba el estilo de `OptionGroup`.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas a 1.250 (dos columnas) y 1.100 (una columna) de ancho de ventana con la tarjeta de prueba. Falta probar con clics el guion de la casilla general (con varias sesiones, unas marcadas y otras no) y la lupa.
+- Sin commit ni publicación hasta que lo indique el usuario.
+- Con la ventana a unos 1.140 pt (dos columnas justas) la columna de sesiones se desbordaba y tapaba la cabecera. Causa: cuando no cabe ninguna miniatura se piden 0 de muestra y `CardSession.sample(0)` devolvía **todas** las fotos de la sesión (14 en la tarjeta de prueba, 1.109 en la del usuario). Arreglado en `sample` (0 → ninguna, 1 → la primera) con su test; se quita el ancho exacto de la columna derecha, que no era la causa.
+
+## 2026-11-15 — La sesión activa en la barra superior
+
+### 1. La petición tal como se ha entendido
+- El selector de sesión sale de la barra lateral y pasa a ocupar el sitio del título de la ventana, arriba a la izquierda:
+  - Con sesión: el nombre de la sesión en grande con «⌄» y debajo, pequeño, «2026-11-15 · Descargar tarjeta» (fecha y módulo).
+  - Sin sesión: «CAOBA ⌄» y debajo el módulo, como ahora pero pulsable.
+- Al pulsarlo se abre la misma lista de hoy (buscador, sesiones, «Nueva sesión…», «Sin sesión», o el aviso de Ajustes si no hay carpeta raíz).
+- El aviso naranja de «la sesión no tiene carpeta JPG» pasa a la barra de la carpeta de origen de los módulos.
+- Al pasar el ratón por el título, la ruta de la sesión (como hoy en el selector).
+
+*Confirmada por el usuario («sí»), con un cambio:* el nombre del módulo sobra arriba, porque ya sale dentro de cada módulo con la tipografía de CAOBA. Queda así:
+- Con sesión: nombre de la sesión con «⌄» y debajo solo la fecha.
+- Sin sesión: solo «CAOBA ⌄».
+
+Petición original: «quizás sería interesante que la sesión con la que trabajamos tuviera protagonismo en la barra superior» (con captura: flecha del selector de sesión de la barra lateral hacia el título «CAOBA / Descargar tarjeta»).
+
+### 2. Preguntas y respuestas
+- P1: ¿La sesión se mueve a la barra superior (y sale de la lateral), se pone en las dos, o solo se enseña en el título sin cambiar el selector? — **1: se mueve a la barra superior** (sale de la lateral), como botón con nombre y fecha que abre la misma lista.
+- P2: ¿Dónde, dentro de la barra superior? (1 en el centro, 2 pegado al título, 3 en lugar del título) — **3: en lugar del título**: el nombre de la sesión ocupa el sitio de «CAOBA» y debajo, pequeño, la fecha y el módulo.
+- P3: ¿Qué se ve arriba cuando no hay sesión activa? (1 «Sin sesión ⌄», 2 «CAOBA ⌄») — **2: «CAOBA ⌄»** con el módulo debajo, pulsable para abrir la lista.
+- P4: ¿Dónde va el aviso naranja «Esta sesión no tiene carpeta JPG…», que hoy sale bajo el selector? (1 triángulo junto al nombre, 2 en la barra de la carpeta de origen) — **2: en la barra de la carpeta de origen**, donde se elige el origen a mano.
+
+### 3. Fuentes analizadas
+- `ContentView` (barra lateral, `navigationTitle`/`navigationSubtitle`), `SessionPicker` y `SessionList` (`SessionPicker.swift`), `SourceFolderBar`.
+
+### 4. Decisiones
+- El selector va en `ToolbarItem(placement: .navigation)`, que es el sitio del título, y el título se oculta. Desde macOS 15 con `.toolbar(removing: .title)`, que conserva «CAOBA» para el menú Ventana y Mission Control; en macOS 14 (el mínimo de la app) no existe y el título se deja vacío.
+- Letra del título del sistema (negrita) y fecha debajo en pequeño: que parezca el título de la ventana y no un botón más.
+- El aviso de «sin carpeta JPG» va dentro del panel de `SourceFolderBar`, debajo de la ruta, en naranja.
+- Nuevo valor de prueba `--state session.activate=none`, para capturar sin sesión sin tocar la sesión guardada del usuario.
+
+### 5. Alternativas descartadas
+- Dejar el selector también en la barra lateral (respuesta 1).
+- Ponerlo en el centro o pegado al título (respuesta 2: en lugar del título).
+- «Sin sesión ⌄» cuando no hay sesión (respuesta 3: «CAOBA ⌄», más discreto).
+- Triángulo naranja junto al nombre para el aviso de JPG (respuesta 4: en la barra de origen, donde se arregla).
+- Mantener el módulo como subtítulo: el usuario prefirió quitarlo porque ya sale dentro de cada módulo.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: con sesión, sin sesión y con una sesión sin carpeta JPG. La lista al pulsar no sale en las capturas (es una ventana aparte): falta verla con clics, y también «Nueva sesión…» desde ahí.
+- En macOS 14 no se ha probado: el título queda vacío en el menú Ventana.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Título de sesión: quitar la cápsula de la barra
+
+### 1. La petición tal como se ha entendido
+- El título de la sesión deja de ir dentro de la cápsula de cristal de la barra: nombre en negrita con «⌄» y la fecha debajo, sueltos como el título de una ventana.
+- Al pasar el ratón, un fondo suave redondeado para que se note que se puede pulsar.
+- En versiones de macOS sin cápsula (14 y 15) se ve igual que ahora.
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «se ve un poco feo... a lo mejor el menú selector tiene que ser solo un botón.. o se puede cambiar el borde?» (captura: el nombre y la fecha dentro de la cápsula de cristal que macOS 26 pone a cada elemento de la barra).
+
+### 2. Preguntas y respuestas
+- P1: ¿Sin cápsula (como un título normal, con un fondo suave solo al pasar el ratón) o con cápsula pero en una sola línea («SESION BLABLABLA · 2026-11-15») para que encaje en su altura? — **1: sin cápsula**, con fondo suave solo al pasar el ratón.
+
+### 3. Fuentes analizadas
+- `SessionPicker` (`SessionPicker.swift`) y la barra de `ContentView`.
+
+### 4. Decisiones
+- `.sharedBackgroundVisibility(.hidden)` en el `ToolbarItem`, solo desde macOS 26 (`if #available`); en 14 y 15 no hay cápsula y no hace falta.
+- Fondo `Color.primary` al 8 % con esquinas de 6 pt al pasar el ratón (`onHover`), que se ve igual en claro y en oscuro.
+
+### 5. Alternativas descartadas
+- Cápsula con una sola línea (respuesta 1): el título perdía protagonismo.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas con sesión y sin sesión: ya no sale la cápsula. El fondo al pasar el ratón falta verlo con el ratón.
+- En una ventana de 500 pt de alto la barra de la carpeta de origen queda tapada bajo la barra superior; con 700 se ve bien. Parece que el Procesador no cabe en tan poco alto y no tiene que ver con este cambio, pero no se ha confirmado con la versión anterior.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Barra lateral: sección aparte para lo que no es de una sesión
+
+### 1. La petición tal como se ha entendido
+- La barra lateral queda en tres secciones:
+  - **Creadores:** Slideshow, Collage, Contact Sheet (sin cambios).
+  - **Utilidades:** Descargar tarjeta, Procesador, Marca de agua, Metadatos, Renombrador.
+  - **Otras herramientas** (nueva, al final): Código QR, Shutter Count, Recuperar fotos.
+- Solo cambia dónde salen en la barra lateral; los módulos funcionan igual.
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «QR, shutter count o recuperar fotos deberían ir en otra sección, ya que no son utilidades de una sesión» (captura de la sección «Utilidades»).
+
+### 2. Preguntas y respuestas
+- P1: ¿Cómo se llama la sección nueva? (Herramientas, Otras herramientas, Cámara y tarjeta) — **2: «Otras herramientas»**.
+- P2: ¿Dónde va «Descargar tarjeta», que sí es de la sesión (descarga en su RAW)? (1 primera de Utilidades, 2 donde está, 3 en Otras herramientas) — **1: la primera de «Utilidades»**, que es lo primero que se hace con una sesión.
+
+### 3. Fuentes analizadas
+- `Module.swift` (`creators`, `utilities`) y la barra lateral de `ContentView`.
+
+### 4. Decisiones
+- Nueva lista `Module.otherTools` junto a `creators` y `utilities`; la barra lateral pinta una sección por lista. Nada más dependía del orden.
+- «Otras herramientas» en inglés: «Other tools».
+
+### 5. Alternativas descartadas
+- «Herramientas» o «Cámara y tarjeta» como nombre (respuesta 1).
+- Dejar «Descargar tarjeta» al final de Utilidades o llevarla a «Otras herramientas» (respuesta 2): es lo primero que se hace con una sesión.
+
+### 6. Pendiente de comprobar
+- Comprobado con captura de la barra lateral.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — «Recientes»: nombres que se distingan
+
+### 1. La petición tal como se ha entendido
+- En el menú «Recientes» de la barra de la carpeta de origen, cada carpeta se nombra así:
+  - Dentro de una sesión: nombre de la sesión (sin la fecha) › ruta dentro de ella, p. ej. «SESION BLABLABLA › JPG» o «SESION BLABLABLA › JPG › Selección».
+  - Fuera de sesiones: carpeta de encima › carpeta, p. ej. «Fotos boda › BOOK».
+- Al pasar el ratón por cada una sigue saliendo la ruta completa.
+
+*Confirmada por el usuario («sí»), con un añadido:* «Recientes» solo sale, en cualquier módulo, cuando **no** hay sesión activa. Con sesión, el origen ya lo pone la sesión y el menú sobra.
+
+Petición original: «quizás lo de recientes no tiene mucho sentido que muestre solamente el nombre final del directorio si todos son JPG» (captura: el menú «Recientes» con «JPG», «JPG», «BOOK»).
+
+### 2. Preguntas y respuestas
+- P1: ¿Cómo se nombra cada carpeta reciente? (1 con la sesión delante si es de una, 2 siempre carpeta de encima › carpeta, 3 ruta completa) — **1: con la sesión delante** («SESION BLABLABLA › JPG»); si no es de una sesión, «carpeta de encima › carpeta».
+
+### 3. Fuentes analizadas
+- `SourceFolderBar` (menú «Recientes», `url.lastPathComponent` y la ruta como ayuda), `AppState.recentFolders`, `SessionLayout.session(containing:)`.
+
+### 4. Decisiones
+- `SessionLayout.displayName(of:)` en CaobaCore, con su test: usa el mismo reconocimiento de sesiones que el resto (`session(containing:)`), así que funciona aunque la carpeta no esté bajo la raíz configurada, siempre que el nombre siga el formato de Ajustes.
+- La sesión va sin fecha (solo el nombre), para que sea corto.
+- «Recientes» se oculta con `sessions.active != nil`; la lista se sigue guardando igual, para cuando se vuelva a trabajar sin sesión.
+
+### 5. Alternativas descartadas
+- Siempre «carpeta de encima › carpeta» o la ruta completa (respuesta 1).
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas que con sesión no sale y sin sesión sí. Los nombres del menú desplegado están probados con el test (el menú abierto no sale en las capturas); falta verlos con clics.
+- Sin commit ni publicación hasta que lo indique el usuario.

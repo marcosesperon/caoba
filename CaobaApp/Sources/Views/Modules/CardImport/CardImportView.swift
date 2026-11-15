@@ -13,7 +13,7 @@ struct CardImportView: View {
             ModuleTitle(title: "Descargar tarjeta")
             switch session.phase {
             case .setup:
-                ScrollView { CardImportSetupView(session: session) }
+                CardImportSetupView(session: session)
                 CardImportActionBar(session: session)
             case .copying, .paused, .cancelling:
                 CardImportProgressView(session: session)
@@ -47,9 +47,35 @@ struct CardImportView: View {
 
 // MARK: - Opciones
 
-/// Tarjeta, qué descargar y cómo organizarlo.
+/// Tarjeta, sesiones, qué descargar y cómo organizarlo. Con la ventana ancha, las sesiones van
+/// en una columna a la derecha (cada columna con su propio desplazamiento); si no, todo en una.
 struct CardImportSetupView: View {
     @Bindable var session: CardImportSession
+
+    /// Ancho a partir del cual caben las dos columnas sin apretar las sesiones.
+    private static let twoColumnWidth: CGFloat = 900
+    private static let optionsColumnWidth: CGFloat = 400
+
+    var body: some View {
+        GeometryReader { proxy in
+            if !session.sessions.isEmpty && proxy.size.width >= Self.twoColumnWidth {
+                HStack(alignment: .top, spacing: 12) {
+                    ScrollView { CardImportOptionsView(session: session) }
+                        .frame(width: Self.optionsColumnWidth)
+                    ScrollView { CardSessionsView(session: session) }
+                }
+            } else {
+                ScrollView { CardImportOptionsView(session: session, showsSessions: true) }
+            }
+        }
+    }
+}
+
+/// Las tarjetas de opciones: «Tarjeta», (las sesiones, si van en la misma columna),
+/// «Qué descargar» y «Cómo organizarlas».
+private struct CardImportOptionsView: View {
+    @Bindable var session: CardImportSession
+    var showsSessions = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -68,7 +94,7 @@ struct CardImportSetupView: View {
                 Button("Recargar") { session.diskMonitor.reload() }
                     .controlSize(.small)
             }
-            if !session.sessions.isEmpty {
+            if showsSessions && !session.sessions.isEmpty {
                 CardSessionsView(session: session)
             }
             OptionGroup(title: "Qué descargar") {
@@ -98,8 +124,9 @@ struct CardImportSetupView: View {
     }
 }
 
-/// Sesiones de la tarjeta para elegir qué descargar: casilla, fecha y horas, fotos, lo que falta,
-/// una tira de miniaturas y «Ver todas». Arriba, cuánto hueco separa una sesión de otra.
+/// Sesiones de la tarjeta para elegir qué descargar: casilla, fecha y horas, fotos, lo que falta y
+/// una tira de miniaturas que acaba en «Ver todas». En la cabecera, la casilla general y cuánto
+/// hueco separa una sesión de otra.
 struct CardSessionsView: View {
     @Bindable var session: CardImportSession
     /// Foto abierta en QuickLook y la lista que se recorre con las flechas (la sesión entera).
@@ -110,19 +137,19 @@ struct CardSessionsView: View {
 
     var body: some View {
         OptionGroup(title: "Sesiones en la tarjeta") {
+            allSessionsToggle
+        } content: {
             ForEach(session.sessions) { item in
                 sessionRow(item)
                 if item.id != session.sessions.last?.id { Divider() }
             }
-            HStack {
-                Button("Marcar todas") { session.selectAllSessions() }
-                Button("Desmarcar todas") { session.deselectAllSessions() }
-            }
-            .controlSize(.small)
         } accessory: {
             HStack(spacing: 6) {
                 Text("Separar sesiones con más de").font(.callout).foregroundStyle(.secondary)
                 Picker("", selection: $session.sessionGap) {
+                    Text("15 min").tag(CardSessionGap.fifteenMinutes)
+                    Text("30 min").tag(CardSessionGap.thirtyMinutes)
+                    Text("45 min").tag(CardSessionGap.fortyFiveMinutes)
                     Text("1 h").tag(CardSessionGap.oneHour)
                     Text("2 h").tag(CardSessionGap.twoHours)
                     Text("4 h").tag(CardSessionGap.fourHours)
@@ -137,9 +164,29 @@ struct CardSessionsView: View {
         .quickLookPreview($previewURL, in: previewList)
     }
 
+    /// Casilla general: marcada si lo están todas, vacía si ninguna y con guion si solo algunas.
+    /// Con guion o vacía, al pulsarla se marcan todas; marcada, se desmarcan todas.
+    /// Las dos «fuentes» (todas / alguna) son el truco de SwiftUI para que salga el guion.
+    private var allSessionsToggle: some View {
+        let all = Binding(get: { session.sessions.allSatisfy(session.isSelected) }, set: setAllSessions)
+        let any = Binding(get: { session.sessions.contains(where: session.isSelected) }, set: setAllSessions)
+        return Toggle(sources: [all, any], isOn: \.self) { EmptyView() }
+            .labelsHidden()
+            .help("Marcar o desmarcar todas las sesiones")
+    }
+
+    /// El conmutador avisa una vez por fuente: la segunda llamada ya no cambia nada.
+    private func setAllSessions(_ selected: Bool) {
+        let allSelected = session.sessions.allSatisfy(session.isSelected)
+        let noneSelected = !session.sessions.contains(where: session.isSelected)
+        if selected && !allSelected { session.selectAllSessions() }
+        if !selected && !noneSelected { session.deselectAllSessions() }
+    }
+
     private func sessionRow(_ item: CardSession) -> some View {
         let pending = session.pending(in: item)
-        return HStack(alignment: .center, spacing: 12) {
+        return HStack(alignment: .top, spacing: 12) {
+            // Arriba, a la altura de la fecha (con `.firstTextBaseline` la casilla queda un pelín baja).
             Toggle("", isOn: Binding(get: { session.isSelected(item) }, set: { _ in session.toggle(item) }))
                 .labelsHidden()
             VStack(alignment: .leading, spacing: 3) {
@@ -147,25 +194,37 @@ struct CardSessionsView: View {
                 Text(statusText(item, pending: pending))
                     .font(.callout)
                     .foregroundStyle(pending == 0 ? .secondary : .primary)
-                Button("Ver todas") {
-                    previewList = item.items.map(\.file.url)
-                    previewURL = previewList.first
-                }
-                .controlSize(.small)
             }
             .frame(minWidth: 260, alignment: .leading)
-            HStack(spacing: 6) {
-                ForEach(item.sample(6), id: \.file.url) { photo in
-                    CardThumbnail(url: photo.file.url, thumbnails: thumbnails)
-                        .onTapGesture(count: 2) {
-                            previewList = item.items.map(\.file.url)
-                            previewURL = photo.file.url
-                        }
-                }
+            // Se queda con la tira más larga que quepa: 6, 4, 2 o ninguna miniatura, y siempre «Ver todas».
+            ViewThatFits(in: .horizontal) {
+                thumbnailStrip(item, count: 6)
+                thumbnailStrip(item, count: 4)
+                thumbnailStrip(item, count: 2)
+                thumbnailStrip(item, count: 0)
             }
+            // Primero se mide la tira con todo el hueco que deja el texto; si no, la fila lo reparte a partes iguales.
+            .layoutPriority(1)
             Spacer(minLength: 0)
         }
         .opacity(pending == 0 && !session.isSelected(item) ? 0.6 : 1)
+    }
+
+    private func thumbnailStrip(_ item: CardSession, count: Int) -> some View {
+        HStack(spacing: 6) {
+            ForEach(item.sample(count), id: \.file.url) { photo in
+                CardThumbnail(url: photo.file.url, thumbnails: thumbnails)
+                    .onTapGesture(count: 2) { preview(item, from: photo.file.url) }
+            }
+            SeeAllTile { preview(item, from: nil) }
+        }
+        .fixedSize()
+    }
+
+    /// Abre la sesión entera en QuickLook, desde una foto o desde la primera.
+    private func preview(_ item: CardSession, from url: URL?) {
+        previewList = item.items.map(\.file.url)
+        previewURL = url ?? previewList.first
     }
 
     /// «412 fotos · 9,8 GB · faltan 412», «faltan 12 de 230» o «ya descargada».
@@ -184,6 +243,26 @@ struct CardSessionsView: View {
             return item.start.formatted(day) + " · " + item.start.formatted(time) + "–" + item.end.formatted(time)
         }
         return item.start.formatted(day) + " " + item.start.formatted(time) + " – " + item.end.formatted(day) + " " + item.end.formatted(time)
+    }
+}
+
+/// «Ver todas» con forma de miniatura: una lupa en el centro, al final de la tira.
+private struct SeeAllTile: View {
+    let action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 4).fill(Color.secondary.opacity(hovering ? 0.3 : 0.15))
+                Image(systemName: "magnifyingglass").font(.title2).foregroundStyle(.secondary)
+            }
+            .frame(width: 72, height: 54)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help("Ver todas")
     }
 }
 
@@ -210,7 +289,9 @@ private struct CardThumbnail: View {
 
 /// Resumen, destino, avisos y el botón «Descargar».
 struct CardImportActionBar: View {
+    @Environment(AppState.self) private var appState
     @Bindable var session: CardImportSession
+    @State private var showNewSession = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -230,16 +311,43 @@ struct CardImportActionBar: View {
                     .foregroundStyle(session.destinationFolder == nil ? .secondary : .primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button("Elegir…") { chooseDestination() }.fixedSize()
+                // Para un encargo nuevo: crea la sesión con la fecha de las fotos y descarga en su RAW.
+                if appState.sessions.layout.root != nil {
+                    Button("Crear sesión…") { showNewSession = true }
+                        .fixedSize()
+                        .disabled(session.selectedSessionIDs.isEmpty || session.isScanning)
+                        .help("Crea una sesión con la fecha de las fotos marcadas y descarga en su carpeta \(appState.sessions.layout.downloadsFolder).")
+                }
                 Divider().frame(height: 18)
                 Button("Descargar") { session.start() }
                     .buttonStyle(.borderedProminent)
                     .disabled(session.blockingProblem != nil)
                     .fixedSize()
             }
+            if let warning = otherDayWarning {
+                Label(warning, systemImage: "calendar.badge.exclamationmark").font(.callout).foregroundStyle(.orange)
+            }
             Text("Cada copia se comprueba con la de la tarjeta antes de darla por buena. La tarjeta solo se lee.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         .caobaPanel()
+        .sheet(isPresented: $showNewSession) {
+            NewSessionSheet(date: session.firstMarkedDate ?? Date(), createTitle: "Crear y descargar") {
+                session.startWhenReady()
+            }
+            .environment(appState)
+        }
+    }
+
+    /// Si se va a descargar en la sesión activa pero ninguna foto marcada es de su día: puede
+    /// ser un encargo nuevo y conviene crear su sesión antes de mezclarlo con otro.
+    private var otherDayWarning: String? {
+        let sessions = appState.sessions
+        guard let active = sessions.active, let destination = session.destinationFolder,
+              destination.standardizedFileURL == sessions.layout.downloads(of: active).standardizedFileURL,
+              !session.markedDays.isEmpty,
+              !session.markedDays.contains(Calendar.current.startOfDay(for: active.date)) else { return nil }
+        return L("Las fotos marcadas no son del día de la sesión \(active.title). Si es otro encargo, pulsa «Crear sesión…».")
     }
 
     /// «2 sesiones marcadas · faltan 424 (10,1 GB)».
@@ -253,7 +361,7 @@ struct CardImportActionBar: View {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = L("Elegir destino")
-        if panel.runModal() == .OK, let url = panel.url { session.destinationFolder = url }
+        if panel.runFromStartFolder() == .OK, let url = panel.url { session.changeDestination(to: url) }
     }
 }
 

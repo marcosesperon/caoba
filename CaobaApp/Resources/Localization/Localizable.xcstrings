@@ -1,6 +1,436 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Otras herramientas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other tools"
+          }
+        }
+      }
+    },
+    "Marcar o desmarcar todas las sesiones" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select or deselect all sessions"
+          }
+        }
+      }
+    },
+    "15 min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 min"
+          }
+        }
+      }
+    },
+    "30 min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 min"
+          }
+        }
+      }
+    },
+    "45 min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "45 min"
+          }
+        }
+      }
+    },
+    "Crear sesión…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create session…"
+          }
+        }
+      }
+    },
+    "Crear y descargar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create and download"
+          }
+        }
+      }
+    },
+    "Crea una sesión con la fecha de las fotos marcadas y descarga en su carpeta %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creates a session with the date of the checked photos and downloads into its %@ folder."
+          }
+        }
+      }
+    },
+    "Las fotos marcadas no son del día de la sesión %@. Si es otro encargo, pulsa «Crear sesión…»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The checked photos are not from the day of session %@. If it is another job, click “Create session…”."
+          }
+        }
+      }
+    },
+    "En la tarjeta no hay ficheros de los tipos elegidos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The card has no files of the chosen types."
+          }
+        }
+      }
+    },
+    "Nombre de la sesión" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session name"
+          }
+        }
+      }
+    },
+    "Sesión" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session"
+          }
+        }
+      }
+    },
+    "Sin sesión" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No session"
+          }
+        }
+      }
+    },
+    "Elige la sesión con la que trabajas: los módulos saldrán con su origen y su destino." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the session you are working on: modules will start with its source and destination."
+          }
+        }
+      }
+    },
+    "Esta sesión no tiene carpeta %@: elige el origen a mano." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This session has no %@ folder: choose the source by hand."
+          }
+        }
+      }
+    },
+    "Para usar sesiones, elige primero en Ajustes › Sesiones la carpeta donde las guardas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To use sessions, first choose the folder where you keep them in Settings › Sessions."
+          }
+        }
+      }
+    },
+    "Abrir Ajustes…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings…"
+          }
+        }
+      }
+    },
+    "No hay sesiones en la carpeta raíz." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are no sessions in the root folder."
+          }
+        }
+      }
+    },
+    "Ninguna sesión coincide." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No session matches."
+          }
+        }
+      }
+    },
+    "Nueva sesión…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New session…"
+          }
+        }
+      }
+    },
+    "Nueva sesión" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New session"
+          }
+        }
+      }
+    },
+    "Con las carpetas: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With the folders: %@"
+          }
+        }
+      }
+    },
+    "Elige antes la carpeta raíz de sesiones en Ajustes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First choose the sessions root folder in Settings."
+          }
+        }
+      }
+    },
+    "Crear" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create"
+          }
+        }
+      }
+    },
+    "General" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "Sesiones" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        }
+      }
+    },
+    "Carpeta raíz" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Root folder"
+          }
+        }
+      }
+    },
+    "Sin elegir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not chosen"
+          }
+        }
+      }
+    },
+    "Donde están las carpetas de los años o de las sesiones. Los diálogos de elegir carpeta empiezan aquí si no hay sesión activa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where the year or session folders live. Folder dialogs start here when there is no active session."
+          }
+        }
+      }
+    },
+    "Años" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Years"
+          }
+        }
+      }
+    },
+    "Una carpeta por año" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One folder per year"
+          }
+        }
+      }
+    },
+    "Fecha y nombre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date and name"
+          }
+        }
+      }
+    },
+    "Nombre y fecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name and date"
+          }
+        }
+      }
+    },
+    "Ejemplo: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Example: %@"
+          }
+        }
+      }
+    },
+    "Subcarpetas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subfolders"
+          }
+        }
+      }
+    },
+    "Añadir subcarpeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add subfolder"
+          }
+        }
+      }
+    },
+    "Nueva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New"
+          }
+        }
+      }
+    },
+    "Se crean al hacer una sesión nueva." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They are created with each new session."
+          }
+        }
+      }
+    },
+    "Fotos finales en" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Final photos in"
+          }
+        }
+      }
+    },
+    "Es el origen de Slideshow, Collage, Contact Sheet, Procesador, Marca de agua, Renombrador y Metadatos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It is the source for Slideshow, Collage, Contact Sheet, Processor, Watermark, Renamer and Metadata."
+          }
+        }
+      }
+    },
+    "Descargas en" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads in"
+          }
+        }
+      }
+    },
+    "Dónde guarda cada módulo dentro de la sesión. Puedes usar {sesion} y {fecha_sesion}." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where each module saves inside the session. You can use {sesion} (session name) and {fecha_sesion} (session date)."
+          }
+        }
+      }
+    },
+    "Volver a los valores de partida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore defaults"
+          }
+        }
+      }
+    },
     "Sesiones en la tarjeta" : {
       "localizations" : {
         "en" : {

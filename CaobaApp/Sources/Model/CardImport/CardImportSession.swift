@@ -22,7 +22,8 @@ final class CardImportSession {
 
     // MARK: Opciones (se recuerdan)
     let diskMonitor: ExternalDiskMonitor
-    var selectedDiskID: String? { didSet { if selectedDiskID != oldValue { scheduleScan() } } }
+    /// Con otra tarjeta, lo marcado de la anterior no sirve: se vuelve a marcar lo pendiente.
+    var selectedDiskID: String? { didSet { if selectedDiskID != oldValue { scheduleScan(keepingSelection: false) } } }
     var groups: Set<RecoveryFileGroup> = CardImportSession.loadGroups() {
         didSet {
             UserDefaults.standard.set(groups.map(\.rawValue), forKey: Keys.groups)
@@ -89,6 +90,9 @@ final class CardImportSession {
     @ObservationIgnored private var planTask: Task<Void, Never>?
     /// Fotos leídas de la tarjeta, para reagrupar sin volver a leerla.
     @ObservationIgnored private var items: [CardItem] = []
+    /// Sesiones marcadas que la próxima lectura debe respetar: al cambiar el destino, los tipos o la
+    /// organización no se pierde lo que el usuario había marcado.
+    @ObservationIgnored private var selectionToKeep: Set<CardSession.ID>?
     @ObservationIgnored private var control: CardImportControl?
     @ObservationIgnored private let liveProgress = ProgressBox()
 
@@ -155,6 +159,8 @@ final class CardImportSession {
             return L("La carpeta de destino está en la propia tarjeta. Elige una en el Mac o en otro disco.")
         }
         if isScanning || fullPlan == nil { return L("Leyendo la tarjeta…") }
+        // Sin nada de los tipos elegidos no es que esté «todo descargado»: no hay nada que bajar.
+        if items.isEmpty { return L("En la tarjeta no hay ficheros de los tipos elegidos.") }
         if fullPlan?.tasks.isEmpty == true { return L("Ya está todo descargado en esta carpeta.") }
         if selectedSessionIDs.isEmpty { return L("Marca al menos una sesión.") }
         guard let plan else { return L("Leyendo la tarjeta…") }
@@ -182,9 +188,16 @@ final class CardImportSession {
     // MARK: Leer la tarjeta
 
     /// Vuelve a leer la tarjeta y a calcular lo que falta (al cambiar cualquier opción). Al
-    /// acabar, agrupa en sesiones, marca las que tienen algo pendiente y prepara el plan.
-    func scheduleScan() {
+    /// acabar, agrupa en sesiones y prepara el plan. Las sesiones que estaban marcadas lo siguen
+    /// estando; con `keepingSelection: false` (otra tarjeta, o tras descargar) se marcan las que
+    /// tienen algo pendiente.
+    func scheduleScan(keepingSelection: Bool = true) {
         guard phase == .setup || isFinished else { return }
+        if keepingSelection, !selectedSessionIDs.isEmpty {
+            selectionToKeep = selectedSessionIDs
+        } else if !keepingSelection {
+            selectionToKeep = nil
+        }
         scanTask?.cancel()
         clearScan()
         guard let volume = cardVolume, let destination = destinationFolder, !groups.isEmpty,
@@ -219,11 +232,44 @@ final class CardImportSession {
     /// Agrupa lo leído con el hueco elegido y marca las sesiones con algo pendiente.
     private func regroup() {
         sessions = CardSessions.group(items, gap: sessionGap)
-        selectedSessionIDs = Set(sessions.filter { pending(in: $0) > 0 }.map(\.id))
+        // Si nada de lo marcado sigue existiendo (otro hueco entre sesiones…), lo pendiente.
+        let kept = selectionToKeep?.intersection(sessions.map(\.id)) ?? []
+        selectionToKeep = nil
+        if !kept.isEmpty {
+            selectedSessionIDs = kept
+        } else {
+            selectedSessionIDs = Set(sessions.filter { pending(in: $0) > 0 }.map(\.id))
+        }
         rebuildPlan()
     }
 
     // MARK: Sesiones
+
+    /// Cambia el destino (el `RAW` de la sesión del estudio o el elegido a mano). Con una descarga
+    /// en marcha no se toca; si es el mismo, no se vuelve a leer la tarjeta.
+    func changeDestination(to folder: URL) {
+        guard !isBusy, folder.standardizedFileURL != destinationFolder?.standardizedFileURL else { return }
+        destinationFolder = folder
+    }
+
+    /// Hora de la primera foto marcada: la fecha que se propone al crear una sesión del estudio.
+    var firstMarkedDate: Date? {
+        sessions.filter { selectedSessionIDs.contains($0.id) }.map(\.start).min()
+    }
+
+    /// Días en los que se hicieron las fotos marcadas.
+    var markedDays: Set<Date> {
+        Set(sessions.filter { selectedSessionIDs.contains($0.id) }.map { Calendar.current.startOfDay(for: $0.start) })
+    }
+
+    /// Empieza en cuanto termine de leer la tarjeta y de preparar el plan, si no hay nada que lo impida.
+    func startWhenReady() {
+        Task {
+            await scanTask?.value
+            await planTask?.value
+            if blockingProblem == nil { start() }
+        }
+    }
 
     /// Cuántas fotos de la sesión faltan por descargar.
     func pending(in session: CardSession) -> Int {
@@ -348,12 +394,12 @@ final class CardImportSession {
         if let next {
             // Puede ser el mismo identificador (`disk4`) con otra tarjeta: se relee siempre.
             selectedDiskID = next.id
-            scheduleScan()
+            scheduleScan(keepingSelection: false)
         } else if selectedDisk == nil {
             selectedDiskID = nil
             disksChanged()
         } else {
-            scheduleScan()
+            scheduleScan(keepingSelection: false)
         }
     }
 
@@ -365,7 +411,7 @@ final class CardImportSession {
         phase = .setup
         progress = CardImportProgress()
         selectedDiskID = next.id
-        scheduleScan()
+        scheduleScan(keepingSelection: false)
         Task {
             await scanTask?.value
             let pendingSessions = sessions.filter { pending(in: $0) > 0 }.count

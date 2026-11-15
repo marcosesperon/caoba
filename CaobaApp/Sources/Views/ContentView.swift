@@ -16,6 +16,9 @@ struct ContentView: View {
                 Section("Utilidades") {
                     ForEach(Module.utilities) { module in sidebarRow(module) }
                 }
+                Section("Otras herramientas") {
+                    ForEach(Module.otherTools) { module in sidebarRow(module) }
+                }
             }
             .navigationSplitViewColumnWidth(min: 190, ideal: 210)
             .safeAreaInset(edge: .bottom) { sidebarFooter }
@@ -44,8 +47,17 @@ struct ContentView: View {
             }
             .padding(12)
             .animation(.default, value: appState.showUpdateBanner)
-            .navigationTitle("CAOBA")
-            .navigationSubtitle(appState.currentModule.title)
+            // En el sitio del título va la sesión activa. El módulo ya sale dentro, con la letra de CAOBA.
+            .hidingWindowTitle()
+            .toolbar {
+                // En macOS 26, sin la cápsula de cristal: que se vea como un título, no como un botón.
+                if #available(macOS 26.0, *) {
+                    ToolbarItem(placement: .navigation) { SessionPicker() }
+                        .sharedBackgroundVisibility(.hidden)
+                } else {
+                    ToolbarItem(placement: .navigation) { SessionPicker() }
+                }
+            }
         }
         .jobPresentation(appState.jobRunner)
         // Aviso común a todos los módulos: la carpeta ha cambiado desde que se leyó.
@@ -132,6 +144,20 @@ struct ContentView: View {
     }
 }
 
+private extension View {
+    /// Quita el título de la barra de la ventana para dejar sitio a la sesión. Desde macOS 15 el
+    /// título sigue existiendo (menú Ventana, Mission Control) aunque no se vea; en macOS 14
+    /// no se puede ocultar y se deja vacío.
+    @ViewBuilder
+    func hidingWindowTitle() -> some View {
+        if #available(macOS 15.0, *) {
+            navigationTitle("CAOBA").toolbar(removing: .title)
+        } else {
+            navigationTitle("")
+        }
+    }
+}
+
 /// Módulo todavía no migrado.
 struct ComingSoonView: View {
     let module: Module
@@ -144,8 +170,28 @@ struct ComingSoonView: View {
     }
 }
 
-/// Preferencias: idioma, apariencia, autor y presets.
+/// Preferencias en dos pestañas: «General» (idioma, apariencia, autor y presets) y «Sesiones».
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
+    @State private var tab = "general"
+
+    var body: some View {
+        TabView(selection: $tab) {
+            GeneralSettingsView()
+                .tabItem { Label("General", systemImage: "gearshape") }
+                .tag("general")
+            SessionSettingsView()
+                .frame(width: 520, height: 560)
+                .tabItem { Label("Sesiones", systemImage: "person.2.crop.square.stack") }
+                .tag("sessions")
+        }
+        // Para capturas: `--state settings.tab=sessions`.
+        .onAppear { if let initial = appState.launchState["settings.tab"] { tab = initial } }
+    }
+}
+
+/// Ajustes › General: idioma, apariencia, autor y presets.
+struct GeneralSettingsView: View {
     @AppStorage(Preferences.appearanceKey) private var appearance: Appearance = .system
     @AppStorage(Preferences.languageKey) private var language: AppLanguage = .system
     @AppStorage(Preferences.authorKey) private var author = ""
@@ -202,7 +248,7 @@ struct SettingsView: View {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.json]
         panel.nameFieldStringValue = "CAOBA-presets.json"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runFromStartFolder() == .OK, let url = panel.url else { return }
         do {
             try store.exportData().write(to: url)
             presetMessage = L("Exportados ") + "\(store.totalCount)" + L(" presets.")
@@ -214,7 +260,7 @@ struct SettingsView: View {
     private func importPresets() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.json]
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runFromStartFolder() == .OK, let url = panel.url else { return }
         do {
             let count = try store.importData(Data(contentsOf: url))
             presetMessage = L("Importados ") + "\(count)" + L(" presets.")

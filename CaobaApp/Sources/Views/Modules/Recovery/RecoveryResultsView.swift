@@ -216,7 +216,7 @@ struct RecoveryResultsView: View {
         panel.canCreateDirectories = true
         panel.prompt = L("Ordenar aquí")
         panel.message = L("Elige la carpeta donde copiar lo recuperado ordenado por fecha.")
-        if panel.runModal() == .OK, let url = panel.url { results.organize(into: url, with: appState.jobRunner) }
+        if panel.runFromStartFolder() == .OK, let url = panel.url { results.organize(into: url, with: appState.jobRunner) }
     }
 }
 

@@ -215,7 +215,7 @@ struct QRView: View {
     private func chooseLogo() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.png, .jpeg]
-        if panel.runModal() == .OK { logoURL = panel.url }
+        if panel.runFromStartFolder() == .OK { logoURL = panel.url }
     }
 
     private func schedulePreview() {
@@ -245,7 +245,7 @@ struct QRView: View {
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.png]
         panel.nameFieldStringValue = "qr-code.png"
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runFromStartFolder() == .OK, let url = panel.url else { return }
         let payload = content.payload
         let opts = options
         let logo = logoURL

@@ -415,7 +415,7 @@ struct LogoOptionsGroup: View {
                 Button("Elegir…") {
                     let panel = NSOpenPanel()
                     panel.allowedContentTypes = [.png, .jpeg]
-                    if panel.runModal() == .OK { url = panel.url }
+                    if panel.runFromStartFolder() == .OK { url = panel.url }
                 }
                 if url != nil { Button("Quitar") { url = nil } }
             }
