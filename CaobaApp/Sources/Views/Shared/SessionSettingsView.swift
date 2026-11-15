@@ -6,6 +6,7 @@ import CaobaCore
 /// pueden cambiar el formato del nombre, las subcarpetas y dónde guarda cada módulo.
 struct SessionSettingsView: View {
     @Environment(AppState.self) private var appState
+    @State private var presetStore = PresetStore.shared
 
     private var sessions: StudioSessions { appState.sessions }
 
@@ -92,6 +93,28 @@ struct SessionSettingsView: View {
                 outputRow("Slideshow", .slideshow)
                 outputRow("Contact Sheet", .contactSheet)
 
+                Divider()
+                Text("Lo que se pone solo con fotos de una sesión. Las plantillas y los presets se guardan desde cada módulo.")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                LabeledRow("Slideshow") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        presetPicker(.slideshow, as: SlideshowPreset.self, selection: $sessions.layout.slideshowTemplate,
+                                     none: String(localized: "Ninguna"))
+                        Text("Plantilla que se aplica al abrir una sesión que todavía no tiene montaje.")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                LabeledRow("Contact Sheet") {
+                    presetPicker(.contactSheet, as: ContactSheetSettings.self, selection: $sessions.layout.contactSheetPreset,
+                                 none: String(localized: "Ninguno"))
+                }
+                LabeledRow("Renombrador") {
+                    presetPicker(.renamer, as: RenamerSettings.self, selection: $sessions.layout.renamerPreset,
+                                 none: String(localized: "Ninguno: \(SessionLayout.defaultRenamePattern)"))
+                }
+
                 HStack {
                     Spacer()
                     Button("Volver a los valores de partida") {
@@ -116,6 +139,23 @@ struct SessionSettingsView: View {
         var layout = sessions.layout
         layout.dateFormat = format
         return layout.dateText(Date())
+    }
+
+    /// Elegir el preset (o plantilla) de un módulo para las sesiones. «Ninguno», o uno que ya se
+    /// borró, deja los valores de partida.
+    private func presetPicker<S: Codable & Equatable>(_ module: PresetModule, as type: S.Type,
+                                                       selection: Binding<String?>, none: String) -> some View {
+        let presets = presetStore.presets(module, as: S.self)
+        let current = Binding<String?>(
+            get: { presets.contains { $0.name == selection.wrappedValue } ? selection.wrappedValue : nil },
+            set: { selection.wrappedValue = $0 }
+        )
+        return Picker("", selection: current) {
+            Text(none).tag(String?.none)
+            if !presets.isEmpty { Divider() }
+            ForEach(presets) { Text($0.name).tag(Optional($0.name)) }
+        }
+        .labelsHidden().fixedSize()
     }
 
     /// Selector entre las subcarpetas.

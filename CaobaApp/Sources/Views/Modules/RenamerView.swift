@@ -1,7 +1,8 @@
 import SwiftUI
 import CaobaCore
 
-/// Renombrador con cuatro modos y vista previa en vivo.
+/// Renombrador con cuatro modos y vista previa en vivo. Con fotos de una sesión del estudio
+/// empieza con el preset de Ajustes › Sesiones (o `{fecha_sesion} {sesion} {n}`).
 struct RenamerView: View {
     @Environment(AppState.self) private var appState
 
@@ -19,12 +20,8 @@ struct RenamerView: View {
     }
 
     @State private var mode: Mode = .pattern
-    @State private var pattern = "{nombre}"
-    @State private var sortBy: SortMode = .name
-    @State private var digits = 0
-    @State private var start = 1
-    @State private var textCase: TextCase = .none
-    @State private var sanitize = SanitizeOptions()
+    /// Opciones del modo Patrón (lo que guardan los presets).
+    @State private var settings = RenamerSettings()
     @State private var search = ""
     @State private var replace = ""
     @State private var prefix = ""
@@ -38,7 +35,14 @@ struct RenamerView: View {
         VStack(spacing: 12) {
             HSplitView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ModuleTitle(title: "Renombrador")
+                    HStack {
+                        ModuleTitle(title: "Renombrador")
+                        Spacer()
+                        PresetBar(module: .renamer, current: settings, defaults: RenamerSettings()) { preset in
+                            settings = preset
+                            mode = .pattern
+                        }
+                    }
                     LabeledRow("Modo") {
                         Picker("", selection: $mode) {
                             ForEach(Mode.allCases) { Text($0.title).tag($0) }
@@ -51,20 +55,25 @@ struct RenamerView: View {
                             switch mode {
                             case .pattern:
                                 OptionGroup(title: "Patrón") {
-                                    TextField("Patrón", text: $pattern)
-                                    Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion} y fecha {YYYY} {MM} {DD} {hh} {mm} {ss}")
+                                    TextField("Patrón", text: $settings.pattern)
+                                    Text("Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion}, fecha {YYYY} {MM} {DD} {hh} {mm} {ss} y de la sesión {sesion} {fecha_sesion}")
                                         .font(.caption).foregroundStyle(.secondary)
+                                    if needsMissingSession {
+                                        Label("Estas fotos no son de una sesión: {sesion} y {fecha_sesion} no tienen valor. Quítalas del patrón o elige una carpeta de una sesión.", systemImage: "exclamationmark.triangle")
+                                            .font(.callout).foregroundStyle(.orange)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
                                     LabeledRow("Ordenar por") {
-                                        Picker("", selection: $sortBy) {
+                                        Picker("", selection: $settings.sortBy) {
                                             Text("Nombre").tag(SortMode.name)
                                             Text("Fecha de captura").tag(SortMode.date)
                                         }
                                         .labelsHidden()
                                     }
-                                    LabeledRow("Dígitos") { Stepper("\(digits == 0 ? String(localized: "auto") : String(digits))", value: $digits, in: 0...8).fixedSize() }
-                                    LabeledRow("Empezar en") { Stepper("\(start)", value: $start, in: 0...100_000).fixedSize() }
+                                    LabeledRow("Dígitos") { Stepper("\(settings.digits == 0 ? String(localized: "auto") : String(settings.digits))", value: $settings.digits, in: 0...8).fixedSize() }
+                                    LabeledRow("Empezar en") { Stepper("\(settings.start)", value: $settings.start, in: 0...100_000).fixedSize() }
                                     LabeledRow("Mayúsculas") {
-                                        Picker("", selection: $textCase) {
+                                        Picker("", selection: $settings.textCase) {
                                             Text("Sin cambios").tag(TextCase.none)
                                             Text("minúsculas").tag(TextCase.lowercase)
                                             Text("MAYÚSCULAS").tag(TextCase.uppercase)
@@ -72,9 +81,9 @@ struct RenamerView: View {
                                         }
                                         .labelsHidden()
                                     }
-                                    Toggle("Quitar acentos", isOn: $sanitize.removeAccents)
-                                    Toggle("Espacios → guion bajo", isOn: $sanitize.removeSpaces)
-                                    Toggle("Quitar caracteres especiales", isOn: $sanitize.removeSpecialCharacters)
+                                    Toggle("Quitar acentos", isOn: $settings.sanitize.removeAccents)
+                                    Toggle("Espacios → guion bajo", isOn: $settings.sanitize.removeSpaces)
+                                    Toggle("Quitar caracteres especiales", isOn: $settings.sanitize.removeSpecialCharacters)
                                 }
                             case .autofix:
                                 OptionGroup(title: "Corregir numeración") {
@@ -131,27 +140,49 @@ struct RenamerView: View {
                 Divider().frame(height: 18)
                 Button("Renombrar") { run() }
                     .buttonStyle(.borderedProminent)
-                    .disabled(plan.isEmpty || appState.needsDestinationFolder)
+                    .disabled(plan.isEmpty || appState.needsDestinationFolder || needsMissingSession)
             }
         }
         .onAppear {
+            applySessionDefault()
             // Para capturas desde línea de comandos: `--state renamer.pattern={fecha}_{n}`
-            if let initial = appState.launchState["renamer.pattern"] { pattern = initial }
+            if let initial = appState.launchState["renamer.pattern"] { settings.pattern = initial }
         }
         .onChange(of: mode) { schedulePlan() }
-        .onChange(of: pattern) { schedulePlan() }
-        .onChange(of: sortBy) { schedulePlan() }
-        .onChange(of: digits) { schedulePlan() }
-        .onChange(of: start) { schedulePlan() }
-        .onChange(of: textCase) { schedulePlan() }
-        .onChange(of: sanitize) { schedulePlan() }
+        .onChange(of: settings) { schedulePlan() }
         .onChange(of: search) { schedulePlan() }
         .onChange(of: replace) { schedulePlan() }
         .onChange(of: prefix) { schedulePlan() }
         .onChange(of: suffix) { schedulePlan() }
         .onChange(of: appState.checkedFiles) { schedulePlan() }
-        .onChange(of: appState.sourceFolder) { refreshHistory() }
+        .onChange(of: appState.sourceFolder) {
+            applySessionDefault()
+            refreshHistory()
+        }
         .onAppear { schedulePlan(); refreshHistory() }
+    }
+
+    // MARK: - Sesión
+
+    /// Sesión del estudio donde están las fotos (no la activa: pueden ser de otra elegida a mano).
+    private var photoSession: StudioSession? {
+        appState.sourceFolder.flatMap { appState.sessions.layout.session(containing: $0) }
+    }
+
+    /// El patrón usa `{sesion}` o `{fecha_sesion}` y las fotos no son de ninguna sesión: no se renombra.
+    private var needsMissingSession: Bool {
+        mode == .pattern && Renamer.patternNeedsSession(settings.pattern) && photoSession == nil
+    }
+
+    /// Con fotos de una sesión, el modo Patrón con el preset de Ajustes › Sesiones (o el patrón
+    /// de partida si no hay ninguno o se borró). Se hace al entrar y al cambiar de carpeta; lo que
+    /// se toque después se respeta mientras no cambie la carpeta.
+    private func applySessionDefault() {
+        guard photoSession != nil else { return }
+        let layout = appState.sessions.layout
+        let preset = PresetStore.shared.presets(.renamer, as: RenamerSettings.self).first { $0.name == layout.renamerPreset }
+        settings = preset?.settings ?? .sessionDefault
+        mode = .pattern
     }
 
     /// Recalcula el plan con un pequeño retardo para no leer EXIF en cada tecla.
@@ -159,14 +190,21 @@ struct RenamerView: View {
         planTask?.cancel()
         let files = appState.checkedFiles
         let mode = mode
-        let options = PatternRenameOptions(pattern: pattern, sortBy: sortBy, sequenceDigits: digits, sequenceStart: start, textCase: textCase, sanitize: sanitize)
+        let session = photoSession.map { RenameSession(name: $0.name, dateText: appState.sessions.layout.dateText($0.date)) }
+        let blocked = needsMissingSession
+        let options = PatternRenameOptions(pattern: settings.pattern, sortBy: settings.sortBy, sequenceDigits: settings.digits,
+                                           sequenceStart: settings.start, textCase: settings.textCase, sanitize: settings.sanitize,
+                                           session: session)
         let (search, replace, prefix, suffix) = (search, replace, prefix, suffix)
         planTask = Task {
             try? await Task.sleep(for: .milliseconds(350))
             guard !Task.isCancelled else { return }
             let result = await Task.detached { () -> [RenameEntry] in
                 switch mode {
-                case .pattern: return Renamer.patternPlan(files: files, options: options).filter { $0.newName != $0.oldName }
+                case .pattern:
+                    // Sin sesión no hay con qué rellenar sus variables: mejor no enseñar nombres a medias.
+                    guard !blocked else { return [] }
+                    return Renamer.patternPlan(files: files, options: options).filter { $0.newName != $0.oldName }
                 case .autofix: return Renamer.autofixPlan(files: files)
                 case .searchReplace: return Renamer.searchReplacePlan(files: files, search: search, replace: replace)
                 case .prefixSuffix: return Renamer.prefixSuffixPlan(files: files, prefix: prefix, suffix: suffix)

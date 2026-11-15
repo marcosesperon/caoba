@@ -19,6 +19,25 @@ struct RenamerTests {
         #expect(out == "2024-05-31_142210_007_007_DSC_MM01_Nikon Z6_H_600x400")
     }
 
+    @Test("Variables de la sesión: nombre y fecha con el formato de Ajustes, rellenadas las últimas")
+    func sessionTokens() {
+        let info = RenameSourceInfo(url: URL(fileURLWithPath: "/tmp/IMG_0001.jpg"))
+        let session = RenameSession(name: "Nombre de la sesión", dateText: "2026-11-15")
+        #expect(Renamer.expand(pattern: "{fecha_sesion} {sesion} {n}", info: info, sequence: "001", session: session)
+                == "2026-11-15 Nombre de la sesión 001")
+        // Un nombre de sesión con algo parecido a una variable no se sustituye.
+        let odd = RenameSession(name: "Boda {n}", dateText: "15-11-26")
+        #expect(Renamer.expand(pattern: "{sesion}_{n}", info: info, sequence: "7", session: odd) == "Boda {n}_7")
+        // Sin sesión, las variables se quedan tal cual (la interfaz no deja renombrar así).
+        #expect(Renamer.expand(pattern: "{sesion} {n}", info: info, sequence: "1") == "{sesion} 1")
+        #expect(Renamer.patternNeedsSession("{fecha_sesion}_{n}"))
+        #expect(!Renamer.patternNeedsSession("{nombre}_{n}"))
+
+        let files = urls(["b.jpg", "a.JPG", "c.jpg"])
+        let plan = Renamer.patternPlan(files: files, options: PatternRenameOptions(pattern: "{fecha_sesion} {sesion} {n}", session: session))
+        #expect(plan.map(\.newName) == ["2026-11-15 Nombre de la sesión 01.jpg", "2026-11-15 Nombre de la sesión 02.jpg", "2026-11-15 Nombre de la sesión 03.jpg"])
+    }
+
     @Test("El texto fijo del patrón no se confunde con la fecha")
     func patternLiteralText() {
         let info = RenameSourceInfo(url: URL(fileURLWithPath: "/tmp/a.jpg"), date: ExifDate.parse("2024:05:31 14:22:10"))

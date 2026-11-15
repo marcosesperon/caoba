@@ -1,6 +1,136 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Sin plantillas guardadas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No saved templates"
+          }
+        }
+      }
+    },
+    "Sin plantilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No template"
+          }
+        }
+      }
+    },
+    "Nombre de la plantilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template name"
+          }
+        }
+      }
+    },
+    "Guarda todo menos las fotos. Si ya existe una plantilla con ese nombre, se sustituye." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saves everything except the photos. If a template with that name exists, it is replaced."
+          }
+        }
+      }
+    },
+    "%lld textos van delante de fotos concretas y no entran en la plantilla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld texts are placed before specific photos and are not included in the template."
+          }
+        }
+      }
+    },
+    "%lld presets guardados (Procesador, Marca de agua, Collage, Renombrador, Contact Sheet y plantillas del Slideshow)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld saved presets (Processor, Watermark, Collage, Renamer, Contact Sheet and Slideshow templates)"
+          }
+        }
+      }
+    },
+    "Lo que se pone solo con fotos de una sesión. Las plantillas y los presets se guardan desde cada módulo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied automatically with photos from a session. Templates and presets are saved from each module."
+          }
+        }
+      }
+    },
+    "Plantilla que se aplica al abrir una sesión que todavía no tiene montaje." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template applied when opening a session that has no slideshow yet."
+          }
+        }
+      }
+    },
+    "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion}, fecha {YYYY} {MM} {DD} {hh} {mm} {ss} y de la sesión {sesion} {fecha_sesion}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Variables: {nombre} {n} {camara} {objetivo} {ancho} {alto} {orientacion}, date {YYYY} {MM} {DD} {hh} {mm} {ss} and session {sesion} {fecha_sesion}"
+          }
+        }
+      }
+    },
+    "Estas fotos no son de una sesión: {sesion} y {fecha_sesion} no tienen valor. Quítalas del patrón o elige una carpeta de una sesión." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These photos are not from a session: {sesion} and {fecha_sesion} have no value. Remove them from the pattern or choose a session folder."
+          }
+        }
+      }
+    },
+    "Ninguno: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None: %@"
+          }
+        }
+      }
+    },
+    "Se pone solo al abrir el Renombrador con fotos de una sesión. Los presets se guardan desde el propio Renombrador." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applied automatically when the Renamer opens photos from a session. Presets are saved from the Renamer itself."
+          }
+        }
+      }
+    },
+    "%lld presets guardados (Procesador, Marca de agua, Collage y Renombrador)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld saved presets (Processor, Watermark, Collage and Renamer)"
+          }
+        }
+      }
+    },
     "Otras herramientas" : {
       "localizations" : {
         "en" : {

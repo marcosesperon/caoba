@@ -36,10 +36,23 @@ public struct SanitizeOptions: Sendable, Equatable, Codable {
     public var isEmpty: Bool { !removeAccents && !removeSpaces && !removeSpecialCharacters }
 }
 
+/// Sesión del estudio a la que pertenecen las fotos, para `{sesion}` y `{fecha_sesion}`.
+/// La fecha llega ya escrita con el formato de Ajustes › Sesiones.
+public struct RenameSession: Sendable, Equatable {
+    public var name: String
+    public var dateText: String
+
+    public init(name: String, dateText: String) {
+        self.name = name
+        self.dateText = dateText
+    }
+}
+
 /// Opciones del modo "patrón".
 public struct PatternRenameOptions: Sendable, Equatable {
     /// Patrón con placeholders: `{nombre}`, `{n}`, `{camara}`, `{objetivo}`,
-    /// `{ancho}`, `{alto}`, `{orientacion}` y fecha `{YYYY} {MM} {DD} {hh} {mm} {ss}`.
+    /// `{ancho}`, `{alto}`, `{orientacion}`, fecha `{YYYY} {MM} {DD} {hh} {mm} {ss}`
+    /// y de la sesión `{sesion}` y `{fecha_sesion}`.
     public var pattern: String
     public var sortBy: SortMode
     /// Dígitos del contador. 0 = automático según el número de ficheros (mínimo 2).
@@ -47,15 +60,19 @@ public struct PatternRenameOptions: Sendable, Equatable {
     public var sequenceStart: Int
     public var textCase: TextCase
     public var sanitize: SanitizeOptions
+    /// Sesión de las fotos. Sin ella, `{sesion}` y `{fecha_sesion}` se quedan tal cual
+    /// (la interfaz no deja renombrar en ese caso).
+    public var session: RenameSession?
 
     public init(pattern: String, sortBy: SortMode = .name, sequenceDigits: Int = 0, sequenceStart: Int = 1,
-                textCase: TextCase = .none, sanitize: SanitizeOptions = SanitizeOptions()) {
+                textCase: TextCase = .none, sanitize: SanitizeOptions = SanitizeOptions(), session: RenameSession? = nil) {
         self.pattern = pattern
         self.sortBy = sortBy
         self.sequenceDigits = sequenceDigits
         self.sequenceStart = sequenceStart
         self.textCase = textCase
         self.sanitize = sanitize
+        self.session = session
     }
 }
 
@@ -100,7 +117,7 @@ public struct Renamer: Sendable {
         for (index, info) in ordered.enumerated() {
             let ext = info.url.pathExtension
             let seq = pad(index + options.sequenceStart, digits: autoDigits)
-            var name = expand(pattern: options.pattern, info: info, sequence: seq)
+            var name = expand(pattern: options.pattern, info: info, sequence: seq, session: options.session)
             name = applyCase(name, options.textCase)
             name = sanitize(name, options.sanitize)
             names.append(name + (ext.isEmpty ? "" : "." + ext.lowercased()))
@@ -240,7 +257,8 @@ public struct Renamer: Sendable {
 
     /// Sustituye la fecha y los placeholders. Primero la fecha, para que
     /// un nombre original que contenga "{MM}" o "{DD}" no se vea afectado.
-    public static func expand(pattern: String, info: RenameSourceInfo, sequence: String) -> String {
+    /// Las de la sesión van las últimas: así un nombre de sesión con algo como «{n}» no se toma por variable.
+    public static func expand(pattern: String, info: RenameSourceInfo, sequence: String, session: RenameSession? = nil) -> String {
         var result = pattern
         if patternNeedsDate(pattern) {
             let date = info.date
@@ -267,7 +285,19 @@ public struct Renamer: Sendable {
         result = result.replacingOccurrences(of: "{ancho}", with: String(info.size?.width ?? 0))
         result = result.replacingOccurrences(of: "{alto}", with: String(info.size?.height ?? 0))
         result = result.replacingOccurrences(of: "{orientacion}", with: orientation)
+        if let session {
+            result = result.replacingOccurrences(of: "{fecha_sesion}", with: session.dateText)
+            result = result.replacingOccurrences(of: "{sesion}", with: session.name)
+        }
         return result
+    }
+
+    /// Variables que salen de la sesión del estudio.
+    public static let sessionTokens = ["{sesion}", "{fecha_sesion}"]
+
+    /// Si el patrón necesita saber de qué sesión son las fotos.
+    public static func patternNeedsSession(_ pattern: String) -> Bool {
+        sessionTokens.contains { pattern.contains($0) }
     }
 
     public static func applyCase(_ name: String, _ textCase: TextCase) -> String {

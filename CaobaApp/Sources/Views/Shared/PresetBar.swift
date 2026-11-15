@@ -3,11 +3,17 @@ import SwiftUI
 /// Menú «Preset» de la cabecera de un módulo: aplica, guarda, actualiza y
 /// elimina presets con nombre, y vuelve a los valores por defecto. El nombre
 /// que muestra es el del preset cuyos ajustes coinciden con los actuales.
+/// Con `wording: .template` habla de plantillas (Slideshow).
 struct PresetBar<S: Codable & Equatable>: View {
+    enum Wording { case preset, template }
+
     let module: PresetModule
     let current: S
     let defaults: S
     let apply: (S) -> Void
+    var wording: Wording = .preset
+    /// Aviso que acompaña a «Guardar como…» (p. ej. lo que no entra en una plantilla).
+    var saveNote: (() -> String?)? = nil
 
     @State private var store = PresetStore.shared
     /// Último preset aplicado o guardado en esta sesión (para «Actualizar» y «Eliminar»).
@@ -21,7 +27,7 @@ struct PresetBar<S: Codable & Equatable>: View {
     var body: some View {
         Menu {
             if presets.isEmpty {
-                Text("Sin presets guardados")
+                Text(wording == .template ? "Sin plantillas guardadas" : "Sin presets guardados")
             }
             ForEach(presets) { preset in
                 Button {
@@ -45,10 +51,11 @@ struct PresetBar<S: Codable & Equatable>: View {
             Divider()
             Button("Valores por defecto") { apply(defaults); lastUsed = nil }
         } label: {
-            Label(active?.name ?? String(localized: "Sin preset"), systemImage: "slider.horizontal.3")
+            Label(active?.name ?? (wording == .template ? String(localized: "Sin plantilla") : String(localized: "Sin preset")),
+                  systemImage: wording == .template ? "rectangle.stack" : "slider.horizontal.3")
         }
         .fixedSize()
-        .alert("Nombre del preset", isPresented: $askName) {
+        .alert(wording == .template ? "Nombre de la plantilla" : "Nombre del preset", isPresented: $askName) {
             TextField("Nombre", text: $newName)
             Button("Guardar") {
                 let name = newName.trimmingCharacters(in: .whitespaces)
@@ -58,7 +65,15 @@ struct PresetBar<S: Codable & Equatable>: View {
             }
             Button("Cancelar", role: .cancel) {}
         } message: {
-            Text("Si ya existe un preset con ese nombre, se sustituye.")
+            Text(saveMessage)
         }
+    }
+
+    private var saveMessage: String {
+        let base = wording == .template
+            ? String(localized: "Guarda todo menos las fotos. Si ya existe una plantilla con ese nombre, se sustituye.")
+            : String(localized: "Si ya existe un preset con ese nombre, se sustituye.")
+        guard let note = saveNote?() else { return base }
+        return base + "\n\n" + note
     }
 }

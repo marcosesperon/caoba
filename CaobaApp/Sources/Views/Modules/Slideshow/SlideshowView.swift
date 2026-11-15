@@ -211,6 +211,13 @@ struct SlideshowView: View {
                 ModuleTitle(title: "Slideshow").fixedSize()
                 Spacer()
                 if doc.isAssigning { ProgressView().controlSize(.small) }
+                // Plantillas: todo menos las fotos, para usar el mismo montaje en otras sesiones.
+                PresetBar(module: .slideshow, current: doc.currentTemplate, defaults: SlideshowPreset(),
+                          apply: { doc.apply(template: $0) }, wording: .template,
+                          saveNote: {
+                              let dropped = doc.cardsOutsideTemplate
+                              return dropped == 0 ? nil : String(localized: "\(dropped) textos van delante de fotos concretas y no entran en la plantilla.")
+                          })
             }
             tabPicker(doc)
         }

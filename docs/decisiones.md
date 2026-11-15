@@ -4015,3 +4015,107 @@ Petición original: «quizás lo de recientes no tiene mucho sentido que muestre
 ### 6. Pendiente de comprobar
 - Comprobado con capturas que con sesión no sale y sin sesión sí. Los nombres del menú desplegado están probados con el test (el menú abierto no sale en las capturas); falta verlos con clics.
 - Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Sesiones, fase C: Renombrador con sesiones
+
+### 1. La petición tal como se ha entendido
+- **Variables nuevas** en el modo Patrón del Renombrador:
+  - `{sesion}`: el nombre de la sesión, sin la fecha (p. ej. «ALEX y SOFIA»).
+  - `{fecha_sesion}`: la fecha de la sesión con el formato de Ajustes › Sesiones (el de las carpetas; hoy `2026-11-15`).
+  - Salen de la sesión que **contiene la carpeta de origen** (no de la activa). Si el patrón las usa y las fotos no son de ninguna sesión, no se deja renombrar y sale un aviso.
+  - Ejemplo: `{fecha_sesion} {sesion} {n}` → `2026-11-15 ALEX y SOFIA 001.jpg`.
+- **Presets del Renombrador**, con el mismo menú que Procesador, Marca de agua y Collage. Guardan todo el modo Patrón: patrón, orden, dígitos, empezar en, mayúsculas y limpiezas. Entran en la exportación e importación de presets de Ajustes.
+- **Por defecto para sesiones**, en Ajustes › Sesiones: se elige un preset del Renombrador («Ninguno» = `{fecha_sesion} {sesion} {n}` con el resto de opciones de partida).
+  - Al entrar en el Renombrador con fotos de una sesión, o al cambiar a una carpeta de otra sesión, se pone en modo Patrón con ese preset.
+  - Si luego se tocan las opciones, se respetan mientras no cambie la carpeta.
+  - Con fotos que no son de ninguna sesión, el Renombrador empieza como hoy (`{nombre}`).
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «C» (de la lista de fases pendientes: patrones con `{sesion}` y `{fecha_sesion}`, patrones guardados y patrón por defecto en Ajustes › Sesiones).
+
+### 2. Preguntas y respuestas
+- P1: ¿Cómo suelen quedar los nombres finales de las fotos de una sesión? (1 `ALEX y SOFIA 001`, 2 `ALEX y SOFIA_001`, 3 `2026-11-15 ALEX y SOFIA 001`) — **3: con la fecha delante, como la carpeta**: `2026-11-15 ALEX y SOFIA 001.jpg`.
+- P2: ¿`{fecha_sesion}` sale con el formato de fecha de Ajustes › Sesiones o con uno propio? — **1: el de Ajustes › Sesiones**, el mismo de las carpetas.
+- P3: ¿De qué sesión salen `{sesion}` y `{fecha_sesion}`, y qué pasa si las fotos no son de ninguna? (propuesta: de la sesión que contiene la carpeta de origen; 1 no dejar renombrar con aviso, 2 dejarlas vacías, 3 usar la sesión activa) — **1: salen de la sesión de la carpeta de origen; si no es de ninguna, no se deja renombrar y sale un aviso.**
+- P4: ¿Qué guarda un preset del Renombrador? (1 todo el modo Patrón, 2 solo el patrón) — **1: todo el modo Patrón** (patrón, orden, dígitos, empezar en, mayúsculas y limpiezas).
+- P5: ¿Cómo es lo «por defecto» para las sesiones en Ajustes › Sesiones? (1 un patrón de texto, 2 un preset del Renombrador) — **2: un preset del Renombrador**; sin ninguno elegido, `{fecha_sesion} {sesion} {n}`.
+
+### 3. Fuentes analizadas
+- `Renamer.swift` (modo patrón: `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}`, fecha de captura `{YYYY}`…; contador con dígitos automáticos o fijos, empezar en, orden por nombre o fecha, mayúsculas y limpiezas).
+- `RenamerView.swift`: las opciones no se guardan (cada vez empieza en `{nombre}`); cuatro modos (patrón, corregir numeración, buscar y reemplazar, prefijo/sufijo); deshacer el último renombrado.
+- `PresetStore` (presets de Procesador, Marca de agua y Collage), `SessionLayout`.
+
+### 4. Decisiones
+- `RenameSession` con la fecha ya escrita: el motor no necesita saber nada del formato de Ajustes y la app usa `SessionLayout.dateText`, el mismo de las carpetas (respuesta 2).
+- Las variables de sesión se sustituyen las últimas en `expand`, para que un nombre de sesión con llaves no se tome por variable.
+- `RenamerSettings` agrupa las 6 opciones que eran `@State` sueltas: es lo que guarda el preset (respuesta 4) y simplifica la vista (un solo `onChange`).
+- El preset por defecto se guarda por nombre en `SessionLayout.renamerPreset` (junto a la estructura de sesiones, y «Volver a los valores de partida» lo quita). Si se borra el preset, se usa el patrón de partida sin tocar lo guardado.
+- `PresetStore.Bundle` con lectura tolerante (`decodeIfPresent` para `renamer`): los ficheros exportados antes no traían el Renombrador y fallaban al importar.
+- Con un preset del Renombrador, al aplicarlo se cambia al modo Patrón, que es lo que guarda.
+
+### 5. Alternativas descartadas
+- Nombres sin fecha o con guion bajo (respuesta 1): el estudio pone la fecha delante, como la carpeta.
+- Formato de fecha propio para `{fecha_sesion}` (respuesta 2).
+- Dejar vacías las variables o usar la sesión activa cuando las fotos no son de una sesión (respuesta 3): fácil equivocarse sin verlo.
+- Preset solo con el patrón (respuesta 4) y patrón de texto en Ajustes (respuesta 5).
+- Recordar las opciones del Renombrador entre aperturas: no se pidió; sigue empezando en `{nombre}` fuera de sesiones.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: con fotos de la sesión de prueba, la vista previa da `2026-11-15 ALEX y SOFIA 01.jpg`…; con fotos fuera de sesión y el patrón de sesión, aviso y «Renombrar» desactivado. No se ha renombrado nada.
+- La fila «Renombrador» de Ajustes › Sesiones queda por debajo de lo que sale en la captura (la ventana de Ajustes se desplaza): falta verla, y también guardar un preset, elegirlo en Ajustes y que se aplique, con clics.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Sesiones, fase D: plantillas de Slideshow y Contact Sheet
+
+### 1. La petición tal como se ha entendido
+**Slideshow: plantillas**
+- Menú «Plantilla» en la cabecera del Slideshow (como el de «Preset»): «Guardar como…», la lista para aplicar, «Actualizar», «Eliminar». Son globales (valen para cualquier carpeta) y entran en exportar/importar presets de Ajustes.
+- Una plantilla guarda todo menos lo que depende de las fotos:
+  - Entra: formato y duración por foto, transición por defecto y su duración, portada y créditos (imagen y duración), marca de agua, música (pistas, recortes, entradas) y audio, Ken Burns general, estilos de títulos y pies, patrón de pies, ajustes de collage y de «Componer», modo (fotos/collages), y las tarjetas de texto del principio y del final.
+  - No entra: orden y fotos excluidas, duraciones, efectos y focos por foto, secuencia de collages, pies escritos por foto, transiciones por foto, ritmo, y las tarjetas de texto que van delante de una foto concreta (al guardar se avisa de cuántas se quedan fuera).
+- Aplicar una plantilla a mano sobre un montaje que ya existe cambia lo general y respeta lo de las fotos.
+- `{sesion}` y `{fecha_sesion}` en los textos de las tarjetas se cambian por el nombre y la fecha de la sesión de las fotos **al aplicar** la plantilla; luego se pueden retocar. Sin sesión, se quedan tal cual.
+- En Ajustes › Sesiones, «Slideshow»: plantilla por defecto (o «Ninguna»). Se aplica sola al abrir el Slideshow con fotos de una sesión que **todavía no tiene montaje** guardado.
+
+**Contact Sheet: presets**
+- Menú «Preset» como los demás módulos, con todos sus ajustes (columnas, tamaño, disposición, recorte, nombres, numeración, título, fondo, borde, calidad y logo). Entran en exportar/importar.
+- En Ajustes › Sesiones, «Contact Sheet»: preset por defecto (o «Ninguno»). Se pone solo al abrir el Contact Sheet con fotos de una sesión (o al cambiar a otra carpeta de sesión), como el Renombrador.
+- El título admite `{sesion}` y `{fecha_sesion}`, que se cambian al aplicar el preset.
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «sigue» (tras la fase C; la fase D quedó apuntada así: plantillas de Slideshow con todo menos las fotos, varias, con `{sesion}` y `{fecha_sesion}` en los textos, y presets del Contact Sheet).
+
+### 2. Preguntas y respuestas
+- P1: ¿Cómo se usa una plantilla del Slideshow en una sesión nueva? (1 menú «Plantilla» a mano, 2 menú y además una por defecto en Ajustes › Sesiones que se aplica sola en sesiones sin montaje, 3 preguntar al abrir) — **2: menú «Plantilla» y una por defecto en Ajustes › Sesiones**, que se aplica sola al abrir el Slideshow con fotos de una sesión sin montaje.
+- P2: ¿Cuándo se cambian `{sesion}` y `{fecha_sesion}` de los textos por los datos de la sesión? (1 al aplicar la plantilla, 2 al ver y generar) — **1: al aplicar la plantilla**; después se pueden retocar a mano.
+- P3: Contact Sheet (hoy no guarda nada: columnas, tamaño, disposición, recorte, nombres, numeración, título, fondo, borde, calidad y logo empiezan siempre igual): ¿presets como los demás, y además uno por defecto en Ajustes › Sesiones? — **1: presets y uno por defecto en Ajustes › Sesiones**; el título admite `{sesion}` y `{fecha_sesion}`, que se cambian al aplicarlo.
+- P4: En el Slideshow, ¿qué pasa con las tarjetas de texto que van delante de una foto concreta (no al principio ni al final)? (1 no entran y se avisa, 2 se ponen al final, 3 por posición) — **1: no entran en la plantilla y se avisa al guardar.**
+
+### 3. Fuentes analizadas
+- `SlideshowPreset` (sección `slideshow` del `.caoba` de cada carpeta): mezcla lo general (formato y duración, transición, portada y créditos, marca de agua, música y audio, Ken Burns general, estilos de texto, ajustes de collage y de «Componer») con lo ligado a las fotos (orden, excluidas, duraciones, efectos y focos por foto, secuencia de collages, pies por foto, transiciones por elemento, ritmo).
+- `TextCard`: las tarjetas de texto van ancladas al principio, al final o ante un elemento concreto (`anchor`).
+- `PresetStore` / `PresetBar` (presets globales de Procesador, Marca de agua, Collage y Renombrador).
+
+### 4. Decisiones
+- La plantilla es el mismo `SlideshowPreset` de cada carpeta con lo de las fotos vacío: un solo formato, que ya sabe leer y escribir todo el montaje, y que gana solo los campos nuevos que se añadan.
+- `templated()` y `applying(template:session:)` en el motor, con tests; la app solo junta y carga. `load(_:)` se separó de `loadPresetIfNeeded()` para usarlo en los dos sitios.
+- Al aplicar, las tarjetas de la plantilla llevan id nuevo (si no, aplicar dos veces dejaría ids repetidos) y sus transiciones propias se pasan al id nuevo.
+- Al aplicar desde la app no se tocan el orden ni las excluidas (ya están en la lista; al abrir una sesión nueva la carpeta puede estar leyéndose).
+- Plantillas y presets globales en `PresetStore` (nuevos `PresetModule.slideshow` y `.contactSheet`), con el mismo menú `PresetBar`, que gana `wording` y `saveNote` para hablar de plantillas y avisar de los textos que no entran.
+- Contact Sheet: sus 15 `@State` sueltos pasan a `ContactSheetSettings`, como el Renombrador.
+- Ajustes: un `presetPicker` genérico para Slideshow, Contact Sheet y Renombrador.
+
+### 5. Alternativas descartadas
+- Formato propio para plantillas: habría que mantener dos formatos del montaje.
+- Aplicar a mano solo, o preguntar al abrir (respuesta 1).
+- Cambiar las variables al ver y al generar (respuesta 2): en el editor se verían las variables.
+- Contact Sheet solo con presets en el menú (respuesta 3).
+- Llevar a la plantilla los textos que van delante de una foto, al final o por posición (respuesta 4).
+
+### 6. Pendiente de comprobar
+- Comprobado sin clics en una sesión de prueba nueva («2026-11-20 Navidad García»), con una plantilla y un preset importados y elegidos en Ajustes (preferencias del usuario guardadas antes y restauradas después, idénticas): el Slideshow empieza con la portada «Navidad García / 2026-11-20», 6 s por foto, corte y cierre «Feliz Navidad»; el Contact Sheet con 3 columnas, numeración y título «2026-11-20 Navidad García».
+- Tras aplicar, el menú dice «Sin plantilla» / «Sin preset»: los textos ya llevan el nombre real y no coinciden con la plantilla guardada. Por la misma razón, si se aplica una plantilla y luego se usa «Actualizar», se guarda con el nombre real en vez de `{sesion}`: hay que volver a escribir la variable. Pendiente de decidir si se mejora.
+- Falta con clics: guardar una plantilla desde un montaje real (y el aviso de textos que no entran), aplicarla sobre un montaje existente, y las filas nuevas de Ajustes.
+- Sin commit ni publicación hasta que lo indique el usuario.

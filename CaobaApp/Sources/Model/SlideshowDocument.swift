@@ -1370,7 +1370,52 @@ final class SlideshowDocument {
         guard let folder = app.sourceFolder, folder != loadedFolder else { return }
         loadedFolder = folder
         selection = .none
-        guard let preset = SlideshowPreset.load(from: folder) else { resetToDefaults(); return }
+        guard let preset = SlideshowPreset.load(from: folder) else {
+            resetToDefaults()
+            // Sesión sin montaje: se empieza con la plantilla de Ajustes › Sesiones, si hay.
+            applySessionTemplate()
+            return
+        }
+        load(preset)
+    }
+
+    // MARK: - Plantillas
+
+    /// Sesión del estudio de las fotos, para `{sesion}` y `{fecha_sesion}` de los textos.
+    private var photoSession: RenameSession? {
+        let layout = app.sessions.layout
+        return app.sourceFolder.flatMap { layout.session(containing: $0) }
+            .map { RenameSession(name: $0.name, dateText: layout.dateText($0.date)) }
+    }
+
+    /// El montaje de ahora como plantilla (sin lo de las fotos).
+    var currentTemplate: SlideshowPreset { makePreset().templated().template }
+
+    /// Tarjetas de texto que van delante de una foto concreta y no entrarían en una plantilla.
+    var cardsOutsideTemplate: Int { makePreset().templated().droppedCards }
+
+    /// Aplica una plantilla: lo general sale de ella y lo de las fotos se queda. Los textos con
+    /// `{sesion}` y `{fecha_sesion}` se rellenan con la sesión de las fotos.
+    func apply(template: SlideshowPreset) {
+        var merged = makePreset().applying(template: template, session: photoSession)
+        // El orden y las excluidas ya están en la lista de la app: no se vuelven a cargar (al abrir
+        // una sesión nueva la carpeta puede estar leyéndose todavía y se desordenaría).
+        merged.sortMode = nil; merged.orientationFilter = nil; merged.fileOrder = nil; merged.excludedFiles = nil
+        load(merged)
+        // `load` deja el guardado en pausa hasta la siguiente vuelta: se guarda justo después.
+        Task { @MainActor [weak self] in self?.scheduleSave() }
+    }
+
+    /// Con fotos de una sesión, la plantilla elegida en Ajustes › Sesiones › Slideshow (si existe).
+    private func applySessionTemplate() {
+        guard photoSession != nil, let name = app.sessions.layout.slideshowTemplate,
+              let template = PresetStore.shared.presets(.slideshow, as: SlideshowPreset.self).first(where: { $0.name == name })
+        else { return }
+        apply(template: template.settings)
+    }
+
+    /// Pone en el documento un montaje guardado (o uno con una plantilla aplicada).
+    private func load(_ preset: SlideshowPreset) {
         suppressSave = true
         defer { Task { @MainActor [weak self] in self?.suppressSave = false } }
         resetToDefaults()

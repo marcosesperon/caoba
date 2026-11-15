@@ -146,6 +146,9 @@ struct SessionLayoutTests {
         var layout = SessionLayout()
         layout.rootPath = "/Fotos"
         layout.outputs[.watermark] = "Con marca"
+        layout.renamerPreset = "Sesión con fecha"
+        layout.slideshowTemplate = "Navidad"
+        layout.contactSheetPreset = "Hoja web"
         let data = try JSONEncoder().encode(layout)
         #expect(try JSONDecoder().decode(SessionLayout.self, from: data) == layout)
 
@@ -155,5 +158,6 @@ struct SessionLayoutTests {
         #expect(read.outputs[.processor] == "Web")
         #expect(read.outputs[.collage] == "Collages")
         #expect(read.subfolders == ["RAW", "JPG", "Lightroom"])
+        #expect(read.renamerPreset == nil)
     }
 }

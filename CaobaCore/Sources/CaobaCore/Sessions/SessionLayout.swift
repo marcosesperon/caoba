@@ -76,6 +76,15 @@ public struct SessionLayout: Sendable, Equatable, Codable {
     public var finalsFolder = "JPG"
     /// Nombre de lo que guarda cada módulo dentro de la sesión. Admite `{sesion}` y `{fecha_sesion}`.
     public var outputs: [SessionOutput: String] = Self.defaultOutputs
+    /// Preset del Renombrador que se pone solo con fotos de una sesión. Sin él, `defaultRenamePattern`.
+    public var renamerPreset: String?
+    /// Plantilla del Slideshow que se aplica sola en una sesión sin montaje.
+    public var slideshowTemplate: String?
+    /// Preset del Contact Sheet que se pone solo con fotos de una sesión.
+    public var contactSheetPreset: String?
+
+    /// Patrón del Renombrador para sesiones cuando no se ha elegido preset.
+    public static let defaultRenamePattern = "{fecha_sesion} {sesion} {n}"
 
     public static let defaultOutputs: [SessionOutput: String] = [
         .processor: "JPG web",
@@ -101,6 +110,9 @@ public struct SessionLayout: Sendable, Equatable, Codable {
         // Los nombres se guardan con la clave en texto, para que un módulo nuevo no rompa lo guardado.
         let saved = try c.decodeIfPresent([String: String].self, forKey: .outputs) ?? [:]
         outputs = base.outputs.merging(saved.compactMapKeys(SessionOutput.init(rawValue:))) { _, new in new }
+        renamerPreset = try c.decodeIfPresent(String.self, forKey: .renamerPreset)
+        slideshowTemplate = try c.decodeIfPresent(String.self, forKey: .slideshowTemplate)
+        contactSheetPreset = try c.decodeIfPresent(String.self, forKey: .contactSheetPreset)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -113,10 +125,13 @@ public struct SessionLayout: Sendable, Equatable, Codable {
         try c.encode(downloadsFolder, forKey: .downloadsFolder)
         try c.encode(finalsFolder, forKey: .finalsFolder)
         try c.encode(Dictionary(uniqueKeysWithValues: outputs.map { ($0.key.rawValue, $0.value) }), forKey: .outputs)
+        try c.encodeIfPresent(renamerPreset, forKey: .renamerPreset)
+        try c.encodeIfPresent(slideshowTemplate, forKey: .slideshowTemplate)
+        try c.encodeIfPresent(contactSheetPreset, forKey: .contactSheetPreset)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case rootPath, folderPerYear, dateFormat, datePosition, subfolders, downloadsFolder, finalsFolder, outputs
+        case rootPath, folderPerYear, dateFormat, datePosition, subfolders, downloadsFolder, finalsFolder, outputs, renamerPreset, slideshowTemplate, contactSheetPreset
     }
 
     public var root: URL? { rootPath.map { URL(fileURLWithPath: $0, isDirectory: true) } }

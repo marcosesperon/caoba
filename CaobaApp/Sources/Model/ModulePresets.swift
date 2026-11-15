@@ -39,6 +39,40 @@ struct CollageSettings: Codable, Equatable {
     var logoOpacity = 80.0
 }
 
+/// Ajustes del modo Patrón del Renombrador.
+struct RenamerSettings: Codable, Equatable {
+    var pattern = "{nombre}"
+    var sortBy: SortMode = .name
+    /// 0 = automático según el número de fotos.
+    var digits = 0
+    var start = 1
+    var textCase: TextCase = .none
+    var sanitize = SanitizeOptions()
+
+    /// De partida para fotos de una sesión, cuando en Ajustes no hay preset elegido.
+    static let sessionDefault = RenamerSettings(pattern: SessionLayout.defaultRenamePattern)
+}
+
+/// Ajustes del Contact Sheet (logo incluido). El título admite `{sesion}` y `{fecha_sesion}`,
+/// que se cambian al aplicar el preset con fotos de una sesión.
+struct ContactSheetSettings: Codable, Equatable {
+    var columns = 5
+    var thumbSize = 200
+    var layout: ContactSheetOptions.Layout = .grid
+    var cropMode: ContactSheetOptions.CropMode = .contain
+    var showFilenames = true
+    var showNumbering = false
+    var title = ""
+    var background: CanvasColor = .white
+    var showBorder = false
+    var borderWidth = 1.0
+    var quality = 90.0
+    var logoPath: String?
+    var logoPosition: OverlayPosition = .bottomRight
+    var logoSize = 20.0
+    var logoOpacity = 80.0
+}
+
 /// Un preset con nombre.
 struct NamedPreset<S: Codable & Equatable>: Codable, Equatable, Identifiable {
     var name: String
@@ -48,7 +82,9 @@ struct NamedPreset<S: Codable & Equatable>: Codable, Equatable, Identifiable {
 
 /// Módulos que tienen presets; el valor es la clave de preferencias.
 enum PresetModule: String, CaseIterable {
-    case processor, watermark, collage
+    case processor, watermark, collage, renamer, contactSheet
+    /// Plantillas del Slideshow (un `SlideshowPreset` sin lo de las fotos).
+    case slideshow
 }
 
 // MARK: - Almacén
@@ -102,13 +138,39 @@ final class PresetStore {
 
     // MARK: Exportar e importar
 
-    /// Todos los presets de los tres módulos en un único fichero.
+    /// Todos los presets de los módulos en un único fichero.
     struct Bundle: Codable {
         var version = 1
         var processor: [NamedPreset<ProcessorSettings>] = []
         var watermark: [NamedPreset<WatermarkSettings>] = []
         var collage: [NamedPreset<CollageSettings>] = []
-        var count: Int { processor.count + watermark.count + collage.count }
+        var renamer: [NamedPreset<RenamerSettings>] = []
+        var contactSheet: [NamedPreset<ContactSheetSettings>] = []
+        var slideshow: [NamedPreset<SlideshowPreset>] = []
+        var count: Int { processor.count + watermark.count + collage.count + renamer.count + contactSheet.count + slideshow.count }
+
+        init(processor: [NamedPreset<ProcessorSettings>], watermark: [NamedPreset<WatermarkSettings>],
+             collage: [NamedPreset<CollageSettings>], renamer: [NamedPreset<RenamerSettings>],
+             contactSheet: [NamedPreset<ContactSheetSettings>], slideshow: [NamedPreset<SlideshowPreset>]) {
+            self.processor = processor
+            self.watermark = watermark
+            self.collage = collage
+            self.renamer = renamer
+            self.contactSheet = contactSheet
+            self.slideshow = slideshow
+        }
+
+        /// Tolerante: los ficheros exportados antes no traen Renombrador, Contact Sheet ni plantillas.
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            version = try c.decodeIfPresent(Int.self, forKey: .version) ?? 1
+            processor = try c.decode([NamedPreset<ProcessorSettings>].self, forKey: .processor)
+            watermark = try c.decode([NamedPreset<WatermarkSettings>].self, forKey: .watermark)
+            collage = try c.decode([NamedPreset<CollageSettings>].self, forKey: .collage)
+            renamer = try c.decodeIfPresent([NamedPreset<RenamerSettings>].self, forKey: .renamer) ?? []
+            contactSheet = try c.decodeIfPresent([NamedPreset<ContactSheetSettings>].self, forKey: .contactSheet) ?? []
+            slideshow = try c.decodeIfPresent([NamedPreset<SlideshowPreset>].self, forKey: .slideshow) ?? []
+        }
     }
 
     var totalCount: Int { bundle.count }
@@ -116,7 +178,10 @@ final class PresetStore {
     var bundle: Bundle {
         Bundle(processor: presets(.processor, as: ProcessorSettings.self),
                watermark: presets(.watermark, as: WatermarkSettings.self),
-               collage: presets(.collage, as: CollageSettings.self))
+               collage: presets(.collage, as: CollageSettings.self),
+               renamer: presets(.renamer, as: RenamerSettings.self),
+               contactSheet: presets(.contactSheet, as: ContactSheetSettings.self),
+               slideshow: presets(.slideshow, as: SlideshowPreset.self))
     }
 
     func exportData() throws -> Data {
@@ -132,6 +197,9 @@ final class PresetStore {
         for p in incoming.processor { save(p.settings, named: p.name, module: .processor) }
         for p in incoming.watermark { save(p.settings, named: p.name, module: .watermark) }
         for p in incoming.collage { save(p.settings, named: p.name, module: .collage) }
+        for p in incoming.renamer { save(p.settings, named: p.name, module: .renamer) }
+        for p in incoming.contactSheet { save(p.settings, named: p.name, module: .contactSheet) }
+        for p in incoming.slideshow { save(p.settings, named: p.name, module: .slideshow) }
         return incoming.count
     }
 }

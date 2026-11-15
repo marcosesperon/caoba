@@ -227,7 +227,7 @@ struct GeneralSettingsView: View {
             Divider().padding(.vertical, 4)
             LabeledRow("Presets") {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("\(store.totalCount) presets guardados (Procesador, Marca de agua y Collage)").font(.caption).foregroundStyle(.secondary)
+                    Text("\(store.totalCount) presets guardados (Procesador, Marca de agua, Collage, Renombrador, Contact Sheet y plantillas del Slideshow)").font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     HStack {
                         Button("Exportar…") { exportPresets() }.disabled(store.totalCount == 0)
