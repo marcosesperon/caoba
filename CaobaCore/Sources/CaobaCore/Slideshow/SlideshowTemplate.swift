@@ -11,7 +11,11 @@ extension SlideshowPreset {
     /// foto, secuencia de collages, pies por foto, transiciones por foto y ritmo. De las tarjetas
     /// de texto solo quedan las del principio y del final: `droppedCards` cuenta las que iban
     /// delante de una foto concreta, que en otra sesión no tendrían sitio.
-    public func templated() -> (template: SlideshowPreset, droppedCards: Int) {
+    ///
+    /// Con `session`, donde los textos digan su nombre o su fecha vuelven a ser `{sesion}` y
+    /// `{fecha_sesion}`. Y las tarjetas que quedan llevan un id fijo según su posición: así una
+    /// plantilla recién aplicada se reconoce como la misma (al aplicar, las tarjetas cambian de id).
+    public func templated(session: RenameSession? = nil) -> (template: SlideshowPreset, droppedCards: Int) {
         var t = self
         t.sortMode = nil
         t.orientationFilter = nil
@@ -22,18 +26,36 @@ extension SlideshowPreset {
         t.rhythmItems = nil
 
         var dropped = 0
+        var fixedIDs: [String: String] = [:]
         if var text = t.text {
             text.captions = nil
             let cards = text.cards ?? []
-            let kept = cards.filter(\.isAtEdge)
+            var kept = cards.filter(\.isAtEdge)
             dropped = cards.count - kept.count
+            for index in kept.indices {
+                let fixed = Self.templateCardID(index)
+                fixedIDs[kept[index].id.uuidString] = fixed.uuidString
+                kept[index].id = fixed
+                if let session {
+                    kept[index].text = Self.unfill(kept[index].text, session)
+                    kept[index].subtitle = Self.unfill(kept[index].subtitle, session)
+                }
+            }
             if text.cards != nil { text.cards = kept }
             t.text = text
         }
-        // Transiciones propias: solo las de portada, créditos y las tarjetas que se quedan.
-        let keptItems = Self.fixedItems.union((t.text?.cards ?? []).map(\.id.uuidString))
-        t.transitionsByItem = t.transitionsByItem?.filter { keptItems.contains($0.key) }
-        t.transitionDurationsByItem = t.transitionDurationsByItem?.filter { keptItems.contains($0.key) }
+        // Transiciones propias: solo las de portada, créditos y las tarjetas que se quedan (con su id fijo).
+        func kept<V>(_ items: [String: V]?) -> [String: V]? {
+            items.map { dict in
+                var out: [String: V] = [:]
+                for (key, value) in dict {
+                    if Self.fixedItems.contains(key) { out[key] = value } else if let fixed = fixedIDs[key] { out[fixed] = value }
+                }
+                return out
+            }
+        }
+        t.transitionsByItem = kept(t.transitionsByItem)
+        t.transitionDurationsByItem = kept(t.transitionDurationsByItem)
 
         if var kb = t.kenBurns {
             kb.perPhoto = nil; kb.points = nil; kb.byFile = nil; kb.pointsByFile = nil
@@ -86,6 +108,7 @@ extension SlideshowPreset {
         // Transiciones propias: las de las fotos y tarjetas que se quedan, más las de la plantilla.
         let replaced = Self.fixedItems.union((self.text?.cards ?? []).filter(\.isAtEdge).map(\.id.uuidString))
         func merged<V>(_ own: [String: V]?, _ fromTemplate: [String: V]?) -> [String: V]? {
+            if own == nil && fromTemplate == nil { return nil }
             var out = (own ?? [:]).filter { !replaced.contains($0.key) }
             for (key, value) in fromTemplate ?? [:] { out[newIDs[key] ?? key] = value }
             return out
@@ -108,6 +131,20 @@ extension SlideshowPreset {
     public static func fill(_ text: String, _ session: RenameSession) -> String {
         text.replacingOccurrences(of: "{fecha_sesion}", with: session.dateText)
             .replacingOccurrences(of: "{sesion}", with: session.name)
+    }
+
+    /// Lo contrario de `fill`: donde el texto diga el nombre o la fecha de la sesión, vuelven
+    /// las variables. Lo retocado a mano («Alex & Sofía») no coincide y se queda tal cual.
+    public static func unfill(_ text: String, _ session: RenameSession) -> String {
+        var result = text
+        if !session.dateText.isEmpty { result = result.replacingOccurrences(of: session.dateText, with: "{fecha_sesion}") }
+        if !session.name.isEmpty { result = result.replacingOccurrences(of: session.name, with: "{sesion}") }
+        return result
+    }
+
+    /// Id fijo de la tarjeta número `index` de una plantilla.
+    static func templateCardID(_ index: Int) -> UUID {
+        UUID(uuidString: String(format: "00000000-0000-0000-0000-%012d", index + 1))!
     }
 }
 

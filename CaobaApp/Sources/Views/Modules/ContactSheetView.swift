@@ -31,6 +31,14 @@ struct ContactSheetView: View {
             .map { RenameSession(name: $0.name, dateText: layout.dateText($0.date)) }
     }
 
+    /// Lo que se guarda y se compara en el menú «Preset»: con fotos de una sesión, su nombre y su
+    /// fecha del título vuelven a ser `{sesion}` y `{fecha_sesion}`.
+    private var presetSettings: ContactSheetSettings {
+        var unfilled = settings
+        if let session = photoSession { unfilled.title = SlideshowPreset.unfill(unfilled.title, session) }
+        return unfilled
+    }
+
     /// Pone un preset: con fotos de una sesión, el título lleva ya su nombre y su fecha.
     private func apply(_ preset: ContactSheetSettings) {
         var filled = preset
@@ -65,7 +73,7 @@ struct ContactSheetView: View {
                     HStack {
                         ModuleTitle(title: "Contact Sheet")
                         Spacer()
-                        PresetBar(module: .contactSheet, current: settings, defaults: ContactSheetSettings(), apply: apply)
+                        PresetBar(module: .contactSheet, current: presetSettings, defaults: ContactSheetSettings(), apply: apply)
                     }
                     ScrollView {
                         VStack(alignment: .leading, spacing: 12) {

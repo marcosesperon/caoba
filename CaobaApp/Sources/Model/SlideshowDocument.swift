@@ -1389,7 +1389,9 @@ final class SlideshowDocument {
     }
 
     /// El montaje de ahora como plantilla (sin lo de las fotos).
-    var currentTemplate: SlideshowPreset { makePreset().templated().template }
+    /// Con fotos de una sesión, su nombre y su fecha vuelven a ser `{sesion}` y `{fecha_sesion}`:
+    /// así se guarda bien y el menú reconoce la plantilla recién aplicada.
+    var currentTemplate: SlideshowPreset { makePreset().templated(session: photoSession).template }
 
     /// Tarjetas de texto que van delante de una foto concreta y no entrarían en una plantilla.
     var cardsOutsideTemplate: Int { makePreset().templated().droppedCards }

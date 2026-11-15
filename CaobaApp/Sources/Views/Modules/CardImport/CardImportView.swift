@@ -195,7 +195,10 @@ struct CardSessionsView: View {
                     .font(.callout)
                     .foregroundStyle(pending == 0 ? .secondary : .primary)
             }
-            .frame(minWidth: 260, alignment: .leading)
+            // 190: con el ancho justo de dos columnas caben 2 miniaturas y la lupa; si la fecha
+            // no cabe en una línea, baja a la siguiente.
+            .frame(minWidth: 190, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
             // Se queda con la tira más larga que quepa: 6, 4, 2 o ninguna miniatura, y siempre «Ver todas».
             ViewThatFits(in: .horizontal) {
                 thumbnailStrip(item, count: 6)
@@ -350,9 +353,12 @@ struct CardImportActionBar: View {
         return L("Las fotos marcadas no son del día de la sesión \(active.title). Si es otro encargo, pulsa «Crear sesión…».")
     }
 
-    /// «2 sesiones marcadas · faltan 424 (10,1 GB)».
+    /// «2 sesiones marcadas · faltan 424 (10,1 GB)», o «1 sesión marcada…» con una.
     private func summaryText(_ plan: CardImportPlan) -> String {
-        L("\(session.selectedSessionIDs.count) sesiones marcadas · faltan \(plan.tasks.count) (\(CardImportSession.bytes(plan.bytesToCopy)))")
+        let (count, pending, size) = (session.selectedSessionIDs.count, plan.tasks.count, CardImportSession.bytes(plan.bytesToCopy))
+        return count == 1
+            ? L("1 sesión marcada · faltan \(pending) (\(size))")
+            : L("\(count) sesiones marcadas · faltan \(pending) (\(size))")
     }
 
     private func chooseDestination() {

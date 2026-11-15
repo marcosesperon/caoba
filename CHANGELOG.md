@@ -2,6 +2,16 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.25.0 — 2026-11-15
+
+- **Sesiones del estudio**: en Ajustes › Sesiones dices dónde guardas las sesiones y cómo se llaman (por ejemplo `2026/2026-11-15 Nombre de la sesión`, con RAW, JPG y Lightroom dentro). La sesión con la que trabajas sale arriba, en el título de la ventana; cámbiala desde ahí o crea una nueva con sus carpetas.
+- **Origen y destino solos**: con una sesión elegida, cada módulo empieza con sus fotos finales (JPG) y propone el destino dentro de la sesión (JPG web, Collages, el vídeo con el nombre de la sesión…). Los diálogos de abrir y guardar empiezan en la sesión.
+- **Sin origen, elige sesión o carpeta**: la barra de arriba ofrece «Elegir sesión…» (lo habitual) o «Elegir carpeta…». «Recientes» sale solo sin sesión y con la sesión delante del nombre de la carpeta.
+- **Descargar tarjeta con sesiones**: descarga en el RAW de la sesión, con «Crear sesión…» para crearla con la fecha de las fotos y descargar a la vez, y avisa si las fotos no son del día de la sesión. Huecos de 15, 30 y 45 minutos para separar sesiones, no se pierde lo marcado al cambiar opciones, una casilla para marcar o desmarcar todas, «Ver todas» como una miniatura más y las sesiones en una columna a la derecha si la ventana es ancha.
+- **Renombrador**: `{sesion}` y `{fecha_sesion}` para nombres como `2026-11-15 Nombre de la sesión 001.jpg`, y presets.
+- **Plantillas del Slideshow**: guarda todo el montaje menos las fotos (música, portada, textos, transiciones…) y úsalo en otra sesión; los textos con `{sesion}` y `{fecha_sesion}` se rellenan solos. El **Contact Sheet** tiene presets. En Ajustes › Sesiones eliges la plantilla y los presets que se ponen solos en cada sesión.
+- **Barra lateral**: «Descargar tarjeta» pasa a ser la primera de Utilidades, y Código QR, Shutter Count y Recuperar fotos van en «Otras herramientas».
+
 ## 3.24.0 — 2026-11-14
 
 - **Nuevo módulo «Descargar tarjeta»**, en Utilidades: pasa las fotos y vídeos de la tarjeta a una carpeta del Mac de forma rápida y segura. No pide contraseña y nunca escribe en la tarjeta.

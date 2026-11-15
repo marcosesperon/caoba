@@ -55,7 +55,7 @@ struct FileListView: View {
             .scrollContentBackground(.hidden)
             .overlay {
                 if appState.sourceFolder == nil {
-                    ContentUnavailableView("Sin carpeta", systemImage: "folder", description: Text("Elige una carpeta de fotos arriba."))
+                    ContentUnavailableView("Sin carpeta", systemImage: "folder", description: Text("Elige una sesión o una carpeta de fotos arriba."))
                 } else if appState.files.isEmpty && !appState.isScanning {
                     ContentUnavailableView("Carpeta vacía", systemImage: "photo.on.rectangle", description: Text("No hay imágenes compatibles en esta carpeta."))
                 }

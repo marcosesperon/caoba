@@ -4119,3 +4119,106 @@ Petición original: «sigue» (tras la fase C; la fase D quedó apuntada así: p
 - Tras aplicar, el menú dice «Sin plantilla» / «Sin preset»: los textos ya llevan el nombre real y no coinciden con la plantilla guardada. Por la misma razón, si se aplica una plantilla y luego se usa «Actualizar», se guarda con el nombre real en vez de `{sesion}`: hay que volver a escribir la variable. Pendiente de decidir si se mejora.
 - Falta con clics: guardar una plantilla desde un montaje real (y el aviso de textos que no entran), aplicarla sobre un montaje existente, y las filas nuevas de Ajustes.
 - Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Arreglos: plantillas tras aplicarlas, «1 sesión marcada» y miniaturas en la columna de sesiones
+
+### 1. La petición tal como se ha entendido
+1. **Plantillas del Slideshow y presets del Contact Sheet**, con fotos de una sesión:
+   - Al guardar («Guardar como…») o actualizar, donde un texto diga el nombre de la sesión se guarda `{sesion}`, y donde diga su fecha (con el formato de Ajustes), `{fecha_sesion}`. En el Slideshow, en el texto y el subtítulo de las tarjetas; en el Contact Sheet, en el título.
+   - El menú reconoce como suya la plantilla o el preset recién aplicado (con su ✓ y su nombre) mientras no se toque nada.
+   - Si un texto se retoca y ya no coincide (p. ej. «Alex & Sofía»), se guarda tal cual.
+   - El Renombrador no lo necesita: su patrón no se rellena al aplicar.
+2. «Descargar tarjeta»: «1 sesión marcada» en singular; «2 sesiones marcadas» en plural.
+3. «Descargar tarjeta», columna de sesiones: menos ancho reservado al texto de cada sesión, para que con el ancho justo de dos columnas quepan 2 miniaturas además de la lupa.
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «arregla 1, 2 y 3» de la lista de mejoras pendientes:
+1. Tras aplicar una plantilla o preset, el menú dice «Sin plantilla»/«Sin preset», y «Actualizar» guarda el nombre real de la sesión en vez de `{sesion}`.
+2. En Descargar tarjeta sale «1 sesiones marcadas».
+3. En la columna de sesiones de Descargar tarjeta, con el ancho justo, solo cabe la lupa; reservar menos sitio al texto para que entren 2 miniaturas.
+
+### 2. Preguntas y respuestas
+- P1: Para el punto 1, ¿cómo se arregla? (1 al guardar, el nombre y la fecha de la sesión vuelven a ser variables; 2 recordar la plantilla aplicada y avisar al actualizar) — **1: al guardar o actualizar con fotos de una sesión, su nombre y su fecha se guardan como `{sesion}` y `{fecha_sesion}`**, y así el menú reconoce lo aplicado.
+
+### 3. Fuentes analizadas
+- `PresetBar`, `SlideshowDocument` (`currentTemplate`, `apply(template:)`), `SlideshowTemplate.swift`, `ContactSheetView`, `RenamerView`, `CardImportView` (`CardSessionsView`, `CardImportActionBar`).
+
+### 4. Decisiones
+- `SlideshowPreset.unfill` en el motor (lo contrario de `fill`): primero la fecha y luego el nombre; con nombre o fecha vacíos no hace nada.
+- `templated(session:)` da a las tarjetas que entran un id fijo por posición (`00000000-…-000000000001`…) y pasa sus transiciones propias a ese id. Sin eso el menú nunca reconocía una plantilla aplicada, porque al aplicar las tarjetas cambian de id.
+- Al juntar, si ni el montaje ni la plantilla tenían transiciones por elemento, el resultado no tiene ninguna (antes salía una lista vacía y la ida y vuelta no era igual).
+- Contact Sheet: el menú compara y guarda `presetSettings` (el título con las variables), y aplica rellenándolas.
+- «1 sesión marcada» como texto aparte, con su traducción.
+- Texto de cada sesión de la tarjeta con ancho mínimo de 190 (antes 260) y bajando de línea si hace falta.
+- Valor de prueba `slideshow.saveTemplate` (con 2 s de espera: el montaje de la carpeta se carga después del `onAppear` de las vistas de dentro).
+
+### 5. Alternativas descartadas
+- Recordar la plantilla aplicada y avisar al actualizar (respuesta 1).
+
+### 6. Pendiente de comprobar
+- Comprobado sin clics: plantilla guardada desde «Navidad García» queda con `{sesion}`, `{fecha_sesion}` y ids fijos; aplicada sola en otra sesión nueva («Navidad López») el menú dice «Navidad real» y la portada «Navidad López». Descargar tarjeta a 1.140: «1 sesión marcada» y 2 miniaturas con la lupa en la columna derecha. Preferencias del usuario guardadas antes y restauradas (idénticas; incluida su plantilla «Sesion Familia», que se conserva).
+- Las plantillas guardadas antes de este cambio (p. ej. «Sesion Familia») no se reconocen en el menú tras aplicarlas hasta usar «Actualizar» una vez.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Sin origen: elegir una sesión o una carpeta
+
+### 1. La petición tal como se ha entendido
+- Cuando un módulo no tiene carpeta de origen, la barra de arriba dice «Elige la sesión con la que vas a trabajar o una carpeta de fotos» y ofrece:
+  - **«Elegir sesión…»**, el botón principal (destacado): abre la misma lista de sesiones del título de la ventana (buscador, «Nueva sesión…»). Al elegir una, queda activa en toda la app y el origen pasa a su carpeta de finales, como ahora desde el título.
+  - **«Elegir carpeta…»**, para una carpeta suelta, como ahora.
+  - «Recientes» se queda (sin sesión activa, como hasta ahora) y arrastrar una carpeta sigue funcionando.
+- Sin carpeta raíz configurada, «Elegir sesión…» abre la lista con el aviso de ir a Ajustes, igual que el título.
+- Con una sesión activa sin carpeta JPG sigue el aviso naranja de siempre.
+- Con origen elegido, la barra queda como está.
+
+*Confirmada por el usuario («sí»).*
+
+Petición original: «este aviso ahora debería ser una opción para seleccionar una sesión (lo más frecuente) o una carpeta independiente» (captura: la barra de origen vacía, en rojo, con «Empieza eligiendo o arrastrando una carpeta de fotos», «Recientes» y «Elegir carpeta…»).
+
+### 2. Preguntas y respuestas
+- P1: ¿Cómo se ofrece elegir sesión en esa barra? (1 dos botones, «Elegir sesión…» principal y «Elegir carpeta…»; 2 las últimas sesiones como botones) — **1: dos botones**.
+
+### 3. Fuentes analizadas
+- `SourceFolderBar` (texto, «Recientes», «Elegir carpeta…», arrastrar), `SessionPicker` / `SessionList` (lista con buscador, «Nueva sesión…»), `AppState.activateSession(_:)`.
+
+### 4. Decisiones
+- Se reutiliza `SessionList` (deja de ser privada) para que la lista sea la misma que la del título de la ventana; la hoja «Nueva sesión» se abre desde la propia barra.
+- «Elegir sesión…» con estilo destacado (`.borderedProminent`), porque es lo más frecuente; «Elegir carpeta…» se queda normal.
+- Los botones solo salen sin origen; con origen la barra no cambia.
+
+### 5. Alternativas descartadas
+- Las últimas sesiones como botones directos (respuesta 1): ocupan más sitio.
+
+### 6. Pendiente de comprobar
+- Comprobado con captura sin sesión ni origen. La lista que abre el botón es una ventana aparte y no sale en la captura: falta verla con clics, y «Nueva sesión…» desde ahí.
+- Los textos de dentro de los módulos sin carpeta («Sin carpeta · Elige una carpeta de fotos arriba», «Sin fotos · Elige una carpeta para montar el slideshow») siguen hablando solo de carpeta.
+- Con la ventana a 500 pt de alto, la barra de origen queda tapada por la barra superior también en el Slideshow (ya apuntado antes).
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Textos sin carpeta y ventana baja
+
+Petición original: «si» a las dos propuestas: cambiar los textos de dentro de los módulos sin carpeta para que hablen de sesión o carpeta, y arreglar que con la ventana baja la barra de origen quede tapada por la barra superior.
+
+### 1. La petición tal como se ha entendido
+- «Sin carpeta · Elige una carpeta de fotos arriba» → «Elige una sesión o una carpeta de fotos arriba.»; en el timeline del Slideshow, «Elige una sesión o una carpeta para montar el slideshow.»
+- Que la barra de origen no quede tapada con la ventana baja.
+
+*Confirmada con el «sí» a la propuesta concreta (los textos eran los propuestos).*
+
+### 2. Preguntas y respuestas
+- Sin preguntas.
+
+### 3. Fuentes analizadas
+- `FileListView`, `SlideshowTimelineView`, `CaobaApp.swift` (tamaño mínimo de la ventana).
+
+### 4. Decisiones
+- Textos cambiados con su traducción.
+- Ventana baja: **no hay nada que arreglar**. La ventana ya tiene un mínimo de 960 × 640 (`CaobaApp.swift`) y con ese alto la barra de origen se ve bien en los 8 módulos con carpeta (capturas a 960 × 640). Lo tapado salía solo en capturas a 500 de alto, que el modo captura fuerza por debajo del mínimo.
+
+### 5. Alternativas descartadas
+- Subir el mínimo de la ventana o compactar los módulos: no hace falta.
+
+### 6. Pendiente de comprobar
+- Hallado al probar: en **Metadatos**, con la ventana al ancho mínimo (960), el contenido se corta por los dos lados (título, «Orden», «Usar mi autor…»). Sin arreglar; se pregunta al usuario.
+- Sin commit ni publicación hasta que lo indique el usuario.

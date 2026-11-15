@@ -87,6 +87,26 @@ struct SlideshowTemplateTests {
         #expect(!template.text!.cards!.map(\.id).contains(cards[0].id)) // id nuevo
     }
 
+    @Test("Ida y vuelta: aplicar y volver a sacar la plantilla da la misma, con sus variables")
+    func roundTrip() {
+        let session = RenameSession(name: "Nombre de la sesión", dateText: "2026-11-15")
+        let template = montage().templated().template
+        let applied = SlideshowPreset().applying(template: template, session: session)
+        #expect(applied.text?.cards?.first?.text == "Nombre de la sesión")
+        // Vuelta: mismo resultado que la plantilla guardada (variables e ids fijos).
+        #expect(applied.templated(session: session).template == template)
+
+        // Lo retocado a mano no coincide y se guarda tal cual.
+        var edited = applied
+        edited.text?.cards?[0].text = "Alex & Sofía"
+        let again = edited.templated(session: session).template
+        #expect(again.text?.cards?.first?.text == "Alex & Sofía")
+        #expect(again.text?.cards?.first?.subtitle == "{fecha_sesion}")
+        // Sin sesión, nada cambia.
+        #expect(applied.templated().template.text?.cards?.first?.text == "Nombre de la sesión")
+        #expect(SlideshowPreset.unfill("Boda 2026-11-15", RenameSession(name: "", dateText: "")) == "Boda 2026-11-15")
+    }
+
     @Test("Una plantilla vacía devuelve lo general a sus valores de partida")
     func emptyTemplate() {
         let result = montage().applying(template: SlideshowPreset())

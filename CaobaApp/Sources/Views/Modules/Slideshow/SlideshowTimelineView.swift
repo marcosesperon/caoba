@@ -37,7 +37,7 @@ struct SlideshowTimelineView: View {
         .overlay {
             if doc.items.isEmpty {
                 ContentUnavailableView(doc.mode == .photos ? "Sin fotos" : "Sin collages", systemImage: "film",
-                                       description: Text(doc.mode == .photos ? "Elige una carpeta para montar el slideshow." : "Pulsa Componer o Añadir para empezar."))
+                                       description: Text(doc.mode == .photos ? "Elige una sesión o una carpeta para montar el slideshow." : "Pulsa Componer o Añadir para empezar."))
             }
         }
     }

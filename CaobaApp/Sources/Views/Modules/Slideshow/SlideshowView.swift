@@ -58,6 +58,14 @@ struct SlideshowView: View {
             // Para capturas desde línea de comandos: `--state slideshow.compose=open` abre la hoja de Componer.
             if appState.launchState["slideshow.compose"] != nil { doc.mode = .collage; showComposePicker = true }
             if appState.launchState["slideshow.add"] != nil { doc.mode = .collage; showAddPicker = true }
+            // Para pruebas: `--state slideshow.saveTemplate=<nombre>` guarda el montaje como plantilla.
+            if let name = appState.launchState["slideshow.saveTemplate"] {
+                // Con un momento de espera: el montaje de la carpeta se carga después de este `onAppear`.
+                Task {
+                    try? await Task.sleep(for: .seconds(2))
+                    PresetStore.shared.save(doc.currentTemplate, named: name, module: .slideshow)
+                }
+            }
             // `--state text.demo=card|overlay`: título, cierre y pies de ejemplo; `slideshow.generate=/ruta.mp4` genera una vista previa ahí.
             if let demo = appState.launchState["text.demo"] {
                 let carry = appState.launchState["text.carry"] != nil

@@ -54,8 +54,8 @@ struct SessionPicker: View {
     }
 }
 
-/// Lista de sesiones del selector.
-private struct SessionList: View {
+/// Lista de sesiones del selector (también la abre «Elegir sesión…» de la barra de origen).
+struct SessionList: View {
     @Environment(AppState.self) private var appState
     @Binding var showNew: Bool
     let dismiss: () -> Void

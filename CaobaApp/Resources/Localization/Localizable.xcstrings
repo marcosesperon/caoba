@@ -1,6 +1,56 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Elige una sesión o una carpeta de fotos arriba." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a session or a photo folder above."
+          }
+        }
+      }
+    },
+    "Elige una sesión o una carpeta para montar el slideshow." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a session or a folder to build the slideshow."
+          }
+        }
+      }
+    },
+    "Elige la sesión con la que vas a trabajar o una carpeta de fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the session you will work on or a photo folder"
+          }
+        }
+      }
+    },
+    "Elegir sesión…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose session…"
+          }
+        }
+      }
+    },
+    "1 sesión marcada · faltan %lld (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 session checked \u00b7 %1$lld to go (%2$@)"
+          }
+        }
+      }
+    },
     "Sin plantillas guardadas" : {
       "localizations" : {
         "en" : {
