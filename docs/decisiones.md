@@ -4456,3 +4456,49 @@ Rehacer las capturas de la web con la interfaz actual y poner al día `index.htm
 ### 6. Pendiente de comprobar
 - La captura de Shutter Count enseña el **número de serie** de la cámara del CR3 (157202000423) y la de Metadatos el autor de Ajustes («Irene Valdes y Marcos Esperon», como en las capturas de antes): confirmar con el usuario que se pueden publicar.
 - Ver la web publicada en GitHub Pages en móvil y en tema claro.
+
+## 2026-11-16 — Web: funcionalidades presentadas una a una con el scroll
+
+### 1. La petición tal como se ha entendido
+Simplificar la web (`index.html`) cambiando cómo se presentan las funcionalidades: en lugar de la rejilla de tarjetas actual, una **secuencia guiada por el scroll** que las enseña una a una.
+- **Formato:** a un lado, el texto de cada paso, que va pasando con el scroll; al otro, la captura **fija** que cambia con un fundido según el paso que se esté leyendo (estilo Apple).
+- **Pasos (13):** Sesiones (lista del título) y Ajustes › Sesiones, y luego los 11 módulos en su orden (01–11). Las cabeceras Creadores / Utilidades / Otras herramientas quedan como separadores dentro de la secuencia. Las secciones «Sesiones» y «Lo que hace» actuales se funden en esta.
+- **Texto por paso:** título, una frase de para qué sirve y como mucho 3 puntos cortos, en español e inglés como ahora. El detalle completo se queda en el README.
+- **Índice lateral fino** con los pasos: resalta el actual y salta al pulsar.
+- **Se mantiene:** las capturas actuales (sin hacer capturas nuevas), el clic en la captura para verla a tamaño completo, y el resto de la web (cabecera, por qué, descarga, historia) sin tocar.
+- **Sin animación forzada:** en móvil la secuencia pasa a texto + captura uno debajo de otro y sin índice; y quien tenga activado «Reducir movimiento» ve el cambio sin animación.
+- Solo HTML/CSS/JS dentro de `index.html`, sin librerías externas.
+
+*Confirmado por el usuario («dale»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «la web me parece algo complicada... para presentar las diferentes funcionalidades, podríamos jugar con el scroll de la página y darle animación? presentar una a una las funcionalidades para que se vean claras».
+- **¿Cómo se presentan las funcionalidades al hacer scroll?** → *Captura fija que cambia*: texto de cada funcionalidad a un lado y la captura fija al otro, cambiando con fundido según la que se esté leyendo (estilo Apple).
+- **¿Qué entra en la secuencia?** → *Sesiones + los 11 módulos*: una sola secuencia, Sesiones primero y luego los módulos en orden; las cabeceras Creadores / Utilidades / Otras herramientas se quedan como separadores dentro. El resto de la web (por qué, descarga, historia) no se toca.
+- **¿Cuánto texto por funcionalidad?** → *Frase + 3 puntos clave*: título, una frase de para qué sirve y como mucho 3 puntos cortos; el detalle completo se queda en el README.
+- **¿Guía para saber dónde estás?** → *Índice lateral fino*: nombres o puntos de cada paso, el actual resaltado al hacer scroll y clic para saltar; en móvil se oculta.
+
+### 3. Fuentes analizadas
+- `index.html` (versión 3.26.0, commit `a3ae6ea`): secciones `#sesiones` y `#modulos` con la rejilla de tarjetas `.grid` / `.mod`, y el JS del final (idioma, tema, versión de GitHub).
+- `assets/screenshots/` (las 14 capturas de la 3.26.0).
+
+### 4. Decisiones
+- **Una sola sección `#modulos` («Lo que hace»)** con 13 pasos: la de Sesiones desaparece como sección aparte y sus dos tarjetas son los dos primeros pasos. En el menú, «Sesiones» y «Módulos» pasan a un solo enlace, «Lo que hace».
+- **Cada paso lleva su texto y su captura en su `<article>`**; el índice y el escenario los monta el JS copiando de ahí. Así no hay dos sitios que mantener, y sin JS (o en móvil) la página ya se ve bien con cada captura en su paso.
+- **El paso activo se calcula al hacer scroll** (el último cuyo principio ha pasado la mitad de la pantalla, una vez por fotograma con `requestAnimationFrame`) y no con `IntersectionObserver`: se probó primero y en Chrome sin ventana no llegaba a avisar, así que no había forma de comprobarlo; el cálculo a mano es igual de barato con 13 pasos y no depende de eso.
+- **Capturas completas, sin recortes** (`--x`/`--y` desaparecen): en el escenario hay sitio de sobra; la vertical de Ajustes va centrada sobre fondo.
+- **Textos recortados** a frase + como mucho 3 puntos; los detalles que se quitan siguen en el README.
+- **La sección se ensancha** hasta 1360 px (el resto de la web sigue a 1120) para que la captura se vea grande junto al índice y el texto.
+
+### 5. Alternativas descartadas
+- **Una pantalla por funcionalidad** y **bloques alternados izquierda/derecha**: el usuario eligió la captura fija que cambia.
+- **Mantener la sección de Sesiones aparte**: el usuario prefirió una sola secuencia.
+- **Todo el texto actual** o **solo título y frase**: el usuario eligió frase + 3 puntos.
+- **Barra de progreso o nada** en vez del índice: el usuario eligió el índice lateral.
+- **`IntersectionObserver`** para detectar el paso: ver Decisiones.
+- **Una librería de scroll (GSAP, ScrollTrigger…)**: para fundir capturas y marcar un paso basta con CSS y unas líneas de JS, y la web no carga librerías.
+
+### 6. Pendiente de comprobar
+- Verlo en un navegador de verdad con scroll de ratón o trackpad (comprobado con capturas de Chrome sin ventana: escritorio en oscuro y claro, Ajustes, el último paso y móvil de 390 px).
+- Safari: `position: sticky` dentro de la rejilla y el `aspect-ratio` del escenario.
+- Sin commit hasta que el usuario lo pida.

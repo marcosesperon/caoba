@@ -102,6 +102,18 @@ Capturas y estados usados:
 
 Las capturas de la landing están en `assets/screenshots/` a tamaño real (2880×1800) en PNG y WebP: la página usa `<picture>` con WebP y PNG de respaldo, los enlaces a la imagen completa y la imagen social (`og:image`) van en PNG.
 
+### La web: «Lo que hace», paso a paso
+
+La sección `#modulos` de `index.html` enseña las funcionalidades **una a una con el scroll**: en pantallas de más de 900 px hay tres columnas, un índice fino a la izquierda, los textos en medio (cada paso ocupa casi una pantalla y los que no se están leyendo salen atenuados) y, a la derecha, la captura fija que cambia con un fundido según el paso. Son 13 pasos: la sesión en el título, Ajustes › Sesiones y los 11 módulos, con las cabeceras de grupo (Sesión, Creadores, Utilidades, Otras herramientas) como separadores.
+
+Cada paso es un `<article class="step" id="…">` con todo lo suyo dentro: su captura (`<a class="shot">`, con `portrait` si es vertical), el número, el título, una frase y como mucho 3 puntos, en español e inglés. El índice y el escenario de la derecha **no se escriben a mano**: el JS del final los monta copiando los títulos y las capturas de los pasos, así cada funcionalidad se escribe en un solo sitio. El paso activo es el último cuyo principio ha pasado la mitad de la pantalla (se mira al hacer scroll, una vez por fotograma) y se marca con la clase `on` en el texto, la captura y el índice.
+
+Sin JS, en pantallas estrechas (móvil) o con la ventana de menos de 900 px, no hay índice ni escenario: cada paso enseña su propia captura encima del texto, uno debajo de otro. Con «Reducir movimiento» las capturas cambian sin fundido.
+
+**Añadir una funcionalidad:** copiar un `<article class="step">` en su sitio dentro de `.seq-steps` con un `id` nuevo (sirve de ancla para el índice) y su captura; si abre grupo nuevo, poner antes un `<p class="group">` con dos `span` (el nombre y el `small` de explicación). Nada más: índice y escenario salen solos.
+
+**Comprobarla sin navegador:** Chrome sin ventana (`--headless=new --screenshot`) no sirve abriendo la página con un ancla (`#collage`) porque sale en negro; funciona cargando la página en un `<iframe>` de una página auxiliar que hace el scroll hasta el paso (con `--allow-file-access-from-files` y `--virtual-time-budget=6000`). Y Chrome no deja la ventana por debajo de unos 500 px: para ver el móvil, el `iframe` se pone de 390 px dentro de una ventana más ancha.
+
 ### Reglas de la casa
 
 - Lo temporal va siempre al directorio temporal del sistema (`TempFiles`), nunca a la carpeta de fotos.
