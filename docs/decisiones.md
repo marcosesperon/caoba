@@ -4222,3 +4222,138 @@ Petición original: «si» a las dos propuestas: cambiar los textos de dentro de
 ### 6. Pendiente de comprobar
 - Hallado al probar: en **Metadatos**, con la ventana al ancho mínimo (960), el contenido se corta por los dos lados (título, «Orden», «Usar mi autor…»). Sin arreglar; se pregunta al usuario.
 - Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-15 — Metadatos se corta con la ventana al ancho mínimo
+
+Petición original: «arregla lo de metadatos» (hallado al revisar los módulos a 960 × 640: el contenido de Metadatos se cortaba por los dos lados).
+
+### 1. La petición tal como se ha entendido
+- Con la ventana al ancho mínimo (960), Metadatos se ve entero, sin cortes en el título, «Orden» ni «Usar mi autor».
+- Bajando los mínimos de las dos columnas para que quepan; se pueden seguir ensanchando con el separador.
+- Con la ventana más ancha se ve igual y el resto de módulos no se tocan.
+
+*Confirmada por el usuario («sí»); plan aprobado («dale»).*
+
+### 2. Preguntas y respuestas
+- Sin preguntas.
+
+### 3. Fuentes analizadas
+- `MetadataView` (`HSplitView` con la lista a 340/420 y la ficha a 420 como mínimos), `LabeledRow` (etiqueta de 130 fija), `FileListView` (cabecera con «Orden» y «Orientación»).
+
+### 4. Decisiones
+- Causa: los mínimos (340 + 420) y lo que de verdad mide el contenido pasaban de los ~726 pt que deja la ventana al mínimo; al no caber, todo se desbordaba por igual a los dos lados.
+- No bastó con bajar los mínimos (primer intento, 300 + 400): el contenido no se encoge. Se midió en capturas y se ajustó en tres vueltas:
+  - Lista: 380 de mínimo y de partida (su cabecera, con los bordes del bloque, mide unos 376).
+  - Ficha: 340 de mínimo, separación con el divisor de 12 a 8, y la miniatura de 160 a 140.
+  - «Aplicar a» encima del selector y no al lado (el selector mide unos 315 y en una fila no cabía); el selector puede estrecharse un poco si hace falta.
+- Resultado: a 960 todo cabe (título, bloque de la lista con sus bordes, ficha completa); a 1.400 se ve como antes, salvo «Aplicar a», que ahora va encima del selector.
+
+### 5. Alternativas descartadas
+- Subir el ancho mínimo de la ventana: lo demás cabe en 960 y solo fallaba este módulo.
+- Acortar el texto «Todas las marcadas (3)»: no hizo falta.
+- Tocar la cabecera de `FileListView`: la comparten varios módulos.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas a 960 × 640 y 1.400 × 640.
+- Con un nombre de cámara u objetivo muy largo, el dato baja de línea en la ficha (como ya pasa con «Dimensiones» a 960): visto, aceptable.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-16 — Simuladores de iOS en la lista de tarjetas
+
+Petición original: «¿hay forma de detectar unidades que son simuladores de iOS?» (captura: «iOS 26.2 Simulator», «iOS 18.6 Simulator Bundle» e «iOS 18.6 Simulator» en la lista de tarjetas de Descargar tarjeta).
+
+### 1. La petición tal como se ha entendido
+- Que los simuladores de iOS no salgan como tarjetas. Respuesta: salían solo porque en el Mac del usuario estaba activada la opción de pruebas `caoba.dev.recoveryDiskImages`, que enseña las imágenes de disco montadas; sin ella la app ya las oculta todas.
+
+### 2. Preguntas y respuestas
+- P1: ¿Desactivar la opción de pruebas en el Mac del usuario, ocultar siempre los simuladores (montados en `/Library/Developer/CoreSimulator/…` y con `nobrowse`) aunque la opción esté activa, o las dos? — **1: desactivar la opción de pruebas.**
+
+### 3. Fuentes analizadas
+- `hdiutil info` y `mount`: los tres simuladores son imágenes de Xcode montadas en `/Library/Developer/CoreSimulator/…`, de solo lectura y con `nobrowse`.
+- `ExternalDiskMonitor` (`showDiskImagesKey`, `isDiskImage`).
+
+### 4. Decisiones
+- Borrada la preferencia `caoba.dev.recoveryDiskImages` del Mac del usuario (`defaults delete`) y relanzada la app. Sin cambios en el código.
+
+### 5. Alternativas descartadas
+- Filtrar los simuladores en el código (opción 2): a quien no tiene la opción de pruebas ya no le salen; no hace falta.
+
+### 6. Pendiente de comprobar
+- Para volver a probar con tarjetas de mentira: `defaults write com.marcosesperon.caoba caoba.dev.recoveryDiskImages -bool YES` (y entonces volverán a salir los simuladores).
+
+## 2026-11-16 — Descargar tarjeta: sin tarjeta, solo lo necesario
+
+### 1. La petición tal como se ha entendido
+- **Sin tarjeta elegida** (ninguna metida, o varias y ninguna marcada):
+  - Se ve el bloque «Tarjeta» como ahora (el aviso «Mete la tarjeta en el lector…» o la lista para elegir una).
+  - Debajo (o a la derecha con la ventana ancha, como cuando hay sesiones) sale **«Sesiones en la tarjeta» en previa**: atenuado, con un texto como «Cuando metas la tarjeta, aquí verás sus sesiones para elegir cuáles descargar».
+  - **No salen** «Qué descargar» ni «Cómo organizarlas».
+  - La **barra de abajo** se ve **atenuada** y sin poder tocarla (destino, «Elegir…», «Crear sesión…», «Descargar»).
+- Con tarjeta elegida, todo como hasta ahora.
+
+*Confirmada por el usuario («sí»); plan aprobado («adelante»).*
+
+Petición original: «guiemos al usuario, si no hay tarjeta seleccionada que no salgan las secciones de qué descargar ni cómo organizarlas. Tampoco está disponible el destino» (captura: sin tarjeta, con «Qué descargar», «Cómo organizarlas» y la barra de destino a la vista).
+
+### 2. Preguntas y respuestas
+- P1: ¿Qué pasa con la barra de abajo (destino, «Crear sesión…», «Descargar») sin tarjeta? (1 quitarla, 2 atenuada) — **2: atenuada**, y además «muestra también la previa de la sección de sesiones».
+
+### 3. Fuentes analizadas
+- `CardImportView` (`CardImportSetupView`, `CardImportOptionsView`, `CardImportActionBar`), `CardImportSession.selectedDiskID`.
+
+### 4. Decisiones
+- «Sin tarjeta» = `session.selectedDisk == nil` (cubre no tener ninguna metida y tener varias sin elegir).
+- Adelanto `CardSessionsPlaceholder`: el mismo bloque «Sesiones en la tarjeta» al 60 % con un texto que explica qué saldrá; va donde irán las sesiones (columna derecha con ventana ancha, debajo de «Tarjeta» si no).
+- Barra de abajo con `.disabled` y al 45 %, como los módulos sin carpeta de origen.
+
+### 5. Alternativas descartadas
+- Quitar la barra de abajo entera (respuesta 1).
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: sin tarjeta a 1.000 y 1.400 de ancho, y con la tarjeta de prueba (vuelve a ser como antes).
+- La tarjeta de prueba de la carpeta temporal se había borrado: se rehízo (`CANON_A`, FAT32, 2 fotos), comprobando antes de escribir que se montaba en `/Volumes/CANON_A`. La opción de pruebas `caoba.dev.recoveryDiskImages` se activó solo para la captura y se volvió a quitar; los tipos de descarga del usuario (solo RAW) se dejaron como estaban.
+- Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-16 — Al quitar la sesión, los módulos se vacían
+
+### 1. La petición tal como se ha entendido
+- Al pasar de una sesión activa a «Sin sesión» (desde el título de la ventana o desde la lista de la barra de origen):
+  - Se vacían **siempre** la carpeta de origen, la lista de fotos y los destinos de los módulos, venga de donde venga el origen. Todos los módulos quedan en «Elige una sesión o una carpeta» (como al abrir la app sin nada).
+  - Se vacía también el **destino de Descargar tarjeta**: al meter una tarjeta habrá que elegir dónde descargar o crear una sesión.
+  - Si hay una descarga de tarjeta en marcha, su destino no se toca (como ya pasa al cambiar de sesión).
+- Si no había sesión activa, «Sin sesión» no hace nada nuevo.
+
+*Confirmada por el usuario («sí»), que añade:* «aprovecha también para hacer la revisión de ayuda al usuario en sentido que secciones que no puede usar porque dependen de otra aparezcan atenuadas». Se entiende como: repasar todos los módulos buscando partes que no se pueden usar hasta hacer otra cosa antes (elegir tarjeta, foto, PNG…) y que hoy se ven como si se pudieran usar; proponer la lista antes de cambiarlas.
+
+Petición original: «lo mismo en otros módulos, si tenía una sesión activa y cambio a sin sesión, deberían limpiar el contenido».
+
+### 2. Preguntas y respuestas
+- P1: ¿Se vacía siempre, o solo si el origen era de la sesión que se quita? (1 solo si es de la sesión, 2 siempre) — **2: siempre**, venga de donde venga.
+- P2: ¿También el destino de Descargar tarjeta (el RAW de la sesión que se quita)? (1 se vacía, 2 se queda) — **1: se vacía.**
+
+### 3. Fuentes analizadas
+- `AppState.activateSession(_:)`: con `nil` hoy solo quita la sesión; el origen, los destinos y el destino de Descargar tarjeta se quedan. `clearSource()` ya vacía origen, lista y destinos.
+
+### Revisión: partes que dependen de otra (propuesta aprobada: «adelante»)
+Repaso de los 11 módulos con capturas (con y sin carpeta) y del código:
+- Ya bien: módulos con carpeta de origen (todo atenuado sin carpeta), Descargar tarjeta (recién hecho), logo de Collage y Contact Sheet (sus opciones solo salen con logo), Procesador (recorte y tamaño solo salen al marcarlos), Shutter Count (sin foto solo hay «Elige una foto»), QR («Guardar PNG…» apagado sin contenido), botones de Collage y Slideshow que dependen de la secuencia (ya desactivados).
+- Por arreglar:
+  1. **Recuperar fotos**, sin tarjeta: igual que Descargar tarjeta (solo «Tarjeta»; sin «Qué buscar» ni «Dónde buscar»; barra de abajo atenuada).
+  2. **Marca de agua**, sin PNG elegido: «Colocación» atenuada y sin poder tocarla.
+  3. **Slideshow › Música**, sin pistas: «Opciones» (cruce, fundido, normalizar) y «Ritmo» atenuados.
+
+### 4. Decisiones
+- «Sin sesión»: `activateSession(nil)` con sesión previa llama a `clearSource()` y a `CardImportSession.clearDestination()` (nuevo; no hace nada con una descarga en marcha). Sin sesión previa no cambia nada.
+- Recuperar fotos sin tarjeta: sin «Qué buscar» ni «Dónde buscar» y la barra atenuada, igual que Descargar tarjeta.
+- Marca de agua: «Colocación» con `.disabled` y al 45 % sin PNG.
+- Slideshow › Música: «Opciones» y «Ritmo» juntos con `.disabled` y al 45 % sin pistas.
+- Valor de prueba `session.clear=1` para comprobar «Sin sesión» sin clics.
+
+### 5. Alternativas descartadas
+- Vaciar solo si el origen era de la sesión (respuesta 1) y dejar el destino de la descarga (respuesta 2).
+- Ocultar en vez de atenuar en Marca de agua y Música: atenuado se ve qué se podrá ajustar.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: Recuperar fotos sin tarjeta, Marca de agua sin PNG, Música sin pistas, y el Procesador con sesión y justo después de «Sin sesión» (todo vacío y atenuado, con «Elegir sesión…»). Tests pasan.
+- Al probar en modo captura, quitar la sesión vació el destino guardado de Descargar tarjeta del usuario (las capturas guardan algunas preferencias, como el tamaño de la ventana y «Recientes»). Se restauraron las preferencias desde la copia (idénticas). No afecta al uso normal.
+- Sin commit ni publicación hasta que lo indique el usuario.

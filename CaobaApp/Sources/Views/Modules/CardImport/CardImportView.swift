@@ -14,7 +14,10 @@ struct CardImportView: View {
             switch session.phase {
             case .setup:
                 CardImportSetupView(session: session)
+                // Sin tarjeta no hay nada que descargar: la barra se ve, pero apagada.
                 CardImportActionBar(session: session)
+                    .disabled(session.selectedDisk == nil)
+                    .opacity(session.selectedDisk == nil ? 0.45 : 1)
             case .copying, .paused, .cancelling:
                 CardImportProgressView(session: session)
                 Spacer()
@@ -49,6 +52,7 @@ struct CardImportView: View {
 
 /// Tarjeta, sesiones, qué descargar y cómo organizarlo. Con la ventana ancha, las sesiones van
 /// en una columna a la derecha (cada columna con su propio desplazamiento); si no, todo en una.
+/// Sin tarjeta elegida solo se ven «Tarjeta» y un adelanto de las sesiones, para guiar al usuario.
 struct CardImportSetupView: View {
     @Bindable var session: CardImportSession
 
@@ -58,11 +62,14 @@ struct CardImportSetupView: View {
 
     var body: some View {
         GeometryReader { proxy in
-            if !session.sessions.isEmpty && proxy.size.width >= Self.twoColumnWidth {
+            let hasCard = session.selectedDisk != nil
+            if (!hasCard || !session.sessions.isEmpty) && proxy.size.width >= Self.twoColumnWidth {
                 HStack(alignment: .top, spacing: 12) {
                     ScrollView { CardImportOptionsView(session: session) }
                         .frame(width: Self.optionsColumnWidth)
-                    ScrollView { CardSessionsView(session: session) }
+                    ScrollView {
+                        if hasCard { CardSessionsView(session: session) } else { CardSessionsPlaceholder() }
+                    }
                 }
             } else {
                 ScrollView { CardImportOptionsView(session: session, showsSessions: true) }
@@ -94,33 +101,50 @@ private struct CardImportOptionsView: View {
                 Button("Recargar") { session.diskMonitor.reload() }
                     .controlSize(.small)
             }
-            if showsSessions && !session.sessions.isEmpty {
-                CardSessionsView(session: session)
-            }
-            OptionGroup(title: "Qué descargar") {
-                ForEach(RecoveryFileGroup.allCases, id: \.self) { group in
-                    Toggle(isOn: Binding(get: { session.groups.contains(group) },
-                                         set: { if $0 { session.groups.insert(group) } else { session.groups.remove(group) } })) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(group.title)
-                            Text(group.examples).font(.caption).foregroundStyle(.secondary)
+            if session.selectedDisk == nil {
+                // Sin tarjeta: el adelanto de las sesiones (si van en esta columna) y nada más.
+                if showsSessions { CardSessionsPlaceholder() }
+            } else {
+                if showsSessions && !session.sessions.isEmpty {
+                    CardSessionsView(session: session)
+                }
+                OptionGroup(title: "Qué descargar") {
+                    ForEach(RecoveryFileGroup.allCases, id: \.self) { group in
+                        Toggle(isOn: Binding(get: { session.groups.contains(group) },
+                                             set: { if $0 { session.groups.insert(group) } else { session.groups.remove(group) } })) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(group.title)
+                                Text(group.examples).font(.caption).foregroundStyle(.secondary)
+                            }
                         }
                     }
+                    Text("Cada foto o vídeo se lleva sus ficheros acompañantes con el mismo nombre (.XMP, .WAV, .THM, .LRF).")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                Text("Cada foto o vídeo se lleva sus ficheros acompañantes con el mismo nombre (.XMP, .WAV, .THM, .LRF).")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
-            OptionGroup(title: "Cómo organizarlas") {
-                Picker("", selection: $session.layout) {
-                    Text("Todo junto en la carpeta").tag(CardImportLayout.flat)
-                    Text("Por fecha (AAAA/MM-DD)").tag(CardImportLayout.byDate)
+                OptionGroup(title: "Cómo organizarlas") {
+                    Picker("", selection: $session.layout) {
+                        Text("Todo junto en la carpeta").tag(CardImportLayout.flat)
+                        Text("Por fecha (AAAA/MM-DD)").tag(CardImportLayout.byDate)
+                    }
+                    .pickerStyle(.radioGroup)
+                    .labelsHidden()
+                    Text("Siempre con el nombre original. Lo que ya esté descargado se salta, y una foto distinta con el mismo nombre (de otra cámara) se guarda con sufijo _2. Nunca se sobrescribe nada.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
-                .pickerStyle(.radioGroup)
-                .labelsHidden()
-                Text("Siempre con el nombre original. Lo que ya esté descargado se salta, y una foto distinta con el mismo nombre (de otra cámara) se guarda con sufijo _2. Nunca se sobrescribe nada.")
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+/// Adelanto de «Sesiones en la tarjeta» mientras no hay tarjeta: dice qué saldrá ahí.
+private struct CardSessionsPlaceholder: View {
+    var body: some View {
+        OptionGroup(title: "Sesiones en la tarjeta") {
+            Label("Cuando metas la tarjeta, aquí verás sus sesiones para elegir cuáles descargar.", systemImage: "rectangle.stack")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .opacity(0.6)
     }
 }
 

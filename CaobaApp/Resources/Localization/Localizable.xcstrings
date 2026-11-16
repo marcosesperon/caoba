@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Cuando metas la tarjeta, aquí verás sus sesiones para elegir cuáles descargar." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you insert the card, its sessions will appear here so you can choose which to download."
+          }
+        }
+      }
+    },
     "Elige una sesión o una carpeta de fotos arriba." : {
       "localizations" : {
         "en" : {

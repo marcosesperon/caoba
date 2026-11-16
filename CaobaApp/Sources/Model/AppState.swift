@@ -273,8 +273,18 @@ final class AppState {
     /// Activa una sesión (o ninguna). Con sesión, el origen pasa a su carpeta de fotos finales;
     /// si no la tiene, el origen se queda vacío y sale el aviso. «Sin sesión» no toca el origen.
     func activateSession(_ session: StudioSession?) async {
+        let hadSession = sessions.active != nil
         sessions.activate(session, remember: !isScreenshotMode)
-        guard let session else { sessionLacksFinals = false; return }
+        guard let session else {
+            sessionLacksFinals = false
+            // Al quitar la sesión se empieza de cero: sin origen, sin destinos y sin el destino
+            // de la descarga (que era el RAW de esa sesión), para no seguir trabajando en ella sin querer.
+            if hadSession {
+                clearSource()
+                cardImport.clearDestination()
+            }
+            return
+        }
         // Las tarjetas se descargan en la carpeta de descargas de la sesión (`RAW`).
         cardImport.changeDestination(to: sessions.layout.downloads(of: session))
         if sessions.lacksFinals(session) {
@@ -446,6 +456,8 @@ final class AppState {
                 await activateSession(nil)
             } else if let session = sessions.layout.session(containing: URL(fileURLWithPath: path, isDirectory: true)) {
                 await activateSession(session)
+                // `--state session.clear=1`: justo después la quita, para ver cómo queda «Sin sesión».
+                if launchState["session.clear"] != nil { await activateSession(nil) }
             }
         }
         // Para pruebas: `--state presets.export=/ruta.json` e `--state presets.import=/ruta.json`.

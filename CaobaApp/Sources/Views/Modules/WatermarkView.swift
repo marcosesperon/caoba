@@ -95,6 +95,9 @@ struct WatermarkView: View {
                                 LabeledSlider(title: "Tamaño", value: $options.sizePercent, in: 1...100, step: 1) { Text("\(Int(options.sizePercent)) %") }
                                 LabeledSlider(title: "Opacidad", value: $options.opacity, in: 0...100, step: 1) { Text("\(Int(options.opacity)) %") }
                             }
+                            // Sin PNG no hay marca que colocar: se ve, pero apagada hasta elegirlo.
+                            .disabled(watermarkURL == nil)
+                            .opacity(watermarkURL == nil ? 0.45 : 1)
                         }
                     }
                 }

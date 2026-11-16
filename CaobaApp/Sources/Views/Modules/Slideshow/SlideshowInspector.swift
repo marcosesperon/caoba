@@ -279,54 +279,59 @@ struct MusicTab: View {
                 }
                 Button("Añadir pista…") { addTracks() }
             }
-            OptionGroup(title: "Opciones") {
-                if doc.tracks.count > 1 {
-                    Toggle("Repetir la lista si el vídeo es más largo", isOn: $doc.loopPlaylist)
-                }
-                LabeledSlider(title: "Cruce entre pistas", value: $doc.crossfade, in: AudioOptions.crossfadeRange, step: 0.5) {
-                    CrossfadeLabel(seconds: doc.crossfade)
-                }
-                Text("Al cambiar de pista, la que entra sube mientras la anterior baja. Cada pista puede tener su propia entrada en su editor.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Toggle("Fundido de salida", isOn: $doc.fadeOut)
-                if doc.fadeOut {
-                    LabeledSlider(title: "Duración del fundido", value: $doc.fadeOutDuration, in: AudioOptions.fadeOutRange, step: 0.5) {
-                        Text("\(doc.fadeOutDuration, specifier: "%.1f") s")
+            // Sin pistas, las opciones y el ritmo no hacen nada: se ven, pero apagados hasta añadir una.
+            VStack(alignment: .leading, spacing: 12) {
+                OptionGroup(title: "Opciones") {
+                    if doc.tracks.count > 1 {
+                        Toggle("Repetir la lista si el vídeo es más largo", isOn: $doc.loopPlaylist)
                     }
+                    LabeledSlider(title: "Cruce entre pistas", value: $doc.crossfade, in: AudioOptions.crossfadeRange, step: 0.5) {
+                        CrossfadeLabel(seconds: doc.crossfade)
+                    }
+                    Text("Al cambiar de pista, la que entra sube mientras la anterior baja. Cada pista puede tener su propia entrada en su editor.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Toggle("Fundido de salida", isOn: $doc.fadeOut)
+                    if doc.fadeOut {
+                        LabeledSlider(title: "Duración del fundido", value: $doc.fadeOutDuration, in: AudioOptions.fadeOutRange, step: 0.5) {
+                            Text("\(doc.fadeOutDuration, specifier: "%.1f") s")
+                        }
+                    }
+                    Toggle("Normalizar volumen (EBU R128, -16 LUFS)", isOn: $doc.normalize)
                 }
-                Toggle("Normalizar volumen (EBU R128, -16 LUFS)", isOn: $doc.normalize)
+                OptionGroup(title: "Ritmo") {
+                    LabeledRow("Golpes por foto") {
+                        Picker("", selection: $doc.beatsPerCut) {
+                            Text("Auto").tag(Int?.none)
+                            ForEach(RhythmPlanner.densities, id: \.self) { Text("\($0)").tag(Int?.some($0)) }
+                        }
+                        .pickerStyle(.segmented).fixedSize()
+                        .labelsHidden()
+                    }
+                    HStack(spacing: 10) {
+                        Button("Ajustar al ritmo") { Task { await doc.adjustToRhythm() } }
+                            .disabled(doc.tracks.isEmpty || doc.isAnalyzingRhythm || doc.files.isEmpty)
+                        if doc.isAnalyzingRhythm {
+                            ProgressView().controlSize(.small)
+                            Text("Analizando la música…").font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    if let message = doc.rhythmMessage {
+                        Text(message).font(.caption).foregroundStyle(Color.accentColor)
+                    }
+                    Text("Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Divider()
+                    Button("Cuadrar cruces") { Task { await doc.alignCrossfades() } }
+                        .disabled(doc.tracks.count < 2 || doc.isAnalyzingRhythm)
+                    if let message = doc.crossfadeMessage {
+                        Text(message).font(.caption).foregroundStyle(Color.accentColor)
+                    }
+                    Text("En cada cambio de pista, el cruce empieza en un golpe de la que sale y la que entra arranca en uno de los suyos, para que los golpes de las dos caigan juntos. Mueve el inicio y el Desde de la que entra como mucho medio golpe. Después puedes pulsar «Ajustar al ritmo» para que las fotos sigan las posiciones nuevas.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
-            OptionGroup(title: "Ritmo") {
-                LabeledRow("Golpes por foto") {
-                    Picker("", selection: $doc.beatsPerCut) {
-                        Text("Auto").tag(Int?.none)
-                        ForEach(RhythmPlanner.densities, id: \.self) { Text("\($0)").tag(Int?.some($0)) }
-                    }
-                    .pickerStyle(.segmented).fixedSize()
-                    .labelsHidden()
-                }
-                HStack(spacing: 10) {
-                    Button("Ajustar al ritmo") { Task { await doc.adjustToRhythm() } }
-                        .disabled(doc.tracks.isEmpty || doc.isAnalyzingRhythm || doc.files.isEmpty)
-                    if doc.isAnalyzingRhythm {
-                        ProgressView().controlSize(.small)
-                        Text("Analizando la música…").font(.caption).foregroundStyle(.secondary)
-                    }
-                }
-                if let message = doc.rhythmMessage {
-                    Text(message).font(.caption).foregroundStyle(Color.accentColor)
-                }
-                Text("Opcional: cada cambio de foto o collage cae en un golpe de la música que suene en ese momento. Las duraciones que hayas fijado a mano se respetan.")
-                    .font(.caption).foregroundStyle(.secondary)
-                Divider()
-                Button("Cuadrar cruces") { Task { await doc.alignCrossfades() } }
-                    .disabled(doc.tracks.count < 2 || doc.isAnalyzingRhythm)
-                if let message = doc.crossfadeMessage {
-                    Text(message).font(.caption).foregroundStyle(Color.accentColor)
-                }
-                Text("En cada cambio de pista, el cruce empieza en un golpe de la que sale y la que entra arranca en uno de los suyos, para que los golpes de las dos caigan juntos. Mueve el inicio y el Desde de la que entra como mucho medio golpe. Después puedes pulsar «Ajustar al ritmo» para que las fotos sigan las posiciones nuevas.")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            .disabled(doc.tracks.isEmpty)
+            .opacity(doc.tracks.isEmpty ? 0.45 : 1)
         }
     }
 

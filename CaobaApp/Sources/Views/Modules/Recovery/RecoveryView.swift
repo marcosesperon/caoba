@@ -13,7 +13,10 @@ struct RecoveryView: View {
             switch session.phase {
             case .setup:
                 ScrollView { RecoverySetupView(session: session) }
+                // Sin tarjeta no hay nada que recuperar: la barra se ve, pero apagada.
                 RecoveryActionBar(session: session)
+                    .disabled(session.selectedDisk == nil)
+                    .opacity(session.selectedDisk == nil ? 0.45 : 1)
             case .starting, .running, .paused, .cancelling:
                 RecoveryProgressView(session: session)
                 // Lo encontrado va saliendo debajo, para ir eliminando lo que no interesa.
@@ -63,8 +66,11 @@ struct RecoverySetupView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .caobaPanel()
             diskSection
-            typesSection
-            whereSection
+            // Sin tarjeta elegida, qué buscar y dónde no pintan nada todavía.
+            if session.selectedDisk != nil {
+                typesSection
+                whereSection
+            }
         }
     }
 

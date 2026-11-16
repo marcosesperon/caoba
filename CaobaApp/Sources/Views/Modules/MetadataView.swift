@@ -58,7 +58,10 @@ struct MetadataView: View {
                     // Lista compartida: las casillas definen "todas las marcadas"; el clic elige la ficha.
                     FileListView(selection: $selected, markedNames: Set(edits.keys.map(\.lastPathComponent)))
                 }
-                .frame(minWidth: 340, idealWidth: 420)
+                // Lista de 380 (su cabecera con «Orden» y «Orientación», con los bordes del bloque, mide
+                // unos 376) y ficha de 340 como mínimo: con la ventana al mínimo hay unos 726 y, si no
+                // caben, todo se desborda y se corta por los dos lados.
+                .frame(minWidth: 380, idealWidth: 380)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
@@ -66,7 +69,7 @@ struct MetadataView: View {
                             // Ficha de la foto (miniatura, datos y mapa) en un bloque.
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack(alignment: .top, spacing: 16) {
-                                    ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 160)
+                                    ThumbnailView(url: selected, maxPixelSize: 400, displaySize: 140)
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(selected.lastPathComponent).font(.headline)
                                         infoRow("Cámara", current.camera)
@@ -98,7 +101,10 @@ struct MetadataView: View {
                         }
 
                         OptionGroup(title: "Editar") {
-                            LabeledRow("Aplicar a") {
+                            // La etiqueta encima del selector (y no al lado, como en `LabeledRow`): el selector
+                            // ya mide unos 315 y en una sola fila la ficha no cabía con la ventana estrecha.
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Aplicar a")
                                 Picker("", selection: $applyMode) {
                                     Text("Solo esta foto").tag(ApplyMode.single)
                                     Text("Todas las marcadas (\(appState.checkedCount))").tag(ApplyMode.all)
@@ -128,9 +134,9 @@ struct MetadataView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    .padding(.leading, 12)
+                    .padding(.leading, 8)
                 }
-                .frame(minWidth: 420)
+                .frame(minWidth: 340)
             }
             // Los metadatos se escriben en su sitio: la barra lleva solo las acciones.
             DestinationBar(kind: .none) {

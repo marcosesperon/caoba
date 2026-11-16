@@ -252,6 +252,12 @@ final class CardImportSession {
         destinationFolder = folder
     }
 
+    /// Quita el destino (al pasar a «Sin sesión»). Con una descarga en marcha no se toca.
+    func clearDestination() {
+        guard !isBusy else { return }
+        destinationFolder = nil
+    }
+
     /// Hora de la primera foto marcada: la fecha que se propone al crear una sesión del estudio.
     var firstMarkedDate: Date? {
         sessions.filter { selectedSessionIDs.contains($0.id) }.map(\.start).min()
