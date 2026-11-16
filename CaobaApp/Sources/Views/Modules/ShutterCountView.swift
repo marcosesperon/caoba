@@ -35,8 +35,10 @@ struct ShutterCountView: View {
             } else {
                 ContentUnavailableView("Elige una foto", systemImage: "camera.aperture",
                                        description: Text("Acepta JPG y RAW (NEF, CR2, CR3, ARW, DNG…). El contador de disparos depende de la marca: Nikon, Sony y Pentax lo guardan; Canon, en los RAW CR3 (los JPG y los CR2 antiguos no lo traen)."))
+                    // Que ocupe todo el hueco bajo la barra, para quedar en el centro y no arrimado a la izquierda.
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            Spacer()
+            Spacer(minLength: 0)
             if !exifToolAvailable {
                 Label("exiftool no está disponible: solo se leerá el contador de cámaras Nikon. Ejecuta Tools/fetch-exiftool.sh y vuelve a compilar, o instálalo con Homebrew.", systemImage: "info.circle")
                     .font(.caption).foregroundStyle(.secondary)

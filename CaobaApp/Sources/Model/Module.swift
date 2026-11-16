@@ -14,6 +14,9 @@ enum Module: String, CaseIterable, Identifiable {
     /// Lo que no va con una sesión concreta.
     static let otherTools: [Module] = [.qr, .shutterCount, .recovery]
 
+    /// Trabaja con la sesión activa. Las de «Otras herramientas» no: en ellas el título dice solo «CAOBA».
+    var usesSession: Bool { !Module.otherTools.contains(self) }
+
     var title: LocalizedStringKey {
         switch self {
         case .slideshow: return "Slideshow"

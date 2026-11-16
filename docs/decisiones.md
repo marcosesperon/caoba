@@ -4357,3 +4357,61 @@ Repaso de los 11 módulos con capturas (con y sin carpeta) y del código:
 - Comprobado con capturas: Recuperar fotos sin tarjeta, Marca de agua sin PNG, Música sin pistas, y el Procesador con sesión y justo después de «Sin sesión» (todo vacío y atenuado, con «Elegir sesión…»). Tests pasan.
 - Al probar en modo captura, quitar la sesión vació el destino guardado de Descargar tarjeta del usuario (las capturas guardan algunas preferencias, como el tamaño de la ventana y «Recientes»). Se restauraron las preferencias desde la copia (idénticas). No afecta al uso normal.
 - Sin commit ni publicación hasta que lo indique el usuario.
+
+## 2026-11-16 — En «Otras herramientas», el título dice solo «CAOBA»
+
+### 1. La petición tal como se ha entendido
+En los módulos de «Otras herramientas» (Código QR, Shutter Count y Recuperar fotos) el título de la ventana no enseña la sesión activa, porque esas herramientas no trabajan con ella: pone solo «CAOBA», como texto fijo (sin flecha y sin abrir la lista de sesiones). La sesión no se quita: sigue activa por debajo y vuelve a verse en el título al ir a cualquier otro módulo.
+
+*Confirmada («si»).*
+
+### 2. Preguntas y respuestas
+- **¿En esas herramientas, «CAOBA» es texto fijo o sigue siendo el botón con la lista de sesiones?** — Texto fijo.
+- **¿El aviso «Elige una foto» de Shutter Count se centra solo a lo ancho o también a lo alto?** — A lo ancho y a lo alto.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Shared/SessionPicker.swift` (selector del título), `CaobaApp/Sources/Views/ContentView.swift` (barra de herramientas), `CaobaApp/Sources/Model/Module.swift` (`Module.otherTools`), `CaobaApp/Sources/Views/Modules/ShutterCountView.swift`, en `main` tras `6a25984`.
+
+### 4. Decisiones
+- `Module.usesSession` (falso para lo que está en `Module.otherTools`) decide qué sale en el título: así una herramienta que se añada a «Otras herramientas» lo hereda sin tocar nada más. `SessionPicker` pinta el selector o solo «CAOBA» en negrita, con el mismo relleno para que el título no salte de sitio al cambiar de módulo.
+- La sesión activa no se toca al entrar en esas herramientas: solo cambia lo que se ve. Así, al volver a un módulo de sesión todo sigue donde estaba.
+- Shutter Count: el aviso vacío ocupa todo el hueco libre (`maxWidth`/`maxHeight: .infinity`) y queda centrado; la nota de exiftool sigue abajo.
+
+### 5. Alternativas descartadas
+- **Mantener el botón con «CAOBA» y la lista de sesiones**: elegir sesión desde una herramienta que no la usa confunde; descartado por el usuario.
+- **Desactivar la sesión al entrar en esas herramientas**: al volver habría que elegirla otra vez y se vaciarían los módulos.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: Shutter Count y Recuperar fotos con «CAOBA» y el Procesador con la sesión. Sin probar con clics el paso de un módulo a otro (en la app real el título cambia al momento porque `currentModule` es observable).
+
+## 2026-11-16 — Recuperar fotos: explicar los bloques y que se pueden ir borrando
+
+### 1. La petición tal como se ha entendido
+En Recuperar fotos, encima de la cuadrícula de lo encontrado (mientras busca y también al terminar), sale una explicación corta:
+- Qué es un bloque: PhotoRec guarda lo que encuentra en carpetas de hasta 500 ficheros, en el orden en que aparecen en la tarjeta (no por fecha ni por sesión), y cada una es un «Bloque».
+- Que se puede ir borrando lo que no interese (ficheros sueltos marcados o bloques enteros) para no llenar el disco mientras sigue buscando; el bloque que se está llenando no se puede borrar todavía.
+
+Lleva un botón «Entendido»: al cerrarla no vuelve a salir en las siguientes recuperaciones.
+
+*Confirmada («si»).*
+
+### 2. Preguntas y respuestas
+- **¿La explicación se queda siempre visible o se puede cerrar?** — Se puede cerrar, y una vez cerrada no vuelve a salir.
+- **¿Sale solo mientras busca o también al terminar?** — Mientras busca y al terminar.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Recovery/RecoveryView.swift` (fases) y `RecoveryResultsView.swift` (cuadrícula por bloques, marcar y eliminar), `CaobaCore/Sources/CaobaCore/Recovery/RecoveredFiles.swift` (bloque = `recup_dir.N`, hasta 500 ficheros), en `main` tras `6a25984` con los cambios del título sin commit.
+
+### 4. Decisiones
+- El aviso va dentro de `RecoveryResultsView`, encima de los filtros: así sale igual mientras busca y al terminar, sin repetirlo en cada fase.
+- Se recuerda con una preferencia (`caoba.recovery.blocksTipDismissed`, `@AppStorage`): basta leerlo una vez.
+- Texto sin `fixedSize`: con `.fixedSize(horizontal: false, vertical: true)` dentro de esa pantalla la ventana entera se quedaba en blanco (lo dejó ver una captura); con `.frame(maxWidth: .infinity, alignment: .leading)` el texto se reparte en líneas igual y se pinta bien.
+- Texto en inglés con «Delete block…» tal como está traducido el botón.
+
+### 5. Alternativas descartadas
+- **Siempre visible**: ocupa sitio encima de la cuadrícula a quien ya lo sabe; descartado por el usuario.
+- **Cerrable solo esta vez**: volvería a salir en cada recuperación; descartado por el usuario.
+- **Un botón «?» con la explicación en un globo**: se ve menos justo cuando hace falta, al empezar a llenarse el disco.
+
+### 6. Pendiente de comprobar
+- Comprobado con captura en la pantalla de «Terminado» (con y sin el aviso cerrado). Sin probar con clics «Entendido» ni mientras busca con una tarjeta real (es la misma vista).

@@ -1,6 +1,36 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Lo encontrado va en bloques" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What was found is grouped in blocks"
+          }
+        }
+      }
+    },
+    "PhotoRec guarda lo que recupera en carpetas de hasta 500 ficheros, en el orden en que aparecen en la tarjeta (no por fecha ni por sesión). Cada carpeta es un bloque." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PhotoRec saves what it recovers in folders of up to 500 files, in the order they appear on the card (not by date or session). Each folder is a block."
+          }
+        }
+      }
+    },
+    "Puedes ir eliminando lo que no te interese, marcándolo o con «Eliminar bloque…», para no llenar el disco mientras sigue buscando. El bloque que se está llenando no se puede eliminar hasta que pase al siguiente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can delete what you don't need as you go, by checking it or with “Delete block…”, so the disk doesn't fill up while it keeps searching. The block being filled can't be deleted until it moves on to the next one."
+          }
+        }
+      }
+    },
     "Cuando metas la tarjeta, aquí verás sus sesiones para elegir cuáles descargar." : {
       "localizations" : {
         "en" : {

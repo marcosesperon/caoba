@@ -3,7 +3,8 @@ import CaobaCore
 
 /// Selector de la sesión activa, en el sitio del título de la ventana: el nombre de la sesión
 /// con su fecha debajo, o «CAOBA» si no hay. Al pulsarlo sale la lista de sesiones de la
-/// carpeta raíz con buscador, «Nueva sesión…» y «Sin sesión».
+/// carpeta raíz con buscador, «Nueva sesión…» y «Sin sesión». En las herramientas que no van
+/// con una sesión (QR, Shutter Count…) es solo el texto «CAOBA»: la sesión sigue activa por debajo.
 struct SessionPicker: View {
     @Environment(AppState.self) private var appState
     @State private var showList = false
@@ -13,6 +14,15 @@ struct SessionPicker: View {
     private var sessions: StudioSessions { appState.sessions }
 
     var body: some View {
+        if appState.currentModule.usesSession {
+            picker
+        } else {
+            Text(verbatim: "CAOBA").font(.headline)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+        }
+    }
+
+    private var picker: some View {
         Button {
             sessions.refresh()
             showList = true

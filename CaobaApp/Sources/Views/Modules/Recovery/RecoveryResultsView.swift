@@ -12,6 +12,8 @@ struct RecoveryResultsView: View {
     @FocusState private var gridFocused: Bool
     /// Lo que espera confirmación para eliminarse.
     @State private var pendingDeletion: PendingDeletion?
+    /// La explicación de los bloques se cierra con «Entendido» y ya no vuelve a salir.
+    @AppStorage(Preferences.recoveryBlocksTipDismissedKey) private var blocksTipDismissed = false
 
     private let cellSize: CGFloat = 140
 
@@ -28,6 +30,7 @@ struct RecoveryResultsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            if !blocksTipDismissed { blocksTip }
             toolbar
             markBar
             if let summary = results.organizeSummary { organizeSummary(summary) }
@@ -49,6 +52,22 @@ struct RecoveryResultsView: View {
     }
 
     // MARK: Barras
+
+    /// Qué son los bloques y que se puede ir borrando lo que no interesa para no llenar el disco.
+    private var blocksTip: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "info.circle").foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Lo encontrado va en bloques").font(.headline)
+                Text("PhotoRec guarda lo que recupera en carpetas de hasta 500 ficheros, en el orden en que aparecen en la tarjeta (no por fecha ni por sesión). Cada carpeta es un bloque.")
+                Text("Puedes ir eliminando lo que no te interese, marcándolo o con «Eliminar bloque…», para no llenar el disco mientras sigue buscando. El bloque que se está llenando no se puede eliminar hasta que pase al siguiente.")
+            }
+            .font(.callout)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Button("Entendido") { blocksTipDismissed = true }
+        }
+        .caobaPanel()
+    }
 
     private var toolbar: some View {
         HStack(spacing: 12) {
