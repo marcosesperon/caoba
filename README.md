@@ -1,6 +1,6 @@
 # CAOBA
 
-**CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, lectura del contador de disparos y recuperación de fotos borradas de tarjetas. Pensada para trabajar por carpetas y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
+**CAOBA** es una aplicación nativa para macOS con utilidades rápidas para fotógrafos, organizadas por **sesiones**: descarga de tarjetas, slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, lectura del contador de disparos y recuperación de fotos borradas de tarjetas. Pensada para trabajar por sesiones (o por carpetas sueltas) y por lotes, sin complicaciones. Disponible en **español** e **inglés**.
 
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/marcosesperon)
 [![Descargar](https://img.shields.io/badge/Descargar-macOS%2014%2B-D71921?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/marcosesperon/caoba/releases/latest)
@@ -13,7 +13,7 @@ CAOBA es un proyecto del estudio de fotografía **[CAOBA](https://caobafoto.com/
 
 ## ✨ Funcionalidades
 
-La aplicación se organiza en **10 módulos** agrupados en dos categorías. Casi todos trabajan sobre una **carpeta de fotos compartida**: la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
+La aplicación se organiza en **11 módulos** agrupados en tres secciones, como en su barra lateral. Casi todos trabajan sobre la **sesión activa** (o una carpeta de fotos cualquiera): la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
 
 ### Creadores
 
@@ -23,13 +23,29 @@ La aplicación se organiza en **10 módulos** agrupados en dos categorías. Casi
 
 ### Utilidades
 
-4. **Procesador** — Procesado por lotes: rotar, recortar, redimensionar, calidad y formato
-5. **Marca de agua** — Tu logo sobre todas las fotos de una carpeta
-6. **Metadatos** — Lee y escribe EXIF, incluido GPS, sin recomprimir la imagen
-7. **Renombrador** — Renombrado masivo con patrones, y con deshacer
-8. **Código QR** — QR a partir de texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento
-9. **Shutter Count** — Disparos del obturador y vida útil estimada de la cámara
-10. **Recuperar fotos** — Recupera fotos y vídeos borrados de tarjetas de memoria
+4. **Descargar tarjeta** — De la tarjeta al RAW de la sesión, por sesiones, sin repetir nada y con cada copia comprobada
+5. **Procesador** — Procesado por lotes: rotar, recortar, redimensionar, calidad y formato
+6. **Marca de agua** — Tu logo sobre todas las fotos de una carpeta
+7. **Metadatos** — Lee y escribe EXIF, incluido GPS, sin recomprimir la imagen
+8. **Renombrador** — Renombrado masivo con patrones (también con el nombre y la fecha de la sesión), y con deshacer
+
+### Otras herramientas
+
+9. **Código QR** — QR a partir de texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento
+10. **Shutter Count** — Disparos del obturador y vida útil estimada de la cámara
+11. **Recuperar fotos** — Recupera fotos y vídeos borrados de tarjetas de memoria
+
+---
+
+### 🗂️ Sesiones
+
+Todo gira alrededor de la **sesión** con la que trabajas, que se elige en el sitio del título de la ventana (nombre y fecha; «CAOBA» si no hay ninguna):
+
+- **Lista de sesiones** de la carpeta raíz, con buscador, **Nueva sesión…** (crea la carpeta con su fecha y sus subcarpetas) y **Sin sesión** (vuelve a carpetas sueltas y vacía los módulos).
+- Al elegirla, cada módulo sabe de dónde salen las fotos (su `JPG`) y dónde deja lo que hace: las descargas en su `RAW`, y el vídeo, los collages, la hoja de contacto o las copias dentro de la misma sesión, con su nombre. Los diálogos de abrir y guardar empiezan en ella.
+- **Ajustes › Sesiones**: carpeta raíz, una carpeta por año, 16 formatos de fecha delante o detrás del nombre, subcarpetas (`RAW`, `JPG`, `Lightroom`… las que quieras), dónde van las descargas y las fotos finales, y el nombre de la salida de cada módulo con `{sesion}` y `{fecha_sesion}`.
+- Por defecto para cada sesión: una **plantilla del Slideshow** (se aplica sola si aún no hay montaje), un **preset del Contact Sheet** y uno del **Renombrador** (si no, `{fecha_sesion} {sesion} {n}`).
+- Las herramientas que no van con una sesión (Código QR, Shutter Count, Recuperar fotos) no la tocan: allí el título dice solo «CAOBA».
 
 ---
 
@@ -46,6 +62,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 - **Modo Collages**: cada collage aparece foto a foto, con tiempos de aparición y mantenimiento, y las 84 plantillas superpuestas (marco y sombra) además de las normales.
 - **Vista previa** en una ventana de la app con las primeras fotos a media resolución.
 - Codificación H.264 por **hardware** (VideoToolbox), sin fotogramas temporales en disco. La configuración se guarda en la carpeta (`.caoba`) y se restaura al volver.
+- **Plantillas**: guardan todo menos las fotos (formato, transiciones, música, portada, créditos y los textos del principio y del final) para usarlo en otra sesión. Los textos con `{sesion}` y `{fecha_sesion}` se rellenan solos al aplicarla.
 
 ### 🧩 Collage
 
@@ -61,6 +78,15 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 - Rejilla o **masonry**, columnas y tamaño de miniatura configurables, con estimación del tamaño final.
 - Título, nombres de archivo, numeración, borde con grosor, fondo blanco, negro o gris, recorte entero o rellenar.
 - Logo con posición, tamaño y opacidad.
+- Título con `{sesion}` y `{fecha_sesion}`, y **presets** con nombre (uno puede ser el de las sesiones).
+
+### 📥 Descargar tarjeta
+
+- Reconoce la tarjeta al meterla (lector SD o cámara) y enseña sus **sesiones**: las fotos agrupadas por hora (huecos de 15 min a 8 h, o por día), con miniaturas, para marcar solo las que quieres.
+- **JPG, RAW, HEIC o vídeo**, cada uno con sus acompañantes (`.XMP`, `.WAV`, `.THM`, `.LRF`); todo junto o por fecha (`AAAA/MM-DD`).
+- Cada copia se **relee y se compara** (SHA-256) con la de la tarjeta antes de darla por buena. Lo ya descargado se salta, nada se sobrescribe (los nombres repetidos de otra cámara van con `_2`) y la tarjeta solo se lee.
+- Destino en el `RAW` de la sesión activa, o **Crear sesión…** en el momento; avisa si las fotos no son del día de la sesión.
+- Pausa, vigilancia del espacio libre, expulsar al terminar y **siguiente tarjeta** con los mismos ajustes.
 
 ### 🖼️ Procesador
 
@@ -84,6 +110,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 ### ✏️ Renombrador
 
 - **Patrón** con `{nombre}`, `{n}`, `{camara}`, `{objetivo}`, `{ancho}`, `{alto}`, `{orientacion}` y fecha de captura `{YYYY} {MM} {DD} {hh} {mm} {ss}` (entre llaves, para que un texto fijo como «EMMA» no se confunda con el mes); dígitos e inicio del contador, mayúsculas, acentos, espacios y caracteres especiales.
+- Variables de la sesión `{sesion}` y `{fecha_sesion}` (con el formato de fecha de Ajustes); con fotos de una sesión empieza con `{fecha_sesion} {sesion} {n}` o el preset elegido en Ajustes. Presets con nombre.
 - **Corregir numeración** (`Foto-1` → `Foto-001`), **buscar y reemplazar**, **prefijo y sufijo**.
 - Vista previa en vivo y **deshacer**: cada renombrado en sitio queda registrado en la carpeta y se puede revertir, incluso varias operaciones hacia atrás.
 
@@ -102,6 +129,7 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 
 - Recupera **fotos y vídeos borrados** de tarjetas SD y discos externos: JPG, RAW de todas las marcas (CR2, CR3, NEF, ARW, DNG, RAF, ORF, RW2…), HEIC y vídeo (MOV, MP4, MTS…), y opcionalmente cualquier otro tipo de fichero.
 - Solo **lee** la tarjeta: nunca escribe en ella. Busca en el espacio libre (lo normal tras borrar) o en toda la tarjeta (formateadas o dañadas).
+- Lo encontrado va saliendo mientras busca, en **bloques** (carpetas de hasta 500 ficheros de PhotoRec): se puede ir eliminando lo que no interesa, suelto o por bloques, para no llenar el disco.
 - Cuadrícula con miniaturas y vista previa de lo recuperado, filtros por tipo y **ordenar por fecha** de captura en `AAAA/MM-DD/AAAA-MM-DD_HHMMSS`, copiando sin tocar los originales.
 - Pide la contraseña de administrador al empezar: leer la tarjeta en bruto lo exige. Solo se usa para abrirla; la búsqueda corre con tu usuario.
 - Usa **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** de TestDisk (GPL), empaquetado dentro de la app.
@@ -111,8 +139,9 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 ## 🎨 Interfaz
 
 - **Nativa de macOS** con los controles del sistema, modo claro y oscuro, tipografía Doto en los títulos y el acento rojo de CAOBA.
-- **Carpeta de origen compartida** con historial de recientes, arrastrar y soltar, y la lista de fotos con casillas, orden por nombre o fecha y filtro de orientación. Botón «Recargar», y aviso antes de lanzar un proceso si alguien ha borrado, renombrado o añadido fotos en la carpeta desde que se leyó.
-- **Barra de destino compartida**: copias nuevas o sobrescribir y carpeta de salida. Las copias necesitan una carpeta de destino, que nunca puede ser la de las fotos (una subcarpeta sí). El destino se vacía al cambiar de carpeta de origen y al cambiar de sección, que además vuelve a «Copias nuevas».
+- **Origen compartido**: la sesión activa, o «Elegir sesión…» / «Elegir carpeta…»; sin sesión, historial de recientes con la sesión o la carpeta de encima delante del nombre. Arrastrar y soltar, y la lista de fotos con casillas, orden por nombre o fecha y filtro de orientación. Botón «Recargar», y aviso antes de lanzar un proceso si alguien ha borrado, renombrado o añadido fotos en la carpeta desde que se leyó.
+- **Barra de destino compartida**: copias nuevas o sobrescribir y carpeta de salida. Las copias necesitan una carpeta de destino, que nunca puede ser la de las fotos (una subcarpeta sí). Con una sesión, cada módulo rellena el destino dentro de ella; sin sesión, el destino se vacía al cambiar de carpeta de origen y al cambiar de sección, que además vuelve a «Copias nuevas».
+- Lo que no se puede usar todavía porque depende de otra cosa (sin tarjeta, sin PNG, sin música…) sale **atenuado**.
 - **Progreso** con fase y fichero actual, cancelable.
 - **Español e inglés**, con selector en Preferencias.
 - **Aviso de nueva versión** comprobando las releases de GitHub. Sin cuentas, sin telemetría: la app no envía nada; solo consulta esa página y, en Metadatos, el mapa.

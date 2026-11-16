@@ -4,6 +4,7 @@ import CaobaCore
 
 /// Shutter Count: analiza una foto (JPG o RAW) y muestra cámara, disparos y datos de la foto.
 struct ShutterCountView: View {
+    @Environment(AppState.self) private var appState
     @State private var fileURL: URL?
     @State private var result: ShutterCountResult?
     @State private var errorText: String?
@@ -42,6 +43,13 @@ struct ShutterCountView: View {
             if !exifToolAvailable {
                 Label("exiftool no está disponible: solo se leerá el contador de cámaras Nikon. Ejecuta Tools/fetch-exiftool.sh y vuelve a compilar, o instálalo con Homebrew.", systemImage: "info.circle")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .onAppear {
+            // Para capturas desde línea de comandos: `--state shutter.file=<foto o RAW>`.
+            if let path = appState.launchState["shutter.file"] {
+                appState.launchState["shutter.file"] = nil
+                analyze(URL(fileURLWithPath: path))
             }
         }
     }

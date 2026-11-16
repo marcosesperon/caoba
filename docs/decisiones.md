@@ -4415,3 +4415,44 @@ Lleva un botón «Entendido»: al cerrarla no vuelve a salir en las siguientes r
 
 ### 6. Pendiente de comprobar
 - Comprobado con captura en la pantalla de «Terminado» (con y sin el aviso cerrado). Sin probar con clics «Entendido» ni mientras busca con una tarjeta real (es la misma vista).
+
+## 2026-11-16 — Capturas nuevas y web (index.html) y README al día
+
+### 1. La petición tal como se ha entendido
+Rehacer las capturas de la web con la interfaz actual y poner al día `index.html` y `README.md` con todo lo que hace la app hoy:
+- **Capturas** (unas 14, 2880×1800 en PNG y WebP, como las de ahora), con las fotos «BOOK A&S» de `Escritorio/BOOK`: una por módulo (las 10 de siempre rehechas, Shutter Count por primera vez con el CR3 que ha pasado el usuario, `Escritorio/9738333703.cr3`, contador 9276) más Descargar tarjeta, la lista de sesiones del título y Ajustes › Sesiones.
+- **Sesiones de muestra**: una raíz en una carpeta temporal con 5-6 sesiones de nombre inventado y clones de esas fotos; las sesiones y los Ajustes del usuario no se tocan (copia de preferencias antes y restaurar después).
+- **Web**: sección nueva «Sesiones» antes de los módulos (sesión activa, carpetas, plantillas y presets por sesión, con sus dos capturas); Descargar tarjeta entra como módulo y las tarjetas se agrupan como en la app (Creadores, Utilidades y Otras herramientas, 11 módulos); textos al día (plantillas del Slideshow, presets del Contact Sheet y del Renombrador, variables de sesión…), en español e inglés.
+- **README**: el mismo contenido nuevo, para que GitHub y la web digan lo mismo.
+
+*Confirmada («si»).*
+
+### 2. Preguntas y respuestas
+- **¿Alcance de las capturas?** — Una por módulo más sesiones (unas 14).
+- **¿Qué sesiones salen?** — Sesiones de muestra en una carpeta temporal, sin tocar las del usuario.
+- **¿Shutter Count, con qué foto?** — Con un RAW que pasa el usuario: `/Users/marcosesperon/Desktop/9738333703.cr3` (Canon EOS R6 Mark III, `ImageCount` 9276).
+- **¿Cómo encaja lo nuevo en la web?** — Sección propia «Sesiones» y Descargar tarjeta como módulo, agrupando como en la app.
+- **¿También el README?** — Sí, igual que la web.
+
+### 3. Fuentes analizadas
+- `index.html` (456 líneas, 10 módulos, capturas en `assets/screenshots/`), `README.md`, `docs/documentacion.md` (cómo se hacen las capturas: `--folder`, `--module`, `--window 1440x900`, `--state`, `pngquant`, `cwebp`), en `main` tras `89b63f7`.
+
+### 4. Decisiones
+- **Ruta de las sesiones de muestra**: en la carpeta temporal la barra de origen enseñaba «/private/tmp/claude-501/…», ilegible. Se preguntó al usuario y se montaron en `~/Pictures/Estudio` (clones de las fotos, casi sin ocupar), borradas al terminar.
+- **Shutter Count**: estado de arranque nuevo `shutter.file=<ruta>` (solo para capturas), para abrir el CR3 sin diálogo.
+- **Simuladores de iOS fuera de la lista de discos**: con `caoba.dev.recoveryDiskImages` salían las imágenes de los simuladores de Xcode y ensuciaban la captura de Descargar tarjeta. Se quitan de la lista las imágenes montadas en `/Library/Developer/CoreSimulator/` (`ExternalDiskMonitor.isSimulatorImage`): nunca son una tarjeta y solo afecta al modo de pruebas.
+- **Tarjeta de muestra con tres sesiones**: la agrupación usa la fecha de modificación del fichero (la que pone la cámara), así que se ajustó con `touch -t` además del EXIF.
+- **Collage** con la secuencia compuesta por contenido (`collage.autocompose=content`), que enseña plantillas variadas (redondas, en diagonal, giradas).
+- **Web**: sección «Sesiones» con dos capturas (lista de sesiones del título y Ajustes › Sesiones, esta en vertical con su propio encaje `.shot.portrait`); módulos agrupados con un rótulo por grupo; el Slideshow a todo el ancho con Collage y Contact Sheet a medias debajo (con el Slideshow a dos filas quedaba un hueco grande bajo su texto); Descargar tarjeta ancho junto al Procesador. Se quitó «macOS 14» del pie de la captura grande: las capturas son de un macOS más nuevo.
+- **README**: misma información (sesiones, Descargar tarjeta, plantillas, presets, bloques, atenuado) en su estructura de siempre.
+- **Preferencias**: `defaults import` mezcla en vez de sustituir; la clave de pruebas añadida se borró a mano y el md5 final coincide con la copia de antes.
+
+### 5. Alternativas descartadas
+- **Dejar la ruta temporal** en las capturas: ilegible y con el nombre de usuario de la sesión de Claude.
+- **Desmontar los simuladores** para la captura: tocaba el entorno de Xcode del usuario.
+- **Una galería completa (35-40 capturas)**: descartada por el usuario; una por módulo y las de sesiones.
+- **El Slideshow a dos filas** con Collage y Contact Sheet al lado: dejaba un hueco grande.
+
+### 6. Pendiente de comprobar
+- La captura de Shutter Count enseña el **número de serie** de la cámara del CR3 (157202000423) y la de Metadatos el autor de Ajustes («Irene Valdes y Marcos Esperon», como en las capturas de antes): confirmar con el usuario que se pueden publicar.
+- Ver la web publicada en GitHub Pages en móvil y en tema claro.

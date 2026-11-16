@@ -2,6 +2,14 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.26.0 — 2026-11-16
+
+- **Solo lo que puedes usar**: en «Descargar tarjeta» y «Recuperar fotos», sin tarjeta solo se ve dónde elegirla (con una vista previa de las sesiones de la tarjeta) y el botón de abajo espera apagado. Lo que depende de otra cosa sale atenuado hasta tenerla: la colocación de la marca de agua sin PNG, o las opciones y el ritmo de la música sin pistas.
+- **«Sin sesión» deja los módulos limpios**: al quitar la sesión se vacían las fotos, el origen y los destinos, para no seguir trabajando por error con la de antes.
+- **Otras herramientas, sin sesión**: en Código QR, Shutter Count y Recuperar fotos el título dice solo «CAOBA», porque no trabajan con la sesión (sigue elegida para cuando vuelvas).
+- **Recuperar fotos explica los bloques**: qué son y que puedes ir borrando lo que no te interese para no llenar el disco mientras busca. Se cierra con «Entendido» y no vuelve a salir.
+- **Metadatos** ya no se corta con la ventana estrecha, y el aviso de **Shutter Count** sale centrado.
+
 ## 3.25.0 — 2026-11-15
 
 - **Sesiones del estudio**: en Ajustes › Sesiones dices dónde guardas las sesiones y cómo se llaman (por ejemplo `2026/2026-11-15 Nombre de la sesión`, con RAW, JPG y Lightroom dentro). La sesión con la que trabajas sale arriba, en el título de la ventana; cámbiala desde ahí o crea una nueva con sus carpetas.

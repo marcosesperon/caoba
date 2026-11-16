@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CAOBA · Utilidades para fotógrafos</title>
-<meta name="description" content="CAOBA: app nativa para macOS con slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, contador de disparos y recuperación de fotos borradas. Gratis y de código abierto.">
+<meta name="description" content="CAOBA: app nativa para macOS que organiza el trabajo por sesiones: descarga de tarjetas, slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, contador de disparos y recuperación de fotos borradas. Gratis y de código abierto.">
 <link rel="icon" href="assets/icon.png">
 <meta property="og:title" content="CAOBA · Utilidades para fotógrafos">
-<meta property="og:description" content="Slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR, shutter count y recuperación de fotos. Nativa de macOS.">
+<meta property="og:description" content="Sesiones del estudio, descarga de tarjetas, slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR, shutter count y recuperación de fotos. Nativa de macOS.">
 <meta property="og:image" content="https://marcosesperon.github.io/caoba/assets/screenshots/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -135,6 +135,7 @@
   .mod p { margin: 0; color: var(--ink-2); font-size: 16px; }
   .mod ul { margin: 12px 0 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
   .mod li { margin: 4px 0; }
+  .mod code { font-family: var(--mono); font-size: 13px; background: var(--bg-2); padding: 1px 5px; border-radius: 5px; }
   /* Captura dentro de cada tarjeta: sangra hasta los bordes y, en las estrechas,
      se amplía y se desplaza (--x, --y) hacia la zona interesante de la ventana */
   .mod .shot { margin: -22px -22px 18px; aspect-ratio: 16 / 10; overflow: hidden; display: block; border-bottom: 1px solid var(--line); background: #0d0d0d; position: relative; }
@@ -146,7 +147,17 @@
   @media (max-width: 900px) { .mod:not(.wide) .shot img { width: 160%; } }
   .mod .n { display: flex; justify-content: space-between; align-items: center; }
   .mod .tag { font-family: var(--mono); font-size: 11px; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 999px; padding: 3px 9px; }
-  @media (max-width: 900px) { .mod, .mod.wide { grid-column: span 6; } }
+  /* Grupos de módulos, como en la barra lateral de la app */
+  .group { grid-column: 1 / -1; font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin: 22px 0 2px; display: flex; gap: 12px; align-items: baseline; }
+  .group:first-child { margin-top: 0; }
+  .group small { letter-spacing: 0; text-transform: none; font-size: 12px; }
+  /* El Slideshow a todo el ancho; debajo, Collage y Contact Sheet a medias */
+  .mod.full { grid-column: 1 / -1; }
+  .mod.half { grid-column: span 6; }
+  /* Captura vertical (la ventana de Ajustes): sin ampliar, encajada arriba */
+  .mod:not(.wide) .shot.portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; transform: none; }
+  .mod:hover .shot.portrait img { transform: scale(1.02); }
+  @media (max-width: 900px) { .mod, .mod.wide { grid-column: span 6; } .mod.full, .mod.half { grid-column: span 12; } }
   @media (max-width: 600px) { .mod, .mod.wide { grid-column: span 12; } }
 
   /* Historia: texto editorial a dos columnas en pantallas anchas, con enlaces al estudio */
@@ -193,6 +204,7 @@
   <div class="wrap nav">
     <a class="brand" href="#"><img src="assets/icon.png" alt=""><span>CAOBA</span></a>
     <nav>
+      <a href="#sesiones"><span lang-es>Sesiones</span><span lang-en>Sessions</span></a>
       <a href="#modulos"><span lang-es>Módulos</span><span lang-en>Modules</span></a>
       <a href="#porque"><span lang-es>Por qué CAOBA</span><span lang-en>Why CAOBA</span></a>
       <a href="#descarga"><span lang-es>Descarga</span><span lang-en>Download</span></a>
@@ -211,8 +223,8 @@
   <div class="wrap hero">
     <h1 class="reveal">CAOBA</h1>
     <p class="lede reveal">
-      <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos: slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR, contador de disparos y recuperación de fotos borradas. Nativa de macOS, gratis y de código abierto.</span>
-      <span lang-en><strong>Batch</strong> tools for photographers: video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes, shutter count and deleted photo recovery. Native to macOS, free and open source.</span>
+      <span lang-es>Utilidades <strong>por lotes</strong> para fotógrafos, organizadas por <strong>sesiones</strong>: descarga de tarjetas, slideshows en vídeo, collages, hojas de contacto, procesado, marca de agua, metadatos, renombrado, QR, contador de disparos y recuperación de fotos borradas. Nativa de macOS, gratis y de código abierto.</span>
+      <span lang-en><strong>Batch</strong> tools for photographers, organised by <strong>sessions</strong>: card downloads, video slideshows, collages, contact sheets, processing, watermarks, metadata, renaming, QR codes, shutter count and deleted photo recovery. Native to macOS, free and open source.</span>
     </p>
     <div class="cta reveal">
       <a class="btn primary download-link" id="download-btn" href="https://github.com/marcosesperon/caoba/releases/latest">
@@ -227,26 +239,60 @@
     </aside>
     <figure class="hero-shot reveal">
       <a href="assets/screenshots/slideshow.png" target="_blank" rel="noopener">
-        <picture><source srcset="assets/screenshots/slideshow.webp" type="image/webp"><img src="assets/screenshots/slideshow.png" width="2880" height="1800" alt="CAOBA: módulo Slideshow con el timeline de fotos, collages y pistas de música" fetchpriority="high"></picture>
+        <picture><source srcset="assets/screenshots/slideshow.webp" type="image/webp"><img src="assets/screenshots/slideshow.png" width="2880" height="1800" alt="CAOBA: módulo Slideshow de la sesión «Alex & Sofía», con el timeline de fotos y pistas de música" fetchpriority="high"></picture>
       </a>
       <figcaption>
-        <span><b>Slideshow</b> · <span lang-es>un título, collages y dos pistas de música en el timeline</span><span lang-en>a title, collages and two music tracks on the timeline</span></span>
-        <span>macOS 14 · <span lang-es>modo oscuro</span><span lang-en>dark mode</span></span>
+        <span><b>Slideshow</b> · <span lang-es>la sesión activa arriba; un título y dos pistas de música en el timeline</span><span lang-en>the active session on top; a title and two music tracks on the timeline</span></span>
+        <span><span lang-es>modo oscuro</span><span lang-en>dark mode</span></span>
       </figcaption>
     </figure>
   </div>
 
-  <section id="modulos">
+  <section id="sesiones">
     <div class="wrap">
-      <p class="kicker"><span lang-es>Diez módulos, una carpeta</span><span lang-en>Ten modules, one folder</span></p>
-      <h2><span lang-es>Lo que hace</span><span lang-en>What it does</span></h2>
+      <p class="kicker"><span lang-es>Todo gira alrededor de la sesión</span><span lang-en>Everything revolves around the session</span></p>
+      <h2><span lang-es>Sesiones</span><span lang-en>Sessions</span></h2>
       <p class="intro">
-        <span lang-es>Eliges una carpeta de fotos, marcas cuáles entran, las ordenas arrastrando y cambias de módulo sin volver a empezar: el orden es el mismo en Slideshow, Collage y Contact Sheet. La configuración se guarda en la propia carpeta y se restaura al volver.</span>
-        <span lang-en>Pick a folder of photos, check which ones are in, drag them into order and switch modules without starting over: the order is the same in Slideshow, Collage and Contact Sheet. Settings are saved in the folder itself and restored when you come back.</span>
+        <span lang-es>Eliges la sesión con la que trabajas en lo alto de la ventana y cada módulo ya sabe de dónde salen las fotos y dónde dejar lo que hace: las descargas en su RAW, las fotos finales en su JPG, y el vídeo, los collages o la hoja de contacto dentro de la misma sesión, con su nombre.</span>
+        <span lang-en>Pick the session you are working on at the top of the window and every module already knows where the photos come from and where to put what it makes: downloads in its RAW folder, final photos in its JPG folder, and the video, collages or contact sheet inside the same session, named after it.</span>
       </p>
       <div class="grid">
         <article class="mod wide">
-          <a class="shot" href="assets/screenshots/slideshow.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/slideshow.webp" type="image/webp"><img src="assets/screenshots/slideshow.png" width="2880" height="1800" loading="lazy" alt="Slideshow: timeline con un título, collages y música"></picture></a>
+          <a class="shot" href="assets/screenshots/sessions.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/sessions.webp" type="image/webp"><img src="assets/screenshots/sessions.png" width="2880" height="1800" loading="lazy" alt="Lista de sesiones del estudio en el título de la ventana, con buscador, «Nueva sesión…» y «Sin sesión»"></picture></a>
+          <div class="n"><span lang-es>Sesión activa</span><span lang-en>Active session</span></div><h3><span lang-es>La sesión, en el título</span><span lang-en>The session, in the title bar</span></h3>
+          <p><span lang-es>Nombre y fecha de la sesión en el sitio del título; un clic y sale la lista, con buscador.</span><span lang-en>Session name and date where the title goes; one click shows the list, with search.</span></p>
+          <ul>
+            <li><span lang-es>«Nueva sesión…» crea la carpeta con su fecha y sus subcarpetas; «Sin sesión» vuelve a trabajar con carpetas sueltas.</span><span lang-en>“New session…” creates the folder with its date and subfolders; “No session” goes back to loose folders.</span></li>
+            <li><span lang-es>Al cambiar de sesión, todos los módulos cambian de origen y de destino. Los diálogos de abrir y guardar empiezan en ella.</span><span lang-en>Switch sessions and every module switches source and destination. Open and save dialogs start in it.</span></li>
+            <li><span lang-es>Plantilla del Slideshow, preset del Contact Sheet y del Renombrador por defecto para cada sesión nueva.</span><span lang-en>Default Slideshow template, Contact Sheet preset and Renamer preset for every new session.</span></li>
+            <li><span lang-es>Las herramientas que no van con una sesión (QR, Shutter Count, Recuperar fotos) no la tocan: el título dice solo «CAOBA».</span><span lang-en>Tools that aren’t about a session (QR, Shutter Count, Recover Photos) leave it alone: the title just says “CAOBA”.</span></li>
+          </ul>
+        </article>
+        <article class="mod">
+          <a class="shot portrait" href="assets/screenshots/settings-sessions.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/settings-sessions.webp" type="image/webp"><img src="assets/screenshots/settings-sessions.png" width="1040" height="1296" loading="lazy" alt="Ajustes › Sesiones: carpeta raíz, carpeta por año, formato del nombre y subcarpetas"></picture></a>
+          <div class="n"><span lang-es>Ajustes › Sesiones</span><span lang-en>Settings › Sessions</span></div><h3><span lang-es>A la manera de tu estudio</span><span lang-en>Your studio’s way</span></h3>
+          <p><span lang-es>Viene con la estructura de CAOBA, <code>2026/2026-11-15 Nombre</code> con <code>RAW</code>, <code>JPG</code> y <code>Lightroom</code>, y se cambia entera.</span><span lang-en>It comes with CAOBA’s layout, <code>2026/2026-11-15 Name</code> with <code>RAW</code>, <code>JPG</code> and <code>Lightroom</code>, and all of it can change.</span></p>
+          <ul>
+            <li><span lang-es>Carpeta raíz, una carpeta por año, 16 formatos de fecha delante o detrás del nombre.</span><span lang-en>Root folder, one folder per year, 16 date formats before or after the name.</span></li>
+            <li><span lang-es>Subcarpetas, dónde van las descargas y las fotos finales, y el nombre de lo que guarda cada módulo.</span><span lang-en>Subfolders, where downloads and final photos go, and the name of what each module saves.</span></li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="modulos">
+    <div class="wrap">
+      <p class="kicker"><span lang-es>Once módulos, una sesión</span><span lang-en>Eleven modules, one session</span></p>
+      <h2><span lang-es>Lo que hace</span><span lang-en>What it does</span></h2>
+      <p class="intro">
+        <span lang-es>Con la sesión elegida (o cualquier carpeta de fotos), marcas cuáles entran, las ordenas arrastrando y cambias de módulo sin volver a empezar: el orden es el mismo en Slideshow, Collage y Contact Sheet. La configuración se guarda en la propia carpeta y se restaura al volver.</span>
+        <span lang-en>With the session picked (or any folder of photos), check which ones are in, drag them into order and switch modules without starting over: the order is the same in Slideshow, Collage and Contact Sheet. Settings are saved in the folder itself and restored when you come back.</span>
+      </p>
+      <div class="grid">
+        <p class="group"><span lang-es>Creadores</span><span lang-en>Creators</span> <small><span lang-es>lo que se entrega</span><span lang-en>what you deliver</span></small></p>
+        <article class="mod wide full">
+          <a class="shot" href="assets/screenshots/slideshow.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/slideshow.webp" type="image/webp"><img src="assets/screenshots/slideshow.png" width="2880" height="1800" loading="lazy" alt="Slideshow: timeline con un título y música"></picture></a>
           <div class="n">01<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Slideshow</h3>
           <p><span lang-es>Fotos o collages a MP4, montados en un timeline como el de un editor de vídeo.</span><span lang-en>Photos or collages to MP4, arranged on a video-editor style timeline.</span></p>
           <ul>
@@ -258,10 +304,11 @@
             <li><span lang-es><b>Ajustar al ritmo</b>: detecta los golpes de cada canción y hace que cada cambio caiga en el golpe que suena.</span><span lang-en><b>Fit to the beat</b>: detects the beats of each song so every change lands on the beat that is playing.</span></li>
             <li><span lang-es>Duración por foto o global, vista previa rápida y codificación por hardware sin ficheros temporales entre tus fotos.</span><span lang-en>Per-photo or global duration, quick preview and hardware encoding with no temp files among your photos.</span></li>
             <li><span lang-es>Si mueves la música, la portada o la marca de agua, el proyecto las <b>marca y las localizas</b> sin perder sus ajustes. El vídeo lleva tu autor y una descripción.</span><span lang-en>If you move the music, cover or watermark, the project <b>flags them so you can relink them</b> without losing their settings. The video carries your author name and a description.</span></li>
+            <li><span lang-es><b>Plantillas</b>: guarda todo menos las fotos (formato, transiciones, música, portada, créditos y los textos del principio y del final) y úsalo en otra sesión. Los textos con <code>{sesion}</code> y <code>{fecha_sesion}</code> se rellenan solos, y la plantilla de Ajustes se pone sola en las sesiones que aún no tienen montaje.</span><span lang-en><b>Templates</b>: save everything but the photos (format, transitions, music, cover, credits and the opening and closing texts) and reuse it in another session. Texts with <code>{sesion}</code> and <code>{fecha_sesion}</code> fill themselves in, and the template chosen in Settings is applied on its own to sessions that have no montage yet.</span></li>
           </ul>
         </article>
-        <article class="mod">
-          <a class="shot" href="assets/screenshots/collage.png" target="_blank" rel="noopener" style="--x:-15%;--y:-24%"><picture><source srcset="assets/screenshots/collage.webp" type="image/webp"><img src="assets/screenshots/collage.png" width="2880" height="1800" loading="lazy" alt="Collage: plantillas de 3 fotos"></picture></a>
+        <article class="mod half">
+          <a class="shot" href="assets/screenshots/collage.png" target="_blank" rel="noopener" style="--x:0%;--y:-56%"><picture><source srcset="assets/screenshots/collage.webp" type="image/webp"><img src="assets/screenshots/collage.png" width="2880" height="1800" loading="lazy" alt="Collage: plantillas de 3 fotos"></picture></a>
           <div class="n">02<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Collage</h3>
           <p><span lang-es>1049 plantillas de 1 a 9 fotos, también con fotos en redondo, giradas o en diagonal, con el resultado a la vista antes de generar.</span><span lang-en>1049 templates for 1 to 9 photos, including round, rotated or diagonal photos, with the result on screen before you generate.</span></p>
           <ul>
@@ -272,18 +319,32 @@
             <li><span lang-es>Separación, fondo, esquinas, sombra, título y logo; presets con nombre.</span><span lang-en>Gap, background, corners, shadow, title and logo; named presets.</span></li>
           </ul>
         </article>
-        <article class="mod">
+        <article class="mod half">
           <a class="shot" href="assets/screenshots/contact-sheet.png" target="_blank" rel="noopener" style="--x:-15%;--y:-12%"><picture><source srcset="assets/screenshots/contact-sheet.webp" type="image/webp"><img src="assets/screenshots/contact-sheet.png" width="2880" height="1800" loading="lazy" alt="Contact Sheet: disposición, etiquetas y logo"></picture></a>
           <div class="n">03<span class="tag"><span lang-es>Creador</span><span lang-en>Creator</span></span></div><h3>Contact Sheet</h3>
-          <p><span lang-es>Hojas de contacto de toda la carpeta, listas para revisar o enviar.</span><span lang-en>Contact sheets of the whole folder, ready to review or send.</span></p>
+          <p><span lang-es>Hojas de contacto de toda la sesión, listas para revisar o enviar.</span><span lang-en>Contact sheets of the whole session, ready to review or send.</span></p>
           <ul>
             <li><span lang-es>Rejilla o masonry, columnas y tamaño de miniatura a elegir, con estimación del tamaño final.</span><span lang-en>Grid or masonry, your choice of columns and thumbnail size, with an estimate of the final size.</span></li>
-            <li><span lang-es>Título, nombres de archivo, numeración, borde y logo.</span><span lang-en>Title, file names, numbering, border and logo.</span></li>
+            <li><span lang-es>Título (admite <code>{sesion}</code> y <code>{fecha_sesion}</code>), nombres de archivo, numeración, borde y logo.</span><span lang-en>Title (accepts <code>{sesion}</code> and <code>{fecha_sesion}</code>), file names, numbering, border and logo.</span></li>
+            <li><span lang-es>Presets con nombre, y uno por defecto para las sesiones: la hoja del estudio, siempre igual.</span><span lang-en>Named presets, plus a default one for sessions: the studio sheet, always the same.</span></li>
+          </ul>
+        </article>
+        <p class="group"><span lang-es>Utilidades</span><span lang-en>Utilities</span> <small><span lang-es>el trabajo con las fotos de la sesión, en orden</span><span lang-en>working on the session’s photos, in order</span></small></p>
+        <article class="mod wide">
+          <a class="shot" href="assets/screenshots/card-import.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/card-import.webp" type="image/webp"><img src="assets/screenshots/card-import.png" width="2880" height="1800" loading="lazy" alt="Descargar tarjeta: tres sesiones en la tarjeta con sus miniaturas y destino en el RAW de la sesión"></picture></a>
+          <div class="n">04</div><h3><span lang-es>Descargar tarjeta</span><span lang-en>Download Card</span></h3>
+          <p><span lang-es>De la tarjeta al disco sin perder ni repetir nada, con cada foto comprobada.</span><span lang-en>From card to disk without losing or repeating anything, every photo verified.</span></p>
+          <ul>
+            <li><span lang-es>Reconoce la tarjeta en cuanto la metes (lector SD o cámara) y enseña sus <b>sesiones</b>: las fotos agrupadas por hora, con miniaturas, para marcar solo las que quieres.</span><span lang-en>Spots the card as soon as you insert it (SD reader or camera) and shows its <b>sessions</b>: photos grouped by time, with thumbnails, so you check only the ones you want.</span></li>
+            <li><span lang-es>JPG, RAW, HEIC o vídeo, cada uno con sus acompañantes (.XMP, .WAV…); todo junto o por fecha.</span><span lang-en>JPG, RAW, HEIC or video, each with its sidecars (.XMP, .WAV…); all together or by date.</span></li>
+            <li><span lang-es>Cada copia se lee de nuevo y se compara con la de la tarjeta. Lo que ya estaba se salta y nada se sobrescribe; la tarjeta solo se lee.</span><span lang-en>Each copy is read back and compared with the card. What is already there is skipped and nothing is overwritten; the card is only read.</span></li>
+            <li><span lang-es>Va directa al <b>RAW de la sesión activa</b>, o crea la sesión en el momento con «Crear sesión…». Avisa si las fotos no son del día de la sesión.</span><span lang-en>It goes straight into the <b>active session’s RAW folder</b>, or creates the session on the spot with “Create session…”. It warns you if the photos aren’t from the session day.</span></li>
+            <li><span lang-es>Pausa, espacio libre vigilado y «siguiente tarjeta» con los mismos ajustes.</span><span lang-en>Pause, free-space checks and “next card” with the same settings.</span></li>
           </ul>
         </article>
         <article class="mod">
-          <a class="shot" href="assets/screenshots/processor.png" target="_blank" rel="noopener" style="--x:-15%;--y:-10%"><picture><source srcset="assets/screenshots/processor.webp" type="image/webp"><img src="assets/screenshots/processor.png" width="2880" height="1800" loading="lazy" alt="Procesador: operaciones y salida"></picture></a>
-          <div class="n">04</div><h3><span lang-es>Procesador</span><span lang-en>Processor</span></h3>
+          <a class="shot" href="assets/screenshots/processor.png" target="_blank" rel="noopener" style="--x:-15%;--y:-13%"><picture><source srcset="assets/screenshots/processor.webp" type="image/webp"><img src="assets/screenshots/processor.png" width="2880" height="1800" loading="lazy" alt="Procesador: operaciones y salida"></picture></a>
+          <div class="n">05</div><h3><span lang-es>Procesador</span><span lang-en>Processor</span></h3>
           <p><span lang-es>Rotar, recortar, redimensionar y recomprimir cientos de fotos en una pasada.</span><span lang-en>Rotate, crop, resize and recompress hundreds of photos in one pass.</span></p>
           <ul>
             <li><span lang-es>Autorrotado según EXIF, recorte a proporción (1:1, 4:5, 16:9, 9:16… o la que quieras) con punto de anclaje, lado mayor y calidad.</span><span lang-en>Auto-rotate from EXIF, crop to a ratio (1:1, 4:5, 16:9, 9:16… or your own) with anchor point, longest side and quality.</span></li>
@@ -293,7 +354,7 @@
         </article>
         <article class="mod">
           <a class="shot" href="assets/screenshots/watermark.png" target="_blank" rel="noopener" style="--x:-50%;--y:-13%"><picture><source srcset="assets/screenshots/watermark.webp" type="image/webp"><img src="assets/screenshots/watermark.png" width="2880" height="1800" loading="lazy" alt="Marca de agua: vista previa sobre una foto"></picture></a>
-          <div class="n">05</div><h3><span lang-es>Marca de agua</span><span lang-en>Watermark</span></h3>
+          <div class="n">06</div><h3><span lang-es>Marca de agua</span><span lang-en>Watermark</span></h3>
           <p><span lang-es>Tu PNG sobre todas las fotos, suelto o en mosaico.</span><span lang-en>Your PNG on every photo, single or tiled.</span></p>
           <ul>
             <li><span lang-es>Posición, tamaño relativo, opacidad, separación y giro del mosaico, con vista previa sobre cualquier foto de la carpeta.</span><span lang-en>Position, relative size, opacity, tile spacing and rotation, with a preview on any photo in the folder.</span></li>
@@ -302,7 +363,7 @@
         </article>
         <article class="mod">
           <a class="shot" href="assets/screenshots/metadata.png" target="_blank" rel="noopener" style="--x:-50%;--y:-12%"><picture><source srcset="assets/screenshots/metadata.webp" type="image/webp"><img src="assets/screenshots/metadata.png" width="2880" height="1800" loading="lazy" alt="Metadatos: ficha de la foto y edición"></picture></a>
-          <div class="n">06</div><h3><span lang-es>Metadatos</span><span lang-en>Metadata</span></h3>
+          <div class="n">07</div><h3><span lang-es>Metadatos</span><span lang-en>Metadata</span></h3>
           <p><span lang-es>Lee y escribe EXIF sin recomprimir la imagen.</span><span lang-en>Read and write EXIF without recompressing the image.</span></p>
           <ul>
             <li><span lang-es>Autor (con un clic, el que tengas en Ajustes), copyright, descripción, fecha de captura y coordenadas GPS con mapa, por foto o para todas las marcadas.</span><span lang-en>Author (one click fills in the one from Settings), copyright, description, capture date and GPS coordinates with a map, per photo or for all checked ones.</span></li>
@@ -310,17 +371,19 @@
           </ul>
         </article>
         <article class="mod">
-          <a class="shot" href="assets/screenshots/renamer.png" target="_blank" rel="noopener" style="--x:-50%;--y:-12%"><picture><source srcset="assets/screenshots/renamer.webp" type="image/webp"><img src="assets/screenshots/renamer.png" width="2880" height="1800" loading="lazy" alt="Renombrador: vista previa de los nuevos nombres"></picture></a>
-          <div class="n">07</div><h3><span lang-es>Renombrador</span><span lang-en>Renamer</span></h3>
+          <a class="shot" href="assets/screenshots/renamer.png" target="_blank" rel="noopener" style="--x:-50%;--y:-12%"><picture><source srcset="assets/screenshots/renamer.webp" type="image/webp"><img src="assets/screenshots/renamer.png" width="2880" height="1800" loading="lazy" alt="Renombrador: nombres con la fecha y el nombre de la sesión"></picture></a>
+          <div class="n">08</div><h3><span lang-es>Renombrador</span><span lang-en>Renamer</span></h3>
           <p><span lang-es>Nombres coherentes para todo el reportaje, con vista previa antes de tocar nada.</span><span lang-en>Consistent names for the whole shoot, with a preview before touching anything.</span></p>
           <ul>
-            <li><span lang-es>Patrones con fecha, cámara, objetivo, dimensiones, orientación y contador; numeración corregida; buscar y reemplazar; prefijo y sufijo.</span><span lang-en>Patterns with date, camera, lens, dimensions, orientation and counter; fixed numbering; search and replace; prefix and suffix.</span></li>
+            <li><span lang-es>Patrones con fecha, cámara, objetivo, dimensiones, orientación, contador y los de la sesión (<code>{sesion}</code>, <code>{fecha_sesion}</code>); numeración corregida; buscar y reemplazar; prefijo y sufijo.</span><span lang-en>Patterns with date, camera, lens, dimensions, orientation, counter and the session ones (<code>{sesion}</code>, <code>{fecha_sesion}</code>); fixed numbering; search and replace; prefix and suffix.</span></li>
+            <li><span lang-es>Con fotos de una sesión empieza solo con <code>{fecha_sesion} {sesion} {n}</code> o con el preset que elijas en Ajustes.</span><span lang-en>With photos from a session it starts with <code>{fecha_sesion} {sesion} {n}</code> or with the preset you pick in Settings.</span></li>
             <li><span lang-es>Quitar acentos, espacios y caracteres especiales. Y <b>deshacer</b> el último renombrado en sitio, aunque hayas reiniciado la carpeta.</span><span lang-en>Strip accents, spaces and special characters. And <b>undo</b> the last in-place rename, even after resetting the folder.</span></li>
           </ul>
         </article>
+        <p class="group"><span lang-es>Otras herramientas</span><span lang-en>Other tools</span> <small><span lang-es>fuera de la sesión</span><span lang-en>outside the session</span></small></p>
         <article class="mod">
           <a class="shot" href="assets/screenshots/qr.png" target="_blank" rel="noopener" style="--x:-50%;--y:-22%"><picture><source srcset="assets/screenshots/qr.webp" type="image/webp"><img src="assets/screenshots/qr.png" width="2880" height="1800" loading="lazy" alt="Código QR: generación con vista previa"></picture></a>
-          <div class="n">08</div><h3><span lang-es>Código QR</span><span lang-en>QR Code</span></h3>
+          <div class="n">09</div><h3><span lang-es>Código QR</span><span lang-en>QR Code</span></h3>
           <p><span lang-es>Códigos QR en PNG para tarjetas, álbumes y pedidos.</span><span lang-en>QR codes as PNG for cards, albums and orders.</span></p>
           <ul>
             <li><span lang-es>Texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento.</span><span lang-en>Text, URL, WiFi, contact, email, phone, SMS, location or event.</span></li>
@@ -328,7 +391,8 @@
           </ul>
         </article>
         <article class="mod">
-          <div class="n">09</div><h3>Shutter Count</h3>
+          <a class="shot" href="assets/screenshots/shutter-count.png" target="_blank" rel="noopener" style="--x:-15%;--y:-12%"><picture><source srcset="assets/screenshots/shutter-count.webp" type="image/webp"><img src="assets/screenshots/shutter-count.png" width="2880" height="1800" loading="lazy" alt="Shutter Count: 9276 disparos de una Canon EOS R6 Mark III"></picture></a>
+          <div class="n">10</div><h3>Shutter Count</h3>
           <p><span lang-es>Cuántos disparos lleva tu cámara y cuánta vida útil le queda.</span><span lang-en>How many shots your camera has taken and how much life it has left.</span></p>
           <ul>
             <li><span lang-es>Lee el contador del obturador de un JPG o RAW (NEF, CR2, CR3, ARW, DNG…) con exiftool incluido.</span><span lang-en>Reads the shutter counter from a JPG or RAW (NEF, CR2, CR3, ARW, DNG…) with bundled exiftool.</span></li>
@@ -336,11 +400,12 @@
           </ul>
         </article>
         <article class="mod">
-          <a class="shot" href="assets/screenshots/recovery.png" target="_blank" rel="noopener" style="--x:-15%;--y:-27.5%"><picture><source srcset="assets/screenshots/recovery.webp" type="image/webp"><img src="assets/screenshots/recovery.png" width="2880" height="1800" loading="lazy" alt="Recuperar fotos: cuadrícula con las fotos recuperadas de una tarjeta"></picture></a>
-          <div class="n">10</div><h3><span lang-es>Recuperar fotos</span><span lang-en>Recover Photos</span></h3>
+          <a class="shot" href="assets/screenshots/recovery.png" target="_blank" rel="noopener" style="--x:-15%;--y:-30%"><picture><source srcset="assets/screenshots/recovery.webp" type="image/webp"><img src="assets/screenshots/recovery.png" width="2880" height="1800" loading="lazy" alt="Recuperar fotos: cuadrícula con las fotos recuperadas de una tarjeta"></picture></a>
+          <div class="n">11</div><h3><span lang-es>Recuperar fotos</span><span lang-en>Recover Photos</span></h3>
           <p><span lang-es>Rescata las fotos y vídeos borrados de una tarjeta SD.</span><span lang-en>Rescues deleted photos and videos from an SD card.</span></p>
           <ul>
             <li><span lang-es>JPG, RAW de todas las marcas (CR2, CR3, NEF, ARW, DNG, RAF…), HEIC y vídeo; o cualquier otro fichero si lo pides.</span><span lang-en>JPG, RAW from every brand (CR2, CR3, NEF, ARW, DNG, RAF…), HEIC and video; or any other file if you ask.</span></li>
+            <li><span lang-es>Lo encontrado va saliendo mientras busca, en <b>bloques</b>: puedes ir eliminando lo que no te interesa para no llenar el disco.</span><span lang-en>Findings appear while it searches, in <b>blocks</b>: you can delete what you don’t need as you go so the disk doesn’t fill up.</span></li>
             <li><span lang-es>Solo lee la tarjeta, nunca escribe en ella. Lo recuperado se ve en miniaturas y se ordena por fecha de captura en carpetas por año y día.</span><span lang-en>It only reads the card, never writes to it. Recovered files show as thumbnails and are sorted by capture date into folders by year and day.</span></li>
             <li><span lang-es>Con <a href="https://www.cgsecurity.org/wiki/PhotoRec">PhotoRec</a> (GPL) incluido; su código fuente va con cada versión.</span><span lang-en>With <a href="https://www.cgsecurity.org/wiki/PhotoRec">PhotoRec</a> (GPL) bundled; its source code ships with every release.</span></li>
           </ul>

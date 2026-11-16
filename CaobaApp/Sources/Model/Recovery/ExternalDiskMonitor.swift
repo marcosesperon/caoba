@@ -177,11 +177,20 @@ final class ExternalDiskMonitor {
                                 mountPoints: mountPoints,
                                 isDiskImage: (whole["DADeviceModel"] as? String) == "Disk Image")
         }
-        let sorted = list.sorted { $0.bsdName.localizedStandardCompare($1.bsdName) == .orderedAscending }
+        // Con el ajuste de desarrollo salen las imágenes de disco, pero no las de los simuladores
+        // de iOS de Xcode: nunca son una tarjeta y llenan la lista.
+        let sorted = list.filter { !Self.isSimulatorImage($0) }
+            .sorted { $0.bsdName.localizedStandardCompare($1.bsdName) == .orderedAscending }
         if sorted != disks {
             disks = sorted
             onChange.forEach { $0() }
         }
+    }
+
+    /// Imagen montada por Xcode para un simulador de iOS (en `/Library/Developer/CoreSimulator/`).
+    private static func isSimulatorImage(_ disk: ExternalDisk) -> Bool {
+        disk.isDiskImage && !disk.mountPoints.isEmpty
+            && disk.mountPoints.allSatisfy { $0.path.hasPrefix("/Library/Developer/CoreSimulator/") }
     }
 
     /// Un disco entero externo y físico. Los internos solo si son extraíbles: es el lector SD
