@@ -50,7 +50,7 @@ struct SourceFolderBar: View {
                 }
 
                 // Solo sin sesión: con sesión, el origen ya lo pone ella.
-                if appState.sessions.active == nil && !appState.recentFolders.isEmpty {
+                if appState.activeSession == nil && !appState.recentFolders.isEmpty {
                     Menu {
                         ForEach(appState.recentFolders, id: \.self) { url in
                             // Con la sesión o la carpeta de encima delante: muchas se llaman igual (JPG).
@@ -113,14 +113,14 @@ struct SourceFolderBar: View {
             }
             return true
         }
-        .onChange(of: appState.sessions.active) { createFinalsError = nil }
+        .onChange(of: appState.activeSession) { createFinalsError = nil }
     }
 
     /// Ruta del origen; sin origen, qué falta: la carpeta JPG de la sesión (en gris, la que se
     /// creará) o, sin sesión, elegir una sesión o una carpeta.
     private var sourceText: String {
         if let source = appState.sourceFolder { return source.path }
-        if appState.sessionLacksFinals, let session = appState.sessions.active {
+        if appState.sessionLacksFinals, let session = appState.activeSession {
             return appState.sessions.layout.finals(of: session).path
         }
         return String(localized: "Elige la sesión con la que vas a trabajar o una carpeta de fotos")

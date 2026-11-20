@@ -9928,6 +9928,106 @@
           }
         }
       }
+    },
+    "Nueva ventana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Window"
+          }
+        }
+      }
+    },
+    "En otra ventana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In another window"
+          }
+        }
+      }
+    },
+    "Ya está abierta en otra ventana." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already open in another window."
+          }
+        }
+      }
+    },
+    "Abrir en ventana nueva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in New Window"
+          }
+        }
+      }
+    },
+    "Esta carpeta ya está abierta en otra ventana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This folder is already open in another window"
+          }
+        }
+      }
+    },
+    "Cada carpeta solo puede estar abierta en una ventana, para que no se pisen lo que guardan en ella (el montaje del Slideshow, el orden de las fotos…)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each folder can only be open in one window, so they don’t overwrite what they save in it (the Slideshow project, the photo order…)."
+          }
+        }
+      }
+    },
+    "Hay un trabajo en marcha en esta ventana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There’s a job running in this window"
+          }
+        }
+      }
+    },
+    "Si cierras la ventana, el trabajo se cancela y lo que estuviera a medias no se guarda." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you close the window, the job is cancelled and anything half-done isn’t saved."
+          }
+        }
+      }
+    },
+    "Seguir trabajando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep Working"
+          }
+        }
+      }
+    },
+    "Cerrar y cancelar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close and Cancel"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -5,6 +5,8 @@ import CaobaCore
 /// de carpeta, el módulo activo y la barra de destino.
 struct ContentView: View {
     @Environment(AppState.self) private var appState
+    /// Lo de toda la app: aviso de versión, novedades y donativo.
+    @Environment(AppModel.self) private var app
 
     var body: some View {
         @Bindable var state = appState
@@ -24,7 +26,7 @@ struct ContentView: View {
             .safeAreaInset(edge: .bottom) { sidebarFooter }
         } detail: {
             VStack(spacing: 12) {
-                if appState.showUpdateBanner, let update = appState.availableUpdate {
+                if app.showUpdateBanner, let update = app.availableUpdate {
                     UpdateBanner(update: update)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
@@ -46,16 +48,16 @@ struct ContentView: View {
                 .opacity(needsFolder ? 0.45 : 1)
             }
             .padding(12)
-            .animation(.default, value: appState.showUpdateBanner)
+            .animation(.default, value: app.showUpdateBanner)
             // En el sitio del título va la sesión activa. El módulo ya sale dentro, con la letra de CAOBA.
-            .hidingWindowTitle()
+            .hidingWindowTitle(appState.activeSession?.title ?? "CAOBA")
             .toolbar {
                 // En macOS 26, sin la cápsula de cristal: que se vea como un título, no como un botón.
                 if #available(macOS 26.0, *) {
-                    ToolbarItem(placement: .navigation) { SessionPicker() }
+                    ToolbarItem(placement: .navigation) { sessionPicker }
                         .sharedBackgroundVisibility(.hidden)
                 } else {
-                    ToolbarItem(placement: .navigation) { SessionPicker() }
+                    ToolbarItem(placement: .navigation) { sessionPicker }
                 }
             }
         }
@@ -68,10 +70,22 @@ struct ContentView: View {
         } message: {
             Text(folderChangesMessage(appState.pendingFolderChanges))
         }
-        .sheet(isPresented: $state.showDonationPrompt) { DonationSheet() }
-        .sheet(isPresented: Binding(get: { appState.whatsNewSections != nil }, set: { if !$0 { appState.whatsNewSections = nil } })) {
-            WhatsNewSheet(sections: appState.whatsNewSections ?? [], title: appState.whatsNewTitle)
+        // Novedades y donativo, una sola vez: en la ventana de delante, no en todas.
+        .sheet(isPresented: Binding(get: { isFront && app.showDonationPrompt }, set: { app.showDonationPrompt = $0 })) { DonationSheet() }
+        .sheet(isPresented: Binding(get: { isFront && app.whatsNewSections != nil }, set: { if !$0 { app.whatsNewSections = nil } })) {
+            WhatsNewSheet(sections: app.whatsNewSections ?? [], title: app.whatsNewTitle)
         }
+        // Con otra estructura de sesiones en Ajustes, la sesión de la ventana se vuelve a buscar.
+        .onChange(of: app.sessions.layout) { appState.sessionLayoutChanged() }
+    }
+
+    private var isFront: Bool { app.frontWindow === appState }
+
+    /// La barra de herramientas mide el selector la primera vez y no lo agranda: al pasar de
+    /// «CAOBA» a una sesión de nombre más largo, este salía cortado («Prue…»). Con otra sesión se
+    /// crea de nuevo y se vuelve a medir.
+    private var sessionPicker: some View {
+        SessionPicker().id(appState.activeSession?.id)
     }
 
     /// «Faltan 2 fotos: a.jpg, b.jpg. Hay 1 nueva: c.jpg.» con hasta 5 nombres de cada.
@@ -125,13 +139,13 @@ struct ContentView: View {
             // Web a la izquierda y donativo a la derecha, los dos en el rojo de la app.
             HStack {
                 Button {
-                    appState.openExternal(AppState.websiteURL)
+                    appState.openExternal(AppModel.websiteURL)
                 } label: {
                     Text("caobafoto.com")
                 }
                 Spacer()
                 Button {
-                    appState.openExternal(AppState.donationURL)
+                    appState.openExternal(AppModel.donationURL)
                 } label: {
                     Label("Donación", systemImage: "cup.and.saucer")
                 }
@@ -147,11 +161,12 @@ struct ContentView: View {
 private extension View {
     /// Quita el título de la barra de la ventana para dejar sitio a la sesión. Desde macOS 15 el
     /// título sigue existiendo (menú Ventana, Mission Control) aunque no se vea; en macOS 14
-    /// no se puede ocultar y se deja vacío.
+    /// no se puede ocultar y se deja vacío. `title` (la sesión) no se ve arriba, pero es el que
+    /// enseñan las pestañas y el menú Ventana.
     @ViewBuilder
-    func hidingWindowTitle() -> some View {
+    func hidingWindowTitle(_ title: String) -> some View {
         if #available(macOS 15.0, *) {
-            navigationTitle("CAOBA").toolbar(removing: .title)
+            navigationTitle(title).toolbar(removing: .title)
         } else {
             navigationTitle("")
         }
@@ -172,7 +187,8 @@ struct ComingSoonView: View {
 
 /// Preferencias en dos pestañas: «General» (idioma, apariencia, autor y presets) y «Sesiones».
 struct SettingsView: View {
-    @Environment(AppState.self) private var appState
+    /// Ajustes son de toda la app, no de una ventana.
+    @Environment(AppModel.self) private var app
     @State private var tab = "general"
 
     var body: some View {
@@ -186,7 +202,7 @@ struct SettingsView: View {
                 .tag("sessions")
         }
         // Para capturas: `--state settings.tab=sessions`.
-        .onAppear { if let initial = appState.launchState["settings.tab"] { tab = initial } }
+        .onAppear { if let initial = app.launchState["settings.tab"] { tab = initial } }
     }
 }
 

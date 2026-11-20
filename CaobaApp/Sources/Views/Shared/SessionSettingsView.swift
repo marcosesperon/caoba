@@ -5,13 +5,13 @@ import CaobaCore
 /// CAOBA (`2026/2026-11-15 Nombre de la sesión` con `RAW`, `JPG` y `Lightroom`); otros estudios
 /// pueden cambiar el formato del nombre, las subcarpetas y dónde guarda cada módulo.
 struct SessionSettingsView: View {
-    @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var app
     @State private var presetStore = PresetStore.shared
 
-    private var sessions: StudioSessions { appState.sessions }
+    private var sessions: StudioSessions { app.sessions }
 
     var body: some View {
-        @Bindable var sessions = appState.sessions
+        @Bindable var sessions = app.sessions
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 LabeledRow("Carpeta raíz") {

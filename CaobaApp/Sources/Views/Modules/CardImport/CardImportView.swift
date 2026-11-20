@@ -3,7 +3,7 @@ import QuickLook
 import CaobaCore
 
 /// Descargar tarjeta: copia las fotos y vídeos de una tarjeta a una carpeta del disco, de forma
-/// comprobada y sin repetir lo que ya está. El estado vive en `AppState.cardImport`.
+/// comprobada y sin repetir lo que ya está. El estado vive en `AppModel.cardImport`.
 struct CardImportView: View {
     @Environment(AppState.self) private var appState
 
@@ -370,7 +370,7 @@ struct CardImportActionBar: View {
     /// ser un encargo nuevo y conviene crear su sesión antes de mezclarlo con otro.
     private var otherDayWarning: String? {
         let sessions = appState.sessions
-        guard let active = sessions.active, let destination = session.destinationFolder,
+        guard let active = appState.activeSession, let destination = session.destinationFolder,
               destination.standardizedFileURL == sessions.layout.downloads(of: active).standardizedFileURL,
               !session.markedDays.isEmpty,
               !session.markedDays.contains(Calendar.current.startOfDay(for: active.date)) else { return nil }

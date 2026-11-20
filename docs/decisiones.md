@@ -4577,9 +4577,88 @@ Analizar, **sin tocar código**, si CAOBA puede tener **varias ventanas abiertas
 ## 2026-11-20 — Varias ventanas, cada una con su sesión (desarrollo)
 
 ### 1. La petición tal como se ha entendido
-*(pendiente: se escribe al acabar las preguntas)*
+Llevar a cabo el plan de `docs/analisis-varias-ventanas.md` **fase a fase**, con prueba del usuario entre una y otra. Los cambios pendientes ya se subieron antes (commit `2cc5518`).
+
+**Esta vez, solo la fase 1: separar el estado**, sin cambios visibles:
+- Partir `AppState` en lo que es **de toda la app** (estructura y lista de sesiones, discos, Descargar tarjeta, Recuperar fotos, recientes, aviso de versión, donativo y novedades) y lo que es **de cada ventana** (módulo, sesión de la ventana, carpeta de origen, fotos, marcas y orden, destino, trabajo en curso y carpeta en la que se abren los diálogos).
+- Adaptar las vistas para que cada una lea lo que le toca.
+- Sigue habiendo **una sola ventana** y la app hace exactamente lo mismo que ahora.
+- Se comprueba con los tests y con la batería de capturas de los módulos, comparándolas con las de ahora.
+- Las preguntas de cómo se abren y se comportan las ventanas (fase 2) se harán al empezar esa fase.
+
+*Confirmado por el usuario («ok»).*
 
 ### 2. Preguntas y respuestas
 - **Petición original:** «vamos a ello», tras el análisis de `docs/analisis-varias-ventanas.md`.
 - **¿Las 4 fases de una vez o fase a fase?** → *Fase a fase*: fase 1 (separar el estado, sin cambios visibles), comprobada con capturas y tests, y se sigue con la 2 cuando el usuario dé el visto bueno.
 - **¿Subir antes los cambios pendientes (bloqueo de origen y análisis)?** → *Sí, commit y push antes*, para que la fase 1 vaya en su propio commit.
+
+### 3. Fuentes analizadas
+- `AppState.swift`, `StudioSessions.swift`, `CaobaApp.swift`, `ContentView.swift`, `DonationSheet.swift`, `SessionSettingsView.swift`, `SessionPicker.swift`, `SourceFolderBar.swift`, `CardImportView.swift` y `DialogFolders.swift`, sobre el commit `2cc5518`.
+
+### 4. Decisiones
+- **`AppModel` nuevo para lo de toda la app; `AppState` se queda como estado de la ventana** con su nombre de siempre: casi todo lo que usan las vistas ya era de la ventana, y renombrarlo habría tocado ~300 líneas sin ganar nada. El comentario de la clase dice ahora «Estado de una ventana».
+- **Atajos en `AppState` a lo compartido** (`sessions`, `cardImport`, `recovery`, `thumbnails`, `recentFolders`, `launchState`, `openExternal`…): las vistas siguen igual. Solo leen el `AppModel` directamente la banda de versión, novedades, donativo y Ajustes, que no deben repetirse por ventana.
+- **La sesión activa pasa a `AppState.activeSession`** y `StudioSessions` se queda con estructura y lista. Recordarla al cerrar es `StudioSessions.remember`.
+- **`DialogFolders` sigue siendo uno**: los diálogos son modales y se abren desde la ventana de delante; en la fase 2 se pondrá su sesión al pasar una ventana al frente.
+- **Comprobación por capturas píxel a píxel**: 16 capturas (11 módulos con sesión, sesión sin JPG, «Sin sesión», carpeta suelta, lista de sesiones y Ajustes › Sesiones) con sesiones de prueba temporales y un comparador en Swift. Dos pasadas de «antes» difieren un 0,06 % como mucho (Slideshow) y «después» da lo mismo: sin cambios visibles.
+
+### 5. Alternativas descartadas
+- **Renombrar `AppState` a `WindowState`**: más claro, pero toca casi todas las vistas sin cambiar nada; se puede hacer aparte si se quiere.
+- **`DialogFolders` por ventana ya en la fase 1**: con una sola ventana no cambia nada y obliga a tocar los 23 sitios que abren diálogos.
+
+### 6. Pendiente de comprobar
+- Lo que las capturas no recorren: elegir sesión desde la lista, que al abrir la app vuelva la sesión recordada, y cambiar el formato de sesiones en Ajustes con una sesión activa. Para el usuario, con la app abierta.
+- El tamaño de la ventana se recuerda bajo una clave que incluye la estructura de la vista; al haber cambiado, la primera vez la ventana se abre con el tamaño por defecto.
+- Sin commit hasta que el usuario lo pida. La fase 2 empieza con sus preguntas cuando el usuario dé el visto bueno.
+
+## 2026-11-20 — Varias ventanas, fase 2: ventanas por sesión
+
+### 1. La petición tal como se ha entendido
+Fase 2 del plan de `docs/analisis-varias-ventanas.md`: **varias ventanas, cada una con su sesión** y su trabajo en curso, sobre el estado ya separado en la fase 1.
+- **Ventana nueva** con ⌘N (Archivo › Nueva ventana): sale **sin sesión y con la lista de sesiones del título ya desplegada** para elegir una (Esc para trabajar sin sesión).
+- **Desde la lista de sesiones**, cada fila tiene, al pasar el ratón, un botón **«Abrir en ventana nueva»**; el clic normal sigue cambiando la sesión de la ventana.
+- **Una sesión, una ventana:** la sesión que ya está abierta en otra ventana sale **en gris y no se puede elegir** en la lista de las demás (tampoco con el botón de ventana nueva).
+- **Carpetas sueltas** (sin sesión): si se elige, arrastra o toma de Recientes una carpeta que otra ventana tiene abierta, o que está dentro de una sesión abierta en otra ventana, sale un **aviso y no se abre**.
+- **Al cerrar CAOBA y volver a abrirla**, vuelven **todas las ventanas**, cada una con su sesión y su módulo.
+- **Cada ventana es independiente:** su módulo, su origen, su destino y su trabajo; se puede generar un vídeo en una y procesar en otra a la vez. Descargar tarjeta y Recuperar fotos siguen siendo uno para toda la app (su ajuste fino es la fase 3).
+- **Cerrar una ventana con un trabajo en marcha** pide confirmación, porque el trabajo se cancelaría.
+- **Pestañas:** las de macOS funcionan solas (Ventana › Combinar todas las ventanas, o la preferencia del sistema de abrir en pestañas); no se añade nada propio.
+- Las novedades, el donativo y el aviso de versión salen una sola vez (en la ventana de delante), no en cada ventana.
+
+*Confirmado por el usuario («si»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «vale, funciona... sigue», tras probar la fase 1 en la app (sesión recordada al abrir, cambio de sesión y formato de Ajustes): visto bueno a la fase 1 y paso a la fase 2.
+- **Ventana nueva (⌘N), ¿con qué sesión arranca?** → *Sin sesión, con la lista de sesiones del título ya desplegada* para elegir una (o Esc y trabajar sin sesión).
+- **Elegir una sesión que ya está abierta en otra ventana, ¿qué pasa?** → *Deshabilitada en la lista*: en las demás ventanas sale en gris y no se puede elegir.
+- **¿La misma carpeta suelta en dos ventanas?** → *No: aviso y no la abre*, tanto si otra ventana la tiene abierta como si está dentro de una sesión abierta en otra ventana (al elegirla, arrastrarla o tomarla de Recientes).
+- **Al cerrar con varias ventanas y volver a abrir** → *Volver a todas*, cada una con su sesión y su módulo.
+- **¿Cómo abrir una sesión en otra ventana desde la lista del título?** → *Botón en cada fila*: al pasar el ratón sale «Abrir en ventana nueva»; el clic normal sigue cambiando la sesión de esta ventana.
+
+### 3. Fuentes analizadas
+- `CaobaApp.swift`, `AppModel.swift`, `AppState.swift`, `ContentView.swift`, `SessionPicker.swift` y `DialogFolders.swift` tras la fase 1 (sin subir), sobre el commit `2cc5518`.
+
+### 4. Decisiones
+- **`WindowGroup(for: WindowSeed.self)`**: el valor dice con qué arranca cada ventana (sesión o carpeta, módulo, lista desplegada) y lleva un `id` propio para que `openWindow` abra siempre una aparte.
+- **Registro de ventanas en `AppModel`** (`openWindows`, `frontWindow`): responde si una sesión o carpeta está abierta en otra ventana y cuál está delante (novedades y donativo solo ahí; diálogos en su sesión).
+- **Volver a todas las ventanas con una lista propia** (`caoba.windows`) y **sin la restauración de macOS** (`CaobaAppDelegate`): la de macOS no sabe de sesiones y repetiría ventanas. Sin lista, la sesión recordada de siempre.
+- **Confirmar al cerrar con trabajo** con un delegado que envuelve al de SwiftUI (`WindowCloseGuard`), porque SwiftUI no deja interceptar el cierre; vale para el botón rojo y ⌘W.
+- **Carpeta repetida**: la comprobación va en `selectSourceFolder`, así cubre elegir, arrastrar y Recientes de una vez; al restaurar ventanas no avisa, solo deja vacía la repetida.
+- **Selector del título recreado al cambiar de sesión** (`.id`): salió al probar que, al pasar de «CAOBA» a un nombre más largo, la barra no lo agrandaba («Prue…»). Antes no se veía en las capturas porque arrancaban ya con la sesión del usuario (nombre largo); con ventanas que nacen sin sesión pasaba siempre.
+- **Ganchos de prueba** `windows.restore` y `capture.windows` para probar varias ventanas con capturas.
+
+### 5. Alternativas descartadas
+- **Traer al frente la ventana que ya tiene la sesión** o **avisar**: el usuario prefirió la sesión en gris en la lista.
+- **Ventana nueva con la misma sesión o vacía sin lista**: el usuario eligió sin sesión y con la lista desplegada.
+- **⌘-clic o solo ⌘N para abrir en ventana nueva**: el usuario eligió el botón en cada fila.
+- **Dejar la restauración de macOS**: no conoce las sesiones; repetiría ventanas.
+- **Título fijo «CAOBA» en la ventana**: se probó al buscar el corte del selector y no era la causa; se deja el nombre de la sesión para pestañas y menú Ventana.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: las 16 de una ventana salen como antes (la de «carpeta suelta» cambia porque antes, en modo captura, el título mostraba la sesión real del usuario aunque se trabajara con una carpeta suelta: ahora dice «CAOBA», que es lo correcto); dos y tres ventanas con sesiones distintas; sesión repetida y carpeta repetida al restaurar (la segunda queda vacía); ventana nueva con la lista desplegada y las sesiones abiertas en gris. Compila sin avisos nuevos y pasan los 211 tests.
+- Para el usuario, a mano: ⌘N, el botón «Abrir en ventana nueva» al pasar el ratón, el aviso de carpeta repetida al elegirla o arrastrarla, cerrar una ventana con un trabajo en marcha (botón rojo y ⌘W), cerrar CAOBA con varias ventanas y volver a abrirla, y dos trabajos a la vez en dos ventanas.
+- Lanzando el ejecutable directamente (no con `open`) con otra CAOBA abierta, la app arranca sin ventana; también la versión anterior. No afecta al uso normal (Finder, Dock, `open`), pero queda anotado.
+- Al actualizar, el tamaño de la ventana se recuerda bajo otra clave: la primera vez sale con el tamaño por defecto.
+- Sin commit hasta que el usuario lo pida.
+- **Probado por el usuario en la app** («estupendo»): visto bueno a la fase 2.

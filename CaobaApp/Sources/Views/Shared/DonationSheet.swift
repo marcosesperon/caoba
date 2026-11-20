@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Hoja que pide apoyo al proyecto. La enseña `AppState.scheduleDonationPrompt`
+/// Hoja que pide apoyo al proyecto. La enseña `AppModel.scheduleDonationPrompt`
 /// al arrancar, como mucho una vez cada 7 días.
 struct DonationSheet: View {
-    @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -23,7 +23,7 @@ struct DonationSheet: View {
             VStack(spacing: 2) {
                 Text("¡Gracias!").fontWeight(.semibold)
                 Text("— Marcos Esperón").font(.caption).foregroundStyle(.secondary)
-                Button("caobafoto.com") { appState.openExternal(AppState.websiteURL) }
+                Button("caobafoto.com") { app.openExternal(AppModel.websiteURL) }
                     .buttonStyle(.link)
                     .font(.caption)
                     .focusable(false) // que el foco inicial de la hoja no caiga en el enlace
@@ -32,7 +32,7 @@ struct DonationSheet: View {
                 Button("Ahora no") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Button {
-                    appState.openExternal(AppState.donationURL)
+                    app.openExternal(AppModel.donationURL)
                     dismiss()
                 } label: {
                     Label("Hacer donación", systemImage: "cup.and.saucer")
@@ -50,7 +50,7 @@ struct DonationSheet: View {
 /// Banda roja sobre el contenido cuando hay una versión más nueva publicada.
 /// Va en el color de acento con texto blanco para que no pase desapercibida.
 struct UpdateBanner: View {
-    @Environment(AppState.self) private var appState
+    @Environment(AppModel.self) private var app
     let update: VersionCheck.Release
     @State private var updater = Updater.shared
 
@@ -72,18 +72,18 @@ struct UpdateBanner: View {
                 Text("Reiniciando CAOBA…").font(.callout)
             case .manual(let message), .failed(let message):
                 Text(message).font(.callout).lineLimit(2)
-                Button("Abrir en el navegador") { appState.openExternal(update.url) }.buttonStyle(BannerButtonStyle())
+                Button("Abrir en el navegador") { app.openExternal(update.url) }.buttonStyle(BannerButtonStyle())
             case .idle:
                 Text("Nueva versión \(update.version) disponible").font(.callout.weight(.semibold))
             }
             Spacer()
             if case .idle = updater.phase {
                 Button(update.dmg != nil ? "Actualizar ahora" : "Descargar") {
-                    if update.dmg != nil { updater.update(to: update) } else { appState.openExternal(update.url) }
+                    if update.dmg != nil { updater.update(to: update) } else { app.openExternal(update.url) }
                 }
                 .buttonStyle(BannerButtonStyle())
             }
-            Button { appState.dismissUpdateBanner() } label: {
+            Button { app.dismissUpdateBanner() } label: {
                 Image(systemName: "xmark")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.white.opacity(0.85))

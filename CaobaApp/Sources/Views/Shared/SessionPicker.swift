@@ -30,10 +30,10 @@ struct SessionPicker: View {
             HStack(alignment: .firstTextBaseline, spacing: 5) {
                 // Como el título de la ventana: nombre en negrita y la fecha debajo, pequeña.
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(sessions.active?.name ?? "CAOBA")
+                    Text(appState.activeSession?.name ?? "CAOBA")
                         .font(.headline)
                         .lineLimit(1).truncationMode(.tail)
-                    if let active = sessions.active {
+                    if let active = appState.activeSession {
                         Text(sessions.layout.dateText(active.date))
                             .font(.subheadline).foregroundStyle(.secondary)
                     }
@@ -48,12 +48,15 @@ struct SessionPicker: View {
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
         .frame(maxWidth: 360, alignment: .leading)
-        .help(sessions.active?.folder.path ?? String(localized: "Elige la sesión con la que trabajas: los módulos saldrán con su origen y su destino."))
+        .help(appState.activeSession?.folder.path ?? String(localized: "Elige la sesión con la que trabajas: los módulos saldrán con su origen y su destino."))
         .onAppear {
             // Para capturas: `--state sessions.list=1` abre la lista y `sessions.new=1` la hoja de nueva sesión.
             if appState.launchState["sessions.list"] != nil { showList = true }
             if appState.launchState["sessions.new"] != nil { showNew = true }
+            openRequestedList()
         }
+        // Ventana nueva de ⌘N: sale con la lista desplegada para elegir sesión.
+        .onChange(of: appState.requestSessionList) { openRequestedList() }
         .popover(isPresented: $showList, arrowEdge: .bottom) {
             SessionList(showNew: $showNew, dismiss: { showList = false })
                 .environment(appState)
@@ -61,6 +64,13 @@ struct SessionPicker: View {
         .sheet(isPresented: $showNew) {
             NewSessionSheet().environment(appState)
         }
+    }
+
+    private func openRequestedList() {
+        guard appState.requestSessionList else { return }
+        appState.requestSessionList = false
+        sessions.refresh()
+        showList = true
     }
 }
 
@@ -112,7 +122,7 @@ struct SessionList: View {
                         Task { await appState.activateSession(nil) }
                         dismiss()
                     }
-                    .disabled(sessions.active == nil)
+                    .disabled(appState.activeSession == nil)
                 }
             }
         }
@@ -121,21 +131,57 @@ struct SessionList: View {
     }
 
     private func row(_ session: StudioSession) -> some View {
-        let isActive = session.id == sessions.active?.id
-        return Button {
-            Task { await appState.activateSession(session) }
-            dismiss()
-        } label: {
-            HStack {
-                Image(systemName: "checkmark").opacity(isActive ? 1 : 0).foregroundStyle(Color.accentColor)
-                Text(session.title).lineLimit(1).truncationMode(.middle)
-                Spacer(minLength: 0)
+        SessionRow(session: session,
+                   isActive: session.id == appState.activeSession?.id,
+                   isOpenElsewhere: appState.app.isSessionOpen(session, besides: appState),
+                   dismiss: dismiss)
+    }
+}
+
+/// Una sesión de la lista. El clic la pone en esta ventana; al pasar el ratón sale el botón para
+/// abrirla en una ventana nueva. Si otra ventana ya la tiene, sale en gris y no se puede elegir.
+private struct SessionRow: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.openWindow) private var openWindow
+    let session: StudioSession
+    let isActive: Bool
+    let isOpenElsewhere: Bool
+    let dismiss: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Button {
+                Task { await appState.activateSession(session) }
+                dismiss()
+            } label: {
+                HStack {
+                    Image(systemName: "checkmark").opacity(isActive ? 1 : 0).foregroundStyle(Color.accentColor)
+                    Text(session.title).lineLimit(1).truncationMode(.middle)
+                    Spacer(minLength: 0)
+                    if isOpenElsewhere {
+                        Text("En otra ventana").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 4).padding(.horizontal, 4)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, 4).padding(.horizontal, 4)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .disabled(isOpenElsewhere)
+            // Ni la de esta ventana ni la que ya está en otra: no tendría sentido abrirlas aparte.
+            if hovering && !isActive && !isOpenElsewhere {
+                Button {
+                    openWindow(value: WindowSeed(sessionPath: session.folder.path, module: appState.currentModule.rawValue))
+                    dismiss()
+                } label: {
+                    Image(systemName: "macwindow.badge.plus")
+                }
+                .buttonStyle(.borderless)
+                .help("Abrir en ventana nueva")
+            }
         }
-        .buttonStyle(.plain)
-        .help(session.folder.path)
+        .onHover { hovering = $0 }
+        .help(isOpenElsewhere ? String(localized: "Ya está abierta en otra ventana.") : session.folder.path)
     }
 }
 

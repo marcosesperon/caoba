@@ -3,11 +3,15 @@ import Observation
 import UniformTypeIdentifiers
 import CaobaCore
 
-/// Estado compartido de la app: carpeta de origen, lista de ficheros con sus
-/// marcas, destino por módulo, módulo activo y aviso de versión nueva.
+/// Estado de una ventana: módulo activo, sesión, carpeta de origen, lista de ficheros con
+/// sus marcas, destino por módulo y trabajo en curso. Lo que es de toda la app (sesiones del
+/// estudio, tarjetas, avisos…) está en `AppModel`, que comparten todas las ventanas.
 @MainActor
 @Observable
 final class AppState {
+    /// Lo compartido por todas las ventanas.
+    let app: AppModel
+
     // MARK: Navegación
     /// Módulo activo. Arranca en el último usado y se recuerda al cambiar
     /// (salvo en modo captura, para no pisar lo que tenga el usuario).
@@ -19,16 +23,16 @@ final class AppState {
                 clearDestination()
                 applySessionDestination()
             }
+            app.saveWindows()
             guard !isScreenshotMode else { return }
             UserDefaults.standard.set(currentModule.rawValue, forKey: Preferences.lastModuleKey)
         }
     }
-    /// Estado inicial pedido por línea de comandos con `--state clave=valor`
-    /// (solo para capturas: pestaña del Collage, texto del QR, PNG de la marca…).
-    var launchState: [String: String] = [:]
 
     // MARK: Carpeta de origen
-    private(set) var sourceFolder: URL?
+    private(set) var sourceFolder: URL? {
+        didSet { if sourceFolder != oldValue { app.saveWindows() } }
+    }
     private(set) var files: [ScannedFile] = []
     /// Ficheros desmarcados (por nombre) que no entran en el resultado.
     var excludedNames: Set<String> = []
@@ -41,7 +45,6 @@ final class AppState {
     private var manualNames: [String] = []
     var orientationFilter: OrientationFilter = .all { didSet { Task { await rescan() } } }
     private(set) var isScanning = false
-    private(set) var recentFolders: [URL] = []
     private(set) var hasFolderConfig = false
     /// Nombres de las fotos de la carpeta al leerla (antes del filtro de orientación), para
     /// saber antes de lanzar un proceso si alguien ha borrado, renombrado o añadido fotos.
@@ -62,40 +65,80 @@ final class AppState {
 
     // MARK: Trabajo en curso
     let jobRunner = JobRunner()
-    /// Tarjetas y discos externos conectados, compartidos por «Recuperar fotos» y «Descargar tarjeta».
-    let disks = ExternalDiskMonitor()
-    /// Recuperar fotos y descargar tarjeta: aquí y no en la vista, para que un trabajo largo
-    /// siga al cambiar de módulo.
-    let recovery: RecoverySession
-    let cardImport: CardImportSession
-    let thumbnails = ThumbnailProvider()
-    /// Sesiones del estudio y sesión activa (barra lateral y Ajustes).
-    let sessions = StudioSessions()
+
+    // MARK: Sesión
+    /// Sesión con la que trabaja esta ventana (`nil`, sin sesión). Se recuerda al cerrar la app.
+    private(set) var activeSession: StudioSession? {
+        didSet {
+            // Los diálogos se abren en la sesión de la ventana de delante.
+            if app.frontWindow === self { DialogFolders.sessionFolder = activeSession?.folder }
+            app.saveWindows()
+        }
+    }
     /// La sesión activa no tiene carpeta de fotos finales: el origen se queda vacío y se avisa.
     private(set) var sessionLacksFinals = false
 
-    // MARK: Aviso de versión y donativo
-    private(set) var availableUpdate: VersionCheck.Release?
-    /// Banda «Nueva versión disponible»: se enseña hasta que el usuario la cierra (se recuerda por versión).
-    var showUpdateBanner = false
-    /// Hoja de donativo: al arrancar, como mucho cada 7 días.
-    var showDonationPrompt = false
-    /// Hoja «Novedades»: tras actualizar, con las versiones que tocan; desde Ayuda, todas.
-    var whatsNewSections: [Changelog.Section]?
-    var whatsNewTitle: LocalizedStringKey = "Novedades de CAOBA"
-    /// True cuando la app arranca solo para hacer una captura: sin hojas ni avisos.
-    private(set) var isScreenshotMode = false
+    /// La ventana pide que se despliegue la lista de sesiones del título (ventana nueva de ⌘N).
+    var requestSessionList = false
 
-    static let donationURL = URL(string: "https://buymeacoffee.com/marcosesperon")!
-    static let websiteURL = URL(string: "https://caobafoto.com/")!
-    /// Días entre dos avisos de donativo (la misma cadencia que la app antigua).
-    static let donationInterval: TimeInterval = 7 * 24 * 3600
-
-    init() {
-        recentFolders = RecentFolders.load()
-        recovery = RecoverySession(diskMonitor: disks)
-        cardImport = CardImportSession(diskMonitor: disks)
+    init(app: AppModel) {
+        self.app = app
     }
+
+    // MARK: Ventana
+    /// Lo que se guarda de esta ventana para volver a abrirla igual.
+    var seed: WindowSeed {
+        WindowSeed(sessionPath: activeSession?.folder.path,
+                   folderPath: activeSession == nil ? sourceFolder?.path : nil,
+                   module: currentModule.rawValue)
+    }
+
+    /// Deja la ventana como dice `seed`: módulo y sesión (si existe y no está abierta en otra
+    /// ventana) o carpeta suelta, y la lista de sesiones desplegada si se pidió.
+    func restore(_ seed: WindowSeed) async {
+        if let id = seed.module, let module = Module(rawValue: id) { currentModule = module }
+        if let path = seed.sessionPath, FileManager.default.fileExists(atPath: path),
+           let session = sessions.layout.session(containing: URL(fileURLWithPath: path, isDirectory: true)),
+           !app.isSessionOpen(session, besides: self) {
+            await activateSession(session)
+        } else if let path = seed.folderPath, FileManager.default.fileExists(atPath: path) {
+            await selectSourceFolder(URL(fileURLWithPath: path, isDirectory: true), warnIfOpen: false)
+        }
+        if seed.showSessionList { requestSessionList = true }
+    }
+
+    /// Arranque de la primera ventana: vuelve a lo que había al cerrar la app (esta ventana se
+    /// queda con la primera de la lista y devuelve las demás para abrirlas) y aplica los
+    /// argumentos de las capturas. Sin lista guardada, la sesión recordada de siempre.
+    func startAsFirstWindow() async -> [WindowSeed] {
+        app.didLaunch = true
+        // En capturas no se vuelve a nada, salvo con `--state windows.restore=1` (para probarlo).
+        let restores = !isScreenshotMode || launchState["windows.restore"] != nil
+        var saved = restores ? app.savedWindows() : []
+        if saved.isEmpty, restores, let path = UserDefaults.standard.string(forKey: StudioSessions.activeKey) {
+            saved = [WindowSeed(sessionPath: path)]
+        }
+        if let first = saved.first { await restore(first) }
+        await applyLaunchArguments()
+        app.saveWindows()
+        // Cada ventana nueva lleva un id nuevo, para que se abra aparte.
+        return saved.dropFirst().map { var seed = $0; seed.id = UUID(); return seed }
+    }
+
+    // MARK: Atajos a lo compartido (las vistas los usan como si fueran de la ventana)
+    var sessions: StudioSessions { app.sessions }
+    var cardImport: CardImportSession { app.cardImport }
+    var recovery: RecoverySession { app.recovery }
+    var thumbnails: ThumbnailProvider { app.thumbnails }
+    var recentFolders: [URL] { app.recentFolders }
+    /// Algunos módulos borran su clave al usarla, para no repetirla al volver a entrar.
+    var launchState: [String: String] {
+        get { app.launchState }
+        set { app.launchState = newValue }
+    }
+    var isScreenshotMode: Bool { app.isScreenshotMode }
+    func openExternal(_ url: URL) { app.openExternal(url) }
+    func revealInFinder(_ url: URL) { app.revealInFinder(url) }
 
     // MARK: - Carpeta de origen
 
@@ -108,7 +151,7 @@ final class AppState {
 
     /// Solo sin sesión se puede cambiar la carpeta de origen: con sesión, el origen es siempre
     /// su carpeta de fotos finales. Lo miran «Elegir carpeta…», el menú ⌘O y el arrastrar y soltar.
-    var canChangeSource: Bool { sessions.active == nil }
+    var canChangeSource: Bool { activeSession == nil }
 
     func chooseSourceFolder() {
         // Por si se llega desde algún sitio que no lo haya mirado.
@@ -123,9 +166,15 @@ final class AppState {
         }
     }
 
-    func selectSourceFolder(_ url: URL) async {
+    /// Abre una carpeta como origen. Si otra ventana ya la tiene abierta (o tiene abierta la
+    /// sesión que la contiene), avisa y no la abre: las dos guardarían en ella y se pisarían.
+    func selectSourceFolder(_ url: URL, warnIfOpen: Bool = true) async {
         var isDir: ObjCBool = false
         guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue else { return }
+        guard !app.isFolderOpen(url, besides: self) else {
+            if warnIfOpen { warnFolderOpenElsewhere() }
+            return
+        }
         // Con otra carpeta, fuera el destino anterior: si no, un Slideshow o un collage
         // hecho con la carpeta nueva podría pisar el que se generó con la de antes.
         // Sin carpeta de salida, Procesador, Marca de agua y Renombrador guardan junto al original con sufijo.
@@ -143,7 +192,7 @@ final class AppState {
         let savedOrder = FileOrderSettings.load(from: url)?.names ?? []
         isManualOrder = !savedOrder.isEmpty
         manualNames = savedOrder
-        recentFolders = RecentFolders.add(url)
+        app.addRecentFolder(url)
         hasFolderConfig = CaobaConfig.hasSettings(in: url)
         await rescan()
     }
@@ -279,8 +328,10 @@ final class AppState {
     /// Activa una sesión (o ninguna). Con sesión, el origen pasa a su carpeta de fotos finales;
     /// si no la tiene, el origen se queda vacío y sale el aviso. «Sin sesión» no toca el origen.
     func activateSession(_ session: StudioSession?) async {
-        let hadSession = sessions.active != nil
-        sessions.activate(session, remember: !isScreenshotMode)
+        let hadSession = activeSession != nil
+        activeSession = session
+        // En capturas y pruebas no se guarda, para no cambiar la sesión del usuario.
+        if !isScreenshotMode { StudioSessions.remember(session) }
         guard let session else {
             sessionLacksFinals = false
             // Al quitar la sesión se empieza de cero: sin origen, sin destinos y sin el destino
@@ -304,9 +355,15 @@ final class AppState {
     /// Sesión sin carpeta de fotos finales: la crea dentro de la sesión y la abre como origen.
     /// Si no se puede crear (permisos, disco…), el error sube para que la barra lo enseñe.
     func createSessionFinals() async throws {
-        guard let session = sessions.active else { return }
+        guard let session = activeSession else { return }
         try sessions.createFinals(for: session)
         await selectSourceFolder(sessions.layout.finals(of: session))
+    }
+
+    /// Con otra estructura de sesiones (otro formato de fecha…) la activa puede dejar de
+    /// reconocerse o cambiar de nombre: se vuelve a buscar con la estructura nueva.
+    func sessionLayoutChanged() {
+        if let current = activeSession { activeSession = sessions.layout.session(containing: current.folder) }
     }
 
     /// Deja la app sin carpeta de origen (y sin el destino que dependía de ella).
@@ -373,6 +430,15 @@ final class AppState {
             == sourceFolder.standardizedFileURL.resolvingSymlinksInPath().path
     }
 
+    /// Aviso cuando la carpeta elegida ya está abierta en otra ventana.
+    private func warnFolderOpenElsewhere() {
+        let alert = NSAlert()
+        alert.messageText = L("Esta carpeta ya está abierta en otra ventana")
+        alert.informativeText = L("Cada carpeta solo puede estar abierta en una ventana, para que no se pisen lo que guardan en ella (el montaje del Slideshow, el orden de las fotos…).")
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+
     /// Aviso cuando se elige la carpeta de origen como destino.
     private func warnSourceFolderNotAllowed() {
         let alert = NSAlert()
@@ -437,13 +503,7 @@ final class AppState {
             guard let i = arguments.firstIndex(of: flag), arguments.indices.contains(i + 1) else { return nil }
             return arguments[i + 1]
         }
-        isScreenshotMode = arguments.contains("--screenshot")
-        // `--state clave=valor` (repetible) deja preparado un módulo con contenido.
-        // Va lo primero porque el módulo recordado puede estar ya en pantalla.
-        for (i, argument) in arguments.enumerated() where argument == "--state" && arguments.indices.contains(i + 1) {
-            let pair = arguments[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
-            if pair.count == 2 { launchState[pair[0]] = pair[1] }
-        }
+        // `--state clave=valor` y el modo captura ya los ha leído `AppModel` al arrancar.
         if let size = value(after: "--window") {
             let parts = size.lowercased().split(separator: "x").compactMap { Double($0) }
             // La ventana tarda un instante en existir con su tamaño inicial.
@@ -459,9 +519,6 @@ final class AppState {
         }
         if let path = value(after: "--folder") {
             await selectSourceFolder(URL(fileURLWithPath: path))
-        } else if !isScreenshotMode, let session = sessions.active {
-            // Al abrir la app, la sesión que quedó activa vuelve a poner su origen.
-            await activateSession(session)
         }
         // Para pruebas y capturas: `--state session.activate=<carpeta de una sesión>` la activa
         // sin guardarla (en modo captura no cambia la sesión del usuario); con `none`, sin sesión.
@@ -480,9 +537,9 @@ final class AppState {
         // Para probar las novedades: `--state demo.lastSeen=3.0.1` simula esa última versión vista.
         if let seen = launchState["demo.lastSeen"] {
             UserDefaults.standard.set(seen, forKey: Preferences.lastSeenVersionKey)
-            isScreenshotMode = false
-            checkWhatsNew()
-            isScreenshotMode = arguments.contains("--screenshot")
+            app.isScreenshotMode = false
+            app.checkWhatsNew()
+            app.isScreenshotMode = arguments.contains("--screenshot")
         }
         // Para probar la actualización: `--state update.target=/ruta/CAOBA.app` sustituye esa copia
         // (en lugar de la app en ejecución) por el DMG de la última release y no relanza.
@@ -492,26 +549,35 @@ final class AppState {
         // `--state update.force=1` enseña la banda con la última release aunque no sea más nueva,
         // y `update.auto=1` lanza la actualización al momento.
         if launchState["update.force"] != nil, let latest = await VersionCheck.fetchLatest() {
-            availableUpdate = latest
-            showUpdateBanner = true
+            app.availableUpdate = latest
+            app.showUpdateBanner = true
             if launchState["update.auto"] != nil { Updater.shared.update(to: latest) }
         }
         // Para capturar la banda y la hoja sin esperar a que exista una versión nueva ni a los 7 días.
         if let version = launchState["demo.update"] {
-            availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba/releases/latest")!)
-            showUpdateBanner = true
+            app.availableUpdate = VersionCheck.Release(version: version, url: URL(string: "https://github.com/marcosesperon/caoba/releases/latest")!)
+            app.showUpdateBanner = true
         }
         if launchState["demo.donation"] != nil {
-            showDonationPrompt = true
+            app.showDonationPrompt = true
         }
-        // `--screenshot <png>` guarda la ventana tras `--delay` segundos (8 por defecto) y cierra.
+    }
+
+    /// `--screenshot <png>` guarda la ventana tras `--delay` segundos (8 por defecto) y cierra.
+    /// Va aparte de `applyLaunchArguments` para que antes se abran las demás ventanas guardadas.
+    func captureIfRequested(_ arguments: [String] = CommandLine.arguments) async {
+        func value(after flag: String) -> String? {
+            guard let i = arguments.firstIndex(of: flag), arguments.indices.contains(i + 1) else { return nil }
+            return arguments[i + 1]
+        }
         // Se dibuja la propia jerarquía de vistas, así no hace falta permiso de grabación de pantalla.
         if let output = value(after: "--screenshot") {
             let delay = value(after: "--delay").flatMap(Double.init) ?? 8
             try? await Task.sleep(for: .seconds(delay))
             // Una vista invisible se queda con el foco del teclado para que el
             // primer control de la ventana no salga con el anillo rojo.
-            if let window = NSApp.windows.first(where: { $0.isVisible }), let content = window.contentView {
+            // Con `capture.windows` se deja delante la que esté (la última abierta), como al usarla.
+            if launchState["capture.windows"] == nil, let window = NSApp.windows.first(where: { $0.isVisible }), let content = window.contentView {
                 // La app tiene que estar delante: si no, la ventana sale con los controles apagados.
                 NSApp.activate(ignoringOtherApps: true)
                 window.makeKeyAndOrderFront(nil)
@@ -531,6 +597,20 @@ final class AppState {
                 try? await Task.sleep(for: .milliseconds(800))
                 let settings = NSApp.windows.first { $0.isVisible && $0 !== main && $0.frame.width > 100 }
                 Self.captureMainWindow(to: URL(fileURLWithPath: output), window: settings)
+                NSApp.terminate(nil)
+                return
+            }
+            // `--state capture.windows=1`: todas las ventanas, de izquierda a derecha, en `<png>-1.png`, `-2.png`…
+            if launchState["capture.windows"] != nil {
+                let windows = NSApp.windows.filter { $0.isVisible && $0.frame.width > 400 && !($0 is NSPanel) }.sorted { $0.frame.minX < $1.frame.minX }
+                let base = URL(fileURLWithPath: output).deletingPathExtension().path
+                // Cada ventana sola (sin lo que tenga encima), y la de delante también con sus hojas y globos.
+                for (i, window) in windows.enumerated() {
+                    Self.captureMainWindow(to: URL(fileURLWithPath: "\(base)-\(i + 1).png"), window: window)
+                }
+                if let key = NSApp.keyWindow {
+                    Self.captureMainWindow(to: URL(fileURLWithPath: "\(base)-delante.png"), includingSheets: true, window: key)
+                }
                 NSApp.terminate(nil)
                 return
             }
@@ -574,62 +654,6 @@ final class AppState {
               let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
         view.cacheDisplay(in: view.bounds, to: rep)
         try? rep.representation(using: .png, properties: [:])?.write(to: url)
-    }
-
-    // MARK: - Versión
-
-    func checkForUpdates() async {
-        availableUpdate = await VersionCheck.fetchNewerRelease(than: CaobaCoreInfo.version)
-        guard availableUpdate != nil, !isScreenshotMode else { return }
-        showUpdateBanner = true
-    }
-
-    /// La × solo oculta la banda hasta cerrar la app: en el siguiente arranque
-    /// vuelve a salir mientras siga habiendo una versión más nueva.
-    func dismissUpdateBanner() {
-        showUpdateBanner = false
-    }
-
-    /// Tras una actualización enseña las novedades de las versiones que se han
-    /// saltado; en una instalación nueva solo apunta la versión. Devuelve si se enseñó.
-    @discardableResult
-    func checkWhatsNew() -> Bool {
-        guard !isScreenshotMode else { return false }
-        let current = CaobaCoreInfo.version
-        let defaults = UserDefaults.standard
-        defer { defaults.set(current, forKey: Preferences.lastSeenVersionKey) }
-        guard let lastSeen = defaults.string(forKey: Preferences.lastSeenVersionKey), VersionCheck.isNewer(current, than: lastSeen) else { return false }
-        let sections = Changelog.bundled().sections(after: lastSeen, upTo: current)
-        guard !sections.isEmpty else { return false }
-        whatsNewTitle = "Novedades desde la versión \(lastSeen)"
-        whatsNewSections = sections
-        return true
-    }
-
-    /// Desde el menú Ayuda: todo el historial.
-    func showAllWhatsNew() {
-        whatsNewTitle = "Novedades de CAOBA"
-        whatsNewSections = Changelog.bundled().sections
-    }
-
-    /// Un segundo después de arrancar pide apoyo al proyecto, si nunca se hizo
-    /// o han pasado al menos 7 días desde la última vez.
-    func scheduleDonationPrompt() async {
-        guard !isScreenshotMode else { return }
-        let lastShown = UserDefaults.standard.double(forKey: Preferences.donationLastShownKey)
-        let now = Date().timeIntervalSince1970
-        guard lastShown == 0 || now - lastShown >= Self.donationInterval else { return }
-        try? await Task.sleep(for: .seconds(1))
-        UserDefaults.standard.set(now, forKey: Preferences.donationLastShownKey)
-        showDonationPrompt = true
-    }
-
-    func openExternal(_ url: URL) {
-        NSWorkspace.shared.open(url)
-    }
-
-    func revealInFinder(_ url: URL) {
-        NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 }
 

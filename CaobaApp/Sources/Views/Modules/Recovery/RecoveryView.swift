@@ -2,7 +2,7 @@ import SwiftUI
 import CaobaCore
 
 /// Recuperar fotos: elegir tarjeta y opciones, ver cómo avanza y el resultado.
-/// El estado vive en `AppState.recovery` para que la búsqueda siga al cambiar de módulo.
+/// El estado vive en `AppModel.recovery` para que la búsqueda siga al cambiar de módulo.
 struct RecoveryView: View {
     @Environment(AppState.self) private var appState
 
