@@ -28,6 +28,8 @@ struct CaobaApp: App {
             CommandGroup(after: .newItem) {
                 Button("Abrir carpeta…") { appState.chooseSourceFolder() }
                     .keyboardShortcut("o")
+                    // Con sesión, el origen es el suyo: no se puede abrir otra carpeta.
+                    .disabled(!appState.canChangeSource)
             }
             CommandGroup(after: .help) {
                 Button("Novedades de CAOBA") { appState.showAllWhatsNew() }

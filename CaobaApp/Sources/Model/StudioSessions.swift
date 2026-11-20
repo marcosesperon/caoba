@@ -66,6 +66,11 @@ final class StudioSessions {
         return !(FileManager.default.fileExists(atPath: layout.finals(of: session).path, isDirectory: &isDir) && isDir.boolValue)
     }
 
+    /// Crea la carpeta de fotos finales (`JPG`) de una sesión que no la tiene.
+    func createFinals(for session: StudioSession) throws {
+        try FileManager.default.createDirectory(at: layout.finals(of: session), withIntermediateDirectories: true)
+    }
+
     private func updateDialogFolders() {
         DialogFolders.sessionFolder = active?.folder
         DialogFolders.rootFolder = layout.root

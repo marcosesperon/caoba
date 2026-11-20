@@ -4502,3 +4502,84 @@ Simplificar la web (`index.html`) cambiando cómo se presentan las funcionalidad
 - Verlo en un navegador de verdad con scroll de ratón o trackpad (comprobado con capturas de Chrome sin ventana: escritorio en oscuro y claro, Ajustes, el último paso y móvil de 390 px).
 - Safari: `position: sticky` dentro de la rejilla y el `aspect-ratio` del escenario.
 - Sin commit hasta que el usuario lo pida.
+
+## 2026-11-20 — Con sesión activa, no dejar elegir otra carpeta de origen
+
+### 1. La petición tal como se ha entendido
+Con una sesión activa, el origen de las fotos es **siempre** la carpeta de fotos finales de esa sesión (`JPG`, o la que diga Ajustes › Sesiones) y no se puede cambiar por otra:
+- **«Elegir carpeta…»** de la barra de origen se oculta mientras haya sesión (igual que ya pasa con «Recientes»).
+- **Menú Archivo › «Abrir carpeta…» (⌘O)** sale deshabilitado con sesión.
+- **Arrastrar una carpeta a la barra** no hace nada con sesión (ni se ilumina la barra).
+- **Sesión sin carpeta de fotos finales:** el aviso naranja deja de decir «elige el origen a mano» y en su lugar hay un botón **«Crear carpeta JPG»** (con el nombre que tenga en Ajustes) que la crea dentro de la sesión y la abre como origen.
+- Para trabajar con cualquier otra carpeta hay que elegir antes «Sin sesión» en el título. Sin sesión, todo sigue como ahora.
+- No cambia nada en las otras herramientas (QR, Shutter Count, Recuperar fotos), que no usan la sesión, ni en el arranque con `--folder` para las capturas.
+
+*Confirmado por el usuario («ok»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «si tengo una sesión activa, no me dejes seleccionar otra carpeta» (con captura de la barra de origen señalando «Elegir carpeta…» y la sesión «SESION BLABLABLA» activa).
+- **¿Bloquear cualquier otra carpeta o dejar elegir subcarpetas de la sesión?** → *Bloquear del todo*: con sesión, el origen es siempre su carpeta de fotos finales; para usar otra, primero «Sin sesión».
+- **Sesión sin carpeta de fotos finales (JPG), ¿qué se hace?** → *Botón «Crear carpeta JPG»*: crea la carpeta de fotos finales en la sesión y la abre como origen; nunca se sale de la sesión.
+- **¿Ocultar «Elegir carpeta…» o dejarlo deshabilitado con explicación?** → *Ocultarlo*, como ya pasa con «Recientes»; arrastrar una carpeta y el menú «Abrir carpeta…» (⌘O) se bloquean igual (el menú, deshabilitado).
+
+### 3. Fuentes analizadas
+- `SourceFolderBar.swift`, `AppState.swift` (`chooseSourceFolder`, `selectSourceFolder`, `activateSession`), `StudioSessions.swift` (`lacksFinals`), `CaobaApp.swift` (menú «Abrir carpeta…»), `FileListView.swift` (estado vacío) y `Localizable.xcstrings`, en la versión 3.26.0 (commit `4a3ac49`).
+
+### 4. Decisiones
+- **Una sola regla, `AppState.canChangeSource`** (verdadera solo sin sesión), que miran el botón, el menú ⌘O, el arrastrar y soltar y el propio `chooseSourceFolder()`: así no hay un camino que se escape.
+- **«Crear carpeta JPG»** sustituye a «elige el origen a mano»: crea la carpeta de fotos finales de la sesión y la abre como origen, sin salir de la sesión.
+- **Caso sin JPG, retocado al verlo en la app:** la barra decía «Elige la sesión… o una carpeta» y enseñaba «Elegir sesión…» teniendo ya sesión. Ahora enseña en gris la ruta que tendrá la carpeta, oculta «Elegir sesión…» con sesión (se cambia en el título) y el estado vacío de la lista dice «Crea arriba la carpeta JPG de la sesión».
+- **`--folder` del arranque no se bloquea**: es para capturas y pruebas.
+
+### 5. Alternativas descartadas
+- **Dejar elegir carpetas dentro de la sesión** (p. ej. su RAW): el usuario prefirió bloquear del todo.
+- **Botón deshabilitado con explicación**: el usuario prefirió ocultarlo, como «Recientes».
+- **En la sesión sin JPG, dejar «Elegir carpeta…» o solo el aviso**: el usuario eligió el botón que crea la carpeta.
+
+### 6. Pendiente de comprobar
+- Pulsar «Crear carpeta JPG» y ver el menú ⌘O deshabilitado: las capturas en modo prueba no pulsan botones ni abren menús. Comprobado con capturas: con sesión no sale «Elegir carpeta…», sesión sin JPG con aviso y botón, y «Sin sesión» con todo como antes. Compila y pasan los 211 tests.
+- Sin commit hasta que el usuario lo pida.
+
+## 2026-11-20 — Análisis: varias ventanas, cada una con su sesión
+
+### 1. La petición tal como se ha entendido
+Analizar, **sin tocar código**, si CAOBA puede tener **varias ventanas abiertas a la vez, cada una con su propia sesión**, pensando sobre todo en **trabajos largos en paralelo** (p. ej. generar el vídeo de una sesión mientras se procesa o se descarga la tarjeta de otra).
+- Revisar qué está hoy pensado para una sola ventana: el estado de la app (`AppState`), la sesión activa guardada en Ajustes, los trabajos en curso (`JobRunner`), Descargar tarjeta y Recuperar fotos, los diálogos (`DialogFolders`), los presets y lo que se guarda en cada carpeta.
+- Entregar un informe en `docs/analisis-varias-ventanas.md` (como los otros `analisis-*.md`) con: veredicto de viabilidad, qué habría que cambiar, riesgos (dos ventanas con la misma sesión o la misma carpeta, uso de CPU/memoria con dos vídeos a la vez…), alternativas más baratas (p. ej. una cola de trabajos en segundo plano en una sola ventana) y un plan por fases con el esfuerzo estimado.
+- Un resumen corto en la respuesta.
+
+*Confirmado por el usuario («ok»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «si quisiera trabajar con varias sesiones a la vez, ¿puedes analizar si es viable tener distintas ventanas abiertas?».
+- **¿Para qué se quieren las varias ventanas?** → *Trabajos largos en paralelo*: por ejemplo, generar el vídeo de una sesión mientras se procesa o se descarga la tarjeta de otra, sin esperar.
+- **¿Qué se entrega?** → *Informe + propuesta por fases*: si es viable, qué habría que cambiar, riesgos, alternativas más baratas y un plan por fases con esfuerzo estimado, sin tocar código.
+
+### 3. Fuentes analizadas
+- `CaobaApp.swift` (un solo `AppState` para el `WindowGroup`, «Nueva ventana» quitada), `AppState.swift`, `JobRunner.swift` y `ProgressSheet.swift` (`jobPresentation`: hoja modal, un trabajo a la vez), `StudioSessions.swift` (`activate` guarda una sola sesión activa), `DialogFolders.swift` (estático), `ModulePresets.swift` (`PresetStore.shared` en `UserDefaults`), `CardImportSession` y `RecoverySession` (van por su cuenta, sin `JobRunner`, salvo «Ordenar por fecha»), `SlideshowView.swift` (el montaje vive en la vista, ligado a `AppState`). Versión 3.26.0 (commit `4a3ac49`) más los cambios sin subir del bloqueo de origen.
+
+### 4. Decisiones
+- **Veredicto: viable**, con ventanas por sesión (`WindowGroup(for:)`) tras separar el estado en `AppModel` (app) y `WindowState` (ventana). 5–8 días en 4 fases; informe en `docs/analisis-varias-ventanas.md`.
+- **Regla «una sesión, una ventana»** para que dos montajes no se pisen el `.caoba`.
+- **Descargar tarjeta y Recuperar fotos, de la app** (el lector es uno).
+- **Sin límite de trabajos pesados al principio**: la ganancia es no esperar, no ir más rápido; si dos vídeos a la vez van mal, cola de «uno pesado a la vez» en la fase 4.
+
+### 5. Alternativas descartadas
+- **Dos copias de la app (`open -n`)**: funciona hoy sin código, pero comparten preferencias (sesión activa, presets…) y se pisan; solo para probar la idea.
+- **Trabajo en segundo plano en la misma ventana**: el trabajo va ligado a la carpeta y al montaje abiertos; desligarlo cuesta casi lo mismo que la fase 1 y solo se ve una sesión.
+- **Cola de trabajos en vez de ventanas**: mismo problema; tiene sentido encima de las ventanas, no en su lugar.
+
+### 6. Pendiente de comprobar
+- Las estimaciones son a partir del código, sin prototipo.
+- Cuánto se frenan dos vídeos a la vez en la máquina del usuario (se puede medir ya con dos copias de la app).
+- Decidir si se hace y por qué fase se empieza.
+
+## 2026-11-20 — Varias ventanas, cada una con su sesión (desarrollo)
+
+### 1. La petición tal como se ha entendido
+*(pendiente: se escribe al acabar las preguntas)*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «vamos a ello», tras el análisis de `docs/analisis-varias-ventanas.md`.
+- **¿Las 4 fases de una vez o fase a fase?** → *Fase a fase*: fase 1 (separar el estado, sin cambios visibles), comprobada con capturas y tests, y se sigue con la 2 cuando el usuario dé el visto bueno.
+- **¿Subir antes los cambios pendientes (bloqueo de origen y análisis)?** → *Sí, commit y push antes*, para que la fase 1 vaya en su propio commit.

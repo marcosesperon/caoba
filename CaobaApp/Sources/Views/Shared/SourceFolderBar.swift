@@ -11,6 +11,8 @@ struct SourceFolderBar: View {
     /// Lista de sesiones y hoja «Nueva sesión» de «Elegir sesión…».
     @State private var showSessions = false
     @State private var showNewSession = false
+    /// Error al crear la carpeta de fotos finales de la sesión.
+    @State private var createFinalsError: String?
 
     var body: some View {
         @Bindable var state = appState
@@ -18,10 +20,10 @@ struct SourceFolderBar: View {
             HStack(spacing: 10) {
                 Image(systemName: "folder").foregroundStyle(.secondary)
                 // Sin origen, lo normal es trabajar con una sesión; si no, una carpeta suelta.
-                Text(appState.sourceFolder?.path ?? String(localized: "Elige la sesión con la que vas a trabajar o una carpeta de fotos"))
+                Text(sourceText)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                    .foregroundStyle(appState.sourceFolder == nil ? Color.accentColor : .primary)
+                    .foregroundStyle(sourceColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 if appState.isScanning {
@@ -65,7 +67,8 @@ struct SourceFolderBar: View {
                     .focusable(false)
                 }
 
-                if appState.sourceFolder == nil {
+                // Con sesión (aunque le falte la carpeta JPG) no: la sesión se cambia en el título.
+                if appState.sourceFolder == nil && appState.canChangeSource {
                     Button("Elegir sesión…") {
                         appState.sessions.refresh()
                         showSessions = true
@@ -76,15 +79,25 @@ struct SourceFolderBar: View {
                             .environment(appState)
                     }
                 }
-                Button("Elegir carpeta…") { appState.chooseSourceFolder() }
+                // Con sesión no: el origen es siempre su carpeta de fotos finales.
+                if appState.canChangeSource {
+                    Button("Elegir carpeta…") { appState.chooseSourceFolder() }
+                }
             }
-            // La sesión activa no tiene carpeta de fotos finales: el origen hay que elegirlo aquí.
+            // La sesión activa no tiene carpeta de fotos finales: se crea aquí mismo, sin salir de la sesión.
             if appState.sessionLacksFinals {
-                Label("Esta sesión no tiene carpeta \(appState.sessions.layout.finalsFolder): elige el origen a mano.", systemImage: "exclamationmark.triangle")
-                    .font(.callout).foregroundStyle(.orange)
+                HStack(spacing: 10) {
+                    Label("Esta sesión no tiene carpeta \(appState.sessions.layout.finalsFolder).", systemImage: "exclamationmark.triangle")
+                        .font(.callout).foregroundStyle(.orange)
+                    Button("Crear carpeta \(appState.sessions.layout.finalsFolder)") { createFinals() }
+                        .controlSize(.small)
+                }
+                if let createFinalsError {
+                    Text(createFinalsError).font(.callout).foregroundStyle(.red)
+                }
             }
         }
-        .caobaDropPanel(isTargeted: isTargeted, highlighted: appState.sourceFolder == nil)
+        .caobaDropPanel(isTargeted: isTargeted && appState.canChangeSource, highlighted: appState.sourceFolder == nil)
         .sheet(isPresented: $showNewSession) { NewSessionSheet().environment(appState) }
         .confirmationDialog("¿Reiniciar la configuración de esta carpeta?", isPresented: $confirmReset) {
             Button("Reiniciar", role: .destructive) { appState.resetFolderConfig() }
@@ -92,12 +105,36 @@ struct SourceFolderBar: View {
             Text("Se borra lo guardado para esta carpeta: todo el montaje del Slideshow (orden y selección de fotos, collages, encuadres, textos, pies, portada y créditos, música, marca de agua y ajustes del vídeo), los ajustes de «Componer» del Collage y el orden manual de las fotos.\n\nNo se tocan las fotos, los presets guardados ni el historial del Renombrador, que se puede seguir deshaciendo. Esto no se puede deshacer.")
         }
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
-            guard let provider = providers.first else { return false }
+            // Con sesión, soltar una carpeta no cambia el origen.
+            guard appState.canChangeSource, let provider = providers.first else { return false }
             _ = provider.loadObject(ofClass: URL.self) { url, _ in
                 guard let url else { return }
                 Task { @MainActor in await appState.selectSourceFolder(url) }
             }
             return true
+        }
+        .onChange(of: appState.sessions.active) { createFinalsError = nil }
+    }
+
+    /// Ruta del origen; sin origen, qué falta: la carpeta JPG de la sesión (en gris, la que se
+    /// creará) o, sin sesión, elegir una sesión o una carpeta.
+    private var sourceText: String {
+        if let source = appState.sourceFolder { return source.path }
+        if appState.sessionLacksFinals, let session = appState.sessions.active {
+            return appState.sessions.layout.finals(of: session).path
+        }
+        return String(localized: "Elige la sesión con la que vas a trabajar o una carpeta de fotos")
+    }
+
+    private var sourceColor: Color {
+        if appState.sourceFolder != nil { return .primary }
+        return appState.sessionLacksFinals ? .secondary : .accentColor
+    }
+
+    private func createFinals() {
+        createFinalsError = nil
+        Task {
+            do { try await appState.createSessionFinals() } catch { createFinalsError = error.localizedDescription }
         }
     }
 }

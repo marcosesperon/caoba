@@ -54,7 +54,10 @@ struct FileListView: View {
             // Sin el fondo propio de la lista: así se ve el del bloque y no queda un recuadro dentro de otro.
             .scrollContentBackground(.hidden)
             .overlay {
-                if appState.sourceFolder == nil {
+                if appState.sessionLacksFinals {
+                    // Con sesión no se elige carpeta: lo que falta es crear la suya.
+                    ContentUnavailableView("Sin carpeta", systemImage: "folder", description: Text("Crea arriba la carpeta \(appState.sessions.layout.finalsFolder) de la sesión."))
+                } else if appState.sourceFolder == nil {
                     ContentUnavailableView("Sin carpeta", systemImage: "folder", description: Text("Elige una sesión o una carpeta de fotos arriba."))
                 } else if appState.files.isEmpty && !appState.isScanning {
                     ContentUnavailableView("Carpeta vacía", systemImage: "photo.on.rectangle", description: Text("No hay imágenes compatibles en esta carpeta."))

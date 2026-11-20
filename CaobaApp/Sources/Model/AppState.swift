@@ -106,7 +106,13 @@ final class AppState {
 
     var checkedCount: Int { files.count - files.filter { excludedNames.contains($0.name) }.count }
 
+    /// Solo sin sesión se puede cambiar la carpeta de origen: con sesión, el origen es siempre
+    /// su carpeta de fotos finales. Lo miran «Elegir carpeta…», el menú ⌘O y el arrastrar y soltar.
+    var canChangeSource: Bool { sessions.active == nil }
+
     func chooseSourceFolder() {
+        // Por si se llega desde algún sitio que no lo haya mirado.
+        guard canChangeSource else { return }
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -293,6 +299,14 @@ final class AppState {
         } else {
             await selectSourceFolder(sessions.layout.finals(of: session))
         }
+    }
+
+    /// Sesión sin carpeta de fotos finales: la crea dentro de la sesión y la abre como origen.
+    /// Si no se puede crear (permisos, disco…), el error sube para que la barra lo enseñe.
+    func createSessionFinals() async throws {
+        guard let session = sessions.active else { return }
+        try sessions.createFinals(for: session)
+        await selectSourceFolder(sessions.layout.finals(of: session))
     }
 
     /// Deja la app sin carpeta de origen (y sin el destino que dependía de ella).

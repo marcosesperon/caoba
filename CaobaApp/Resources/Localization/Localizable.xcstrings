@@ -361,12 +361,32 @@
         }
       }
     },
-    "Esta sesión no tiene carpeta %@: elige el origen a mano." : {
+    "Esta sesión no tiene carpeta %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This session has no %@ folder: choose the source by hand."
+            "value" : "This session has no %@ folder."
+          }
+        }
+      }
+    },
+    "Crea arriba la carpeta %@ de la sesión." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create the session’s %@ folder above."
+          }
+        }
+      }
+    },
+    "Crear carpeta %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create %@ folder"
           }
         }
       }
