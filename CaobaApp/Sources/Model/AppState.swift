@@ -78,6 +78,10 @@ final class AppState {
     /// La sesión activa no tiene carpeta de fotos finales: el origen se queda vacío y se avisa.
     private(set) var sessionLacksFinals = false
 
+    /// Dónde descarga la tarjeta cuando esta ventana está delante: el `RAW` de su sesión, el elegido
+    /// a mano en ella o ninguno. Descargar tarjeta es una para toda la app y toma el de la de delante.
+    private(set) var cardDestination: URL?
+
     /// La ventana pide que se despliegue la lista de sesiones del título (ventana nueva de ⌘N).
     var requestSessionList = false
 
@@ -112,6 +116,8 @@ final class AppState {
     /// argumentos de las capturas. Sin lista guardada, la sesión recordada de siempre.
     func startAsFirstWindow() async -> [WindowSeed] {
         app.didLaunch = true
+        // Sin sesión, la primera ventana sigue con el destino de descarga que había recordado.
+        cardDestination = cardImport.destinationFolder
         // En capturas no se vuelve a nada, salvo con `--state windows.restore=1` (para probarlo).
         let restores = !isScreenshotMode || launchState["windows.restore"] != nil
         var saved = restores ? app.savedWindows() : []
@@ -338,18 +344,30 @@ final class AppState {
             // de la descarga (que era el RAW de esa sesión), para no seguir trabajando en ella sin querer.
             if hadSession {
                 clearSource()
-                cardImport.clearDestination()
+                setCardDestination(nil)
             }
             return
         }
         // Las tarjetas se descargan en la carpeta de descargas de la sesión (`RAW`).
-        cardImport.changeDestination(to: sessions.layout.downloads(of: session))
+        setCardDestination(sessions.layout.downloads(of: session))
         if sessions.lacksFinals(session) {
             clearSource()
             sessionLacksFinals = true
         } else {
             await selectSourceFolder(sessions.layout.finals(of: session))
         }
+    }
+
+    /// Cambia el destino de descarga de esta ventana (al cambiar de sesión o al elegirlo a mano).
+    func setCardDestination(_ folder: URL?) {
+        cardDestination = folder
+        applyCardDestination()
+    }
+
+    /// Si esta ventana está delante, Descargar tarjeta pasa a su destino (salvo con una descarga en marcha).
+    func applyCardDestination() {
+        guard app.frontWindow === self else { return }
+        cardImport.changeDestination(to: cardDestination)
     }
 
     /// Sesión sin carpeta de fotos finales: la crea dentro de la sesión y la abre como origen.
@@ -572,6 +590,9 @@ final class AppState {
         }
         // Se dibuja la propia jerarquía de vistas, así no hace falta permiso de grabación de pantalla.
         if let output = value(after: "--screenshot") {
+            // Con varias ventanas, la app tiene que estar activa para que la de delante pase a
+            // activa (y CAOBA sepa cuál es) como cuando se usa; sin tocar cuál está delante.
+            if launchState["capture.windows"] != nil { NSApp.activate(ignoringOtherApps: true) }
             let delay = value(after: "--delay").flatMap(Double.init) ?? 8
             try? await Task.sleep(for: .seconds(delay))
             // Una vista invisible se queda con el foco del teclado para que el

@@ -68,6 +68,8 @@ final class AppModel {
         recentFolders = RecentFolders.load()
         recovery = RecoverySession(diskMonitor: disks)
         cardImport = CardImportSession(diskMonitor: disks)
+        // Al acabar una descarga, el destino vuelve a ser el de la ventana de delante (pudo cambiar mientras descargaba).
+        cardImport.onIdle = { [weak self] in self?.frontWindow?.applyCardDestination() }
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.isTerminating = true }
         }
@@ -88,10 +90,11 @@ final class AppModel {
         saveWindows()
     }
 
-    /// Una ventana pasa al frente: sus diálogos se abren en su sesión.
+    /// Una ventana pasa al frente: sus diálogos se abren en su sesión y la tarjeta descarga en su destino.
     func bringToFront(_ window: AppState) {
         frontWindow = window
         DialogFolders.sessionFolder = window.activeSession?.folder
+        window.applyCardDestination()
     }
 
     /// Si la sesión está abierta en otra ventana distinta de `window`.

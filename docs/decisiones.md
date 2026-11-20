@@ -4662,3 +4662,46 @@ Fase 2 del plan de `docs/analisis-varias-ventanas.md`: **varias ventanas, cada u
 - Al actualizar, el tamaño de la ventana se recuerda bajo otra clave: la primera vez sale con el tamaño por defecto.
 - Sin commit hasta que el usuario lo pida.
 - **Probado por el usuario en la app** («estupendo»): visto bueno a la fase 2.
+
+## 2026-11-20 — Varias ventanas, fase 3: Descargar tarjeta y Recuperar fotos
+
+### 1. La petición tal como se ha entendido
+Fase 3 de `docs/analisis-varias-ventanas.md`: que **Descargar tarjeta** y **Recuperar fotos** se comporten bien con varias ventanas.
+- **Descargar tarjeta** sigue siendo una sola para toda la app (el lector es uno): todas las ventanas enseñan la misma tarjeta, la misma selección y, si la hay, la misma descarga en marcha.
+- **Su destino es el de la ventana de delante**, y cada ventana tiene el suyo:
+  - con sesión, el `RAW` de su sesión (como ahora);
+  - sin sesión, vacío hasta que se elija uno con «Elegir…»;
+  - lo que se elija a mano con «Elegir…» se queda en esa ventana (si se pasa a otra y se vuelve, sigue ahí) hasta que esa ventana cambie de sesión.
+  - Al pasar de una ventana a otra, la descarga cambia a su destino (y vuelve a mirar qué falta por descargar allí).
+- **Con una descarga en marcha**, el destino queda fijo hasta que acabe, se mire desde la ventana que se mire.
+- «Crear sesión…» de Descargar tarjeta crea la sesión en la ventana de delante y descarga en ella (como ahora).
+- El aviso «las fotos no son del día de la sesión» mira la sesión de la ventana de delante (ya lo hace).
+- **Recuperar fotos** sigue siendo una para toda la app, con su destino propio y recordado, sin depender de la sesión: no cambia. «Ordenar por fecha» usa el trabajo de la ventana desde la que se pulsa (ya lo hace).
+
+*Confirmado por el usuario («dale»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «dale», para seguir con la fase 3 de `docs/analisis-varias-ventanas.md` tras subir las fases 1 y 2 (commit `f51d2e5`).
+- **Situación de partida (revisada en el código):** Descargar tarjeta y Recuperar fotos son uno para toda la app. El destino de la descarga lo cambia cualquier ventana al elegir sesión (`changeDestination` al `RAW` de esa sesión) y lo vacía «Sin sesión»; con dos ventanas, la descarga apunta al `RAW` de la última que cambió de sesión, aunque se abra desde la otra. Recuperar fotos tiene destino propio, recordado, y no depende de la sesión.
+- **Con varias ventanas, ¿a qué sesión descarga la tarjeta?** → *La de la ventana desde la que se mira*: Descargar tarjeta se ve igual en todas, pero el destino es el `RAW` de la sesión de la ventana de delante; al empezar a descargar queda fijo hasta que acabe.
+- **Ventana de delante sin sesión, ¿qué destino tiene la descarga?** → *El que se elija en esa ventana*: empieza vacío y lo elegido con «Elegir…» se queda en esa ventana aunque se pase a otra y se vuelva.
+
+### 3. Fuentes analizadas
+- `CardImportSession.swift` (`destinationFolder`, `changeDestination`, `clearDestination`, `phase`), `CardImportView.swift` («Elegir…»), `AppState.swift` (`activateSession`), `AppModel.swift` (`bringToFront`) y `WindowRoot.swift`, sobre el commit `f51d2e5`.
+
+### 4. Decisiones
+- **Destino de descarga por ventana** (`AppState.cardDestination`) y **aplicado solo desde la de delante** (`applyCardDestination`): la descarga es una, pero cada ventana recuerda el suyo (sesión, ninguno o el elegido a mano).
+- **`changeDestination(to:)` acepta `nil`** y sustituye a `clearDestination()`: una sola puerta para cambiar el destino, que respeta la descarga en marcha.
+- **Al acabar una descarga** (`onIdle`, al salir de copiando/pausa/cancelando) se vuelve a aplicar el destino de la ventana de delante.
+- **La primera ventana sin sesión se queda con el destino recordado**, como antes; las nuevas sin sesión empiezan vacías.
+- **Ventana de delante más robusta**: además del aviso de «pasa a activa», al terminar de preparar cada ventana se mira si ya es la activa (`bringToFrontIfKey`). Salió al probar: si la ventana pasaba a activa antes de engancharla, CAOBA no se enteraba.
+- **En capturas de varias ventanas se activa la app** (`capture.windows`): sin eso, con otra app delante, ninguna ventana pasaba a activa y la prueba salía unas veces sí y otras no.
+
+### 5. Alternativas descartadas
+- **Solo una ventana con Descargar tarjeta a la vez**: el usuario prefirió que se vea en todas con el destino de la de delante.
+- **Sin sesión, destino siempre vacío o uno común a todas**: el usuario eligió el de cada ventana.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: con dos ventanas en Descargar tarjeta, el destino es el de la de delante en los tres casos (delante una con sesión distinta, una sin sesión y una con sesión tras otra sin), seis pasadas bien. Las 16 capturas de una ventana salen como antes (las diferencias vistas eran de foco: ventana desactivada o el globo de la lista cerrado, y también le pasan a la compilación anterior). Compila (los avisos que salen ya estaban) y pasan los 211 tests.
+- Sin tarjeta no se ha probado una descarga real con varias ventanas (destino fijo durante la descarga y vuelta al de la de delante al acabar): para el usuario, con una tarjeta.
+- Sin commit hasta que el usuario lo pida.

@@ -2,6 +2,15 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.27.0 — 2026-11-20
+
+- **Varias ventanas, cada una con su sesión**: con ⌘N (Archivo › Nueva ventana) abres otra ventana y eliges su sesión, o en la lista de sesiones del título pulsas «Abrir en ventana nueva» al pasar el ratón. Cada ventana va a lo suyo: puedes generar el vídeo de una boda mientras procesas las fotos de otra.
+- **Una sesión, una ventana**: la sesión que ya está abierta en otra ventana sale en gris en la lista, y una carpeta que ya tiene otra ventana no se abre dos veces, para que no se pisen lo que guardan.
+- **Al volver a abrir CAOBA vuelven todas las ventanas**, cada una con su sesión y su módulo. Cerrar una ventana con un trabajo en marcha pide confirmación.
+- **Descargar tarjeta descarga en la sesión de la ventana que tienes delante**; sin sesión, en la carpeta que elijas en esa ventana. Durante una descarga el destino no cambia.
+- **Con sesión, el origen es siempre el suyo**: «Elegir carpeta…» desaparece mientras haya sesión. Si a la sesión le falta su carpeta JPG, el botón «Crear carpeta JPG» la crea y la abre.
+- El nombre de la sesión ya no sale cortado en el título al cambiar a una de nombre largo.
+
 ## 3.26.0 — 2026-11-16
 
 - **Solo lo que puedes usar**: en «Descargar tarjeta» y «Recuperar fotos», sin tarjeta solo se ve dónde elegirla (con una vista previa de las sesiones de la tarjeta) y el botón de abajo espera apagado. Lo que depende de otra cosa sale atenuado hasta tenerla: la colocación de la marca de agua sin PNG, o las opciones y el ritmo de la música sin pistas.

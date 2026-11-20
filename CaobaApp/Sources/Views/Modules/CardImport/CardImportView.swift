@@ -391,7 +391,8 @@ struct CardImportActionBar: View {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.prompt = L("Elegir destino")
-        if panel.runFromStartFolder() == .OK, let url = panel.url { session.changeDestination(to: url) }
+        // Se queda en esta ventana: si se pasa a otra y se vuelve, sigue siendo este.
+        if panel.runFromStartFolder() == .OK, let url = panel.url { appState.setCardDestination(url) }
     }
 }
 

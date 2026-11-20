@@ -34,6 +34,8 @@ struct WindowRoot: View {
         app.register(appState)
         guard !app.didLaunch else {
             if let seed { await appState.restore(seed) }
+            // Pudo pasar al frente antes de engancharla: si es la de delante, que se sepa.
+            link.bringToFrontIfKey(state: appState, app: app)
             return
         }
         // La primera ventana: las demás que había al cerrar la app se abren aparte.
@@ -72,13 +74,19 @@ final class WindowLink {
                 }
             },
         ]
-        if window.isKeyWindow { app.bringToFront(state) }
+        bringToFrontIfKey(state: state, app: app)
         let guardDelegate = WindowCloseGuard(original: window.delegate) { [weak state] in
             guard let state, state.jobRunner.isRunning else { return true }
             return WindowCloseGuard.confirmClosingWithJob()
         }
         closeGuard = guardDelegate
         window.delegate = guardDelegate
+    }
+}
+
+extension WindowLink {
+    func bringToFrontIfKey(state: AppState, app: AppModel) {
+        if window?.isKeyWindow == true { app.bringToFront(state) }
     }
 }
 

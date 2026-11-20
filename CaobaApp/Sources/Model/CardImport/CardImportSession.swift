@@ -54,7 +54,12 @@ final class CardImportSession {
     }
 
     // MARK: Resumen y descarga
-    private(set) var phase: Phase = .setup
+    private(set) var phase: Phase = .setup {
+        // Al acabar una descarga (bien o cancelada), el destino vuelve a ser el de la ventana de delante.
+        didSet { if !isBusy, oldValue.isBusyPhase { onIdle?() } }
+    }
+    /// Lo pone `AppModel`: qué hacer cuando deja de estar ocupada.
+    @ObservationIgnored var onIdle: (() -> Void)?
     /// Sesiones de la tarjeta (de la más reciente a la más antigua) y las marcadas para descargar.
     private(set) var sessions: [CardSession] = []
     private(set) var selectedSessionIDs: Set<CardSession.ID> = []
@@ -114,12 +119,7 @@ final class CardImportSession {
             ?? disk.mountPoints.first
     }
 
-    var isBusy: Bool {
-        switch phase {
-        case .copying, .paused, .cancelling: return true
-        case .setup, .finished: return false
-        }
-    }
+    var isBusy: Bool { phase.isBusyPhase }
 
     var isPaused: Bool {
         if case .paused = phase { return true }
@@ -245,17 +245,11 @@ final class CardImportSession {
 
     // MARK: Sesiones
 
-    /// Cambia el destino (el `RAW` de la sesión del estudio o el elegido a mano). Con una descarga
-    /// en marcha no se toca; si es el mismo, no se vuelve a leer la tarjeta.
-    func changeDestination(to folder: URL) {
-        guard !isBusy, folder.standardizedFileURL != destinationFolder?.standardizedFileURL else { return }
+    /// Cambia el destino: el de la ventana de delante (el `RAW` de su sesión, el elegido a mano o
+    /// ninguno). Con una descarga en marcha no se toca; si es el mismo, no se vuelve a leer la tarjeta.
+    func changeDestination(to folder: URL?) {
+        guard !isBusy, folder?.standardizedFileURL != destinationFolder?.standardizedFileURL else { return }
         destinationFolder = folder
-    }
-
-    /// Quita el destino (al pasar a «Sin sesión»). Con una descarga en marcha no se toca.
-    func clearDestination() {
-        guard !isBusy else { return }
-        destinationFolder = nil
     }
 
     /// Hora de la primera foto marcada: la fecha que se propone al crear una sesión del estudio.
@@ -493,5 +487,15 @@ private final class ProgressBox: @unchecked Sendable {
     var value: CardImportProgress {
         get { lock.withLock { _value } }
         set { lock.withLock { _value = newValue } }
+    }
+}
+
+private extension CardImportSession.Phase {
+    /// Copiando, en pausa o cancelando: el destino no se puede cambiar.
+    var isBusyPhase: Bool {
+        switch self {
+        case .copying, .paused, .cancelling: return true
+        case .setup, .finished: return false
+        }
     }
 }
