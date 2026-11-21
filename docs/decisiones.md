@@ -4744,3 +4744,59 @@ Fase 4 (última) de `docs/analisis-varias-ventanas.md`, para el día a día con 
 - Comprobado con capturas: dos ventanas con «Generar vídeo», una codificando y la otra «En cola: esperando a que termine el vídeo de Prueba con JPG»; dejándolas, el segundo vídeo empieza solo al acabar el primero y salen los dos MP4; saliendo con los dos en marcha, se cancelan, no queda ningún MP4 a medias y la app se cierra en unos 11 s. Las 16 capturas de una ventana salen igual (solo cambian la versión del pie y la fecha de hoy en Ajustes). Compila sin avisos nuevos y pasan los 211 tests.
 - Para el usuario, a mano: las notificaciones (que aparezcan con CAOBA detrás y con otra ventana delante, y que al pulsarlas salga la ventana del trabajo; la primera vez macOS pide permiso), el aviso de ⌘Q con la lista y sus dos botones, y salir desde el Dock.
 - Sin commit hasta que el usuario lo pida.
+
+## 2026-11-21 — Dejar solo la última release en GitHub
+
+### 1. La petición tal como se ha entendido
+Borrar en GitHub las releases anteriores a la 3.28.0 y dejar solo la última. Es una operación directa, sin plan aparte.
+
+### 2. Preguntas y respuestas
+- **¿Se borran también las etiquetas de versión (56 `v…`)?** → Solo las releases; las etiquetas se quedan.
+
+### 3. Fuentes analizadas
+- `gh release list`: había 4 releases (v3.25.0, v3.26.0, v3.27.0 y v3.28.0).
+- Búsqueda de enlaces a versiones concretas en la web, la app y los documentos: no hay ninguno.
+
+### 4. Decisiones
+- Se borran las releases v3.25.0, v3.26.0 y v3.27.0 con sus DMG. Queda solo la v3.28.0, que es la «Latest», así que la comprobación de versión nueva y la descarga desde la web siguen funcionando.
+- Las etiquetas se mantienen, para que siga quedando marcado en el historial qué commit es cada versión.
+
+### 5. Alternativas descartadas
+- Borrar también las etiquetas: no aporta nada y se pierde la referencia de cada versión en el historial.
+
+### 6. Pendiente de comprobar
+- Nada.
+
+## 2026-11-21 — README y web al día con las novedades
+
+### 1. La petición tal como se ha entendido
+Poner al día el `README.md` y la web (`index.html`) con lo que ha entrado desde la 3.26, que es lo último que recogen:
+
+- **Varias ventanas** (3.27): cada ventana con su sesión (⌘N o «Abrir en ventana nueva» en la lista); una sesión no se abre en dos ventanas; al volver a abrir CAOBA vuelven todas; cerrar una ventana con un trabajo en marcha pide confirmación.
+- **Descargar tarjeta** descarga en la sesión de la ventana de delante (3.27).
+- **Con sesión, el origen es siempre el suyo**, con «Crear carpeta JPG» si falta (3.27).
+- **Aviso al terminar** lo que no estás viendo, **cola de vídeos** y **salir con trabajos en marcha** (3.28).
+
+En la web, las varias ventanas van como **paso nuevo** en el grupo «Sesión», detrás de «La sesión, en el título», con una **captura nueva** de dos ventanas con dos sesiones de muestra (las fotos «A&S» de siempre, nada de clientes reales), en español como las demás, y sus 3 puntos en español e inglés. Lo demás entra como puntos en los pasos y apartados que toque. Se revisan de paso los datos que hayan cambiado (p. ej. el tamaño de la descarga, que ahora es de 17 MB y no de 14).
+
+**Confirmación:** «ok» (2026-11-21).
+
+### 2. Preguntas y respuestas
+- **En la web, ¿cómo se presentan las varias ventanas?** → Paso nuevo con captura.
+
+### 3. Fuentes analizadas
+- `README.md` e `index.html` en `main` (al día hasta la 3.26), `CHANGELOG.md` de la 3.27 y la 3.28.
+
+### 4. Decisiones
+- **Paso nuevo «Varias ventanas»** en la web, detrás de «La sesión, en el título», con captura `windows.png`/`.webp`: detrás, «Familia Ortega» en Collage y, delante, el vídeo de «Alex & Sofía» generándose con su hoja de progreso. Es justo la razón de ser de las ventanas: un trabajo largo en una y otra cosa en la otra.
+- La captura es un montaje de las dos ventanas (cada una capturada por la app con `capture.windows`) escalonadas y con sombra sobre fondo transparente, porque la app captura ventanas sueltas, no la pantalla.
+- La cola de vídeos y el aviso al terminar van en los puntos del paso nuevo y no en el del Slideshow, que ya tiene sus 3.
+- Descargar tarjeta: «la sesión de la ventana de delante». «Por qué CAOBA»: 17 MB (el DMG de la 3.28) y el aviso antes de cerrar con trabajos en marcha dentro de «Pensada para no perder nada». Las descripciones de la página mencionan las ventanas.
+- README: dos puntos nuevos en Sesiones (varias ventanas y trabajos en paralelo), el destino de Descargar tarjeta, el origen fijo con sesión y el aviso al terminar en Interfaz.
+
+### 5. Alternativas descartadas
+- Solo texto, sin captura: la idea de dos sesiones a la vez se entiende mucho mejor viéndola.
+- Capturar la pantalla entera con las dos ventanas: pide permiso de grabación de pantalla y saldría el escritorio y lo que haya abierto; el montaje queda limpio y del mismo tamaño que las demás.
+
+### 6. Pendiente de comprobar
+- Que el usuario revise la web y el README antes del commit.

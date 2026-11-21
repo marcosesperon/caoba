@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CAOBA · Utilidades para fotógrafos</title>
-<meta name="description" content="CAOBA: app nativa para macOS que organiza el trabajo por sesiones: descarga de tarjetas, slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, contador de disparos y recuperación de fotos borradas. Gratis y de código abierto.">
+<meta name="description" content="CAOBA: app nativa para macOS que organiza el trabajo por sesiones, cada una en su ventana: descarga de tarjetas, slideshows en vídeo, collages, hojas de contacto, procesado por lotes, marca de agua, metadatos, renombrado, códigos QR, contador de disparos y recuperación de fotos borradas. Gratis y de código abierto.">
 <link rel="icon" href="assets/icon.png">
 <meta property="og:title" content="CAOBA · Utilidades para fotógrafos">
-<meta property="og:description" content="Sesiones del estudio, descarga de tarjetas, slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR, shutter count y recuperación de fotos. Nativa de macOS.">
+<meta property="og:description" content="Sesiones del estudio en varias ventanas, descarga de tarjetas, slideshows, collages, hojas de contacto, lotes, marca de agua, metadatos, renombrado, QR, shutter count y recuperación de fotos. Nativa de macOS.">
 <meta property="og:image" content="https://marcosesperon.github.io/caoba/assets/screenshots/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -293,6 +293,17 @@
             <li><span lang-es>QR, Shutter Count y Recuperar fotos no la tocan: el título dice solo «CAOBA».</span><span lang-en>QR, Shutter Count and Recover Photos leave it alone: the title just says “CAOBA”.</span></li>
           </ul>
         </article>
+        <article class="step" id="varias-ventanas">
+          <a class="shot" href="assets/screenshots/windows.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/windows.webp" type="image/webp"><img src="assets/screenshots/windows.png" width="2880" height="1800" loading="lazy" alt="Dos ventanas de CAOBA: Collage de la sesión «Familia Ortega» detrás y, delante, el vídeo de «Alex & Sofía» generándose"></picture></a>
+          <div class="n"><span lang-es>Varias ventanas</span><span lang-en>Multiple windows</span></div>
+          <h3><span lang-es>Una ventana por sesión</span><span lang-en>One window per session</span></h3>
+          <p><span lang-es>Genera el vídeo de una boda mientras haces los collages de otra: cada ventana va con su sesión y a lo suyo.</span><span lang-en>Render one wedding’s video while you make another’s collages: each window has its own session and gets on with it.</span></p>
+          <ul>
+            <li><span lang-es>⌘N o «Abrir en ventana nueva» en la lista; una sesión nunca se abre dos veces.</span><span lang-en>⌘N or “Open in new window” in the list; a session never opens twice.</span></li>
+            <li><span lang-es>Los vídeos van de uno en uno, en cola, y te avisa al terminar lo que no estás viendo.</span><span lang-en>Videos render one at a time, queued, and you get a notification when something you are not looking at finishes.</span></li>
+            <li><span lang-es>Al volver a abrir CAOBA vuelven todas, cada una con su sesión.</span><span lang-en>Reopen CAOBA and they all come back, each with its session.</span></li>
+          </ul>
+        </article>
         <article class="step" id="ajustes-sesiones">
           <a class="shot portrait" href="assets/screenshots/settings-sessions.png" target="_blank" rel="noopener"><picture><source srcset="assets/screenshots/settings-sessions.webp" type="image/webp"><img src="assets/screenshots/settings-sessions.png" width="1040" height="1296" loading="lazy" alt="Ajustes › Sesiones: carpeta raíz, carpeta por año, formato del nombre y subcarpetas"></picture></a>
           <div class="n"><span lang-es>Ajustes › Sesiones</span><span lang-en>Settings › Sessions</span></div>
@@ -347,7 +358,7 @@
           <ul>
             <li><span lang-es>Reconoce la tarjeta y agrupa sus fotos en sesiones por hora.</span><span lang-en>Spots the card and groups its photos into sessions by time.</span></li>
             <li><span lang-es>Cada copia se vuelve a leer y se compara; la tarjeta solo se lee.</span><span lang-en>Each copy is read back and compared; the card is only read.</span></li>
-            <li><span lang-es>Directa al RAW de la sesión activa, o crea la sesión en el momento.</span><span lang-en>Straight into the active session’s RAW folder, or creates the session on the spot.</span></li>
+            <li><span lang-es>Directa al RAW de la sesión de la ventana de delante, o crea la sesión en el momento.</span><span lang-en>Straight into the RAW folder of the front window’s session, or creates the session on the spot.</span></li>
           </ul>
         </article>
         <article class="step" id="procesador">
@@ -438,8 +449,8 @@
       <div class="why">
         <div><div class="num">0<small style="font-size:24px">€</small></div><b><span lang-es>Gratis. De verdad</span><span lang-en>Free. Really</span></b><p><span lang-es>Sin cuentas, sin suscripción, sin versión «pro». El código es abierto y está en GitHub.</span><span lang-en>No accounts, no subscription, no “pro” version. The code is open and on GitHub.</span></p></div>
         <div><div class="num">100<small style="font-size:24px">%</small></div><b><span lang-es>Tus fotos no salen de tu Mac</span><span lang-en>Your photos never leave your Mac</span></b><p><span lang-es>Todo se procesa en local. Nada se sube a ningún servidor; la única conexión es comprobar si hay una versión nueva.</span><span lang-en>Everything runs locally. Nothing is uploaded anywhere; the only connection is checking for a new version.</span></p></div>
-        <div><div class="num">↩︎</div><b><span lang-es>Pensada para no perder nada</span><span lang-en>Built so you lose nothing</span></b><p><span lang-es>Originales intactos (copias nuevas por defecto), metadatos sin recomprimir, renombrado con deshacer y la configuración guardada en cada carpeta, que avisa antes de borrarse y recupera los ficheros que hayas movido.</span><span lang-en>Originals untouched (new copies by default), metadata without recompression, renaming with undo and settings saved in each folder, which asks before being reset and relinks files you have moved.</span></p></div>
-        <div><div class="num">14<small style="font-size:24px">MB</small></div><b><span lang-es>Rápida y ligera</span><span lang-en>Fast and light</span></b><p><span lang-es>Se instala arrastrando, arranca al instante y se actualiza desde la propia app. El vídeo se codifica por hardware, en Mac Intel o Apple Silicon.</span><span lang-en>Installs by dragging, opens instantly and updates from within the app. Video is hardware-encoded, on Intel or Apple Silicon Macs.</span></p></div>
+        <div><div class="num">↩︎</div><b><span lang-es>Pensada para no perder nada</span><span lang-en>Built so you lose nothing</span></b><p><span lang-es>Originales intactos (copias nuevas por defecto), metadatos sin recomprimir, renombrado con deshacer, la configuración guardada en cada carpeta, que avisa antes de borrarse y recupera los ficheros que hayas movido, y un aviso antes de cerrar con trabajos en marcha.</span><span lang-en>Originals untouched (new copies by default), metadata without recompression, renaming with undo, settings saved in each folder, which asks before being reset and relinks files you have moved, and a warning before quitting with work in progress.</span></p></div>
+        <div><div class="num">17<small style="font-size:24px">MB</small></div><b><span lang-es>Rápida y ligera</span><span lang-en>Fast and light</span></b><p><span lang-es>Se instala arrastrando, arranca al instante y se actualiza desde la propia app. El vídeo se codifica por hardware, en Mac Intel o Apple Silicon.</span><span lang-en>Installs by dragging, opens instantly and updates from within the app. Video is hardware-encoded, on Intel or Apple Silicon Macs.</span></p></div>
       </div>
       <p class="why-note"><span lang-es>Hecha por un estudio de fotografía para su propio trabajo: lo que ves es lo que usamos cada día.</span><span lang-en>Made by a photography studio for its own work: what you see is what we use every day.</span></p>
     </div>

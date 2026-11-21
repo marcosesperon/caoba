@@ -126,12 +126,13 @@ Capturas y estados usados:
 | `recovery` | `--module recovery --state recovery.results=<carpeta>` |
 | `sessions` | `--module slideshow --folder … --state sessions.list=1 --state capture.sheets=1` (con `capture.sheets` sale también el globo) |
 | `settings-sessions` | `--state demo.settings=1 --state settings.tab=sessions` (sale la ventana de Ajustes, 1040×1296) |
+| `windows` | Montaje de dos ventanas (añadida en la v3.28): `-caoba.windows <[WindowSeed] en hex>` con «Familia Ortega» en Collage y «Alex & Sofía» en Slideshow, y `--state windows.restore=1 --state capture.windows=1 --state slideshow.queue=1 --state collage.autocompose=content`. Salen `<png>-1.png` y `-2.png` (la segunda con la hoja «Codificando vídeo…»), que se juntan escalonadas y con sombra en un lienzo transparente de 2880×1800 con un script de CoreGraphics. |
 
 Las capturas de la landing están en `assets/screenshots/` a tamaño real (2880×1800) en PNG y WebP: la página usa `<picture>` con WebP y PNG de respaldo, los enlaces a la imagen completa y la imagen social (`og:image`) van en PNG.
 
 ### La web: «Lo que hace», paso a paso
 
-La sección `#modulos` de `index.html` enseña las funcionalidades **una a una con el scroll**: en pantallas de más de 900 px hay tres columnas, un índice fino a la izquierda, los textos en medio (cada paso ocupa casi una pantalla y los que no se están leyendo salen atenuados) y, a la derecha, la captura fija que cambia con un fundido según el paso. Son 13 pasos: la sesión en el título, Ajustes › Sesiones y los 11 módulos, con las cabeceras de grupo (Sesión, Creadores, Utilidades, Otras herramientas) como separadores.
+La sección `#modulos` de `index.html` enseña las funcionalidades **una a una con el scroll**: en pantallas de más de 900 px hay tres columnas, un índice fino a la izquierda, los textos en medio (cada paso ocupa casi una pantalla y los que no se están leyendo salen atenuados) y, a la derecha, la captura fija que cambia con un fundido según el paso. Son 14 pasos: la sesión en el título, las varias ventanas, Ajustes › Sesiones y los 11 módulos, con las cabeceras de grupo (Sesión, Creadores, Utilidades, Otras herramientas) como separadores.
 
 Cada paso es un `<article class="step" id="…">` con todo lo suyo dentro: su captura (`<a class="shot">`, con `portrait` si es vertical), el número, el título, una frase y como mucho 3 puntos, en español e inglés. El índice y el escenario de la derecha **no se escriben a mano**: el JS del final los monta copiando los títulos y las capturas de los pasos, así cada funcionalidad se escribe en un solo sitio. El paso activo es el último cuyo principio ha pasado la mitad de la pantalla (se mira al hacer scroll, una vez por fotograma) y se marca con la clase `on` en el texto, la captura y el índice.
 
