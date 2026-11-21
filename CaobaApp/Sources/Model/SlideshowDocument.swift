@@ -1172,9 +1172,10 @@ final class SlideshowDocument {
         launch(output: url, preview: true)
     }
 
+    /// El vídeo final pasa por la cola: si otra ventana está generando el suyo, espera su turno.
     func generate() {
         guard let output = app.destinationFile else { return }
-        launch(output: output, preview: false)
+        app.app.videoQueue.submit(app) { [weak self] in self?.launch(output: output, preview: false) }
     }
 
     /// Solo para pruebas desde línea de comandos: vista previa a un fichero concreto.

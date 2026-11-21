@@ -10028,6 +10028,146 @@
           }
         }
       }
+    },
+    "En cola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queued"
+          }
+        }
+      }
+    },
+    "Esperando a que termine %@. Empezará sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for %@ to finish. It will start on its own."
+          }
+        }
+      }
+    },
+    "el vídeo de %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the video of %@"
+          }
+        }
+      }
+    },
+    "otra ventana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "another window"
+          }
+        }
+      }
+    },
+    "%@: terminado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: done"
+          }
+        }
+      }
+    },
+    "%@: terminado con avisos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: done with warnings"
+          }
+        }
+      }
+    },
+    "%@: con error" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: failed"
+          }
+        }
+      }
+    },
+    "%@ — %@ (en cola)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ — %2$@ (queued)"
+          }
+        }
+      }
+    },
+    "Descarga de la tarjeta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Card download"
+          }
+        }
+      }
+    },
+    "Búsqueda de Recuperar fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recover Photos search"
+          }
+        }
+      }
+    },
+    "Hay trabajos en marcha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are jobs running"
+          }
+        }
+      }
+    },
+    "Si sales, se cancelan y lo que estuviera a medias no se guarda." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you quit, they are cancelled and anything half-done isn’t saved."
+          }
+        }
+      }
+    },
+    "Salir y cancelarlos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit and Cancel Them"
+          }
+        }
+      }
+    },
+    "Salir de CAOBA" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit CAOBA"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

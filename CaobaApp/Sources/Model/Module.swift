@@ -17,21 +17,26 @@ enum Module: String, CaseIterable, Identifiable {
     /// Trabaja con la sesión activa. Las de «Otras herramientas» no: en ellas el título dice solo «CAOBA».
     var usesSession: Bool { !Module.otherTools.contains(self) }
 
-    var title: LocalizedStringKey {
+    /// Nombre del módulo, ya traducido: también para textos fuera de las vistas (notificaciones,
+    /// el aviso al salir…).
+    var titleText: String {
         switch self {
-        case .slideshow: return "Slideshow"
-        case .collage: return "Collage"
-        case .contactSheet: return "Contact Sheet"
-        case .processor: return "Procesador"
-        case .watermark: return "Marca de agua"
-        case .metadata: return "Metadatos"
-        case .renamer: return "Renombrador"
-        case .qr: return "Código QR"
-        case .shutterCount: return "Shutter Count"
-        case .cardImport: return "Descargar tarjeta"
-        case .recovery: return "Recuperar fotos"
+        case .slideshow: return L("Slideshow")
+        case .collage: return L("Collage")
+        case .contactSheet: return L("Contact Sheet")
+        case .processor: return L("Procesador")
+        case .watermark: return L("Marca de agua")
+        case .metadata: return L("Metadatos")
+        case .renamer: return L("Renombrador")
+        case .qr: return L("Código QR")
+        case .shutterCount: return L("Shutter Count")
+        case .cardImport: return L("Descargar tarjeta")
+        case .recovery: return L("Recuperar fotos")
         }
     }
+
+    /// Para las vistas: el texto ya va traducido, así que se enseña tal cual.
+    var title: LocalizedStringKey { LocalizedStringKey(titleText) }
 
     var systemImage: String {
         switch self {

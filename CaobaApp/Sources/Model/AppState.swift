@@ -11,6 +11,10 @@ import CaobaCore
 final class AppState {
     /// Lo compartido por todas las ventanas.
     let app: AppModel
+    /// Para encontrar la ventana desde una notificación.
+    let id = UUID()
+    /// Su `NSWindow` (la pone `WindowLink`), para traerla al frente.
+    weak var window: NSWindow?
 
     // MARK: Navegación
     /// Módulo activo. Arranca en el último usado y se recuerda al cambiar
@@ -87,6 +91,33 @@ final class AppState {
 
     init(app: AppModel) {
         self.app = app
+        jobRunner.onFinish = { [weak self] outcome, quiet in self?.jobFinished(outcome, quiet: quiet) }
+    }
+
+    // MARK: Trabajo terminado
+    /// Cómo se llama lo que tiene abierto la ventana: la sesión o, sin ella, la carpeta.
+    var workName: String {
+        activeSession?.name ?? sourceFolder?.lastPathComponent ?? L("Sin sesión")
+    }
+
+    /// Al acabar un trabajo: si era el vídeo de la cola, pasa el siguiente; y si no se está
+    /// viendo (CAOBA detrás u otra ventana delante), notificación de macOS.
+    private func jobFinished(_ outcome: JobOutcome, quiet: Bool) {
+        app.videoQueue.finished(self)
+        guard !quiet, outcome.kind != .cancelled, !NSApp.isActive || app.frontWindow !== self else { return }
+        let title: String
+        switch outcome.kind {
+        case .success: title = L("\(currentModule.titleText): terminado")
+        case .warning: title = L("\(currentModule.titleText): terminado con avisos")
+        case .error, .cancelled: title = L("\(currentModule.titleText): con error")
+        }
+        SystemNotifier.post(title: title, subtitle: workName, body: outcome.message, window: id)
+    }
+
+    /// Trae CAOBA y esta ventana al frente (al pulsar su notificación).
+    func bringWindowToFront() {
+        NSApp.activate(ignoringOtherApps: true)
+        window?.makeKeyAndOrderFront(nil)
     }
 
     // MARK: Ventana
@@ -618,25 +649,28 @@ final class AppState {
                 try? await Task.sleep(for: .milliseconds(800))
                 let settings = NSApp.windows.first { $0.isVisible && $0 !== main && $0.frame.width > 100 }
                 Self.captureMainWindow(to: URL(fileURLWithPath: output), window: settings)
-                NSApp.terminate(nil)
+                app.quit()
                 return
             }
             // `--state capture.windows=1`: todas las ventanas, de izquierda a derecha, en `<png>-1.png`, `-2.png`…
             if launchState["capture.windows"] != nil {
-                let windows = NSApp.windows.filter { $0.isVisible && $0.frame.width > 400 && !($0 is NSPanel) }.sorted { $0.frame.minX < $1.frame.minX }
+                let windows = NSApp.windows.filter { $0.isVisible && $0.frame.width > 400 && !($0 is NSPanel) && $0.sheetParent == nil }.sorted { $0.frame.minX < $1.frame.minX }
                 let base = URL(fileURLWithPath: output).deletingPathExtension().path
-                // Cada ventana sola (sin lo que tenga encima), y la de delante también con sus hojas y globos.
-                for (i, window) in windows.enumerated() {
-                    Self.captureMainWindow(to: URL(fileURLWithPath: "\(base)-\(i + 1).png"), window: window)
-                }
+                // Primero la de delante con sus hojas y globos; luego cada una, puesta encima un
+                // momento para que salga con su hoja (la de progreso, la de «En cola»…).
                 if let key = NSApp.keyWindow {
                     Self.captureMainWindow(to: URL(fileURLWithPath: "\(base)-delante.png"), includingSheets: true, window: key)
                 }
-                NSApp.terminate(nil)
+                for (i, window) in windows.enumerated() {
+                    window.orderFrontRegardless()
+                    try? await Task.sleep(for: .milliseconds(400))
+                    Self.captureMainWindow(to: URL(fileURLWithPath: "\(base)-\(i + 1).png"), includingSheets: true, window: window)
+                }
+                app.quit()
                 return
             }
             Self.captureMainWindow(to: URL(fileURLWithPath: output), includingSheets: launchState["demo.donation"] != nil || launchState["demo.lastSeen"] != nil || launchState["capture.sheets"] != nil)
-            NSApp.terminate(nil)
+            app.quit()
         }
     }
 

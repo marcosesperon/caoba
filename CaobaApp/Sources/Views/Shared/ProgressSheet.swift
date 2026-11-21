@@ -6,6 +6,30 @@ struct ProgressSheet: View {
     let runner: JobRunner
 
     var body: some View {
+        if let waitingFor = runner.queuedBehind {
+            queued(waitingFor)
+        } else {
+            running
+        }
+    }
+
+    /// En la cola de vídeos: espera a que acabe el de otra ventana; «Cancelar» la saca de la cola.
+    private func queued(_ waitingFor: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("En cola").font(.headline)
+            ProgressView()
+            Text("Esperando a que termine \(waitingFor). Empezará sola.")
+                .font(.callout).foregroundStyle(.secondary)
+            HStack {
+                Spacer()
+                Button("Cancelar") { runner.cancel() }.keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 420)
+    }
+
+    private var running: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(runner.progress?.phase.label ?? String(localized: "Preparando…"))
                 .font(.headline)
@@ -62,7 +86,7 @@ extension View {
     /// Muestra la hoja de progreso mientras el runner trabaja y la alerta al terminar.
     func jobPresentation(_ runner: JobRunner) -> some View {
         self
-            .sheet(isPresented: Binding(get: { runner.isRunning }, set: { _ in })) { ProgressSheet(runner: runner) }
+            .sheet(isPresented: Binding(get: { runner.isBusy }, set: { _ in })) { ProgressSheet(runner: runner) }
             .modifier(JobOutcomeAlert(runner: runner))
     }
 }

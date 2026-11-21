@@ -19,6 +19,25 @@ final class JobRunner {
     private(set) var progress: JobProgress?
     var outcome: JobOutcome?
     private var task: Task<Void, Never>?
+    /// En la cola de vídeos, esperando a otro: lo que se espera («el vídeo de Boda…»). `nil` si no espera.
+    private(set) var queuedBehind: String?
+    /// Lo ponen la ventana y la cola: qué hacer al acabar un trabajo y al salir de la cola sin empezar.
+    /// `quiet`: no hay que enseñar nada (vista previa que salió bien).
+    @ObservationIgnored var onFinish: ((_ outcome: JobOutcome, _ quiet: Bool) -> Void)?
+    @ObservationIgnored var onLeaveQueue: (() -> Void)?
+
+    /// Trabajando o esperando turno: la ventana está ocupada (hoja de progreso, cerrar pide confirmación…).
+    var isBusy: Bool { isRunning || queuedBehind != nil }
+
+    /// Entra en la cola de vídeos detrás de `waitingFor`.
+    func enqueue(behind waitingFor: String) {
+        queuedBehind = waitingFor
+    }
+
+    /// Sale de la cola (le toca, o espera a otro distinto).
+    func leaveQueue() {
+        queuedBehind = nil
+    }
 
     /// Lanza el trabajo. `body` recibe el callback de progreso y devuelve el mensaje final.
     func run(openURL: URL? = nil, quietOnSuccess: Bool = false, _ body: @escaping @Sendable (@escaping ProgressHandler) async throws -> BatchSummary) {
@@ -34,8 +53,8 @@ final class JobRunner {
             do {
                 let summary = try await body(handler)
                 let outcome = Self.outcome(for: summary, openURL: openURL)
-                finish(with: outcome)
-                if quietOnSuccess, outcome.kind == .success { self.outcome = nil }
+                // La vista previa que sale bien no enseña nada (ni alerta ni notificación).
+                finish(with: outcome, quiet: quietOnSuccess && outcome.kind == .success)
             } catch let error as CaobaError where error == .cancelled {
                 finish(with: JobOutcome(kind: .cancelled, message: L("Cancelado por el usuario.")))
             } catch {
@@ -44,15 +63,22 @@ final class JobRunner {
         }
     }
 
+    /// Cancela el trabajo; si solo estaba en cola, sale de ella sin empezar.
     func cancel() {
+        if queuedBehind != nil {
+            queuedBehind = nil
+            onLeaveQueue?()
+            return
+        }
         task?.cancel()
     }
 
-    private func finish(with outcome: JobOutcome) {
+    private func finish(with outcome: JobOutcome, quiet: Bool = false) {
         isRunning = false
         progress = nil
         task = nil
-        self.outcome = outcome
+        self.outcome = quiet ? nil : outcome
+        onFinish?(outcome, quiet)
     }
 
     /// Texto de resultado a partir del resumen del lote.

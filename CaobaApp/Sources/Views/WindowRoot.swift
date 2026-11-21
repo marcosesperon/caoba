@@ -59,6 +59,7 @@ final class WindowLink {
     func attach(_ window: NSWindow, state: AppState, app: AppModel) {
         guard self.window !== window else { return }
         self.window = window
+        state.window = window
         observers.forEach(NotificationCenter.default.removeObserver)
         let center = NotificationCenter.default
         observers = [
@@ -75,8 +76,9 @@ final class WindowLink {
             },
         ]
         bringToFrontIfKey(state: state, app: app)
-        let guardDelegate = WindowCloseGuard(original: window.delegate) { [weak state] in
-            guard let state, state.jobRunner.isRunning else { return true }
+        let guardDelegate = WindowCloseGuard(original: window.delegate) { [weak state, weak app] in
+            // Al salir de la app ya se preguntó (o no había nada): no se pregunta ventana a ventana.
+            guard let state, state.jobRunner.isBusy, app?.isQuitting != true else { return true }
             return WindowCloseGuard.confirmClosingWithJob()
         }
         closeGuard = guardDelegate

@@ -20,6 +20,10 @@ final class AppModel {
     let thumbnails = ThumbnailProvider()
     /// Estructura de sesiones de Ajustes y lista de la carpeta raíz. La sesión activa es de cada ventana.
     let sessions = StudioSessions()
+    /// Un «Generar vídeo» a la vez en toda la app.
+    let videoQueue = VideoQueue()
+    /// El de esta app, para el delegado (notificaciones, salir).
+    private(set) static weak var current: AppModel?
     private(set) var recentFolders: [URL] = []
 
     // MARK: Aviso de versión y donativo
@@ -49,6 +53,8 @@ final class AppModel {
     var didLaunch = false
     /// Al salir de la app no se toca la lista guardada: las ventanas se cierran, pero se quiere volver a ellas.
     @ObservationIgnored private var isTerminating = false
+    /// Ya se ha decidido salir (aceptado el aviso o sin trabajos): las ventanas no vuelven a preguntar al cerrarse.
+    @ObservationIgnored var isQuitting = false
     static let windowsKey = "caoba.windows"
 
     static let donationURL = URL(string: "https://buymeacoffee.com/marcosesperon")!
@@ -70,6 +76,7 @@ final class AppModel {
         cardImport = CardImportSession(diskMonitor: disks)
         // Al acabar una descarga, el destino vuelve a ser el de la ventana de delante (pudo cambiar mientras descargaba).
         cardImport.onIdle = { [weak self] in self?.frontWindow?.applyCardDestination() }
+        Self.current = self
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.isTerminating = true }
         }
@@ -115,6 +122,68 @@ final class AppModel {
             }
             return false
         }
+    }
+
+    /// La ventana con ese id (la de una notificación).
+    func window(id: UUID) -> AppState? {
+        openWindows.first { $0.id == id }
+    }
+
+    /// Lo que está en marcha y se cortaría al salir: «Slideshow — Boda…», «(en cola)», la descarga
+    /// de la tarjeta y la búsqueda de Recuperar fotos.
+    func runningWork() -> [String] {
+        var work: [String] = []
+        for window in openWindows {
+            if window.jobRunner.isRunning {
+                work.append("\(window.currentModule.titleText) — \(window.workName)")
+            } else if window.jobRunner.queuedBehind != nil {
+                work.append(L("\(window.currentModule.titleText) — \(window.workName) (en cola)"))
+            }
+        }
+        if cardImport.isBusy { work.append(L("Descarga de la tarjeta")) }
+        if recovery.isBusy { work.append(L("Búsqueda de Recuperar fotos")) }
+        return work
+    }
+
+    /// Si hay trabajos en marcha, pregunta con la lista si salir cancelándolos. Sin trabajos (o en
+    /// capturas) no pregunta. Devuelve si se sale; desde ahí, las ventanas ya no preguntan al cerrarse.
+    func confirmQuit() -> Bool {
+        let work = runningWork()
+        if !work.isEmpty && !isScreenshotMode {
+            let alert = NSAlert()
+            alert.messageText = L("Hay trabajos en marcha")
+            alert.informativeText = work.map { "• \($0)" }.joined(separator: "\n")
+                + "\n\n" + L("Si sales, se cancelan y lo que estuviera a medias no se guarda.")
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: L("Seguir trabajando"))
+            alert.addButton(withTitle: L("Salir y cancelarlos"))
+            guard alert.runModal() == .alertSecondButtonReturn else { return false }
+        }
+        isQuitting = true
+        return true
+    }
+
+    /// ⌘Q (y las capturas al acabar): pregunta si hay trabajos, los cancela, espera a que paren
+    /// (como mucho 10 segundos) y sale.
+    func quit() {
+        guard confirmQuit() else { return }
+        guard !runningWork().isEmpty else {
+            NSApp.terminate(nil)
+            return
+        }
+        cancelAllWork()
+        Task {
+            for _ in 0..<50 where !runningWork().isEmpty { try? await Task.sleep(for: .milliseconds(200)) }
+            NSApp.terminate(nil)
+        }
+    }
+
+    /// Al salir aceptando cortarlos: se cancela todo (primero las colas, para que no empiece nada).
+    func cancelAllWork() {
+        for window in openWindows where window.jobRunner.queuedBehind != nil { window.jobRunner.cancel() }
+        for window in openWindows { window.jobRunner.cancel() }
+        if cardImport.isBusy { cardImport.cancel() }
+        if recovery.isBusy { recovery.cancel() }
     }
 
     /// Guarda qué ventanas hay abiertas (sesión o carpeta y módulo de cada una), para volver a

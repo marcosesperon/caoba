@@ -1,7 +1,6 @@
 import Foundation
 import AppKit
 import Observation
-import UserNotifications
 import CaobaCore
 
 /// Estado del módulo «Descargar tarjeta»: tarjeta y opciones, el resumen de lo que falta,
@@ -454,20 +453,12 @@ final class CardImportSession {
         disksChanged()
     }
 
-    /// Aviso de macOS si la app no está delante. La primera vez macOS pide permiso; si no se
-    /// da, no pasa nada.
+    /// Aviso de macOS si la app no está delante.
     private func notifyIfInBackground(_ summary: CardImportSummary) {
         guard !NSApp.isActive else { return }
-        let content = UNMutableNotificationContent()
-        content.title = L("Descarga terminada")
-        content.body = summary.failures.isEmpty
+        SystemNotifier.post(title: L("Descarga terminada"), body: summary.failures.isEmpty
             ? L("\(summary.copied) copiadas, \(summary.alreadyThere) ya estaban.")
-            : L("\(summary.copied) copiadas, \(summary.alreadyThere) ya estaban y \(summary.failures.count) con problemas.")
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
-            guard granted else { return }
-            center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
-        }
+            : L("\(summary.copied) copiadas, \(summary.alreadyThere) ya estaban y \(summary.failures.count) con problemas."))
     }
 
     static func bytes(_ count: Int64) -> String {

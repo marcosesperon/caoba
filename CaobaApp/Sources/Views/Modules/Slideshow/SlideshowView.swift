@@ -103,6 +103,15 @@ struct SlideshowView: View {
                     doc.generateForTest(to: URL(fileURLWithPath: path))
                 }
             }
+            // `--state slideshow.queue=1`: «Generar vídeo» de verdad (al destino de la sesión), para
+            // probar la cola de vídeos con varias ventanas.
+            if appState.launchState["slideshow.queue"] != nil {
+                Task {
+                    var attempts = 0
+                    while (doc.files.isEmpty || appState.destinationFile == nil) && attempts < 40 { try? await Task.sleep(for: .milliseconds(250)); attempts += 1 }
+                    doc.generate()
+                }
+            }
             // `--state slideshow.tab=video|extras|music`: abre esa pestaña.
             if let name = appState.launchState["slideshow.tab"], let wanted = SlideshowTab(rawValue: name) { tab = wanted }
             // `--state slideshow.select=collage|photo|text|track`: selecciona el primer collage, foto, tarjeta

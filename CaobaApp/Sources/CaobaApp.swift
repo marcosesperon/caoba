@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 import CaobaCore
 
 /// Punto de entrada de la app de macOS.
@@ -31,10 +32,38 @@ struct CaobaApp: App {
 
 /// Sin la restauración de ventanas de macOS: CAOBA vuelve a abrir las suyas, cada una con su
 /// sesión (`AppState.startAsFirstWindow`), y con la de macOS saldrían repetidas.
-final class CaobaAppDelegate: NSObject, NSApplicationDelegate {
+///
+/// También atiende las notificaciones (que se vean aunque CAOBA esté delante y, al pulsarlas,
+/// traer su ventana) y pregunta antes de salir si hay trabajos en marcha.
+final class CaobaAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ app: NSApplication, shouldSaveSecureApplicationState coder: NSCoder) -> Bool { false }
     func application(_ app: NSApplication, shouldRestoreSecureApplicationState coder: NSCoder) -> Bool { false }
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+    }
+
+    /// Salir por otro camino que no sea ⌘Q (el Dock, cerrar sesión…): mismo aviso. Con una hoja de
+    /// progreso abierta macOS ni siquiera pregunta aquí; por eso ⌘Q va por `AppModel.quit`.
+    @MainActor
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard let app = AppModel.current, !app.isQuitting else { return .terminateNow }
+        guard app.confirmQuit() else { return .terminateCancel }
+        return .terminateNow
+    }
+
+    // Una notificación de otra ventana tiene que verse aunque CAOBA esté delante.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+
+    // Al pulsarla, CAOBA pasa al frente con la ventana del trabajo.
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        guard let text = response.notification.request.content.userInfo[SystemNotifier.windowKey] as? String,
+              let id = UUID(uuidString: text) else { return }
+        await MainActor.run { AppModel.current?.window(id: id)?.bringWindowToFront() }
+    }
 }
 
 /// Menús de la app: «Nueva ventana» (⌘N), «Abrir carpeta…» (⌘O) en la ventana de delante y
@@ -58,6 +87,12 @@ struct CaobaCommands: Commands {
         }
         CommandGroup(after: .help) {
             Button("Novedades de CAOBA") { app.showAllWhatsNew() }
+        }
+        // ⌘Q propio: con trabajos en marcha pregunta, los cancela y sale cuando han parado
+        // (macOS no deja salir mientras una ventana tiene abierta la hoja de progreso).
+        CommandGroup(replacing: .appTermination) {
+            Button("Salir de CAOBA") { app.quit() }
+                .keyboardShortcut("q")
         }
     }
 }

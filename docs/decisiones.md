@@ -4705,3 +4705,42 @@ Fase 3 de `docs/analisis-varias-ventanas.md`: que **Descargar tarjeta** y **Recu
 - Comprobado con capturas: con dos ventanas en Descargar tarjeta, el destino es el de la de delante en los tres casos (delante una con sesión distinta, una sin sesión y una con sesión tras otra sin), seis pasadas bien. Las 16 capturas de una ventana salen como antes (las diferencias vistas eran de foco: ventana desactivada o el globo de la lista cerrado, y también le pasan a la compilación anterior). Compila (los avisos que salen ya estaban) y pasan los 211 tests.
 - Sin tarjeta no se ha probado una descarga real con varias ventanas (destino fijo durante la descarga y vuelta al de la de delante al acabar): para el usuario, con una tarjeta.
 - Sin commit hasta que el usuario lo pida.
+
+## 2026-11-21 — Varias ventanas, fase 4: avisos al terminar y al salir
+
+### 1. La petición tal como se ha entendido
+Fase 4 (última) de `docs/analisis-varias-ventanas.md`, para el día a día con varias ventanas:
+- **Notificación de macOS al terminar un trabajo** (vídeo, collage, contact sheet, procesado, marca de agua, metadatos, renombrado, ordenar por fecha) **cuando no se está viendo**: con CAOBA detrás o si el trabajo era de una ventana distinta de la de delante. Dice qué ha terminado, en qué sesión y si fue bien, con avisos o con error. Al pulsarla, CAOBA pasa al frente con esa ventana. Si se está viendo, solo la alerta de siempre (que sigue esperando en su ventana en cualquier caso). Descargar tarjeta mantiene su notificación de ahora.
+- **Salir (⌘Q) con trabajos en marcha** pregunta antes: «Hay trabajos en marcha» con la lista de cuáles y en qué sesión (los de cada ventana, los vídeos en cola, la descarga de la tarjeta y la búsqueda de Recuperar fotos), con «Seguir trabajando» o «Salir y cancelarlos». Sin trabajos, sale como siempre.
+- **Cola de vídeos:** solo un «Generar vídeo» del Slideshow a la vez en toda la app. Si se pulsa en una ventana mientras otra genera el suyo, esa ventana espera con «En cola: esperando a que termine el vídeo de *sesión*…» (con «Cancelar») y empieza sola al acabar el otro, por orden de llegada. La «Vista previa» no entra en la cola. El resto de trabajos no tiene límite.
+
+*Confirmado por el usuario («ok»).*
+
+### 2. Preguntas y respuestas
+- **Petición original:** «vamos con la fase 4», la última de `docs/analisis-varias-ventanas.md` (pulido: aviso al terminar con la ventana detrás, confirmación al salir con trabajos en marcha y, si hiciera falta, límite de trabajos pesados a la vez), tras publicar la 3.27.0.
+- **Situación de partida (revisada en el código):** al acabar un trabajo de `JobRunner` sale una alerta con el resultado en su ventana (`JobOutcomeAlert`). Descargar tarjeta ya manda una notificación de macOS si la app no está delante. Salir con ⌘Q con trabajos en marcha los corta sin preguntar.
+- **¿Cuándo la notificación de macOS al terminar un trabajo?** → *Si no se está viendo*: con CAOBA detrás o con el trabajo en otra ventana distinta de la de delante; al pulsarla se trae esa ventana al frente. Si se está viendo, solo la alerta de siempre.
+- **Salir (⌘Q) con trabajos en marcha** → *Preguntar con la lista*: «Hay trabajos en marcha» con cuáles y en qué sesión (también la descarga de la tarjeta y la búsqueda de Recuperar fotos), y «Seguir trabajando» o «Salir y cancelarlos».
+- **¿Límite de trabajos pesados a la vez?** → *Cola de vídeos*: solo un vídeo del Slideshow a la vez; el segundo espera en su ventana con «En cola…» y empieza solo al acabar el primero.
+- **¿La «Vista previa» del Slideshow entra en la cola?** → *No, solo «Generar vídeo»*: la vista previa es rápida y se quiere ver al momento.
+
+### 3. Fuentes analizadas
+- `JobRunner.swift`, `ProgressSheet.swift`, `SlideshowDocument.swift` (`generate`, `launch`), `CardImportSession.swift` (notificación), `RecoverySession.swift` (`isBusy`, `cancel`), `Module.swift`, `AppModel.swift`, `AppState.swift`, `WindowRoot.swift` y `CaobaApp.swift`, sobre el commit `3c6980d` (3.27.0).
+
+### 4. Decisiones
+- **`JobRunner.onFinish`** para que la ventana sepa que acabó su trabajo (notificación y turno de la cola), y **`SystemNotifier`** como único sitio para notificar (Descargar tarjeta lo usa también; de paso desaparecen sus avisos de concurrencia).
+- **Notificación solo si no se está viendo** (CAOBA detrás u otra ventana delante) y nunca por cancelar ni por la vista previa que sale bien; al pulsarla, la ventana del trabajo al frente (id de ventana en la notificación).
+- **`VideoQueue`** en `AppModel` con estado «en cola» en `JobRunner` (`queuedBehind`): la hoja de progreso enseña la espera y «Cancelar» sale de la cola. Si un vídeo no llega a arrancar, suelta el turno.
+- **⌘Q propio** (`AppModel.quit`): al probar se vio que, con una hoja de progreso abierta, macOS no deja salir ni llama a `applicationShouldTerminate`, así que el aviso con la lista nunca salía (y ⌘Q no hacía nada, también en la versión anterior). Ahora ⌘Q pregunta, cancela, espera a que paren (hasta 10 s) y sale. `isQuitting` evita que cada ventana vuelva a preguntar al cerrarse.
+- **`Module.titleText`** (texto traducido) y `title` sacado de él, para usar el nombre del módulo en notificaciones y en el aviso de salir.
+
+### 5. Alternativas descartadas
+- **Notificar siempre** o **solo con CAOBA detrás**: el usuario eligió «si no lo estás viendo».
+- **Avisar al salir sin detalle** o **no dejar salir**: el usuario eligió el aviso con la lista.
+- **Sin límite de vídeos**: el usuario prefirió la cola. **Vista previa en la cola**: descartado por el usuario.
+- **Contestar más tarde desde `applicationShouldTerminate` (`.terminateLater`)**: no sirve, porque con una hoja abierta macOS no llega a preguntar.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: dos ventanas con «Generar vídeo», una codificando y la otra «En cola: esperando a que termine el vídeo de Prueba con JPG»; dejándolas, el segundo vídeo empieza solo al acabar el primero y salen los dos MP4; saliendo con los dos en marcha, se cancelan, no queda ningún MP4 a medias y la app se cierra en unos 11 s. Las 16 capturas de una ventana salen igual (solo cambian la versión del pie y la fecha de hoy en Ajustes). Compila sin avisos nuevos y pasan los 211 tests.
+- Para el usuario, a mano: las notificaciones (que aparezcan con CAOBA detrás y con otra ventana delante, y que al pulsarlas salga la ventana del trabajo; la primera vez macOS pide permiso), el aviso de ⌘Q con la lista y sus dos botones, y salir desde el Dock.
+- Sin commit hasta que el usuario lo pida.

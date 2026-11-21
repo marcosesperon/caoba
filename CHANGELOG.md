@@ -2,6 +2,12 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.28.0 — 2026-11-21
+
+- **Aviso al terminar lo que no estás viendo**: si un trabajo acaba con CAOBA detrás, o en otra ventana distinta de la que tienes delante, sale una notificación de macOS («Slideshow: terminado», con la sesión). Al pulsarla, CAOBA pasa al frente con esa ventana.
+- **Los vídeos, de uno en uno**: si otra ventana ya está generando su vídeo, el tuyo espera «En cola» y empieza solo al acabar el anterior. Puedes cancelarlo mientras espera. La vista previa no espera.
+- **Salir con trabajos en marcha**: ⌘Q enseña la lista de lo que está en marcha (los trabajos de cada ventana, los vídeos en cola, la descarga de la tarjeta y la búsqueda de Recuperar fotos) y te deja seguir trabajando o salir cancelándolos. Antes, con un trabajo en marcha, ⌘Q no hacía nada.
+
 ## 3.27.0 — 2026-11-20
 
 - **Varias ventanas, cada una con su sesión**: con ⌘N (Archivo › Nueva ventana) abres otra ventana y eliges su sesión, o en la lista de sesiones del título pulsas «Abrir en ventana nueva» al pasar el ratón. Cada ventana va a lo suyo: puedes generar el vídeo de una boda mientras procesas las fotos de otra.
