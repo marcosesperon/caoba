@@ -41,6 +41,14 @@ struct RecoveryView: View {
                 appState.launchState["recovery.results"] = nil
                 session.showResults(of: URL(fileURLWithPath: path))
             }
+            // Y `--state recovery.card=disk7` elige esa tarjeta (la lista de discos tarda un momento).
+            if let card = appState.launchState["recovery.card"] {
+                appState.launchState["recovery.card"] = nil
+                Task {
+                    try? await Task.sleep(for: .seconds(1))
+                    session.selectedDiskID = card
+                }
+            }
             #if DEBUG
             // Búsqueda de mentira (solo desarrollo): `--state recovery.demo=<fotos>` y `recovery.demoOut=<destino>`.
             if let source = appState.launchState["recovery.demo"], let out = appState.launchState["recovery.demoOut"] {
@@ -209,6 +217,13 @@ struct RecoveryActionBar: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(session.blockingProblem != nil)
                     .fixedSize()
+            }
+            if let folder = session.destinationFolder {
+                // No se sabe cuánto saldrá hasta el final: se pinta lo máximo, rayado.
+                let incoming = session.blockingProblem == nil ? session.maximumOutput : nil
+                DiskSpaceBar(folder: folder, incoming: incoming, isEstimate: true,
+                             detail: incoming.map { L("puede ocupar hasta \(DiskSpaceBar.bytes($0))") },
+                             overflows: session.spaceWarning != nil)
             }
             Text("Te pedirá la contraseña de administrador: leer la tarjeta en bruto lo exige. La tarjeta se usa solo para leer.")
                 .font(.caption).foregroundStyle(.secondary)

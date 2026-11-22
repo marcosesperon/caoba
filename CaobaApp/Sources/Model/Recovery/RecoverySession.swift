@@ -102,14 +102,16 @@ final class RecoverySession {
 
     /// Aviso (no impide empezar) si en el destino podría no caber todo.
     var spaceWarning: String? {
-        guard let disk = selectedDisk, let destination = destinationFolder,
-              let free = try? destination.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
-                .volumeAvailableCapacityForImportantUsage else { return nil }
-        let needed = neededSpace(for: disk)
+        // Lo libre de verdad, como la pausa y la barra del disco (sin lo que macOS podría liberar).
+        guard let needed = maximumOutput, let destination = destinationFolder,
+              let free = DiskSpace.of(destination)?.free else { return nil }
         guard free < needed else { return nil }
         let format = ByteCountFormatter()
         return L("En el destino quedan \(format.string(fromByteCount: free)) libres y lo recuperado puede ocupar hasta \(format.string(fromByteCount: needed)). Si se va llenando, CAOBA pausará la búsqueda para que elimines lo que no quieras y sigas.")
     }
+
+    /// Lo máximo que puede salir de la tarjeta elegida; `nil` sin tarjeta.
+    var maximumOutput: Int64? { selectedDisk.map(neededSpace) }
 
     /// Lo máximo que puede salir: lo libre de la tarjeta (si se sabe) o la tarjeta entera.
     private func neededSpace(for disk: ExternalDisk) -> Int64 {

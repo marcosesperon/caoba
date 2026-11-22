@@ -1,6 +1,36 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "%@ libres de %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ free of %2$@"
+          }
+        }
+      }
+    },
+    "esta descarga %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this download %@"
+          }
+        }
+      }
+    },
+    "puede ocupar hasta %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "may take up to %@"
+          }
+        }
+      }
+    },
     "Lo encontrado va en bloques" : {
       "localizations" : {
         "en" : {

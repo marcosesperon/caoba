@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.29.0 — 2026-11-22
+
+- **Espacio del disco de destino a la vista**: en «Descargar tarjeta» y «Recuperar fotos», debajo de la carpeta de destino, una barra como la de Finder con el disco, lo libre y lo que vas a guardar encima («esta descarga 10,1 GB»; en Recuperar fotos, rayado, lo máximo que puede ocupar). Si no cabe, se pinta en naranja.
+
 ## 3.28.0 — 2026-11-21
 
 - **Aviso al terminar lo que no estás viendo**: si un trabajo acaba con CAOBA detrás, o en otra ventana distinta de la que tienes delante, sale una notificación de macOS («Slideshow: terminado», con la sesión). Al pulsarla, CAOBA pasa al frente con esa ventana.

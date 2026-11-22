@@ -156,7 +156,7 @@ public enum CardImporter {
 
 extension URL {
     /// La propia carpeta o la primera de sus padres que exista (la de fecha aún no se ha creado).
-    var existingAncestor: URL {
+    public var existingAncestor: URL {
         var url = self
         while !FileManager.default.fileExists(atPath: url.path), url.pathComponents.count > 1 {
             url = url.deletingLastPathComponent()

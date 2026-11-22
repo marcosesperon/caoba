@@ -4800,3 +4800,46 @@ En la web, las varias ventanas van como **paso nuevo** en el grupo «Sesión», 
 
 ### 6. Pendiente de comprobar
 - Que el usuario revise la web y el README antes del commit.
+
+## 2026-11-22 — Espacio libre del disco en el destino de Descargar tarjeta y Recuperar fotos
+
+### 1. La petición tal como se ha entendido
+En la barra del destino de **Descargar tarjeta** y de **Recuperar fotos**, debajo de la carpeta elegida, una **barra de ocupación del disco** de destino, como la de Finder:
+
+- Delante, el nombre del disco («Macintosh HD», «SSD Fotos»…); detrás, el texto «182 GB libres de 1 TB · …».
+- **Descargar tarjeta**: encima de lo ocupado, el tramo de lo que falta por descargar de las sesiones marcadas, con «esta descarga 10,1 GB». Cambia al marcar o desmarcar sesiones, al cambiar los tipos o al cambiar de destino.
+- **Recuperar fotos**: como no se sabe cuánto saldrá, el tramo es lo máximo que puede salir (lo libre de la tarjeta, o la tarjeta entera), **rayado**, con «puede ocupar hasta 58 GB».
+- **Si no cabe**: el tramo que no cabe se pinta en **naranja** hasta el final de la barra, y se mantiene el aviso naranja de ahora (que explica que se pausará para liberar espacio).
+- Solo **antes de empezar**; en marcha se queda como está. Sin destino elegido (o sin tarjeta, o sin nada que descargar) no sale el tramo, y sin destino no sale la barra.
+
+**Confirmación:** «ok» (2026-11-22).
+
+### 2. Preguntas y respuestas
+- **¿Cómo se ve el espacio en la barra del destino?** → Barra de ocupación del disco, como la de Finder: lo ocupado, lo que se va a descargar o recuperar encima y el texto «182 GB libres de 1 TB · esta descarga 10,1 GB», con el nombre del disco delante.
+- **En Recuperar fotos, ¿qué se pinta encima de lo ocupado, si no se sabe cuánto saldrá?** → Lo máximo que puede salir (lo libre de la tarjeta o la tarjeta entera), rayado, con «puede ocupar hasta 58 GB».
+- **Si no cabe, ¿qué pasa con el aviso naranja de ahora?** → Se mantiene, y además el tramo que no cabe se pinta en naranja hasta el final de la barra.
+- **¿La barra solo antes de empezar o también en marcha?** → Solo antes de empezar.
+
+### 3. Fuentes analizadas
+- `CardImportView.swift` (`CardImportActionBar`) y `CardImportSession.swift` (`spaceWarning`, `plan.bytesToCopy`, `freeSpace`), en `main` tras la 3.28.0.
+- `RecoveryView.swift` (`RecoveryActionBar`) y `RecoverySession.swift` (`spaceWarning`, `neededSpace(for:)`, `freeSpace`).
+- `CardImporter.freeSpace(at:)` y `URL.existingAncestor` (CaobaCore).
+
+### 4. Decisiones
+- **Un componente para los dos módulos** (`DiskSpaceBar`) y un modelo pequeño (`DiskSpace`) que mide el disco: nombre, capacidad y libre.
+- **Lo libre es el libre de verdad** (`volumeAvailableCapacity`), el mismo que miran las pausas de los dos módulos: así la barra se llena justo cuando la descarga o la búsqueda pararían. Por eso el aviso de Recuperar fotos, que usaba lo «disponible para lo importante» (que incluye lo que macOS podría liberar), pasa a usar el mismo dato.
+- **«No cabe» lo decide cada módulo** con la cuenta de su aviso (`spaceWarning != nil`), para que la barra y el aviso digan siempre lo mismo (Descargar tarjeta deja además 50 MB de margen).
+- El tramo de lo que se guarda solo sale cuando se puede empezar ya (sin `blockingProblem`): leyendo la tarjeta, sin nada marcado o sin nada pendiente no hay cifra fiable.
+- El disco se mide cada vez que se dibuja la barra y no en una tarea aparte: es una consulta rápida y así está al día al marcar sesiones, al cambiar el destino o al volver de una descarga. (La primera versión lo medía en `.task` y no salía nunca: la tarea de una vista vacía no llega a arrancar).
+- Si lo que se guarda es diminuto frente al disco, el tramo se pinta con 3 puntos como mínimo, para que se vea que está.
+- Para las capturas de prueba se añade `--state recovery.card=diskN`, como el que ya había en Descargar tarjeta.
+
+### 5. Alternativas descartadas
+- **Solo texto junto a la ruta** («Macintosh HD · 182 GB libres»): el usuario prefirió la barra, que deja ver de un vistazo cuánto se come la descarga.
+- **Sin tramo en Recuperar fotos**: se descartó en favor del máximo rayado, que avisa de lo que podría llegar a ocupar sin presentarlo como seguro.
+- **Quitar el aviso naranja** y dejar solo la barra: el aviso explica que se pausará para liberar espacio, cosa que la barra no cuenta.
+- **La barra también en marcha**: en marcha ya se ve el espacio (pausa por espacio en Descargar tarjeta, «Ocupa … · Quedan … libres» en Recuperar fotos).
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas (tarjeta FAT32 de prueba en solo lectura y un disco de 200 MB casi lleno): en los dos módulos, que cabe (tramo rojo, rayado en Recuperar) y que no cabe (naranja hasta el final, con el aviso). Compila y pasan los 211 tests; preferencias restauradas sin diferencias.
+- **Posible fallo aparte (3.27)**: en las capturas sin sesión, Descargar tarjeta arrancó sin el destino recordado (`caoba.cardImport.destination`) aunque se le pasaba. Puede que al pasar la primera ventana al frente se aplique su destino vacío antes de leer el recordado. No se ha confirmado; queda para revisarlo aparte.

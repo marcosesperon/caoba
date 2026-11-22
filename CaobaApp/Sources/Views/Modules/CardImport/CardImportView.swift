@@ -351,6 +351,11 @@ struct CardImportActionBar: View {
                     .disabled(session.blockingProblem != nil)
                     .fixedSize()
             }
+            if let folder = session.destinationFolder {
+                DiskSpaceBar(folder: folder, incoming: incoming,
+                             detail: incoming.map { L("esta descarga \(DiskSpaceBar.bytes($0))") },
+                             overflows: session.spaceWarning != nil)
+            }
             if let warning = otherDayWarning {
                 Label(warning, systemImage: "calendar.badge.exclamationmark").font(.callout).foregroundStyle(.orange)
             }
@@ -364,6 +369,12 @@ struct CardImportActionBar: View {
             }
             .environment(appState)
         }
+    }
+
+    /// Lo que falta por bajar de las sesiones marcadas, para la barra del disco. Solo si se
+    /// puede descargar ya (con tarjeta, algo marcado y algo pendiente).
+    private var incoming: Int64? {
+        session.blockingProblem == nil ? session.plan?.bytesToCopy : nil
     }
 
     /// Si se va a descargar en la sesión activa pero ninguna foto marcada es de su día: puede
