@@ -4843,3 +4843,28 @@ En la barra del destino de **Descargar tarjeta** y de **Recuperar fotos**, debaj
 ### 6. Pendiente de comprobar
 - Comprobado con capturas (tarjeta FAT32 de prueba en solo lectura y un disco de 200 MB casi lleno): en los dos módulos, que cabe (tramo rojo, rayado en Recuperar) y que no cabe (naranja hasta el final, con el aviso). Compila y pasan los 211 tests; preferencias restauradas sin diferencias.
 - **Posible fallo aparte (3.27)**: en las capturas sin sesión, Descargar tarjeta arrancó sin el destino recordado (`caoba.cardImport.destination`) aunque se le pasaba. Puede que al pasar la primera ventana al frente se aplique su destino vacío antes de leer el recordado. No se ha confirmado; queda para revisarlo aparte.
+
+## 2026-11-22 — Descargar tarjeta pierde el destino recordado al arrancar sin sesión
+
+### 1. La petición tal como se ha entendido
+Investigar el posible fallo visto en las capturas de la 3.29: sin sesión, Descargar tarjeta arranca sin la carpeta de descarga recordada. Si se confirma, arreglarlo para que la primera ventana sin sesión vuelva a tener la carpeta de siempre, como antes de la 3.27, sin cambiar nada más: con sesión, el destino sigue siendo su `RAW`, y una ventana nueva sin sesión sigue empezando sin destino.
+
+**Confirmación:** «si» (2026-11-22).
+
+### 2. Preguntas y respuestas
+- Ninguna: el fallo se confirmó con una traza y el arreglo no tiene decisiones que tomar.
+
+### 3. Fuentes analizadas
+- `AppModel.register` / `bringToFront`, `AppState.startAsFirstWindow` / `applyCardDestination` y `CardImportSession.destinationFolder` (`main`, v3.29.0; el código es de la 3.27.0, commit 3c6980d).
+- Traza temporal en el `didSet` de `CardImportSession.destinationFolder` con la pila de llamadas, en una compilación aparte (ya quitada).
+
+**Resultado:** confirmado. Al arrancar, `WindowRoot.start` llama a `app.register(appState)`; como aún no hay ventana delante, `register` llama a `bringToFront`, que aplica el destino de la ventana (`applyCardDestination`). Ese destino todavía está vacío, porque se rellena después, en `startAsFirstWindow`. Así que `CardImportSession.destinationFolder` pasa a `nil`, **y se borra de las preferencias** (`caoba.cardImport.destination`). Cuando `startAsFirstWindow` va a leer el recordado, ya no está. Pasa en cada arranque sin sesión; con sesión no se nota, porque la sesión pone su `RAW`. En la prueba se borró la clave de verdad de las preferencias del usuario; se restauró enseguida desde la copia y se comprobó que quedan iguales.
+
+### 4. Decisiones
+- **`applyCardDestination` no hace nada hasta que la primera ventana ha arrancado** (`guard app.didLaunch`). Es el único camino por el que se colaba: `register` → `bringToFront` → `applyCardDestination` con el destino de la ventana aún vacío. `startAsFirstWindow` pone `didLaunch` y lee el recordado sin que nada lo haya tocado; si arranca con sesión, `restore` pone su `RAW` como siempre. Las ventanas que se abren después arrancan con `didLaunch` ya puesto, así que no cambia nada para ellas.
+
+### 5. Alternativas descartadas
+- **Guardar el destino recordado en `AppModel` al crearlo** y dárselo a la primera ventana: también vale, pero añade un dato más solo para esto y deja el borrado de las preferencias sin cortar (se volvería a escribir después). Cortar el camino por el que se borraba es más simple.
+
+### 6. Pendiente de comprobar
+- Comprobado con una traza temporal en una compilación aparte (ya quitada), con el destino pasado por argumento: sin sesión no se toca y sale en la barra (con su barra de espacio); con sesión pasa al `RAW` de la sesión; con dos ventanas sin sesión, al pasar al frente la segunda queda sin destino, como estaba pensado. Compila y pasan los 211 tests; preferencias restauradas sin diferencias.

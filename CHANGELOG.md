@@ -2,6 +2,10 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.29.1 — 2026-11-22
+
+- **Descargar tarjeta recuerda otra vez su carpeta**: al abrir CAOBA sin sesión, la carpeta de descarga que tenías elegida se perdía (desde la 3.27). Ahora vuelve a salir como antes.
+
 ## 3.29.0 — 2026-11-22
 
 - **Espacio del disco de destino a la vista**: en «Descargar tarjeta» y «Recuperar fotos», debajo de la carpeta de destino, una barra como la de Finder con el disco, lo libre y lo que vas a guardar encima («esta descarga 10,1 GB»; en Recuperar fotos, rayado, lo máximo que puede ocupar). Si no cabe, se pinta en naranja.

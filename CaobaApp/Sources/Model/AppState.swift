@@ -397,7 +397,9 @@ final class AppState {
 
     /// Si esta ventana está delante, Descargar tarjeta pasa a su destino (salvo con una descarga en marcha).
     func applyCardDestination() {
-        guard app.frontWindow === self else { return }
+        // Al arrancar, la primera ventana pasa al frente antes de leer el destino recordado: si
+        // aplicara ya el suyo (aún vacío), Descargar tarjeta lo perdería y lo borraría de las preferencias.
+        guard app.didLaunch, app.frontWindow === self else { return }
         cardImport.changeDestination(to: cardDestination)
     }
 
