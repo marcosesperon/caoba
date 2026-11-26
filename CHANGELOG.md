@@ -2,6 +2,11 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.30.1 — 2026-11-26
+
+- **Más sitio para el pliego en el Álbum**: los controles del pliego van en una sola fila, con texto en los botones si cabe y solo iconos si la ventana es estrecha. El bloque de pliegos y tira de abajo ocupa siempre su alto justo.
+- **Ayuda más rápida**: al pasar el ratón por esos botones sale enseguida un globo rojo que dice qué hace cada uno.
+
 ## 3.30.0 — 2026-11-26
 
 - **Nuevo módulo Álbum**: maqueta álbumes de fotos por pliegos (la doble página abierta) y los exporta listos para el laboratorio. Primero crea en Ajustes › Álbumes un tipo con las medidas de tu laboratorio (página, sangrado, margen de seguridad, franja del lomo, pliegos, resolución, primer y último pliego de una página y portada).

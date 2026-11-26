@@ -1,6 +1,66 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Ajustar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fit"
+          }
+        }
+      }
+    },
+    "Pliego anterior (←)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous spread (←)"
+          }
+        }
+      }
+    },
+    "Pliego siguiente (→)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next spread (→)"
+          }
+        }
+      }
+    },
+    "Composición anterior" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous layout"
+          }
+        }
+      }
+    },
+    "Composición siguiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next layout"
+          }
+        }
+      }
+    },
+    "Elige una plantilla de collage con este número de fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a collage template with this number of photos"
+          }
+        }
+      }
+    },
     "Quitar los números de fotos fijados a mano" : {
       "localizations" : {
         "en" : {

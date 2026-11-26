@@ -10,7 +10,6 @@ struct AlbumView: View {
     /// El deshacer de la ventana: el álbum apunta en él cada cambio (⌘Z, ⇧⌘Z, Edición › Deshacer).
     @Environment(\.undoManager) private var undoManager
     @State private var types = AlbumTypeStore.shared
-    @AppStorage("album.bottomHeight") private var bottomHeight = 260.0
 
     @State private var showNewAlbum = false
     @State private var showSettings = false
@@ -18,6 +17,8 @@ struct AlbumView: View {
     @State private var confirmDelete = false
 
     private var album: AlbumWorkspace { appState.album }
+    /// Lo que ocupa el bloque de pliegos y tira (se mide; el pliego se lleva el resto).
+    @State private var bottomBlockHeight: CGFloat = 250
 
     var body: some View {
         Group {
@@ -29,9 +30,12 @@ struct AlbumView: View {
                         .caobaPanel(padding: 8)
                     // Cada zona en su bloque, como en los demás módulos, y ocupando todo el alto
                     // aunque el álbum esté vacío.
-                    // Abajo caben siempre la fila de pliegos y la tira enteras (si no, se montaban
-                    // sobre el bloque de arriba).
-                    BottomSplit(bottomHeight: $bottomHeight, minTop: 300, minBottom: 250) {
+                    // Abajo, la fila de pliegos y la tira ocupan su alto justo y no se agrandan
+                    // (no tiene sentido: no caben más filas); todo lo que sobra es para el pliego.
+                    // Se mide lo que ocupa el de abajo y el de arriba se lleva el resto, con un
+                    // alto fijo (el `HSplitView` no se apaña solo y se desbordaba).
+                    GeometryReader { geo in
+                    VStack(spacing: 12) {
                         HSplitView {
                             AlbumPhotoPicker()
                                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -44,12 +48,14 @@ struct AlbumView: View {
                                 .padding(.leading, 6)
                                 .frame(minWidth: 440)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } bottom: {
+                        .frame(maxWidth: .infinity)
+                        .frame(height: max(300, geo.size.height - bottomBlockHeight - 12))
                         AlbumBottomBlock(document: document)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                            .frame(maxWidth: .infinity, alignment: .top)
+                            .fixedSize(horizontal: false, vertical: true)
                             .caobaPanel()
-                            .clipped()
+                            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { bottomBlockHeight = $0 }
+                    }
                     }
                     AlbumExportBar(document: document)
                 }
@@ -401,18 +407,29 @@ private struct AlbumSpreadEditor: View {
                     .padding(.horizontal, 8)
                     .disabled(album.isRelayouting)
                 // Los controles del pliego, en su propio bloque (con otro fondo y borde) para que no
-                // se mezclen con el pliego y se lean bien; nunca se recortan por abajo.
-                VStack(alignment: .leading, spacing: 8) {
-                    navigation(spread: spread, index: index)
-                    Divider()
-                    if isCover {
-                        coverTools
-                    } else {
-                        tools(spread: spread, index: index, spec: spec)
+                // se mezclen con el pliego. Todo en una fila y casi todo solo con icono, para dejarle
+                // el máximo alto al pliego; lo que hace cada botón va en su ayuda al pasar el ratón.
+                // Se queda con el primero de estos que quepa a lo ancho: una fila con icono y texto;
+                // la misma con textos cortos; una fila solo con iconos; o, si la ventana es muy
+                // estrecha, dos filas de iconos.
+                ViewThatFits(in: .horizontal) {
+                    spreadRow(spread: spread, index: index, spec: spec, isCover: isCover, mode: .full)
+                    spreadRow(spread: spread, index: index, spec: spec, isCover: isCover, mode: .short)
+                    spreadRow(spread: spread, index: index, spec: spec, isCover: isCover, mode: .icons)
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 10) {
+                            navigation(spread: spread, index: index, mode: .icons)
+                            Spacer(minLength: 0)
+                            statusIcon(spread: spread, isCover: isCover)
+                        }
+                        spreadTools(spread: spread, index: index, spec: spec, isCover: isCover, mode: .icons)
                     }
-                    statusLine(spread: spread, isCover: isCover)
                 }
-                .caobaPanel(padding: 10, fill: Color(nsColor: .underPageBackgroundColor), border: Color(nsColor: .separatorColor))
+                .controlSize(.small)
+                .disabled(album.isRelayouting)
+                .caobaPanel(padding: 8, fill: Color(nsColor: .underPageBackgroundColor), border: Color(nsColor: .separatorColor))
+                // Los globos de ayuda de la fila (rojos y rápidos); por fuera del panel, que recorta.
+                .caobaTipHost()
                 .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -539,7 +556,7 @@ private struct AlbumSpreadEditor: View {
         }
     }
 
-    private func navigation(spread: AlbumSpread, index: Int) -> some View {
+    private func navigation(spread: AlbumSpread, index: Int, mode: AlbumToolMode) -> some View {
         let album = appState.album
         // A mano, el número pedido se ve aunque aún no se haya repartido («5 fotos, pendiente»).
         // En un pliego vacío maquetado a mano cuentan sus casillas.
@@ -547,10 +564,11 @@ private struct AlbumSpreadEditor: View {
         let count = spread.manualCount ?? shown
         let countPending = spread.manualCount.map { $0 != shown } ?? false
         let isCover = index == AlbumExport.coverIndex
-        return HStack(spacing: 12) {
+        return HStack(spacing: 10) {
             Button { album.selectedSpread = max(album.firstPiece, index - 1) } label: { Image(systemName: "chevron.left") }
                 .disabled(index <= album.firstPiece)
                 .keyboardShortcut(.leftArrow, modifiers: [])
+                .caobaTip("Pliego anterior (←)")
             Group {
                 if isCover { Text("Portada") } else { Text("Pliego \(index + 1) de \(document.spreads.count)") }
             }
@@ -558,6 +576,7 @@ private struct AlbumSpreadEditor: View {
             Button { album.selectedSpread = min(document.spreads.count - 1, index + 1) } label: { Image(systemName: "chevron.right") }
                 .disabled(index >= document.spreads.count - 1)
                 .keyboardShortcut(.rightArrow, modifiers: [])
+                .caobaTip("Pliego siguiente (→)")
             if !isCover {
                 Divider().frame(height: 16)
                 Stepper(value: Binding(get: { max(count, 1) }, set: { album.setPhotoCount($0, forSpread: index) }),
@@ -571,119 +590,171 @@ private struct AlbumSpreadEditor: View {
                     }
                 }
                 .fixedSize()
-                .help(document.autoLayout
+                .caobaTip(document.autoLayout
                       ? LocalizedStringKey("Cambia cuántas fotos lleva este pliego: lo recoloca y las demás corren a los siguientes")
                       : LocalizedStringKey("Pide cuántas fotos lleva este pliego; se aplica al pulsar «Repartir»"))
                 Divider().frame(height: 16)
-                Button { album.changeSpreadCount(by: 1) } label: { Label("Añadir pliego", systemImage: "plus.rectangle.on.rectangle") }
-                    .help(document.autoLayout
-                          ? LocalizedStringKey("Añade un pliego al álbum y reparte de nuevo las fotos entre todos (los que tienen candado no se tocan)")
-                          : LocalizedStringKey("Añade un pliego en blanco detrás de este; las fotos se reparten al pulsar «Repartir»"))
-                Button { album.changeSpreadCount(by: -1) } label: { Label("Quitar pliego", systemImage: "minus.rectangle") }
-                    .help(document.autoLayout
-                          ? LocalizedStringKey("Quita este pliego y reparte sus fotos entre los demás (los que tienen candado no se tocan)")
-                          : LocalizedStringKey("Quita este pliego; sus fotos quedan sin colocar hasta pulsar «Repartir»"))
+                Button { album.changeSpreadCount(by: 1) } label: { toolLabel("Añadir pliego", short: "Añadir", systemImage: "plus.rectangle.on.rectangle", mode: mode) }
+                    .caobaTip(tip("Añadir pliego", document.autoLayout
+                          ? "Añade un pliego al álbum y reparte de nuevo las fotos entre todos (los que tienen candado no se tocan)"
+                          : "Añade un pliego en blanco detrás de este; las fotos se reparten al pulsar «Repartir»"))
+                Button { album.changeSpreadCount(by: -1) } label: { toolLabel("Quitar pliego", short: "Quitar", systemImage: "minus.rectangle", mode: mode) }
+                    .caobaTip(tip("Quitar pliego", document.autoLayout
+                          ? "Quita este pliego y reparte sus fotos entre los demás (los que tienen candado no se tocan)"
+                          : "Quita este pliego; sus fotos quedan sin colocar hasta pulsar «Repartir»"))
                     .disabled(document.spreads.count <= 1)
             }
-            Spacer(minLength: 0)
         }
-        .controlSize(.small)
-        .disabled(album.isRelayouting)
     }
 
-    private func tools(spread: AlbumSpread, index: Int, spec: AlbumSpec) -> some View {
+    /// La etiqueta de un botón de la fila del pliego, con más o menos texto según `mode`.
+    @ViewBuilder
+    private func toolLabel(_ name: LocalizedStringKey, short: LocalizedStringKey?, systemImage: String, mode: AlbumToolMode) -> some View {
+        switch mode {
+        case .full:
+            Label(name, systemImage: systemImage).labelStyle(.titleAndIcon)
+        case .short:
+            if let short {
+                Label(short, systemImage: systemImage).labelStyle(.titleAndIcon)
+            } else {
+                Label(name, systemImage: systemImage).labelStyle(.iconOnly)
+            }
+        case .icons:
+            Label(name, systemImage: systemImage).labelStyle(.iconOnly)
+        }
+    }
+
+    /// La ayuda de un botón que solo enseña el icono: su nombre y, detrás, lo que hace. Se juntan
+    /// dos textos que ya están traducidos, así no hace falta traducir cada frase entera otra vez.
+    private func tip(_ name: LocalizedStringKey, _ detail: LocalizedStringKey) -> Text {
+        Text(name).bold() + Text(verbatim: " — ") + Text(detail)
+    }
+
+    /// La fila entera del pliego, con más o menos texto en los botones según `mode`.
+    private func spreadRow(spread: AlbumSpread, index: Int, spec: AlbumSpec, isCover: Bool, mode: AlbumToolMode) -> some View {
+        HStack(spacing: 10) {
+            navigation(spread: spread, index: index, mode: mode)
+            // En la portada con una sola foto no hay herramientas: sin separador suelto.
+            if !isCover || !appState.album.coverIsSinglePhoto {
+                Divider().frame(height: 16)
+            }
+            spreadTools(spread: spread, index: index, spec: spec, isCover: isCover, mode: mode)
+            Spacer(minLength: 0)
+            statusIcon(spread: spread, isCover: isCover)
+        }
+    }
+
+    /// Las herramientas del pliego, o las de la portada si es ella.
+    @ViewBuilder
+    private func spreadTools(spread: AlbumSpread, index: Int, spec: AlbumSpec, isCover: Bool, mode: AlbumToolMode) -> some View {
+        if isCover {
+            coverTools(mode: mode)
+        } else {
+            tools(spread: spread, index: index, spec: spec, mode: mode)
+        }
+    }
+
+    private func tools(spread: AlbumSpread, index: Int, spec: AlbumSpec, mode: AlbumToolMode) -> some View {
         let album = appState.album
         // La lista de otras composiciones vale mientras no cambien las fotos ni el número de casillas.
         let key = spread.id.uuidString + spread.photos.joined(separator: "|") + "#\(spread.layout.cells.count)"
-        return HStack(spacing: 12) {
+        let browsing = alternativesKey == key && alternativeIndex >= 0
+        return HStack(spacing: 10) {
             Button { album.toggleSpreadLock(index) } label: {
-                Label(spread.locked ? LocalizedStringKey("Con candado") : LocalizedStringKey("Sin candado"), systemImage: spread.locked ? "lock.fill" : "lock.open")
+                toolLabel(spread.locked ? "Con candado" : "Sin candado", short: nil, systemImage: spread.locked ? "lock.fill" : "lock.open", mode: mode)
             }
-            .help("Con candado, la cascada y «Repartir automáticamente» no tocan este pliego. Se pone solo al retocarlo.")
+            .caobaTip(tip(spread.locked ? "Con candado" : "Sin candado",
+                      "Con candado, la cascada y «Repartir automáticamente» no tocan este pliego. Se pone solo al retocarlo."))
             Divider().frame(height: 16)
+            // ‹ › para ir pasando por otras composiciones; mientras se recorren, «2/5» entre medias.
             HStack(spacing: 4) {
                 Button { showAlternative(-1, spread: spread, index: index, key: key) } label: { Image(systemName: "chevron.backward.circle") }
-                Text(alternativesKey == key && alternativeIndex >= 0
-                     ? L("Composición \(alternativeIndex + 1) de \(alternatives.count)") : L("Otras composiciones"))
-                    .monospacedDigit()
-                    .fixedSize()
+                    .caobaTip(tip("Composición anterior", "Otras formas de componer este pliego con las mismas fotos, de mejor a peor"))
+                if browsing {
+                    Text(verbatim: "\(alternativeIndex + 1)/\(alternatives.count)")
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .fixedSize()
+                } else {
+                    Image(systemName: "square.on.square").foregroundStyle(.secondary)
+                }
                 Button { showAlternative(1, spread: spread, index: index, key: key) } label: { Image(systemName: "chevron.forward.circle") }
+                    .caobaTip(tip("Composición siguiente", "Otras formas de componer este pliego con las mismas fotos, de mejor a peor"))
             }
             .disabled(spread.layout.cells.isEmpty)
-            .help("Otras formas de componer este pliego con las mismas fotos, de mejor a peor")
             Button { if let cell = selectedCell { album.setLayout(spread.layout.equalizing(around: cell, spec: spec), forSpread: index, action: L("Igualar")) } } label: {
-                Label("Igualar", systemImage: "equal.square")
+                toolLabel("Igualar", short: "Igualar", systemImage: "equal.square", mode: mode)
             }
             .disabled(selectedCell == nil)
-            .help("Reparte a partes iguales la fila o columna de la casilla elegida")
+            .caobaTip(tip("Igualar", "Reparte a partes iguales la fila o columna de la casilla elegida"),
+                      showNow: appState.launchState["album.tip"] != nil) // para capturas: el globo a la vista
             Button {
                 album.setLayout(spread.layout.fittedToPhotos({ document.info[$0]?.aspect }, spec: spec), forSpread: index, action: L("Ajustar a las fotos"))
             } label: {
-                Label("Ajustar a las fotos", systemImage: "rectangle.arrowtriangle.2.inward")
+                toolLabel("Ajustar a las fotos", short: "Ajustar", systemImage: "rectangle.arrowtriangle.2.inward", mode: mode)
             }
             .disabled(spread.layout.cells.isEmpty)
-            .help("Coloca las guías para que cada casilla tenga la proporción de su foto, sin cambiar la rejilla")
+            .caobaTip(tip("Ajustar a las fotos", "Coloca las guías para que cada casilla tenga la proporción de su foto, sin cambiar la rejilla"))
             Menu {
                 if let cell = selectedCell {
                     AlbumCellMenuItems(cell: cell, spreadIndex: index)
                 }
             } label: {
-                Label("Casilla", systemImage: "rectangle.split.2x1")
+                toolLabel("Casilla", short: "Casilla", systemImage: "rectangle.split.2x1", mode: mode)
             }
+            .menuIndicator(.hidden)
             .fixedSize()
             .disabled(selectedCell == nil)
-            .help("Dividir, fusionar o quitar la casilla elegida (como las celdas de una tabla)")
-            Button { showTemplates = true } label: { Label("Plantilla…", systemImage: "square.grid.3x2") }
+            .caobaTip(tip("Casilla", "Dividir, fusionar o quitar la casilla elegida (como las celdas de una tabla)"))
+            Button { showTemplates = true } label: { toolLabel("Plantilla…", short: "Plantilla", systemImage: "square.grid.3x2", mode: mode) }
                 .disabled(spread.layout.cells.isEmpty)
+                .caobaTip(tip("Plantilla…", "Elige una plantilla de collage con este número de fotos"))
                 .popover(isPresented: $showTemplates, arrowEdge: .bottom) {
                     AlbumTemplatePicker(spread: spread, index: index, spec: spec, single: document.singleSide(ofSpread: index)) { showTemplates = false }
                 }
-            Spacer(minLength: 0)
         }
-        .controlSize(.small)
-        .disabled(album.isRelayouting)
     }
 
-    /// Debajo de los controles: si hay cambios sin repartir, qué es la portada o por qué el pliego
-    /// quedó así.
+    /// Al final de la fila, un icono que cuenta en su ayuda si hay cambios sin repartir (en naranja,
+    /// para que se vea), qué es la portada o por qué el pliego quedó así.
     @ViewBuilder
-    private func statusLine(spread: AlbumSpread, isCover: Bool) -> some View {
+    private func statusIcon(spread: AlbumSpread, isCover: Bool) -> some View {
         Group {
             if document.pendingLayout && !isCover {
-                Label("Hay cambios sin repartir: pulsa «Repartir» cuando acabes", systemImage: "exclamationmark.circle.fill")
+                Image(systemName: "exclamationmark.circle.fill")
                     .foregroundStyle(.orange)
+                    .caobaTip("Hay cambios sin repartir: pulsa «Repartir» cuando acabes")
             } else if isCover {
-                Label("Portada: contraportada, lomo y tapa. Suelta aquí fotos de la carpeta o de la tira; no cambian el álbum.", systemImage: "book.closed")
+                Image(systemName: "book.closed")
                     .foregroundStyle(.secondary)
+                    .caobaTip(Text("Portada: contraportada, lomo y tapa. Suelta aquí fotos de la carpeta o de la tira; no cambian el álbum.")
+                          + Text(verbatim: " ") + Text("Suelta una foto en la tapa para cambiarla · doble clic para encuadrarla"))
             } else if let reason = spread.reason, !spread.locked {
-                Label(reasonText(reason), systemImage: "wand.and.stars")
+                Image(systemName: "wand.and.stars")
                     .foregroundStyle(.secondary)
+                    .caobaTip(verbatim: reasonText(reason))
             } else if spread.locked {
-                Label("Retocado a mano: «Repartir» no lo toca · doble clic en una foto para encuadrarla", systemImage: "lock.fill")
+                Image(systemName: "lock.fill")
                     .foregroundStyle(.secondary)
+                    .caobaTip("Retocado a mano: «Repartir» no lo toca · doble clic en una foto para encuadrarla")
             }
         }
-        .font(.caption)
-        .lineLimit(1)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .imageScale(.large)
+        .frame(width: 20, height: 20)
+        .contentShape(Rectangle())
     }
 
     /// En la portada solo se cambia la foto y su encuadre (sin composiciones, plantillas, guías
     /// ni candado). Si viene con otra rejilla de antes, se puede volver a una sola foto.
-    private var coverTools: some View {
+    private func coverTools(mode: AlbumToolMode) -> some View {
         let album = appState.album
-        return HStack(spacing: 12) {
+        return HStack(spacing: 10) {
             if !album.coverIsSinglePhoto {
-                Button { album.resetCover() } label: { Label("Una sola foto en la tapa", systemImage: "rectangle.portrait") }
-                    .help("Deja la portada con una sola foto a sangre en la tapa")
+                Button { album.resetCover() } label: { toolLabel("Una sola foto en la tapa", short: nil, systemImage: "rectangle.portrait", mode: mode) }
+                    .caobaTip(tip("Una sola foto en la tapa", "Deja la portada con una sola foto a sangre en la tapa"))
             }
-            Spacer()
-            Text("Suelta una foto en la tapa para cambiarla · doble clic para encuadrarla")
-                .font(.caption).foregroundStyle(.secondary)
-                .lineLimit(1)
         }
-        .controlSize(.small)
-        .disabled(album.isRelayouting)
     }
 
     /// Pasa a la composición siguiente (o anterior) de la lista; la lista se calcula la primera vez.
@@ -712,6 +783,16 @@ private struct AlbumSpreadEditor: View {
         case .bestFit: return L("Lo que mejor encaja con el formato y las caras de estas fotos")
         }
     }
+}
+
+/// Cuánto texto llevan los botones de la fila del pliego, según el sitio que haya.
+enum AlbumToolMode {
+    /// Icono y el nombre entero.
+    case full
+    /// Icono y un nombre corto («Ajustar»); los que no tienen corto, solo icono.
+    case short
+    /// Solo icono (el nombre sigue para VoiceOver y en el globo de ayuda).
+    case icons
 }
 
 /// Lo que se puede hacer con una casilla, como con las celdas de una tabla: dividirla, fusionarla

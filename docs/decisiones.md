@@ -5694,3 +5694,144 @@ En la tira hay que distinguir dos gestos: soltar una foto **entre dos fotos** ca
 - Comprobado en el fichero del álbum (`album.swaptest=1`): la 01 y la 05 cambian de casilla (pliego 1 ↔ pliego 2) y de sitio en la tira. Compila. Preferencias restauradas sin diferencias.
 - **No probado a mano**: el arrastre real, el resalte de la franja y de la miniatura.
 - **Cambio de texto (2026-11-26)**: «Olvidar los números de fotos pedidos», en el menú de «Repartir», no se entendía. Pasa a «Quitar los números de fotos fijados a mano»; el paso de deshacer se llama «Quitar los números fijados a mano».
+
+## 2026-11-26 — Publicar la primera versión de los álbumes
+
+### 1. La petición tal como se ha entendido
+«Lanza un commit, push y release con esta primera versión de los álbumes». Petición de publicación directa.
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `CHANGELOG.md`, `README.md`, `project.yml` y `CaobaCore.swift` (versión), `Tools/make-release.sh`.
+
+### 4. Decisiones
+- Versión **3.30.0** (funcionalidad nueva): `MARKETING_VERSION` y `CaobaCoreInfo.version`, sección en el `CHANGELOG.md` (texto de la release y de las novedades) y el módulo en el `README.md` (lista de 12 módulos y su apartado).
+- Commit `8030448` solo a nombre del usuario, sin coautoría; push y `Tools/make-release.sh --publish` con la cuenta personal de gh, y vuelta a la de EDISA.
+- Como siempre, se borra la release anterior (3.29.1) y se dejan las etiquetas.
+
+### 5. Alternativas descartadas
+- Ninguna.
+
+### 6. Pendiente de comprobar
+- Publicado: https://github.com/marcosesperon/caoba/releases/tag/v3.30.0 (DMG de 20 MB, firma ad hoc correcta). Antes, compilado y pasados los 266 tests.
+- **La web (`index.html`) no tiene aún el paso del Álbum**: queda para cuando se quiera, con su captura.
+
+## 2026-11-26 — Panel del pliego más compacto
+
+### 1. La petición tal como se ha entendido
+Juntar el panel de controles del pliego, que hoy ocupa tres filas, en **una sola fila** para ganar alto para el pliego:
+- Izquierda: ‹ Pliego N de M › · número de fotos con sus flechas · añadir y quitar pliego (solo icono).
+- Luego, solo con icono y su ayuda al pasar el ratón: candado (abierto o cerrado), ‹ otras composiciones › (con «N/M» pequeño cuando se está recorriendo la lista), igualar, ajustar a las fotos, menú de casilla y plantilla.
+- Al final, un icono de estado con el texto de hoy como ayuda: naranja si hay cambios sin repartir; si no, la varita (por qué quedó así), el candado (retocado a mano) o el libro (portada).
+- En la portada, la misma fila con la navegación, «Una sola foto en la tapa» (si hace falta) y el icono de estado.
+- No cambia nada de lo que hace cada botón.
+
+*Confirmación:* sí, «con tooltips con los textos para ayuda al usuario»: cada icono lleva como ayuda su nombre y lo que hace (p. ej. «Igualar: reparte a partes iguales…»).
+
+### 2. Preguntas y respuestas
+- **P1. Ahora el panel ocupa tres filas (navegación, herramientas, estado). ¿Cómo se compacta?** — Una sola fila: navegación a la izquierda, herramientas solo con icono y su ayuda al pasar el ratón; la línea de estado pasa a un icono con su texto como ayuda (o se quita).
+- **P2. ¿Qué se hace con la línea de estado?** — Un icono al final de la fila con el texto como ayuda; el aviso de cambios sin repartir sigue en naranja.
+
+### 3. Fuentes analizadas
+- `CaobaApp/Sources/Views/Modules/Album/AlbumView.swift` (v3.30.0): `navigation`, `tools`, `statusLine`, `coverTools`.
+
+### 4. Decisiones
+- Una fila con iconos (`.labelStyle(.iconOnly)`): el texto sigue en el `Label` para VoiceOver.
+- La ayuda de cada icono es «Nombre — lo que hace», juntando dos textos ya traducidos con `Text + Text`; solo hacen falta 5 cadenas nuevas (pliego anterior/siguiente, composición anterior/siguiente y la de Plantilla).
+- La línea de estado pasa a un icono al final con el mismo texto como ayuda; el de cambios sin repartir va en naranja.
+- «Otras composiciones» queda como ‹ icono › y muestra «2/5» mientras se recorren.
+- Con la ventana estrecha (1100 px) la fila no cabía y se salía por los lados: `ViewThatFits` la parte en dos filas solo en ese caso.
+- En la portada con una sola foto no queda ninguna herramienta, así que se quita el separador que quedaba suelto.
+
+### 5. Alternativas descartadas
+- Dos filas fijas (navegación + herramientas y el estado debajo): gana menos alto.
+- Una fila con textos cortos y menú «Más»: más ancha y más lógica para poco beneficio.
+- Quitar la línea de estado: se perdía el porqué del pliego y la ayuda de la portada.
+
+### 6. Pendiente de comprobar
+- Los tooltips a mano (las capturas no los muestran).
+
+## 2026-11-26 — Tooltip propio, rojo y rápido, en el panel del pliego
+
+### 1. La petición tal como se ha entendido
+Cambiar el tooltip de macOS por uno propio **solo en los iconos de la fila del pliego** (navegación, fotos, añadir/quitar pliego, candado, composiciones, igualar, ajustar, casilla, plantilla, «Una sola foto en la tapa» y el icono de estado):
+- Fondo con el rojo de la app y texto blanco, esquinas redondeadas y una sombra suave.
+- Sale a los **0,3 s** de dejar el ratón encima. Si ya había uno a la vista, al pasar al icono de al lado sale enseguida, como en macOS.
+- Va encima del botón, sin taparlo, y no se sale de la ventana. Los textos largos se parten en varias líneas.
+- Desaparece al sacar el ratón o al pulsar.
+- Mismo texto que ahora («Nombre — lo que hace»). VoiceOver sigue leyendo la ayuda.
+- El resto de la app sigue con el tooltip normal de macOS.
+
+*Confirmación:* sí. Plan aprobado («dale»).
+
+### 2. Preguntas y respuestas
+- **P1. ¿Dónde se usa el tooltip propio?** — Solo en los iconos de la fila del pliego; el resto de la app sigue con el tooltip normal de macOS.
+- **P2. ¿Cuánto tarda en salir?** — 0,3 s.
+
+### 3. Fuentes analizadas
+- `AlbumView.swift` (la fila del pliego de la petición anterior) y `Views/Shared/Theme.swift` (`caobaPanel` recorta con `clipShape`).
+
+### 4. Decisiones
+- Globo propio en `Views/Shared/CaobaTip.swift`, reutilizable: `.caobaTip` en cada botón y `.caobaTipHost` en la zona. Un solo globo por zona, colocado con `anchorPreference`.
+- El host va después de `.caobaPanel`, porque el panel recorta y el globo cae fuera.
+- Al entrar en un botón con un globo a la vista, el nuevo sale al momento; al salir se deja un margen de 0,15 s para que pasar al vecino no lo reinicie.
+- El rojo es `Color.accentColor` (el AccentColor de la app). El nombre va en negrita delante de la explicación.
+- El texto se pasa también como `accessibilityHint`, para que VoiceOver lo siga leyendo.
+- `ViewThatFits` prepara las dos versiones de la fila (una y dos filas). Para el gancho de captura el globo forzado se guarda por botón y solo sale en el que de verdad se ve.
+
+### 5. Alternativas descartadas
+- Bajar `NSInitialToolTipDelay`: afecta a toda la app y no permite cambiar el color.
+- `.popover` como tooltip: lleva flecha, roba el foco y es lento de abrir.
+- Un globo dentro de cada botón (overlay propio): lo recortaría el panel y no se podría encajar en los bordes.
+
+### 6. Pendiente de comprobar
+- Pasar el ratón de verdad: el retraso, el salto de un icono al vecino y si los botones **desactivados** (p. ej. Igualar sin casilla elegida) enseñan su globo.
+
+
+## 2026-11-26 — Bloque de pliegos y tira a su alto justo
+
+### 1. La petición tal como se ha entendido
+«La sección de abajo de pliegos y tira del álbum no tiene sentido que pueda crecer hacia arriba, tienen que ocupar el alto mínimo.» Se quita la barra de arrastre entre el pliego y el bloque de abajo: el bloque de pliegos y tira ocupa siempre su alto justo y todo lo demás es para el pliego. *(Arreglo claro, hecho directamente.)*
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `AlbumView.swift` (`BottomSplit` con `album.bottomHeight`) y `Views/Shared/CollagePreview.swift` (`BottomSplit`, que sigue usando Collage).
+
+### 4. Decisiones
+- En el Álbum ya no se usa `BottomSplit`. Se mide el bloque de abajo (`onGeometryChange`) y el de arriba (fotos de la carpeta + pliego) recibe un alto fijo: el que queda (mínimo 300 pt).
+- El alto fijo hace falta porque el `HSplitView` no se ajusta solo dentro de un `VStack` y se desbordaba por toda la ventana (visto en la primera captura).
+- La preferencia `album.bottomHeight` deja de usarse; no se borra de las preferencias del usuario (no molesta).
+
+### 5. Alternativas descartadas
+- Dejar la barra con un máximo igual al alto natural: seguiría siendo una barra que no sirve para nada.
+
+### 6. Pendiente de comprobar
+- Ventanas muy bajas: el bloque de arriba no baja de 300 pt.
+
+## 2026-11-26 — Texto en los botones del pliego si hay sitio
+
+### 1. La petición tal como se ha entendido
+«En los botones que modificamos antes, que se vea algo de texto si hay espacio en la ventana, que queden solo botones si el tamaño es reducido.» *(Arreglo claro, hecho directamente.)*
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `AlbumView.swift`: la fila del pliego de esta misma fecha.
+
+### 4. Decisiones
+- Cuatro tamaños con `ViewThatFits`, del más ancho al más estrecho: nombres enteros, nombres cortos, solo iconos y dos filas de iconos.
+- El tamaño de nombres cortos hace falta porque con los enteros la fila pide unos 1.300 pt. Con la ventana a 1800 pt solo cabían iconos, y ahora caben los cortos. Los enteros salen a partir de unos 2200 pt.
+- Los nombres cortos reutilizan textos ya traducidos («Añadir», «Quitar», «Igualar», «Casilla», «Plantilla»). Solo «Ajustar» es nuevo («Fit»).
+- El candado y «Una sola foto en la tapa» no tienen nombre corto y van solo con icono en ese tamaño.
+- Los ‹ › de composiciones, el número de fotos y el icono de estado son iguales en todos los tamaños.
+
+### 5. Alternativas descartadas
+- Solo dos tamaños (con todo el texto o solo iconos): en ventanas normales casi nunca se vería el texto.
+
+### 6. Pendiente de comprobar
+- Nada especial; comprobado con capturas a 2200, 1800, 1440 y 1100 pt.
