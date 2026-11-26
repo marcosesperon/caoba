@@ -11,6 +11,8 @@ enum Preferences {
     static let lastModuleKey = "caoba.lastModule"
     /// Recuperar fotos: ya se cerró la explicación de los bloques y no vuelve a salir.
     static let recoveryBlocksTipDismissedKey = "caoba.recovery.blocksTipDismissed"
+    /// Pestaña de Ajustes que se ve al abrirlos (el módulo Álbum la pone en «Álbumes»).
+    static let settingsTabKey = "caoba.settings.tab"
 
     /// Autor de Ajustes sin espacios sobrantes; nil si no se ha puesto.
     static var author: String? {

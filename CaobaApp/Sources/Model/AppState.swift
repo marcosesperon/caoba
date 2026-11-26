@@ -89,8 +89,13 @@ final class AppState {
     /// La ventana pide que se despliegue la lista de sesiones del título (ventana nueva de ⌘N).
     var requestSessionList = false
 
+    /// Álbumes de la carpeta de origen y el que está abierto. Aquí y no en la vista, para que
+    /// siga abierto al cambiar de módulo.
+    let album = AlbumWorkspace()
+
     init(app: AppModel) {
         self.app = app
+        album.window = self
         jobRunner.onFinish = { [weak self] outcome, quiet in self?.jobFinished(outcome, quiet: quiet) }
     }
 
@@ -235,9 +240,13 @@ final class AppState {
     }
 
     func rescan() async {
-        guard let folder = sourceFolder else { files = []; return }
+        guard let folder = sourceFolder else { files = []; album.folderChanged(); return }
         isScanning = true
-        defer { isScanning = false }
+        defer {
+            isScanning = false
+            // El álbum busca los de esta carpeta (o, si es la misma, toma el formato y la fecha al día).
+            album.folderChanged()
+        }
         let scanner = FolderScanner()
         knownNames = Set((try? scanner.listImageURLs(in: folder))?.map(\.lastPathComponent) ?? [])
         do {
@@ -447,7 +456,7 @@ final class AppState {
             destinationFile = layout.output(.slideshow, in: session, fileExtension: "mp4")
         case .contactSheet:
             destinationFile = layout.output(.contactSheet, in: session, fileExtension: "jpg")
-        case .metadata, .qr, .shutterCount, .cardImport, .recovery:
+        case .metadata, .qr, .shutterCount, .cardImport, .recovery, .album:
             break
         }
     }

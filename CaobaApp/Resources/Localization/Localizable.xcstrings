@@ -1,6 +1,2046 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "Quitar los números de fotos fijados a mano" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove photo counts set by hand"
+          }
+        }
+      }
+    },
+    "Quitar los números fijados a mano" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove counts set by hand"
+          }
+        }
+      }
+    },
+    "Intercambiar fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swap photos"
+          }
+        }
+      }
+    },
+    "Suelta una foto entre dos para cambiar el orden, o encima de otra para intercambiarlas. También puedes soltarla en una casilla del pliego." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop a photo between two to change the order, or on top of another to swap them. You can also drop it on a cell of the spread."
+          }
+        }
+      }
+    },
+    "En el álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In the album"
+          }
+        }
+      }
+    },
+    "Ver en grande" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View large"
+          }
+        }
+      }
+    },
+    "Hay cambios sin repartir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are changes not laid out yet"
+          }
+        }
+      }
+    },
+    "Dividir casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split cell"
+          }
+        }
+      }
+    },
+    "Fusionar casillas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge cells"
+          }
+        }
+      }
+    },
+    "Quitar casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove cell"
+          }
+        }
+      }
+    },
+    "Dividir en columnas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split into columns"
+          }
+        }
+      }
+    },
+    "Dividir en filas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split into rows"
+          }
+        }
+      }
+    },
+    "Fusionar con la de la izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge with the one on the left"
+          }
+        }
+      }
+    },
+    "Fusionar con la de la derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge with the one on the right"
+          }
+        }
+      }
+    },
+    "Fusionar con la de arriba" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge with the one above"
+          }
+        }
+      }
+    },
+    "Fusionar con la de abajo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge with the one below"
+          }
+        }
+      }
+    },
+    "Casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cell"
+          }
+        }
+      }
+    },
+    "Dividir, fusionar o quitar la casilla elegida (como las celdas de una tabla)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Split, merge or remove the selected cell (like table cells)"
+          }
+        }
+      }
+    },
+    "Doble clic para encuadrar · suelta otra foto encima para cambiarla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-click to crop · drop another photo on it to change it"
+          }
+        }
+      }
+    },
+    "Doble clic para encuadrar · clic derecho para dividir, fusionar o quitar la casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-click to crop · right-click to split, merge or remove the cell"
+          }
+        }
+      }
+    },
+    "Retocado a mano: «Repartir» no lo toca · doble clic en una foto para encuadrarla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edited by hand: “Lay out” leaves it alone · double-click a photo to crop it"
+          }
+        }
+      }
+    },
+    "Llevar foto al pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move photo to spread"
+          }
+        }
+      }
+    },
+    "Pliego vacío" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empty spread"
+          }
+        }
+      }
+    },
+    "Elige con el número de fotos cuántas casillas tendrá para maquetarlo, o suelta aquí fotos de la tira." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose with the number of photos how many cells it will have to lay it out, or drop photos from the strip here."
+          }
+        }
+      }
+    },
+    "Crear %lld casillas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create %lld cells"
+          }
+        }
+      }
+    },
+    "Repartir" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lay out"
+          }
+        }
+      }
+    },
+    "Olvidar los números pedidos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forget requested counts"
+          }
+        }
+      }
+    },
+    "Reparto automático" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic layout"
+          }
+        }
+      }
+    },
+    "(pendiente)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(pending)"
+          }
+        }
+      }
+    },
+    "Pide cuántas fotos lleva este pliego; se aplica al pulsar «Repartir»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request how many photos this spread holds; it's applied when you click “Lay out”"
+          }
+        }
+      }
+    },
+    "Añade un pliego en blanco detrás de este; las fotos se reparten al pulsar «Repartir»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds a blank spread after this one; photos are laid out when you click “Lay out”"
+          }
+        }
+      }
+    },
+    "Quita este pliego; sus fotos quedan sin colocar hasta pulsar «Repartir»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes this spread; its photos stay unplaced until you click “Lay out”"
+          }
+        }
+      }
+    },
+    "Marcada, cada cambio vuelve a repartir el álbum solo. Desmarcada, lo maquetado no se mueve hasta pulsar «Repartir»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When ticked, every change lays the album out again by itself. When unticked, nothing moves until you click “Lay out”."
+          }
+        }
+      }
+    },
+    "Olvidar los números de fotos pedidos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forget the requested photo counts"
+          }
+        }
+      }
+    },
+    "Reparte todo el álbum con sus pliegos, respetando los candados, las fotos fijadas y las fotos pedidas en cada pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lays out the whole album with its spreads, keeping locks, pinned photos and the photos requested on each spread"
+          }
+        }
+      }
+    },
+    "Hay cambios sin repartir: pulsa «Repartir» cuando acabes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are changes not laid out yet: click “Lay out” when you're done"
+          }
+        }
+      }
+    },
+    "%@ · sin colocar: suéltala en una casilla o pulsa «Repartir»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · unplaced: drop it on a cell or click “Lay out”"
+          }
+        }
+      }
+    },
+    "Una sola foto en la tapa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A single photo on the front"
+          }
+        }
+      }
+    },
+    "Deja la portada con una sola foto a sangre en la tapa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaves the cover with a single full-bleed photo on the front"
+          }
+        }
+      }
+    },
+    "Suelta una foto en la tapa para cambiarla · doble clic para encuadrarla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop a photo on the front to change it · double-click to crop it"
+          }
+        }
+      }
+    },
+    "Sacar foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove photo"
+          }
+        }
+      }
+    },
+    "Meter foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add photo"
+          }
+        }
+      }
+    },
+    "Todas o ninguna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All or none"
+          }
+        }
+      }
+    },
+    "Ordenar la tira" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reorder the strip"
+          }
+        }
+      }
+    },
+    "Número de fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number of photos"
+          }
+        }
+      }
+    },
+    "Retocar el pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit the spread"
+          }
+        }
+      }
+    },
+    "Candado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lock"
+          }
+        }
+      }
+    },
+    "Fijar foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin photo"
+          }
+        }
+      }
+    },
+    "Quitar candados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove locks"
+          }
+        }
+      }
+    },
+    "Cambiar fotos de casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move photos between cells"
+          }
+        }
+      }
+    },
+    "Plantilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template"
+          }
+        }
+      }
+    },
+    "Mover una guía" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move a guide"
+          }
+        }
+      }
+    },
+    "Encuadrar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crop"
+          }
+        }
+      }
+    },
+    "Otra composición" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other layout"
+          }
+        }
+      }
+    },
+    "Nada que deshacer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to undo"
+          }
+        }
+      }
+    },
+    "Nada que rehacer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to redo"
+          }
+        }
+      }
+    },
+    "Añadir pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add spread"
+          }
+        }
+      }
+    },
+    "Quitar pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove spread"
+          }
+        }
+      }
+    },
+    "Añade un pliego al álbum y reparte de nuevo las fotos entre todos (los que tienen candado no se tocan)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds a spread to the album and lays the photos out again across all of them (locked ones are left alone)"
+          }
+        }
+      }
+    },
+    "Quita este pliego y reparte sus fotos entre los demás (los que tienen candado no se tocan)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes this spread and lays its photos out across the others (locked ones are left alone)"
+          }
+        }
+      }
+    },
+    "Aquí saldrán los pliegos en cuanto marques fotos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spreads will appear here as soon as you tick photos."
+          }
+        }
+      }
+    },
+    "Las fotos que marques irán apareciendo aquí, por fecha de disparo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The photos you tick will appear here, by capture date."
+          }
+        }
+      }
+    },
+    "Pegada a la tapa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Glued to the cover"
+          }
+        }
+      }
+    },
+    "Quitar de la portada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from the cover"
+          }
+        }
+      }
+    },
+    "Portada: contraportada, lomo y tapa. Suelta aquí fotos de la carpeta o de la tira; no cambian el álbum." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cover: back, spine and front. Drop photos here from the folder or the strip; they don't change the album."
+          }
+        }
+      }
+    },
+    "Exportar como" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export as"
+          }
+        }
+      }
+    },
+    "Solo la página útil" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only the used page"
+          }
+        }
+      }
+    },
+    "El primero solo usa la página derecha y el último solo la izquierda; la otra va pegada a la tapa. Al exportar, el pliego entero con esa mitad en blanco o solo la página útil, según pida el laboratorio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The first one only uses the right page and the last one only the left; the other is glued to the cover. When exporting, the whole spread with that half blank or only the used page, as your lab asks."
+          }
+        }
+      }
+    },
+    "Contraportada, lomo y tapa en una sola pieza, que se maqueta aparte y se exporta como 00.jpg." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back, spine and front in one piece, laid out separately and exported as 00.jpg."
+          }
+        }
+      }
+    },
+    "Exportar la portada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export the cover"
+          }
+        }
+      }
+    },
+    "Exportando pliegos…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporting spreads…"
+          }
+        }
+      }
+    },
+    "Por debajo de 150 ppp: se verá blanda al imprimirla a este tamaño" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below 150 ppi: it will look soft printed at this size"
+          }
+        }
+      }
+    },
+    "Por debajo de 200 ppp: puede verse algo blanda impresa a este tamaño" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below 200 ppi: it may look a little soft printed at this size"
+          }
+        }
+      }
+    },
+    "A sangre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full bleed"
+          }
+        }
+      }
+    },
+    "Alguna foto se amplía demasiado en este pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A photo on this spread is enlarged too much"
+          }
+        }
+      }
+    },
+    "%lld × %lld px a %lld ppp · JPEG sRGB" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld × %2$lld px at %3$lld ppi · JPEG sRGB"
+          }
+        }
+      }
+    },
+    "Exportar este pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export this spread"
+          }
+        }
+      }
+    },
+    "Exportar álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export album"
+          }
+        }
+      }
+    },
+    "Hay fotos que se amplían demasiado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some photos are enlarged too much"
+          }
+        }
+      }
+    },
+    "Sus píxeles no llegan para imprimirlas a ese tamaño y pueden verse blandas. Por debajo de 200 ppp efectivos, en naranja; por debajo de 150, en rojo. Puedes hacer su casilla más pequeña, quitar la ampliación del encuadre o exportar igualmente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They don't have enough pixels to be printed at that size and may look soft. Below 200 effective ppi, in orange; below 150, in red. You can make their cell smaller, remove the crop zoom or export anyway."
+          }
+        }
+      }
+    },
+    "Pliego %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spread %lld"
+          }
+        }
+      }
+    },
+    "Volver" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "Exportar igualmente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export anyway"
+          }
+        }
+      }
+    },
+    "¿Qué hacemos con la foto que había?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What should we do with the photo that was there?"
+          }
+        }
+      }
+    },
+    "Intercambiarlas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swap them"
+          }
+        }
+      }
+    },
+    "Sustituirla y que corra a los siguientes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace it and let it flow to the next spreads"
+          }
+        }
+      }
+    },
+    "Sustituirla y sacarla del álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replace it and take it out of the album"
+          }
+        }
+      }
+    },
+    "Intercambiar no mueve nada más. Sustituir rehace los pliegos siguientes sin candado." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swapping moves nothing else. Replacing rebuilds the following unlocked spreads."
+          }
+        }
+      }
+    },
+    "Foto fijada en esta casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo pinned to this cell"
+          }
+        }
+      }
+    },
+    "Soltar la foto de esta casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin the photo from this cell"
+          }
+        }
+      }
+    },
+    "Fijar la foto en esta casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin the photo to this cell"
+          }
+        }
+      }
+    },
+    "Encuadrar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crop…"
+          }
+        }
+      }
+    },
+    "Encuadre automático" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic crop"
+          }
+        }
+      }
+    },
+    "Arrastra el lomo para que las fotos crucen de una página a otra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag the spine so photos cross from one page to the other"
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el tamaño de las casillas" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to resize the cells"
+          }
+        }
+      }
+    },
+    "Arrastra para mover · rueda o pellizco para ampliar · Esc para acabar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to move · scroll or pinch to zoom · Esc to finish"
+          }
+        }
+      }
+    },
+    "Repartiendo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laying out…"
+          }
+        }
+      }
+    },
+    "%lld de %lld en el álbum · pulsa una foto para meterla o sacarla, o arrástrala a una casilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld in the album · click a photo to add or remove it, or drag it onto a cell"
+          }
+        }
+      }
+    },
+    "Retocado a mano: la cascada y «Repartir automáticamente» no lo tocan" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edited by hand: the cascade and “Auto layout” leave it alone"
+          }
+        }
+      }
+    },
+    "Quitar todos los candados" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove all locks"
+          }
+        }
+      }
+    },
+    "Vuelve a repartir todo el álbum desde el principio (los pliegos con candado se quedan como están)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lays out the whole album again from the start (locked spreads stay as they are)"
+          }
+        }
+      }
+    },
+    "Con candado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locked"
+          }
+        }
+      }
+    },
+    "Sin candado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlocked"
+          }
+        }
+      }
+    },
+    "Con candado, la cascada y «Repartir automáticamente» no tocan este pliego. Se pone solo al retocarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When locked, the cascade and “Auto layout” leave this spread alone. It locks itself when you edit it."
+          }
+        }
+      }
+    },
+    "Composición %lld de %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "Otras composiciones" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other layouts"
+          }
+        }
+      }
+    },
+    "Otras formas de componer este pliego con las mismas fotos, de mejor a peor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other ways to lay out this spread with the same photos, best first"
+          }
+        }
+      }
+    },
+    "Igualar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Equalise"
+          }
+        }
+      }
+    },
+    "Reparte a partes iguales la fila o columna de la casilla elegida" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Splits the selected cell's row or column into equal parts"
+          }
+        }
+      }
+    },
+    "Ajustar a las fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fit to photos"
+          }
+        }
+      }
+    },
+    "Coloca las guías para que cada casilla tenga la proporción de su foto, sin cambiar la rejilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the guides so each cell has its photo's proportions, without changing the grid"
+          }
+        }
+      }
+    },
+    "Plantilla…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template…"
+          }
+        }
+      }
+    },
+    "Doble clic en una foto para encuadrarla · arrastra las guías o el lomo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-click a photo to crop it · drag the guides or the spine"
+          }
+        }
+      }
+    },
+    "Plantilla para la rejilla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template for the grid"
+          }
+        }
+      }
+    },
+    "Página izquierda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left page"
+          }
+        }
+      }
+    },
+    "Pliego entero" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whole spread"
+          }
+        }
+      }
+    },
+    "Página derecha" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right page"
+          }
+        }
+      }
+    },
+    "Plantillas de 1 foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1-photo templates"
+          }
+        }
+      }
+    },
+    "Plantillas de %lld fotos (las de collage que no se pisan)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-photo templates (the non-overlapping collage ones)"
+          }
+        }
+      }
+    },
+    "No hay plantillas con ese número de fotos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are no templates with that number of photos."
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el orden (el reparto lo sigue) o suelta una foto en una casilla. Las del candado no se mueven." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order (the layout follows) or drop a photo onto a cell. Locked ones don't move."
+          }
+        }
+      }
+    },
+    "Álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        }
+      }
+    },
+    "Álbumes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums"
+          }
+        }
+      }
+    },
+    "Página cerrada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closed page"
+          }
+        }
+      }
+    },
+    "cm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cm"
+          }
+        }
+      }
+    },
+    "mm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mm"
+          }
+        }
+      }
+    },
+    "×" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×"
+          }
+        }
+      }
+    },
+    "Sangrado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bleed"
+          }
+        }
+      }
+    },
+    "Lo que se corta: la imagen crece esto por fuera." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What gets trimmed: the image grows this much outwards."
+          }
+        }
+      }
+    },
+    "Margen por dentro que las fotos no invaden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inner margin photos never cross."
+          }
+        }
+      }
+    },
+    "Franja del lomo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spine strip"
+          }
+        }
+      }
+    },
+    "A cada lado del lomo: ahí no deben quedar caras." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On each side of the spine: no faces there."
+          }
+        }
+      }
+    },
+    "Pliegos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spreads"
+          }
+        }
+      }
+    },
+    "Fijar número" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fixed number"
+          }
+        }
+      }
+    },
+    "Sin número, el reparto automático añade los pliegos que hagan falta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a number, the automatic layout adds as many spreads as needed."
+          }
+        }
+      }
+    },
+    "El reparto automático reparte las fotos entre estos pliegos." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The automatic layout spreads the photos across these spreads."
+          }
+        }
+      }
+    },
+    "Resolución" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolution"
+          }
+        }
+      }
+    },
+    "%lld ppp" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld ppi"
+          }
+        }
+      }
+    },
+    "%lld × %lld px por pliego" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld × %2$lld px per spread"
+          }
+        }
+      }
+    },
+    "Primero y último" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First and last"
+          }
+        }
+      }
+    },
+    "De una sola página" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single page"
+          }
+        }
+      }
+    },
+    "Próximamente: todavía no cambia la maqueta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coming soon: it doesn't change the layout yet."
+          }
+        }
+      }
+    },
+    "Con portada" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With cover"
+          }
+        }
+      }
+    },
+    "Próximamente: todavía no se maqueta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coming soon: it isn't laid out yet."
+          }
+        }
+      }
+    },
+    "Revisa las medidas: la página tiene que medir al menos 5 cm y los márgenes tienen que dejar sitio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the measurements: the page must be at least 5 cm and the margins must leave room."
+          }
+        }
+      }
+    },
+    "Cada tapa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each board"
+          }
+        }
+      }
+    },
+    "Lomo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spine"
+          }
+        }
+      }
+    },
+    "Sangrado o solapa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bleed or wrap"
+          }
+        }
+      }
+    },
+    "Abierto: %@ × %@ cm, más el sangrado" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open: %1$@ × %2$@ cm, plus bleed"
+          }
+        }
+      }
+    },
+    "Tipo nuevo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New type"
+          }
+        }
+      }
+    },
+    "Duplicar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicate"
+          }
+        }
+      }
+    },
+    "Borrar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Sin tipos de álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No album types"
+          }
+        }
+      }
+    },
+    "Crea el primero con +: nombre, medidas de la página y márgenes del laboratorio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create the first one with +: name, page size and the lab's margins."
+          }
+        }
+      }
+    },
+    "Elige un tipo de la lista para ver sus medidas." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a type from the list to see its measurements."
+          }
+        }
+      }
+    },
+    "¿Borrar el tipo «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the type “%@”?"
+          }
+        }
+      }
+    },
+    "Los álbumes ya creados con este tipo no cambian." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albums already created with this type don't change."
+          }
+        }
+      }
+    },
+    "Por ejemplo, Laboratorio 30 × 30" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For example, Lab 30 × 30"
+          }
+        }
+      }
+    },
+    "Álbum nuevo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New album"
+          }
+        }
+      }
+    },
+    "%@ copia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ copy"
+          }
+        }
+      }
+    },
+    "No se puede abrir el álbum «%@»: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't open the album “%1$@”: %2$@"
+          }
+        }
+      }
+    },
+    "Ya hay un álbum que se llama «%@»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's already an album called “%@”."
+          }
+        }
+      }
+    },
+    "No se puede renombrar: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't rename: %@"
+          }
+        }
+      }
+    },
+    "No se puede borrar: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't delete: %@"
+          }
+        }
+      }
+    },
+    "No se puede guardar el álbum: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't save the album: %@"
+          }
+        }
+      }
+    },
+    "Renombrar álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename album"
+          }
+        }
+      }
+    },
+    "¿Borrar el álbum «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the album “%@”?"
+          }
+        }
+      }
+    },
+    "Mover a la Papelera" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move to Trash"
+          }
+        }
+      }
+    },
+    "Su carpeta, con lo exportado dentro, va a la Papelera." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Its folder, with the exports inside, goes to the Trash."
+          }
+        }
+      }
+    },
+    "Aceptar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Primero, un tipo de álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First, an album type"
+          }
+        }
+      }
+    },
+    "Los tipos de álbum guardan las medidas del laboratorio: tamaño de página, sangrado, margen de seguridad, franja del lomo y número de pliegos. Se crean en Ajustes › Álbumes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album types store the lab's measurements: page size, bleed, safety margin, spine strip and number of spreads. Create them in Settings › Albums."
+          }
+        }
+      }
+    },
+    "Abrir Ajustes › Álbumes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings › Albums"
+          }
+        }
+      }
+    },
+    "Sin álbumes en esta sesión" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No albums in this session"
+          }
+        }
+      }
+    },
+    "Crea un álbum a partir de uno de tus tipos. Cada sesión puede tener varios: por localizaciones, por personas o versiones." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an album from one of your types. Each session can have several: by location, by people or versions."
+          }
+        }
+      }
+    },
+    "Nuevo álbum…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New album…"
+          }
+        }
+      }
+    },
+    "Nuevo álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New album"
+          }
+        }
+      }
+    },
+    "Renombrar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename…"
+          }
+        }
+      }
+    },
+    "Borrar…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete…"
+          }
+        }
+      }
+    },
+    "Ajustes del álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album settings"
+          }
+        }
+      }
+    },
+    "Analizando caras: faltan %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analysing faces: %lld left"
+          }
+        }
+      }
+    },
+    "%@ · %lld pliegos · %lld fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld spreads · %3$lld photos"
+          }
+        }
+      }
+    },
+    "Por ejemplo, Novios" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For example, Couple"
+          }
+        }
+      }
+    },
+    "El álbum se queda con una copia de las medidas del tipo: si luego cambias el tipo, este álbum no cambia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The album keeps a copy of the type's measurements: if you change the type later, this album stays the same."
+          }
+        }
+      }
+    },
+    "Ajustes de este álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This album's settings"
+          }
+        }
+      }
+    },
+    "Creado con el tipo «%@». Los cambios solo afectan a este álbum." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Created with the type “%@”. Changes only affect this album."
+          }
+        }
+      }
+    },
+    "%lld de %lld en el álbum · pulsa una foto para meterla o sacarla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld in the album · click a photo to add or remove it"
+          }
+        }
+      }
+    },
+    "Sin fotos en el álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No photos in the album"
+          }
+        }
+      }
+    },
+    "Marca a la izquierda las fotos que van al álbum. CAOBA las reparte en pliegos según su formato, sus caras y el momento en que se hicieron." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tick on the left the photos that go in the album. CAOBA lays them out in spreads by their format, their faces and when they were taken."
+          }
+        }
+      }
+    },
+    "Pliego %lld de %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spread %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "1 foto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 photo"
+          }
+        }
+      }
+    },
+    "Cambia cuántas fotos lleva este pliego: lo recoloca y las demás corren a los siguientes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change how many photos this spread holds: it's rearranged and the rest flow to the next ones"
+          }
+        }
+      }
+    },
+    "Añadir un pliego al álbum (reparte de nuevo desde aquí)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a spread to the album (lays out again from here)"
+          }
+        }
+      }
+    },
+    "Quitar este pliego (sus fotos corren a los siguientes)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove this spread (its photos flow to the next ones)"
+          }
+        }
+      }
+    },
+    "Repartir automáticamente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto layout"
+          }
+        }
+      }
+    },
+    "Vuelve a repartir todo el álbum desde el principio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lays out the whole album again from the start"
+          }
+        }
+      }
+    },
+    "Panorámica: ocupa el pliego entero" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panorama: takes the whole spread"
+          }
+        }
+      }
+    },
+    "Grupo de %lld personas: necesita sitio para que se vean las caras" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Group of %lld people: needs room for the faces to show"
+          }
+        }
+      }
+    },
+    "Fotos del mismo momento (en %lld s)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos from the same moment (within %lld s)"
+          }
+        }
+      }
+    },
+    "Número de fotos elegido a mano" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number of photos chosen by hand"
+          }
+        }
+      }
+    },
+    "Lo que mejor encaja con el formato y las caras de estas fotos" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What best fits the format and faces of these photos"
+          }
+        }
+      }
+    },
+    "Tira del álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album strip"
+          }
+        }
+      }
+    },
+    "Arrastra para cambiar el orden; el reparto lo sigue." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to change the order; the layout follows it."
+          }
+        }
+      }
+    },
+    "Quitar del álbum" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from album"
+          }
+        }
+      }
+    },
     "%@ libres de %@" : {
       "localizations" : {
         "en" : {

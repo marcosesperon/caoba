@@ -90,6 +90,7 @@ struct SessionSettingsView: View {
                 outputRow("Procesador", .processor)
                 outputRow("Marca de agua", .watermark)
                 outputRow("Collage", .collage)
+                outputRow("Álbum", .album)
                 outputRow("Slideshow", .slideshow)
                 outputRow("Contact Sheet", .contactSheet)
 

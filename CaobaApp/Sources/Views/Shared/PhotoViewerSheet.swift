@@ -28,13 +28,18 @@ struct PhotoViewerSheet: View {
     let size: CGSize
     @State private var index: Int
     @State private var image: CGImage?
+    /// Qué marca la casilla de abajo. Sin esto, la selección de la lista (la de los demás
+    /// módulos); el Álbum la usa para meter o sacar la foto del álbum.
+    var inclusion: (title: LocalizedStringKey, isOn: (ScannedFile) -> Bool, toggle: (ScannedFile) -> Void)?
 
     /// Lado de la versión rápida que se enseña mientras carga la original.
     private static let quickPixelSize = 1600
 
-    init(target: PhotoViewerTarget) {
+    init(target: PhotoViewerTarget,
+         inclusion: (title: LocalizedStringKey, isOn: (ScannedFile) -> Bool, toggle: (ScannedFile) -> Void)? = nil) {
         size = target.size
         _index = State(initialValue: target.index)
+        self.inclusion = inclusion
     }
 
     private var files: [ScannedFile] { appState.files }
@@ -61,14 +66,14 @@ struct PhotoViewerSheet: View {
                 .keyboardShortcut(.rightArrow, modifiers: [])
                 .disabled(index >= files.count - 1)
             if let file {
-                Toggle("Incluida en la selección", isOn: Binding(
-                    get: { !appState.excludedNames.contains(file.name) },
-                    set: { _ in appState.toggle(file) }
+                Toggle(inclusion?.title ?? "Incluida en la selección", isOn: Binding(
+                    get: { inclusion?.isOn(file) ?? !appState.excludedNames.contains(file.name) },
+                    set: { _ in if let inclusion { inclusion.toggle(file) } else { appState.toggle(file) } }
                 ))
                 .toggleStyle(.checkbox)
                 .help("Marca o desmarca la foto, igual que la casilla de su fila (espacio)")
                 // El espacio marca o desmarca aunque el foco no esté en la casilla.
-                Button("") { appState.toggle(file) }
+                Button("") { if let inclusion { inclusion.toggle(file) } else { appState.toggle(file) } }
                     .keyboardShortcut(.space, modifiers: [])
                     .hidden()
                     .frame(width: 0)

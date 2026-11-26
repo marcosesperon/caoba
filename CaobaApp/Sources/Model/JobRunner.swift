@@ -127,6 +127,7 @@ extension JobPhase {
         case .mixingAudio: return L("Mezclando audio…")
         case .generatingFrames: return L("Generando fotogramas…")
         case .organizingFiles: return L("Ordenando por fecha…")
+        case .exportingAlbum: return L("Exportando pliegos…")
         }
     }
 }

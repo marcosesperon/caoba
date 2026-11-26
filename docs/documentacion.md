@@ -95,7 +95,7 @@ Cuando hay una versión nueva, la banda ofrece «Actualizar ahora»: descarga el
 
 ### Capturas de pantalla
 
-La app admite argumentos de arranque pensados para generar las capturas de la landing (y para pruebas): `--folder <ruta>` abre una carpeta, `--module <id>` elige la sección (`slideshow`, `collage`, `contactSheet`, `processor`, `watermark`, `metadata`, `renamer`, `qr`, `shutterCount`, `recovery`), `--window <ancho>x<alto>` fija el tamaño de la ventana, `--state clave=valor` (repetible) deja un módulo con contenido (`collage.tab=random`, `collage.aspect=16:9`, `qr.text=https://…`, `watermark.png=/ruta/marca.png`, `renamer.pattern={YYYY}-{MM}-{DD}_{n}`, `recovery.results=<carpeta recuperada>`, `shutter.file=<foto o RAW>`) y `--screenshot <salida.png>` guarda la ventana pasados `--delay` segundos (8 por defecto) y cierra la app. La captura se hace de la propia ventana, así que no pide permiso de grabación de pantalla, y sale a la resolución de la pantalla (en Retina, el doble del tamaño pedido). Ejemplo:
+La app admite argumentos de arranque pensados para generar las capturas de la landing (y para pruebas): `--folder <ruta>` abre una carpeta, `--module <id>` elige la sección (`slideshow`, `collage`, `album`, `contactSheet`, `processor`, `watermark`, `metadata`, `renamer`, `qr`, `shutterCount`, `recovery`), `--window <ancho>x<alto>` fija el tamaño de la ventana, `--state clave=valor` (repetible) deja un módulo con contenido (`collage.tab=random`, `collage.aspect=16:9`, `qr.text=https://…`, `watermark.png=/ruta/marca.png`, `renamer.pattern={YYYY}-{MM}-{DD}_{n}`, `recovery.results=<carpeta recuperada>`, `shutter.file=<foto o RAW>`) y `--screenshot <salida.png>` guarda la ventana pasados `--delay` segundos (8 por defecto) y cierra la app. La captura se hace de la propia ventana, así que no pide permiso de grabación de pantalla, y sale a la resolución de la pantalla (en Retina, el doble del tamaño pedido). Ejemplo:
 
 ```sh
 open -n build/DerivedData/Build/Products/Debug/CAOBA.app --args \
@@ -243,7 +243,7 @@ En la app (`RenamerView`):
 
 - Modos: `.center`, `.saliency`, `.faces`. Devuelve `FocusResult` con un punto normalizado (origen arriba-izquierda) y si hubo caras.
 - `.saliency` usa Vision "objectness" (dónde está el sujeto; centro ponderado por confianza) y, si no detecta objetos, el centroide del mapa de atención. Se eligió objectness porque la atención tiene sesgo al centro y localiza peor para recortar.
-- `.faces` usa el centro del rectángulo que engloba todas las caras; sin caras cae a saliencia.
+- `.faces` usa el centro del rectángulo que engloba todas las caras; sin caras cae a saliencia. Además deja cada cara por separado en `FocusResult.faces` (normalizadas, origen arriba-izquierda): el Álbum las usa para saber lo pequeña que queda la cara más pequeña impresa.
 - Trabaja sobre una versión de 1024 px de la foto y cachea por fichero y modo. Es un `actor`; `FocusDetector.detect(image:mode:)` es la parte estática testeable.
 
 ### Collage (`CollageRenderer`, `CollageOptions`, `CollageRow`)
@@ -283,6 +283,127 @@ Al componer una secuencia de collages, además del reparto aleatorio, se puede p
 - `ContentComposer.compose(profiles:templates:allowReorder:)`: programación dinámica sobre la posición y la plantilla del grupo anterior, manteniendo el orden; penaliza repetir plantilla (o tamaño de grupo) y las plantillas de una foto salvo para fotos que destacan; al final una pasada de variedad cambia las plantillas que ya salieron en los tres grupos anteriores por otra del mismo tamaño si pierde poca puntuación. Con `allowReorder` intercambia fotos entre collages vecinos mientras mejore. Devuelve `ComposedRow` (plantilla, índice de foto por celda, focos) y las fotos sobrantes. Los pesos están como constantes al principio del tipo (`repeatPenalty`, `singlePenalty`, `varietyWindow`…).
 
 En la app (`ContentComposition`) el resultado se convierte en un nuevo orden de las fotos marcadas (`AppState.reorderCheckedFiles`) y una secuencia con el foco ya puesto. Es una propuesta: luego se edita igual que cualquier secuencia. Para probarlo desde línea de comandos: `--state collage.autocompose=content` (y `collage.reorder=1`); para capturar la hoja, `--state collage.compose=content --state capture.sheets=1`.
+
+### Álbum (`AlbumSpec`, `AlbumDocument`, `AlbumAutoLayout`)
+
+Maqueta de álbumes de fotos por **pliegos** (la doble página abierta: un álbum de 30 × 30 sale en imágenes de 60 × 30 cm más el sangrado, con el lomo en el centro), pensada para llevar al laboratorio. Están hechas la **fase 1** (tipos de álbum, álbumes de la sesión, tira de fotos y reparto automático) y la **fase 2** (fotos entre las dos hojas, guías que se arrastran con imán, encuadre a mano, candados, cambio de fotos entre casillas, otras composiciones y plantillas de collage). También la **fase 3** (exportación, «a sangre» y aviso de ampliación) y la **fase 4** (primer y último pliego de una página, y portada). Las decisiones de cada fase están en `docs/decisiones.md` (2026-11-25 y 2026-11-26).
+
+**Todo se mide en milímetros**; los píxeles solo salen al dibujar o al exportar (`AlbumSpec.exportPixelSize`, con los `ppi`).
+
+**El motor, en `CaobaCore/Album`** (tests en `AlbumTests`):
+
+- `AlbumSpec`: medidas y opciones.
+  - `pageWidthMM` × `pageHeightMM`: la página cerrada.
+  - `bleedMM` (sangrado: la imagen crece esto por fuera y se corta), `safetyMM` (margen por dentro que las fotos no invaden, también junto al lomo) y `spineMM` (franja a cada lado del lomo donde no deben quedar caras).
+  - `spreads`: número de pliegos; `nil` = los que pida el reparto.
+  - `singleFirstLast` (primer y último pliego de una página), `singlePageExport` (`.fullSpread`: el pliego entero con la otra mitad en blanco; `.pageOnly`: solo la página útil), `cover` (`AlbumCover`: cada tapa, lomo y sangrado o solapa en mm) y `ppi` (300 a 600).
+  - `spineWidthMM`: ancho del lomo entre las dos páginas. Es 0 en los pliegos (el lomo es una línea) y lo usa la portada. Toda la geometría lo tiene en cuenta: `spineStart`, `spineEnd`, `spineCenter`, `pageRect(_:)`, `pageContent(_:)` y `spineStrip`.
+  - `coverSpec`: la portada como si fuera un pliego. Las páginas son las tapas, el lomo tiene su ancho, el sangrado es la solapa y el margen de seguridad, la franja del lomo y los ppp son los del álbum. `pagePixelSize`: los píxeles de una página sola con su sangrado.
+  - La separación entre casillas es fija (`AlbumSpec.gapMM`, 4 mm) y el fondo blanco: «solo fotos».
+  - Geometría: `spreadContent` (zona útil del pliego entero), `pageContent(.left/.right)` (zona útil de cada página) y `spineStrip`.
+- `AlbumType`: un tipo de Ajustes (nombre + `AlbumSpec`). CAOBA no trae ninguno.
+- **Árbol de cortes** (`AlbumNode`): un trozo es una casilla (`AlbumCell`: foto y punto de encuadre opcional) o se parte en columnas o filas (`.split(axis:fractions:children:)`), cada hijo con su parte. Así las casillas nunca se pisan, y en la fase 2 mover una guía será cambiar dos de esas partes. `cellRects(in:gap:)` da cada casilla en mm.
+- `AlbumBlock`: un árbol y la parte de la zona útil que ocupa (`area`, 0-1). Normalmente toda; si las fotos piden otra proporción, a veces queda mejor centrada con blanco alrededor que recortada (una vertical sola en una página cuadrada).
+- `AlbumSpreadLayout`: `.full(bloque)` cruza el lomo (panorámicas, grupos grandes) o `.pages(left:right:)`, cada página por su lado (`nil` = en blanco).
+- `AlbumSpread`: un pliego, con `manualCount` (cuántas fotos pidió el usuario) y `reason` (por qué quedó así, para enseñarlo).
+- **Primer y último pliego de una página** (fase 4): `AlbumDocument.singleSide(ofSpread:)` da la página útil: la derecha en el primero y la izquierda en el último (con un solo pliego, cuenta como primero). El reparto (`firstSingle` y `lastSingle` del planificador) compone esos pliegos solo con esa página, sin cruzar el lomo, sin cobrar la página en blanco y con un máximo de 6 fotos; vale con número de pliegos fijo o libre. `alternatives(for:document:spec:side:)` también respeta ese lado.
+- **Portada** (fase 4): `AlbumDocument.cover`, un `AlbumSpread` que se maqueta con `spec.coverSpec`. Sus fotos son libres: no cuentan para la tira ni para la cascada (`allPhotos` las suma para analizarlas). `initialCover(photo:)` es la portada de partida: la primera foto a sangre en la tapa (página derecha).
+- `AlbumDocument`: lo que se guarda en `Álbum/<nombre>/<nombre>.caobaalbum` (JSON). Lleva una copia de las medidas del tipo (`spec`, y `typeName` solo como información), la **tira** (`photos`: nombres de fichero en el orden del álbum), los pliegos y el análisis de cada foto (`info`: `AlbumPhotoInfo` con proporción, fecha de disparo, caras y foco). Se lee siendo tolerante con lo que falte.
+- `AlbumLibrary`: la carpeta de álbumes de una sesión. `albumNames()`, `file(of:)`, `uniqueName(_:)` («Novios 2» si ya existe) y `rename(_:to:)`.
+- `AlbumAnalyzer.analyze(_:info:)`: caras (cada una) y punto de encuadre con `FocusDetector` sobre una miniatura de 1024 px.
+- **Candados** (fase 2): `AlbumSpread.locked` (candado de pliego) y `AlbumCell.locked` (foto fijada en su casilla). Cada casilla guarda también su encuadre a mano: `focus` y `zoom` (1 = lo que justo llena la casilla, hasta `AlbumCell.maxZoom`).
+- **Retoques a mano** (`AlbumEditing.swift`, fase 2):
+  - `AlbumSpreadLayout.guides(_:)`: las guías que se pueden arrastrar (`AlbumGuide`), con su posición, su recorrido y su tramo, en mm. Son de tres clases: `.split` (entre dos hijos de un corte), `.edge` (borde de un bloque que no llena su zona) y `.spine` (el lomo de un pliego hecho página a página).
+  - `moving(_:to:spec:)` devuelve el pliego nuevo y la medida de las dos casillas vecinas (`AlbumGuideMove`). Solo cambian las partes de esas dos casillas, y ninguna baja de `minCellMM` (15 mm). Mover el lomo junta las dos páginas en una sola composición (un corte en columnas con las dos de antes) y deja llevar fotos al otro lado.
+  - `snapped(_:for:spec:)`: el imán (a `snapMM`, 3 mm) del lomo, el centro de cada página, los bordes útiles y las demás guías paralelas.
+  - `equalizing(around:spec:)` (partes iguales en la fila o columna de una casilla), `fittedToPhotos(_:spec:)` (partes según la proporción de cada foto, sin cambiar la rejilla), `updatingCell(_:_:)` y `settingPhoto(_:in:)`.
+- **A sangre** (fase 3): `AlbumCell.bleed`. `AlbumSpreadLayout.drawRects(_:)` da lo que se dibuja de cada casilla: con «a sangre», los lados que tocan el margen de seguridad se alargan hasta el corte más el sangrado (en un pliego de páginas sueltas, el lado del lomo llega hasta el lomo). Lo usan el pliego en pantalla y la exportación; las guías y el reparto siguen con `cellRects`. `touchesMargin(_:spec:)` dice si una casilla puede ir a sangre.
+- **Exportación** (`AlbumExport`, fase 3):
+  - `effectivePPI(pixels:cell:rect:focus:)`: los píxeles de la parte que se ve divididos por lo que mide impresa, en pulgadas, por el lado más justo. `level(for:)`: por debajo de 200 (`lowPPI`) es `.low` (naranja) y por debajo de 150 (`veryLowPPI`), `.veryLow` (rojo). `issues(in:pixels:spreads:)` da la lista de las afectadas, de peor a mejor.
+  - `render(_:document:folder:)`: dibuja un pliego a `spec.exportPixelSize` en un lienzo sRGB blanco. Cada foto se lee del original con `ThumbnailProvider.makeThumbnail` (orientación EXIF aplicada) reducida solo a lo que pide su casilla, nunca por encima del original. Se recorta con `visibleRegion`, la misma cuenta que en pantalla, y se dibuja con interpolación alta.
+  - `export(_:photos:to:only:trash:progress:)`: escribe `01.jpg`, `02.jpg`… (`fileName`, con tres cifras si hay más de 99 pliegos) en JPEG a calidad 100 con los ppp en el fichero. El perfil sRGB va incrustado con la imagen. Pasa por `ImageWriter.write`, con un temporal, y dibuja un pliego cada vez: a 600 ppp, un 30 × 30 ocupa unos 400 MB en memoria. Un pliego en blanco sale blanco, para no saltar números.
+  - Piezas (`pieces`, `piece(_:of:)`): la portada (`coverIndex`, -1) si el álbum la lleva, y los pliegos. La portada se exporta como `00.jpg` a su medida (`coverSpec.exportPixelSize`). Un pliego de una página con `.pageOnly` se dibuja entero y se recorta a su página con su sangrado (`pagePixelSize`). En ese caso «a sangre», por el lado del lomo, también llena el sangrado (`drawRects(_:pageOnly:)`).
+  - Sin `only` exporta el álbum entero y manda antes a la Papelera los números de la exportación anterior (`previousExports`: solo los `.jpg` que se llaman con un número). Con `only` exporta ese pliego sin tocar los demás. Fase de progreso: `JobPhase.exportingAlbum` («Exportando pliegos…»).
+- `AlbumTemplates`: las plantillas de collage pasadas a árbol de cortes (`templates(photos:)` las da sin repetidas: muchas solo cambian en la proporción del lienzo y, estiradas al pliego, son la misma rejilla; las de 1 foto quedan en una) (666 de las 1049: las rectangulares que no se pisan y se parten con cortes rectos de lado a lado; las de molinillo no). `templates(photos:)` y `Entry.node(with:)`.
+
+**Reparto automático** (`AlbumAutoLayout`). No hay un número fijo de fotos por pliego: se buscan los cortes de la tira que mejor salen **en conjunto**, sin cambiar nunca el orden (programación dinámica sobre la tira). Cada pliego posible se puntúa (cuanto menos, mejor):
+
+- **Encaje**: lo que hay que recortar a cada foto para su casilla (crece deprisa, para que una vertical no acabe en una casilla apaisada) y que el recorte no corte caras.
+- **Espacio**: la cara más pequeña impresa, en mm reales, no baja de 10 mm (por debajo ya no se reconoce a nadie) y se ve cómoda a partir de 30 mm en retratos, 20 mm con 3 a 6 caras y 14 mm en grupos. Ninguna casilla debería tener el lado corto por debajo de la mitad del alto útil de la página.
+- **Panorámicas** (proporción de 2:1 o más): piden el ancho del pliego.
+- **Lomo**: una foto a pliego completo con una cara en la franja del lomo sale muy cara.
+- **Momento**: cortar en un salto de tiempo grande (cambio de escena) cuesta poco; cortar en medio de una ráfaga, bastante. Un cambio de escena dentro del mismo pliego también suma.
+- **Lomo**: también cuesta que un borde de casilla caiga dentro de la franja del lomo (un corte en el pliegue).
+- **Pliegos**: con número fijo se busca el mejor reparto con exactamente esos (si hay menos fotos que pliegos, los que sobran salen en blanco). Sin número, cada pliego tiene un coste (`spreadCost`) y el propio análisis decide cuántos hacen falta.
+
+Cada página se compone probando todas las formas de partirla en filas o en columnas para sus fotos en orden (como una galería justificada), estiradas hasta llenarla o a su proporción natural con blanco alrededor, y las plantillas de collage con ese número de fotos; se queda la que menos cuesta. El pliego también se prueba **entero**, cruzando el lomo con hasta 6 fotos (`maxFullSpread`), con las mismas formas y plantillas sobre la zona útil del pliego, más una pequeña preferencia por página a página cuando empatan (`fullSpreadBias`). Los pesos están arriba del fichero y los fijan los tests: mejor tocarlos con cuidado.
+
+`redistribute(_:from:)` rehace desde un pliego (la «cascada»):
+- los anteriores se quedan tal cual y el del cambio respeta su `manualCount`;
+- los pliegos con candado no se tocan y parten el resto en **tramos**. Cada foto libre va al tramo que le toca por su sitio en la tira; entre dos candados se mantiene el número de pliegos que había y el último tramo sigue el número del álbum (o el que haga falta). Si el último tramo no tiene fotos (el último pliego tiene candado), los pliegos de más o de menos van al último tramo que sí las tiene;
+- dentro de un tramo, un pliego con **fotos fijadas** tiene que llevarlas todas (y no las de otro). Si sigue con el mismo número de fotos, conserva su rejilla y solo cambian las fotos libres; si no, se elige la composición donde las fijadas se mueven menos (`anchorMoveCost`) y recuperan su encuadre y su candado.
+
+`distribute` reparte una lista de fotos, `bestSpread` compone un pliego suelto y `alternatives(for:document:)` da las mejores composiciones de un pliego con sus fotos, de mejor a peor y sin repetidas (para «Otras composiciones»).
+
+**En la app**:
+
+- **Ajustes › Álbumes** (`AlbumTypesSettingsView`): lista de tipos a la izquierda (+, duplicar, borrar con confirmación) y su ficha (`AlbumSpecForm`, la misma que en los ajustes de cada álbum) con un dibujo del pliego y sus zonas (`AlbumSpecPreview`). Se guardan en `caoba.album.types` (`AlbumTypeStore`). Cambiar o borrar un tipo no toca los álbumes ya creados.
+- **Módulo Álbum** (`AlbumView`), en Creadores, después de Collage. Sin tipos, avisa y abre Ajustes en «Álbumes»; sin álbumes, ofrece «Nuevo álbum…» (nombre y tipo).
+  - Arriba: el álbum abierto, +, el menú … (Duplicar, Renombrar…, Borrar…, que manda su carpeta a la Papelera), «Ajustes del álbum» (sus medidas: cambiar pliegos, página, seguridad o lomo rehace el reparto) y el resumen «30 × 30 cm · 8 pliegos · 24 fotos». Mientras se analizan caras, «Analizando caras: faltan N».
+  - Izquierda: las fotos de la carpeta; al pulsar una entra en la primera casilla vacía que haya (primero en el pliego que se ve; detrás de las fotos de ese pliego en la tira) o, si no hay ninguna, **al final** de la tira (el álbum sigue el orden en que se eligen); pulsándola otra vez, sale. «Todas» mete las que faltan al final, por fecha de disparo; «Ninguna» las saca. Con el ratón encima, una lupa en el centro abre la foto en grande (`PhotoViewerSheet`, cuya casilla aquí es «En el álbum»).
+  - Centro: el pliego en grande (`SpreadCanvas`) con el sangrado por fuera, el margen de seguridad en discontinuo y la franja del lomo sombreada. Debajo: anterior / siguiente (← →), el número de fotos del pliego (cambiarlo lo recoloca y las demás corren a los siguientes), «Añadir pliego» y «Quitar pliego» (quita el que se ve; los dos reparten de nuevo todo el álbum con el número nuevo sin tocar los pliegos con candado, y el álbum pasa a tener número fijo), «Repartir automáticamente» (todo de nuevo, olvidando los números pedidos a mano) y por qué quedó así («Fotos del mismo momento (en 25 s)», «Panorámica: ocupa el pliego entero»…).
+  - En la tira, soltar una foto **entre dos** (una franja fina que se ilumina) cambia el orden; soltarla **encima de otra** las intercambia (`swapPhotos`): cambian de sitio en la tira y de casilla en los pliegos, y los dos pliegos quedan con candado. Si una estaba sin colocar, ocupa la casilla de la otra, que queda sin colocar. Las fotos fijadas no se intercambian.
+  - Abajo: la fila de pliegos en miniatura (con un candado en los que lo tienen) y la tira del álbum, que se reordena arrastrando (el reparto lo sigue desde el primer pliego afectado; las fotos fijadas o de pliegos con candado llevan un candado y no se mueven). Las fotos del pliego que se ve salen resaltadas; pulsando una se va a su pliego.
+- **El pliego grande se retoca a mano** (`SpreadEditorCanvas`, fase 2):
+  - Las guías se arrastran (cursor de redimensionar al pasar por encima). Mientras se arrastra se ve la medida de las dos casillas en mm, en verde si se ha pegado a algo. El lomo de un pliego página a página también se arrastra.
+  - Clic elige una casilla; doble clic entra en el **encuadre** (`AlbumCropOverlay`): la foto entera en tenue alrededor y la parte que entra, nítida. Arrastrar mueve la foto, la rueda o el pellizco la amplían, y Esc o un clic fuera acaban.
+  - Menú de la casilla: fijar o soltar la foto, Encuadrar…, Encuadre automático (quita el encuadre a mano) y Quitar del álbum.
+  - Las fotos se arrastran desde otra casilla, la tira o la carpeta (`album:<foto>` o `folder:<foto>`). En una casilla vacía entran sin más y dentro del mismo pliego se intercambian. Si no, se pregunta: **Intercambiarlas** (no corre nada), **Sustituirla y que corra a los siguientes** (la de antes vuelve a la tira detrás de este pliego y se rehacen los siguientes sin candado) o **Sustituirla y sacarla del álbum**. Si la foto viene de fuera del álbum, solo salen las dos últimas.
+  - Los controles van en su propio bloque bajo el pliego, con otro fondo y su borde: navegación, retoques y una línea de estado (cambios sin repartir, qué es la portada o por qué quedó así el pliego).
+  - Barra de retoques: candado del pliego, ‹ Otras composiciones ›, Igualar (con una casilla elegida), Ajustar a las fotos y Plantilla… (para una página o el pliego entero, con el mismo número de fotos). «Repartir automáticamente» tiene un desplegable con «Quitar todos los candados».
+  - **Todo retoque pone el candado del pliego** (`AlbumWorkspace.setLayout`). Cambiar el número de fotos del pliego lo quita, porque pide que se rehaga, y también lo quita sacar una de sus fotos del álbum.
+- **Exportación en la app** (fase 3):
+  - Al pie del módulo está `AlbumExportBar`: dónde se exporta (`Álbum/<nombre>`, la carpeta del álbum, junto a su `.caobaalbum`), la medida de cada pliego («7157 × 3614 px a 300 ppp · JPEG sRGB»), «Exportar este pliego» y «Exportar álbum».
+  - Antes de exportar se guarda el álbum. Si alguna foto baja de 200 ppp efectivos, sale `AlbumResolutionSheet` con la lista (pliego, foto y ppp en su color) y «Exportar igualmente» / «Volver».
+  - Va con la hoja de progreso de siempre (`JobRunner`, se puede cancelar) y al acabar sale el aviso con la carpeta.
+  - En el pliego, cada casilla por debajo de 200 ppp lleva una etiqueta naranja o roja con sus ppp, y la miniatura del pliego un punto del mismo color.
+  - El menú de la casilla tiene «A sangre» (si toca algún margen), que cuenta como retoque.
+- **Portada y páginas sueltas en la app** (fase 4):
+  - En Ajustes y en los ajustes del álbum, «Primero y último: De una sola página» con «Exportar como: Pliego entero / Solo la página útil», y «Con portada» con sus medidas. Cambiar lo de las páginas sueltas vuelve a repartir el álbum.
+  - La página pegada a la tapa sale rayada con «Pegada a la tapa» (`GluedPageOverlay`), en el pliego grande y en su miniatura. Las plantillas solo se ofrecen para la página útil, y el número de fotos llega hasta 6.
+  - La portada va la primera en la fila, como «Portada». `AlbumWorkspace` la trata como una pieza más con el índice `AlbumExport.coverIndex`: `piece(_:)`, `spec(ofPiece:)`, `firstPiece` y `setCoverPhoto(_:inCell:)`. La portada es **una sola foto en la tapa**: solo se cambia la foto (se suelta sin preguntar), su encuadre (doble clic), «A sangre» y «Quitar de la portada». No lleva barra de retoques, ni guías ni lomo que arrastrar, ni candado ni «Fijar la foto». Si viene con otra rejilla de antes, sale «Una sola foto en la tapa» (`resetCover`), que la deja como al principio con su primera foto; `coverIsSinglePhoto` dice si ya está así. Con «Con portada» marcado, se crea sola (`withCover`) y, si está vacía y sin candado, coge la primera foto en cuanto la haya.
+  - La barra de exportación enseña la medida de lo que se ve (portada, página sola o pliego). Con la portada delante, el botón es «Exportar la portada».
+- **Reparto automático o a mano** (`AlbumDocument.autoLayout`, casilla «Reparto automático» junto al botón «Repartir», los dos en la cabecera del álbum porque son del álbum entero; con cambios pendientes, un punto naranja delante del botón). Se guarda con cada álbum. Los álbumes nuevos empiezan **marcados**; los de antes, desmarcados.
+  - Un álbum sin pliegos se reparte solo la primera vez que se le meten fotos (`isManual` es falso mientras no haya pliegos).
+  - **Marcada**: cada cambio reparte lo que haga falta, como siempre.
+  - **Desmarcada**: lo maquetado no se mueve y `pendingLayout` avisa en el pliego: «Hay cambios sin repartir», con un punto naranja en el botón.
+    - Las fotos que entran quedan en la tira sin colocar (`unplacedPhotos`), con borde naranja discontinuo e interrogante, y se pueden soltar en una casilla.
+    - Las que salen dejan su casilla vacía, y su pliego pierde el candado.
+    - «Añadir pliego» lo pone en blanco detrás del que se ve; «Quitar pliego» lo quita y sus fotos quedan sin colocar.
+    - El número de fotos se apunta como pedido («5 fotos (pendiente)»). Ordenar la tira, cambiar medidas o páginas sueltas y sustituir fotos también esperan.
+    - Al acabar el análisis de caras no se reparte.
+    - **Mover en la tira** una foto delante de otra que está en un pliego (`moveIntoSpread`) la mete en ese pliego, en esa casilla: las fotos siguientes del pliego se corren una casilla y la última, si no hay casillas vacías, pasa a «?» justo detrás en la tira. La rejilla no cambia y el pliego queda con candado. Si venía de otro pliego, allí deja su casilla vacía; si es del mismo, solo cambian de orden. Vale también para pliegos con candado (el candado es para «Repartir», no para los cambios a mano). Si no puede entrar (la de destino está fijada), va en la tira detrás de ese pliego, nunca en medio de sus fotos. Entre fotos sin colocar solo cambia el orden de la tira. Las fijadas no se corren.
+  - **«Repartir»** reparte el álbum entero con sus pliegos y respeta candados, fotos fijadas y las fotos pedidas **en cada pliego**: el motor las pasa como `required` por tramo, con número de pliegos fijo o libre. En el libre prueba cada número de pliegos. Su menú: «Quitar los números de fotos fijados a mano» y «Quitar todos los candados». Marcar la casilla con cambios pendientes reparte en ese momento.
+- **Pliego vacío y llevar fotos a un pliego**:
+  - Un pliego sin fotos pide el número de casillas («Pliego vacío»; si ya pedía un número, el botón «Crear N casillas»). Con el número de fotos se hace al momento una rejilla vacía (`AlbumAutoLayout.emptyLayouts`, con fotos de relleno en 3:2; primero las de página a página, para no cruzar el lomo sin saber dónde irán las caras), con candado. Se retoca como cualquier pliego: ‹ › da otras rejillas vacías, las plantillas cuentan las casillas, y guías, igualar y ajustar funcionan igual.
+  - El reparto respeta los pliegos con candado aunque solo tengan casillas vacías, y los deja en su sitio (sin fotos, su sitio en la tira son las fotos que tiene delante).
+  - Las fotos se sueltan en una casilla (vacía: entra; ocupada: el menú de siempre) o en una zona libre del pliego grande o su miniatura (`dropOnSpread`). Van a la primera casilla vacía o, si no hay, el pliego se recompone con una foto más (`AlbumAutoLayout.recomposed`, que respeta las fijadas) y queda con candado. La foto pasa en la tira detrás de las del pliego. Si venía de otro, allí deja su casilla vacía (en manual) o se reparte desde ese pliego (en automático). En la portada, la pone en la tapa.
+- **Casillas como las celdas de una tabla** (menú de la casilla y menú «Casilla» de la barra, para la casilla elegida; no en la portada):
+  - «Dividir en columnas / en filas» (`AlbumSpreadLayout.splitting`): sale una casilla vacía al lado o debajo. Si la casilla ya está en un corte de ese sentido, se añade a él repartiéndose su parte.
+  - «Fusionar con la de la izquierda / derecha / arriba / abajo» (`merging`): solo con una casilla vecina del mismo corte, que es la que comparte todo el lado (si no, la opción sale apagada). Se queda la foto de la elegida, o la de la vecina si la elegida estaba vacía. Si las dos tenían, la otra queda desplazada; con una foto fijada no se puede.
+  - «Quitar casilla» (`removing`): su parte se la quedan las vecinas, y los cortes con un solo hijo se simplifican; si era la única de su página, la página queda en blanco. Una casilla con foto fijada no se quita.
+  - Tras cada operación (`AlbumWorkspace.cellAction`), el pliego tiene las casillas que se ven, sin número pendiente, y queda con candado. La foto desplazada sigue en el álbum: sin colocar en manual, o se reparte desde el pliego siguiente en automático.
+  - En manual, o en automático si se piden más fotos de las que quedan en la tira desde ese pliego, cambiar el número de fotos se aplica ya a ese pliego (`AlbumAutoLayout.composed`; las casillas en blanco nunca tocan la franja del lomo): se recompone con ese número de casillas y sus fotos en orden; las casillas de más quedan vacías y las fotos que sobran, sin colocar.
+- **Deshacer y rehacer**: con el deshacer de la ventana (`UndoManager` del entorno, que la vista pasa a `AlbumWorkspace.undoManager`), así que valen ⌘Z, ⇧⌘Z y Edición › Deshacer / Rehacer, y también los botones ↶ ↷ de la cabecera (su ayuda dice qué deshacen).
+  - Antes de cada acción del usuario, `record(_:)` guarda una copia del álbum (tira, pliegos, portada y ajustes; las caras no) con el nombre de la acción: «Mover una guía», «Encuadrar», «A sangre», «Cambiar fotos de casilla», «Otra composición», «Plantilla», «Igualar», «Ajustar a las fotos», «Candado», «Fijar foto», «Quitar candados», «Meter/Sacar foto», «Todas o ninguna», «Ordenar la tira», «Número de fotos», «Añadir/Quitar pliego», «Repartir automáticamente», «Ajustes del álbum» y «Portada».
+  - El reparto que provoca una acción va en el mismo paso, y el que se lanza al acabar el análisis de caras no apunta nada. La misma acción repetida en menos de un segundo (teclear una medida, pulsar varias veces el número de fotos) cuenta como un solo paso.
+  - Al deshacer se vuelve a la copia, se cancela el reparto que estuviera en marcha y se guarda solo. Hasta 50 pasos (`levelsOfUndo`). Al abrir otro álbum o cambiar de carpeta, el historial se borra (`clearUndo`). El análisis de las fotos que salen del álbum se conserva mientras sigan en la carpeta, para no repetirlo al deshacer.
+  - Mientras se escribe en una casilla de texto, ⌘Z deshace lo escrito, como en cualquier app de Mac.
+- **Recálculo automático desde el pliego en el que se está hacia delante** (`autoStart`): los de antes no se tocan, salvo que el cambio caiga en uno anterior. Estando en el pliego 1 mientras se eligen fotos, se ve el álbum entero tal como quedará. «Repartir» y los cambios de medidas reparten todo el álbum.
+- **Proporciones**: una vertical nunca va a una casilla apaisada ni al revés (`orientationMismatchCost`; las casi cuadradas, entre 0,9 y 1,1, valen para las dos). Los recortes moderados se centran en lo principal. Mientras una foto no está analizada, el reparto supone que lo principal está en el centro y no lo deja en el lomo (salvo las panorámicas). Además, una vertical o cuadrada nunca se dobla por su zona central (del 30 % al 70 % de su ancho), aunque sus caras queden a los lados: lo principal puede no ser una cara (una mascota). Las apaisadas sí pueden cruzar a doble página si sus caras no caen en el pliegue.
+- El reparto se calcula **en segundo plano** (`Task.detached`). Mientras, en la cabecera sale «Repartiendo…» y no se puede retocar; si entre tanto cambia algo, el resultado que llega tarde se descarta (`revision`). Después de cada reparto, la tira queda en el orden del álbum.
+- `AlbumWorkspace` (en `AppState`, uno por ventana, para que el álbum siga abierto al cambiar de módulo): busca los álbumes de la carpeta de origen (en una sesión, la carpeta `Álbum` de Ajustes › Sesiones; en una carpeta suelta, `Álbum` dentro de ella), abre, crea, duplica, renombra y borra, mantiene la tira y el reparto, analiza las caras en segundo plano (al acabar rehace el reparto desde el primer pliego que tenía alguna sin analizar) y guarda solo, 0,7 s después de cada cambio y al cambiar de álbum, de carpeta o de módulo.
+- Para capturas y pruebas: `--state album.demo=1` crea «Alex & Sofía» con todas las fotos y el primer tipo (si la carpeta no tiene álbumes) y `--state album.spread=N` va al pliego N (esperando al análisis de caras). Con `album.spread`: `--state album.alternative=N` aplica la composición N de la lista, `album.lockPhoto=1` fija la primera foto y `album.crop=1` (con `album.zoom=1.6`) entra en el encuadre de la primera casilla, `album.bleed=1` pone a sangre la primera casilla y `album.export=all` (o el número de un pliego) exporta sin el aviso de ampliación. `album.spread=0` es la portada. `album.retoggle=1` hace «Ninguna» y luego «Todas». `album.undo=N` deshace N pasos. `album.pick=N` marca una a una las N fotos más nuevas. `album.swaptest=1` intercambia la primera foto del pliego 1 con la del 2. `album.addone=1` marca la foto más antigua que aún no está en el álbum. `album.count=N` pide N fotos en el pliego que se ve. `album.striptest=1` (o `=twice`, que además mete otra «?» entre las dos primeras de ese pliego) quita el pliego que se ve y lleva en la tira una de sus fotos delante del siguiente. `album.celltest=empty|remove|merge` saca la primera foto del pliego que se ve y quita o fusiona su casilla. `album.emptytest=1` (o `=drop`) añade un pliego vacío con 3 casillas (y le suelta la última foto). `album.manualtest=1` (o `=repartir`) prueba el modo manual: saca una foto, añade un pliego y pide 2 fotos en el que se ve (y reparte). Los tipos se pueden pasar sin tocar las preferencias con `-caoba.album.types "<JSON en hexadecimal entre < >>"`. Ajustes › Álbumes: `--state demo.settings=1 --state settings.tab=albums`.
 
 ### Contact Sheet (`ContactSheetRenderer`, `ContactSheetOptions`)
 
@@ -465,6 +586,7 @@ Sesiones/                         ← carpeta raíz
       Lightroom/
       JPG web/                    ← lo que guarda el Procesador
       Collages/                   ← lo que guarda el Collage
+      Álbum/                      ← un álbum por subcarpeta (Álbum/Novios/Novios.caobaalbum)
       2026-11-15 Nombre de la sesión - Slideshow.mp4
 ```
 
@@ -524,9 +646,9 @@ Procesador, Marca de agua, Collage, Renombrador y Contact Sheet llevan un menú 
 - Idioma (`caoba.language`): sistema / español / inglés. Se aplica al vuelo con `environment(\.locale)`; los textos fuera de vistas usan `L("…")`.
 - Apariencia (`caoba.appearance`): sistema / claro / oscuro.
 - Carpetas recientes (`caoba.recentFolders`): máximo 5.
-- Ajustes tiene dos pestañas: «General» (esto de aquí) y «Sesiones» (ver «Sesiones del estudio»).
+- Ajustes tiene tres pestañas: «General» (esto de aquí), «Sesiones» (ver «Sesiones del estudio») y «Álbumes» (los tipos de álbum, ver «Álbum»). La última pestaña vista se recuerda en `caoba.settings.tab`; el módulo Álbum la pone en `albums` antes de abrir Ajustes desde su aviso.
 - Último módulo (`caoba.lastModule`): la app arranca en el último módulo de la barra lateral que se usó (Procesador la primera vez). En modo captura (`--screenshot`) no se guarda.
-- Secciones de la barra lateral (`Module.creators`, `utilities` y `otherTools`): **Creadores** (Slideshow, Collage, Contact Sheet), **Utilidades** (lo que se hace con las fotos de una sesión, en orden de trabajo: Descargar tarjeta, Procesador, Marca de agua, Metadatos, Renombrador) y **Otras herramientas** (lo que no va con una sesión: Código QR, Shutter Count, Recuperar fotos).
+- Secciones de la barra lateral (`Module.creators`, `utilities` y `otherTools`): **Creadores** (Slideshow, Collage, Álbum, Contact Sheet), **Utilidades** (lo que se hace con las fotos de una sesión, en orden de trabajo: Descargar tarjeta, Procesador, Marca de agua, Metadatos, Renombrador) y **Otras herramientas** (lo que no va con una sesión: Código QR, Shutter Count, Recuperar fotos).
 - En el título de la ventana va la sesión activa (`SessionPicker`), salvo en «Otras herramientas»: como no trabajan con la sesión (`Module.usesSession` es `false`), allí pone solo «CAOBA», sin flecha ni lista. La sesión no se quita; vuelve a verse al ir a cualquier otro módulo.
 - Pie de la barra lateral: «CAOBA · versión» y, debajo, en una fila, «caobafoto.com» a la izquierda y «Donación» a la derecha, los dos en el color de acento.
 - Autor (`caoba.author`): nombre del fotógrafo o estudio. Se guarda como autor en los vídeos del Slideshow (vacío = el vídeo sale sin autor) y, en Metadatos, se propone en «Artista» cuando la foto no trae uno; el botón «Usar mi autor» lo pone aunque la foto tenga otro. Nada se escribe en las fotos hasta pulsar «Escribir metadatos».
@@ -621,6 +743,23 @@ let report = PhotoRecReport.parse(log: try String(contentsOf: salida.appendingPa
 let files = RecoveredFiles.list(in: salida)            // sin miniaturas ni report.xml
 let summary = try await PhotoOrganizer.organize(files, into: ordenadas)
 print(report.succeeded, RecoveredFiles.count(files).total, summary.dated, summary.undated)
+
+// Álbum: reparto automático de la tira y fichero del álbum
+let library = AlbumLibrary(folder: sesion.appendingPathComponent("Álbum"))
+var album = AlbumDocument(typeName: "Laboratorio 30 × 30",
+                          spec: AlbumSpec(pageWidthMM: 300, pageHeightMM: 300, bleedMM: 3, safetyMM: 10, spineMM: 10))
+for file in files {
+    album.photos.append(file.name)
+    let base = AlbumPhotoInfo(aspect: file.size?.aspectRatio ?? 1.5, captureDate: file.captureDate)
+    album.info[file.name] = AlbumAnalyzer.analyze(file.url, info: base)   // caras y foco
+}
+album.spreads = AlbumAutoLayout.redistribute(album)          // primera versión del álbum
+album.spreads[2].manualCount = 6                              // el pliego 3 con 6 fotos…
+album.spreads = AlbumAutoLayout.redistribute(album, from: 2)  // …y las demás corren a los siguientes
+for spread in album.spreads {
+    print(spread.photos, spread.reason ?? .bestFit, spread.layout.cellRects(album.spec).map(\.rect))
+}
+try album.save(to: library.file(of: library.uniqueName("Novios")))
 
 // Cancelar un trabajo
 let task = Task { try await ImageProcessor().process(files: urls, ops: ops, saveMode: .overwrite) }

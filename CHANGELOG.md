@@ -2,6 +2,13 @@
 
 Cada versión con lo que cambia para quien usa la app. La sección de la versión que se publica es también el texto de la release en GitHub y el aviso de novedades que sale al abrir la app tras actualizar.
 
+## 3.30.0 — 2026-11-26
+
+- **Nuevo módulo Álbum**: maqueta álbumes de fotos por pliegos (la doble página abierta) y los exporta listos para el laboratorio. Primero crea en Ajustes › Álbumes un tipo con las medidas de tu laboratorio (página, sangrado, margen de seguridad, franja del lomo, pliegos, resolución, primer y último pliego de una página y portada).
+- **Reparto automático**: según vas eligiendo fotos, CAOBA las coloca en pliegos mirando su formato, sus caras y el momento en que se hicieron. Las verticales van en casillas verticales, nada importante cae en el lomo y las caras no quedan diminutas. Puede poner fotos entre las dos hojas. Desmarca «Reparto automático» para que nada se mueva hasta pulsar «Repartir».
+- **Retoque a mano**: arrastra las guías (con imán y medida en mm), encuadra con doble clic y zoom, prueba otras composiciones o plantillas, divide, fusiona o quita casillas como en una tabla, intercambia fotos arrastrando y fija pliegos o fotos con candado. Todo se deshace con ⌘Z.
+- **Exportación** de cada pliego en JPEG sRGB a calidad máxima, a la medida real con sangrado y a 300–600 ppp: `00.jpg` (portada), `01.jpg`, `02.jpg`… en la carpeta del álbum. Avisa de las fotos que se amplían demasiado.
+
 ## 3.29.1 — 2026-11-22
 
 - **Descargar tarjeta recuerda otra vez su carpeta**: al abrir CAOBA sin sesión, la carpeta de descarga que tenías elegida se perdía (desde la 3.27). Ahora vuelve a salir como antes.

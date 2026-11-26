@@ -116,6 +116,7 @@ struct ContentView: View {
         switch module {
         case .slideshow: SlideshowView()
         case .collage: CollageView()
+        case .album: AlbumView()
         case .contactSheet: ContactSheetView()
         case .processor: ProcessorView()
         case .watermark: WatermarkView()
@@ -185,11 +186,13 @@ struct ComingSoonView: View {
     }
 }
 
-/// Preferencias en dos pestañas: «General» (idioma, apariencia, autor y presets) y «Sesiones».
+/// Preferencias en tres pestañas: «General» (idioma, apariencia, autor y presets), «Sesiones» y
+/// «Álbumes» (los tipos de álbum).
 struct SettingsView: View {
     /// Ajustes son de toda la app, no de una ventana.
     @Environment(AppModel.self) private var app
-    @State private var tab = "general"
+    /// Se recuerda la última pestaña; el módulo Álbum abre Ajustes directamente en «Álbumes».
+    @AppStorage(Preferences.settingsTabKey) private var tab = "general"
 
     var body: some View {
         TabView(selection: $tab) {
@@ -200,6 +203,10 @@ struct SettingsView: View {
                 .frame(width: 520, height: 560)
                 .tabItem { Label("Sesiones", systemImage: "person.2.crop.square.stack") }
                 .tag("sessions")
+            AlbumTypesSettingsView()
+                .frame(width: 720, height: 640)
+                .tabItem { Label("Álbumes", systemImage: "book") }
+                .tag("albums")
         }
         // Para capturas: `--state settings.tab=sessions`.
         .onAppear { if let initial = app.launchState["settings.tab"] { tab = initial } }

@@ -3,12 +3,12 @@ import SwiftUI
 /// Secciones de la barra lateral. Las que no están implementadas todavía
 /// muestran un aviso de "próximamente".
 enum Module: String, CaseIterable, Identifiable {
-    case slideshow, collage, contactSheet
+    case slideshow, collage, album, contactSheet
     case processor, watermark, metadata, renamer, qr, shutterCount, cardImport, recovery
 
     var id: String { rawValue }
 
-    static let creators: [Module] = [.slideshow, .collage, .contactSheet]
+    static let creators: [Module] = [.slideshow, .collage, .album, .contactSheet]
     /// Lo que se hace con las fotos de una sesión, en el orden de trabajo: primero descargar la tarjeta.
     static let utilities: [Module] = [.cardImport, .processor, .watermark, .metadata, .renamer]
     /// Lo que no va con una sesión concreta.
@@ -23,6 +23,7 @@ enum Module: String, CaseIterable, Identifiable {
         switch self {
         case .slideshow: return L("Slideshow")
         case .collage: return L("Collage")
+        case .album: return L("Álbum")
         case .contactSheet: return L("Contact Sheet")
         case .processor: return L("Procesador")
         case .watermark: return L("Marca de agua")
@@ -42,6 +43,7 @@ enum Module: String, CaseIterable, Identifiable {
         switch self {
         case .slideshow: return "film"
         case .collage: return "square.grid.2x2"
+        case .album: return "book"
         case .contactSheet: return "rectangle.grid.3x2"
         case .processor: return "crop.rotate"
         case .watermark: return "drop"
@@ -62,7 +64,7 @@ enum Module: String, CaseIterable, Identifiable {
         case .collage: return .outputFolder
         case .processor, .watermark, .renamer: return .folder
         case .metadata, .qr, .shutterCount: return .none
-        case .cardImport, .recovery: return .none // tienen su propia barra de acción
+        case .cardImport, .recovery, .album: return .none // tienen su propia barra de acción
         }
     }
 

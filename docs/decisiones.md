@@ -4868,3 +4868,829 @@ Investigar el posible fallo visto en las capturas de la 3.29: sin sesión, Desca
 
 ### 6. Pendiente de comprobar
 - Comprobado con una traza temporal en una compilación aparte (ya quitada), con el destino pasado por argumento: sin sesión no se toca y sale en la barra (con su barra de espacio); con sesión pasa al `RAW` de la sesión; con dos ventanas sin sesión, al pasar al frente la segunda queda sin destino, como estaba pensado. Compila y pasan los 211 tests; preferencias restauradas sin diferencias.
+
+## 2026-11-25 — Maquetación de álbumes de fotos
+
+### 1. La petición tal como se ha entendido
+Un módulo nuevo, **Álbum**, para maquetar álbumes de fotos por pliegos y exportarlos listos para el laboratorio.
+
+- **Pliego = doble página abierta.** Un álbum de 30 × 30 se maqueta y se exporta en imágenes de 60 × 30 cm (más el sangrado), con el lomo en el centro. Una foto puede cruzar de una página a otra.
+- **Tipos de álbum en Ajustes.** Ajustes tiene un mantenimiento de tipos de álbum, que son las plantillas base de cada álbum. Cada tipo lleva:
+  - nombre;
+  - número de pliegos por defecto (opcional);
+  - medidas de la página;
+  - márgenes;
+  - primer y último pliego de una página;
+  - portada y sus medidas;
+  - ppp de exportación.
+
+  CAOBA **no trae tipos de serie**: los define el usuario (crear, editar, duplicar, borrar). Las medidas son las de la página cerrada (por ejemplo 30 × 30 cm). Mientras no haya ningún tipo, el módulo Álbum invita a crear el primero en Ajustes. Al crear un álbum en la sesión se elige un tipo. El álbum se queda con una **copia** de sus valores, así que cambiar el tipo después no toca los álbumes ya hechos. En el propio álbum se pueden ajustar sus valores: número de pliegos, páginas sueltas, portada, ppp y, si hace falta, medidas y márgenes. Cada formato lleva tres márgenes en mm, que se ven en pantalla como guías:
+  - **sangrado**: lo que se corta; la imagen crece por fuera;
+  - **seguridad**: por dentro; las fotos no lo invaden;
+  - **franja del lomo**: a cada lado del lomo; no deben quedar caras.
+- **Fotos.** Se marcan las fotos del `JPG` de la sesión (o de una carpeta suelta) que van al álbum. Quedan en una **tira** ordenada por fecha de disparo, que se reordena arrastrando. También se puede arrastrar una foto suelta a una casilla.
+- **Rejilla de casillas que no se pisan**, separadas por un hueco fijo y sobre fondo blanco. No hay textos ni adornos: solo fotos. Al arrastrar una guía crecen unas casillas y menguan las vecinas. La foto se puede reencuadrar dentro de su casilla.
+- **Reparto automático.** Sigue el orden de la tira y la proporción de cada foto (vertical en casilla vertical, horizontal en horizontal), centra el encuadre en las caras y evita dejarlas en la franja del lomo. Da enseguida una primera versión de todo el álbum: reparte las fotos de la tira entre el número de pliegos del álbum. Si el tipo no indica número de pliegos (es opcional), el reparto añade los que hagan falta.
+- **Cambiar el número de fotos de un pliego** lo recoloca, y las fotos corren **en cascada** por los pliegos siguientes (se añaden o quitan pliegos al final). Hay **candado** a dos niveles:
+  - **pliego**: un pliego retocado a mano se fija y la cascada lo salta entero;
+  - **foto**: una foto se fija a su pliego y a su casilla. Por mucho que se recoloque, la foto sigue ahí, y el reparto automático y la cascada colocan las demás a su alrededor, saltándosela en el orden de la tira. Si el pliego cambia de número de fotos, la casilla fijada conserva su sitio y su forma lo más parecidos posible. Se pueden añadir pliegos a mano.
+- **Exportación**: una imagen por pliego.
+  - Formato JPEG sRGB a calidad máxima, a la medida real con el sangrado.
+  - Resolución elegida en el álbum: 300 ppp por defecto, hasta 600.
+  - Avisa de las fotos que se amplían demasiado para esa resolución.
+  - Los ficheros van a la carpeta del álbum dentro de la sesión (`Álbum/<nombre>`).
+- **Opciones de cada álbum**:
+  - primer y último pliego de una sola página (la otra mitad sale en blanco);
+  - con o sin **portada**, con sus propias medidas en mm (tapas, lomo, sangrado o solapa), que se maqueta como un pliego con el lomo marcado.
+- **Varios álbumes por sesión**, cada uno con su nombre (por localizaciones, por personas, versiones…). Se crean, se duplican (para sacar una versión), se renombran y se borran. Cada uno se guarda solo, en su fichero dentro de la sesión, y exporta a su propia subcarpeta: `Álbum/<nombre>`.
+- **Por fases**, cada una probada antes de seguir:
+  1. álbumes de la sesión, medidas, tira y reparto automático con caras;
+  2. guías que se arrastran, encuadre a mano, candados (de pliego y de foto) y cascada;
+  3. exportación;
+  4. primer y último pliego de una página, y portada.
+
+**Confirmación:** «si» (2026-11-25).
+
+Petición original: nueva funcionalidad para maquetar álbumes de fotos por pliegos. Medidas estándar (20 × 20, 25 × 30, 30 × 30, 30 × 35) y otras definibles, con márgenes de impresión que no se pueden invadir. Rejilla lo más flexible posible: guías que se arrastran para reajustar los tamaños, ajuste automático según las caras y generación automática siguiendo el orden de las fotos, teniendo en cuenta la proporción de cada foto y dónde está la cara. Al cambiar el número de fotos de un pliego, el programa lo recoloca solo, para tener ya una primera versión del álbum. Se pueden añadir los pliegos que hagan falta. La exportación genera una imagen final por pliego, a la medida real del álbum y con la máxima resolución, para enviarla al laboratorio.
+
+### 2. Preguntas y respuestas
+- **P1. ¿Qué es un pliego para el laboratorio?** ¿La doble página abierta (en un 30 × 30, una imagen de 60 × 30 con el lomo en medio) o cada página por separado?
+  - **R:** doble página abierta. Un 30 × 30 se exporta como una imagen de 60 × 30 con el lomo en el centro, y una foto puede cruzar de una página a otra.
+- **P2. ¿Qué márgenes define el laboratorio?** ¿Solo un margen de seguridad alrededor, o también sangrado (lo que se corta) y una franja junto al lomo?
+  - **R:** sangrado, seguridad y lomo, las tres en mm. El sangrado es lo que se corta (la imagen crece por fuera), el margen de seguridad va por dentro y hay una franja a cada lado del lomo donde no deben ir caras.
+- **P3. ¿Cómo es la rejilla de un pliego?** ¿Fotos en casillas que no se pisan, separadas por guías que se arrastran, o también fotos libres que se superponen?
+  - **R:** casillas que no se pisan. El pliego se divide en casillas separadas por un hueco, y al arrastrar una guía crecen unas casillas y menguan las vecinas.
+- **P4. ¿De dónde salen las fotos y dónde se guarda el álbum?** ¿Las fotos del `JPG` de la sesión y un fichero de álbum dentro de ella, o algo distinto?
+  - **R:** en la sesión. Las fotos salen del `JPG` de la sesión (o de una carpeta suelta) y el álbum se guarda solo en un fichero dentro de la sesión. Los pliegos exportados van a una carpeta «Álbum» de la misma sesión.
+- **P5. ¿Qué fotos entran en el álbum y en qué orden?**
+  - **R:** selección en una tira. Se marcan las fotos de la sesión que van al álbum y quedan en una tira, ordenadas por fecha de disparo, que se reordena arrastrando. El reparto automático sigue ese orden, y después se pueden arrastrar fotos sueltas a una casilla.
+- **P6. Al cambiar el número de fotos de un pliego, ¿qué pasa con los siguientes?** ¿Corren las fotos al siguiente pliego en cascada, o solo se reajusta ese pliego?
+  - **R:** en cascada, salvo los pliegos fijados. Las fotos corren por los pliegos siguientes siguiendo la tira, y se añaden o quitan pliegos al final. Los pliegos retocados a mano se pueden fijar con un candado y no se tocan.
+- **P7. ¿Qué resolución lleva la exportación?** ¿Un valor fijo, uno que se elige, o el que permitan las fotos?
+  - **R:** la resolución se elige en el álbum, con 300 ppp por defecto y hasta 600. Al exportar se avisa de las fotos que se amplían demasiado para ese tamaño.
+- **P8. ¿En qué formato y perfil de color se exporta?**
+  - **R:** JPEG sRGB a calidad máxima.
+- **P9. ¿Entra la portada, y son especiales el primer y el último pliego?**
+  - **R:** se decide en cada álbum: si el primer y el último pliego son de una sola página, y si se incluye portada.
+- **P10. ¿Cómo se mide la portada?** ¿Con el mismo tamaño que un pliego, o con sus propias medidas (tapa, lomo y contraportada)?
+  - **R:** medidas propias en mm, sacadas de la plantilla del laboratorio: ancho y alto de cada tapa, ancho del lomo y sangrado o solapa. Se maqueta igual que un pliego, con la franja del lomo marcada en el centro.
+- **P11. Además de las fotos, ¿qué más lleva un pliego?** Separación entre casillas, fondo, textos…
+  - **R:** solo fotos. Separación fija y fondo blanco; todo el esfuerzo va a las casillas y al reparto.
+- **P12. ¿Se entrega todo de una vez o por fases?**
+  - **R:** por fases, y cada una se prueba antes de seguir:
+    1. álbum, medidas, tira de fotos y reparto automático con caras;
+    2. guías que se arrastran, encuadre a mano, candado y cascada;
+    3. exportación a JPEG, con aviso de ampliación;
+    4. primer y último pliego de una página, y portada.
+- **Corrección a lo entendido (2026-11-25)**:
+  - **P4**: puede haber **varios álbumes a la vez por sesión** (por localizaciones, por personas, versiones…).
+  - **Candado también por foto**: fija una foto a su casilla del pliego aunque luego haya ajustes automáticos.
+  - **Tipos de álbum en Ajustes**: un mantenimiento con nombre, número de pliegos por defecto, medidas, etc., que hacen de plantilla base. Una vez elegido el tipo en la sesión, en cada álbum se pueden hacer ajustes.
+  - **Sin tipos de serie**: la aplicación no trae tipos de álbum; los define el usuario.
+  - **Número de pliegos opcional**: si el tipo no lo indica, el reparto automático añade los pliegos necesarios.
+- **Plan, corrección (2026-11-25)**: el número de fotos por pliego no puede ser una media fija («depende de los formatos de las fotos… se debería realizar un análisis»). El reparto lo decide analizando la tira.
+- **Plan aprobado:** «adelante» (2026-11-25). Fase 1: tipos de álbum en Ajustes, módulo Álbum con varios álbumes por sesión, tira, árbol de cortes, reparto automático por análisis de la tira (formato, caras, hora de disparo) y guardado en `Álbum/<nombre>`.
+
+### 3. Fuentes analizadas
+- `CollageTemplate` / `CollageRenderer` (plantillas en 0-1 y encuadre por foco), `FocusDetector` (caras y saliencia sobre 1024 px), `CropGeometry.rect(in:ratio:focus:)`, `SessionLayout` / `SessionOutput`, `AppState`, `ContentView` / `SettingsView` y `SessionSettingsView` (`main`, v3.29.1, commit f17b86c).
+
+### 4. Decisiones
+- **Fase 1** hecha: tipos en Ajustes, módulo Álbum con varios álbumes por sesión, tira, reparto automático por análisis y guardado. Lo demás (guías, encuadre a mano, candados, exportación, una página y portada) en las fases 2 a 4.
+- **Todo en milímetros**; los píxeles solo al dibujar o exportar. Las medidas son las del laboratorio y así no dependen de la resolución.
+- **Árbol de cortes** en lugar de plantillas fijas: las casillas no se pisan nunca, y en la fase 2 arrastrar una guía es cambiar dos partes de un corte.
+- **Bloque con área**: una composición puede ocupar solo parte de la página, centrada con blanco alrededor. Sin esto, una vertical sola en una página cuadrada se recortaba hasta quedar cuadrada (lo cazó un test).
+- **Reparto por programación dinámica sobre la tira**, sin número fijo de fotos por pliego (corrección del usuario al plan). Cada pliego se puntúa por encaje, espacio (tamaño real de la cara más pequeña impresa, en mm), panorámicas, lomo y momento (saltos de tiempo). Con número de pliegos fijo se buscan exactamente esos; sin él, cada pliego tiene un coste y el análisis decide cuántos.
+- **Pesos** ajustados con casos de prueba: 12 apaisadas sin caras salen 4 + 4 + 4; 24 mezcladas, de 3 en 3; 12 retratos, de 4 en 4; doce grupos grandes piden más pliegos que doce retratos; una panorámica va sola a pliego completo; un grupo de 14 va solo; una cara en el centro de una apaisada no cruza el lomo; dos ráfagas separadas una hora se cortan entre ellas. Con las 24 fotos de muestra salen 8 pliegos.
+- **Cascada**: cambiar el número de fotos de un pliego deja los anteriores tal cual, recoloca ese y reparte de nuevo los siguientes. «Repartir automáticamente» lo rehace todo y olvida los números pedidos a mano. Al cambiar la tira (meter, sacar o mover fotos), se rehace desde el primer pliego afectado.
+- **Añadir o quitar pliego** fija el número de pliegos del álbum (pasa a número fijo) y reparte de nuevo desde el que se ve.
+- **Fotos por nombre de fichero** en la carpeta de origen (el `JPG` de la sesión). Al meter una foto, va a su sitio por fecha de disparo.
+- **Análisis de caras en segundo plano**, guardado en el propio álbum (no se repite al abrirlo). Al acabar, rehace el reparto desde el primer pliego que tenía alguna foto sin analizar.
+- **Carpeta**: `Álbum/<nombre>/<nombre>.caobaalbum` dentro de la sesión; el nombre «Álbum» se cambia en Ajustes › Sesiones como los demás. En una carpeta suelta, `Álbum` dentro de ella. Borrar un álbum manda su carpeta a la Papelera.
+- **El modelo del álbum vive en `AppState`** (uno por ventana) y no en la vista, para que siga abierto al cambiar de módulo.
+- **«Primero y último de una página» y «Portada»** ya se guardan en el tipo y en el álbum, con el aviso «Próximamente», para no tener que volver a definir los tipos en la fase 4.
+- **Renombrar cambiando solo mayúsculas** pasa por un nombre intermedio, porque en un disco que no las distingue «Boda» y «boda» son el mismo sitio (con test).
+- `FocusDetector` deja ahora cada cara por separado (`FocusResult.faces`). Se añade sin cambiar lo que ya devolvía.
+- Ajustes recuerda la última pestaña (`caoba.settings.tab`), para que el aviso del módulo abra directamente «Álbumes».
+
+### 5. Alternativas descartadas
+- **Una media fija de fotos por pliego** (unas 4) o un campo «fotos por pliego» en el tipo: el usuario lo descartó, porque depende de los formatos de las fotos.
+- **Reutilizar las plantillas del Collage**: son proporciones de lienzo fijas y no se reajustan arrastrando guías. El árbol de cortes sale de las propias fotos y prepara la fase 2.
+- **Dejar el número de fotos de un pliego solo en ese pliego**, sin cascada: el usuario eligió la cascada (con candados en la fase 2).
+- **Guardar los álbumes en las preferencias o en un documento aparte**: el usuario eligió guardarlos dentro de la sesión.
+- **Tipos de serie** (20 × 20, 25 × 30, 30 × 30, 30 × 35): el usuario prefiere que los defina cada uno con las medidas de su laboratorio.
+- **Analizar las caras antes de enseñar nada**: con muchas fotos tarda; se reparte enseguida con el formato y la fecha, y se afina al terminar el análisis.
+
+### 6. Pendiente de comprobar
+- Comprobado: compila; pasan los 228 tests del motor (211 de antes y 17 nuevos del álbum). En la app real, con clones de las 24 fotos de muestra en una carpeta temporal y un tipo de 30 × 30 pasado por argumento: aviso sin álbumes, álbum creado, análisis de caras, 8 pliegos razonables, guardado y vuelto a abrir. Capturada Ajustes › Álbumes. Preferencias restauradas sin diferencias.
+- **No probado a mano**: arrastrar en la tira, el selector de número de fotos, añadir o quitar pliego, renombrar, duplicar y borrar. Lo cubre el motor con tests, pero falta probarlo en la app.
+- **Rendimiento con álbumes grandes** (300 o más fotos): el reparto es rápido en los tests, pero no se ha medido con una sesión real.
+- **Los pesos del reparto** se han ajustado con fotos de muestra; habrá que revisarlos con álbumes reales del usuario.
+
+## 2026-11-25 — Álbum, fase 2: guías, encuadre a mano, candados y fotos entre las dos hojas
+
+### 1. La petición tal como se ha entendido
+Fase 2 del módulo Álbum: retocar a mano lo que propone el reparto, sin que la cascada lo deshaga, y fotos entre las dos hojas del pliego.
+
+- **Fotos entre las dos hojas**:
+  - El reparto automático propone también composiciones de todo el pliego con varias fotos, alguna cruzando el lomo (por ejemplo, una grande en la página izquierda y un trozo de la derecha, con dos pequeñas al lado). Las elige cuando encajan mejor que las de página a página, y nunca con caras en la franja del lomo.
+  - A mano, una guía se puede llevar por encima del lomo.
+- **Guías que se arrastran**: al arrastrar la línea entre dos casillas, una crece y la vecina mengua, sin pisarse nunca. Con **imán**: la guía se pega al lomo, al centro de cada página y a las guías de alrededor, y enseña la medida en mm. Hay un tamaño mínimo de casilla.
+- **Encuadre a mano**, en el propio pliego: doble clic en la casilla. Arrastrar mueve la foto, y la rueda o el pellizco la amplían (nunca menos que llenar la casilla). Lo que queda fuera se ve en tenue; Esc o un clic fuera para salir.
+- **Cambiar fotos de casilla**: al soltar una foto (desde la tira o desde otra casilla) sobre una casilla ocupada, sale un menú para **elegir cada vez** qué hacer:
+  - **Intercambiar**: las dos fotos cambian de sitio, aunque estén en pliegos distintos. La tira se reordena sola y no corre nada.
+  - **Sustituir y correr**: la nueva entra y la que había vuelve a la tira justo detrás. Los pliegos siguientes sin candado se rehacen en cascada.
+  - **Sustituir y sacar**: la nueva entra y la que había sale del álbum.
+  
+  Sobre una casilla vacía, la foto entra sin preguntar.
+- **Herramientas de la rejilla** de un pliego:
+  - **Otras composiciones**: ‹ › recorren las siguientes mejores del reparto con las mismas fotos, incluidas las que cruzan el lomo.
+  - **Igualar tamaños**: reparte a partes iguales el espacio de una fila o columna.
+  - **Ajustar a las fotos**: recoloca las guías para que cada casilla tenga la proporción de su foto (lo mínimo que recortar), sin cambiar la rejilla.
+  - **Plantillas de collage**: las rectangulares que no se pisan y se pueden pasar a guías (666 de las 1049), filtradas por número de fotos. Se aplican a una página o al pliego entero y se retocan como cualquier rejilla. El reparto automático también las prueba junto a sus propias composiciones.
+- **Candados**:
+  - **De pliego**: la cascada y «Repartir automáticamente» lo saltan. Se pone **solo** al retocar un pliego a mano (guía, encuadre, cambio de foto, otra composición o plantilla) y se quita con un clic.
+  - **De foto**: la foto se queda en su pliego y su casilla. El reparto y la cascada colocan las demás alrededor, saltándosela en la tira; si cambia el número de fotos del pliego, su casilla conserva el sitio y la forma lo más parecidos posible.
+- **Cascada** con candados: al cambiar el número de fotos de un pliego o la tira, las fotos corren por los pliegos siguientes sin candado.
+
+**Confirmación:** «si» (2026-11-25).
+
+Petición original: «sigue con la fase 2; recuerda que es posible (y habitual) que fotos puedan estar posicionadas entre las 2 hojas del pliego». La fase 2 acordada en la petición anterior incluye las guías que se arrastran, el encuadre a mano, los candados (de pliego y de foto) y la cascada.
+
+### 2. Preguntas y respuestas
+- **P1. Fotos entre las dos hojas: ¿cómo las tiene que proponer el reparto automático?** Hoy solo cruza el lomo una foto sola a pliego completo.
+  - **R:** mezcladas con otras. El reparto también propone composiciones de todo el pliego con varias fotos, por ejemplo una grande que ocupa la página izquierda y un trozo de la derecha con dos pequeñas al lado. Las elige cuando encajan mejor, y siempre sin caras en la franja del lomo.
+- **P2. Cuando retocas un pliego a mano (mueves una guía, reencuadras), ¿se fija solo con el candado?**
+  - **R:** sí, solo. Al retocar un pliego a mano (guía, encuadre o cambio de foto) se le pone el candado, que se quita con un clic.
+- **P3. ¿Cómo se reencuadra una foto dentro de su casilla?**
+  - **R:** en el propio pliego. Doble clic en la casilla para entrar en modo encuadre: arrastrar mueve la foto, y la rueda o el pellizco del trackpad la amplían. La parte que queda fuera se ve en tenue; Esc o un clic fuera para salir.
+- **P4. Al arrastrar una foto sobre una casilla ocupada, ¿qué pasa con la que había?**
+  - **R:** se intercambian. Las dos fotos cambian de sitio, aunque estén en pliegos distintos. La tira se reordena sola para seguir al álbum y no corre nada en cascada.
+- **P5. Además de arrastrar guías, ¿qué otras herramientas para cambiar la rejilla de un pliego?**
+  - **R:** todas las propuestas (otras composiciones, guías con imán, igualar tamaños y ajustar a las fotos) y, además, «usar algunas de las plantillas de slideshow para la definición del grid del pliego».
+- **P6. ¿Qué plantillas son esas y cómo se usan en el pliego?** Las plantillas del Slideshow son montajes (música, portada, textos), sin rejilla; las rejillas son las de collage (1049, que usan el Collage y el modo Collages del Slideshow). De ellas, 678 son rectángulos que no se pisan; las otras llevan marcos superpuestos, círculos, giros o polígonos, y no encajan con las casillas sin pisarse.
+  - **R:** plantillas de collage, también en el reparto. Hay un selector con las rectangulares que no se pisan, filtradas por número de fotos, que se aplican a una página o al pliego entero y se retocan con las guías. Además, el reparto automático las prueba junto a sus propias composiciones. (Comprobado: 666 de las 678 rectangulares se pueden pasar a guías; las otras 12 tienen casillas entrelazadas que no se parten con cortes rectos y se quedan fuera).
+- **P4 repetida a petición del usuario**: ahora la respuesta es «preguntar entre las tres opciones al usuario». Al soltar una foto sobre una casilla ocupada sale un menú con Intercambiar, Sustituir y correr, y Sustituir y sacar. Sustituye a la respuesta anterior («se intercambian»).
+- **Plan aprobado:** «adelante» (2026-11-25). Las decisiones del plan son mías: casilla mínima de 15 mm, imán a 3 mm, plantilla con el mismo número de fotos y reparto en segundo plano.
+
+### 3. Fuentes analizadas
+- El módulo Álbum de la fase 1 (sin commit, sobre `main` v3.29.1), `CollageTemplates` (`templates.json`, 1049 plantillas) y `TemplateView`.
+- Recuento de plantillas: 678 rectangulares que no se pisan; 666 se pueden partir con cortes rectos de lado a lado (comprobado con un script y luego en `AlbumTemplates`, con test).
+
+### 4. Decisiones
+- **Fotos entre las dos hojas**: el reparto prueba también el pliego entero con hasta 6 fotos (las mismas formas justificadas y plantillas, sobre la zona útil del pliego). Una cara en la franja del lomo cuesta mucho, y un borde de casilla dentro de la franja también (un corte en el pliegue). Página a página tiene una pequeña preferencia cuando empatan. A mano, el lomo de un pliego página a página es una guía más: al moverlo se juntan las dos páginas en una sola composición.
+- **Guías**: salen del propio árbol de cortes. Mover una solo cambia las partes de sus dos casillas vecinas; mínimo de 15 mm por casilla. También se mueven los bordes de un bloque que no llena su zona (para dar más o menos blanco). El imán, a 3 mm, pega al lomo, al centro de cada página, a los bordes útiles y a las guías paralelas.
+- **Encuadre**: cada casilla guarda `focus` y `zoom` (de 1 a 5). Se hace en el propio pliego, con un monitor de eventos para la rueda y Esc mientras dura. El recorte sale siempre de `visibleRegion`, la misma cuenta del reparto, para que lo que se ve sea lo que se exportará.
+- **Candados**: el de pliego se pone solo con cualquier retoque (guía, encuadre, cambio de foto, otra composición, plantilla, igualar, ajustar o fijar una foto). Cambiar el número de fotos del pliego lo quita, porque es pedir que se rehaga, y también sacar una de sus fotos.
+- **Cascada con candados**: los pliegos con candado parten el álbum en tramos, y cada foto libre va al tramo que le toca por su sitio en la tira. Entre dos candados se conserva el número de pliegos; el último tramo sigue el del álbum.
+- **Fotos fijadas** en un pliego sin candado: ese pliego tiene que llevarlas todas (es una restricción más del reparto). Con el mismo número de fotos conserva la rejilla; con otro, gana la composición donde las fijadas se mueven menos, y recuperan su encuadre.
+- **La tira sigue al álbum**: después de cada reparto o cambio de casilla, la tira toma el orden de los pliegos. Así el «sitio en la tira» de cada foto siempre tiene sentido. En la tira no se pueden arrastrar las fotos fijadas ni las de pliegos con candado.
+- **Cambiar fotos de casilla**: menú con tres opciones (P4 repetida). «Sustituir y correr» deja la foto de antes en la tira detrás del pliego entero, no justo detrás de la nueva: así los pliegos anteriores no se rehacen. Dentro del mismo pliego se intercambian sin preguntar, y en una casilla vacía la foto entra sin preguntar.
+- **Otras composiciones**: lista de las 24 mejores del pliego con sus fotos, sin repetidas (mismo dibujo de casillas). Se calcula al pulsar ‹ o › y se recorre en bucle.
+- **Plantillas**: se aplican con el mismo número de fotos que la página o el pliego. En un pliego que ya cruza el lomo solo se ofrece «Pliego entero».
+- **Reparto en segundo plano** con un contador de revisiones: con plantillas y pliego entero cuesta más (150 fotos, unos 3 s en depuración). Mientras, «Repartiendo…» en la cabecera y los retoques desactivados.
+
+### 5. Alternativas descartadas
+- **Que el reparto solo cruzara el lomo con una foto sola** (como en la fase 1) o **solo a mano**: el usuario quiere composiciones mezcladas.
+- **Favorecer siempre cruzar el lomo**: se descartó; se elige solo cuando encaja mejor.
+- **Candado solo a mano** o **preguntar antes de rehacer un pliego retocado**: el usuario prefirió el candado automático.
+- **Encuadre en una hoja aparte** (como el editor de foco del Collage) o **solo mover, sin zoom**: el usuario prefirió en el propio pliego y con zoom.
+- **Una sola acción fija al soltar una foto** (intercambiar): el usuario pidió elegir cada vez entre las tres.
+- **Las plantillas del Slideshow**: son montajes sin rejilla. Las de collage con círculos, giros, polígonos o solapes no encajan con casillas que no se pisan, y las de molinillo no se parten con cortes rectos.
+- **Dejar la foto de antes justo detrás de la nueva en la tira** al «sustituir y correr»: obligaba a rehacer también los pliegos de antes.
+
+### 6. Pendiente de comprobar
+- Comprobado: compila sin avisos y pasan 239 tests (211 de antes y 28 del álbum, 11 de ellos nuevos: plantillas, guías, lomo, imán, igualar y ajustar, zoom, candado de pliego, foto fijada, otras composiciones, varias fotos cruzando el lomo y rapidez). En la app, con las 24 fotos de muestra en una carpeta temporal: un pliego con varias fotos cruzando el lomo, el encuadre ampliado con la foto entera en tenue, otra composición aplicada y los candados en la miniatura, en la tira y en la casilla; todo se guarda y se vuelve a abrir. Preferencias restauradas sin diferencias.
+- **No probado a mano** (no se puede automatizar el ratón en las capturas): arrastrar guías y el lomo con el imán y la medida, mover y ampliar con rueda o pellizco, soltar fotos con el menú de tres opciones, el selector de plantillas y la tira con candados. El motor de todo esto tiene tests, pero hay que probarlo con el ratón.
+- Los pesos nuevos (lomo, preferencia página a página, foto fijada que se mueve) habrá que revisarlos con álbumes reales.
+
+## 2026-11-26 — Álbum, fase 3: exportación de los pliegos
+
+### 1. La petición tal como se ha entendido
+Fase 3 del módulo Álbum: exportar los pliegos listos para el laboratorio.
+
+- **Una imagen por pliego**:
+  - JPEG sRGB a calidad máxima, con el perfil sRGB incrustado y los ppp guardados en el fichero.
+  - Medida real del pliego abierto más el sangrado, a los ppp del álbum (300 por defecto, hasta 600). Un 30 × 30 a 300 ppp sale de 7157 × 3614 px.
+  - Las fotos se leen del original a la resolución que pide cada casilla, con su encuadre y su ampliación, exactamente como se ven en el pliego.
+- **A sangre, por casilla**:
+  - El menú de la casilla tiene «A sangre»: los lados de la casilla que tocan el margen de seguridad se estiran hasta el corte y el sangrado.
+  - Se ve así en el pliego y se exporta así.
+  - Las caras se siguen vigilando con el margen de seguridad.
+  - El reparto automático no lo propone solo.
+- **Aviso de ampliación**:
+  - Cada foto tiene unos ppp efectivos: sus píxeles reales dentro de lo que mide impresa.
+  - Por debajo de 200 el aviso es **naranja** y por debajo de 150, **rojo**.
+  - Se ve en la casilla mientras se maqueta.
+  - Al exportar sale la lista de las fotos afectadas, con «Exportar igualmente» o «Volver».
+- **Dónde y cómo se llaman**:
+  - En la carpeta del álbum, dentro de la carpeta de álbumes de Ajustes, solo con el número: `Álbum/<nombre>/01.jpg`, `02.jpg`… (con tres cifras si hay más de 99 pliegos).
+  - Al exportar el álbum entero, los números de la exportación anterior van a la Papelera.
+- **Qué se exporta**:
+  - El botón principal exporta el álbum entero.
+  - «Exportar este pliego» guarda solo el que se ve, con su número, sin tocar los demás.
+  - Un pliego en blanco sale como una imagen blanca, para no descuadrar la numeración.
+- **Durante la exportación**: la hoja de progreso de siempre, que se puede cancelar. Al acabar, el aviso y el botón para verla en el Finder, como en los demás módulos.
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «sigue con la fase 3». Lo acordado el 2026-11-25:
+- una imagen por pliego, en JPEG sRGB a calidad máxima;
+- a la medida real del álbum con el sangrado y a los ppp del álbum (300 por defecto, hasta 600);
+- un aviso de las fotos que se amplían demasiado;
+- los ficheros van a `Álbum/<nombre>` dentro de la sesión.
+
+### 2. Preguntas y respuestas
+- **P1. Fotos a sangre.** Hoy todas las fotos quedan dentro del margen de seguridad y el sangrado sale blanco. ¿Las fotos que tocan el margen tienen que poder llegar hasta el corte y el sangrado?
+  - **R:** sí, por casilla. El menú de la casilla tiene «A sangre»: los lados que tocan el margen se estiran hasta el sangrado. Al exportar, la foto llena también el sangrado, y las caras se siguen vigilando con el margen de seguridad. El reparto automático no lo propone solo.
+- **P2. Umbral del aviso de ampliación.** ¿Por debajo de cuántos ppp efectivos se avisa, y qué se hace?
+  - **R:** aviso escalonado. Por debajo de 200 ppp efectivos el aviso es naranja y por debajo de 150, rojo. Se ve en la casilla mientras se maqueta. Al exportar sale la lista de las fotos afectadas, con la opción de exportar igualmente o volver.
+- **P3. Nombres de los ficheros y exportaciones anteriores.**
+  - **R:** una carpeta con el título del álbum dentro de la carpeta de álbumes definida en Ajustes, y los ficheros con solo el número. Es decir, `Álbum/<nombre>/01.jpg`, `02.jpg`… junto al `.caobaalbum`.
+- **P4. Exportar otra vez: ¿qué pasa con los ficheros de la exportación anterior?**
+  - **R:** se sustituyen. Antes de exportar, los números anteriores (`01.jpg`, `02.jpg`…) van a la Papelera, para que no quede uno suelto si el álbum tiene ahora menos pliegos.
+- **P5. ¿Se exporta siempre el álbum entero o se pueden elegir pliegos?**
+  - **R:** todo y, además, este pliego aparte. El botón principal exporta el álbum entero, sustituyendo lo anterior. Un segundo botón, «Exportar este pliego», guarda solo el que se ve, con su número, sin tocar los demás.
+- **Plan aprobado:** «dale» (2026-11-26).
+
+### 3. Fuentes analizadas
+- El módulo Álbum de las fases 1 y 2 (sin commit, sobre `main` v3.29.1), `ImageWriter`, `ThumbnailProvider.makeThumbnail`, `CGContext.rgba`, `JobRunner`, `JobProgress` y `BatchSummary`.
+
+### 4. Decisiones
+- **A sangre** es una marca de la casilla (`bleed`). Se calcula aparte lo que se dibuja (`drawRects`), y las guías, el imán y el reparto siguen con la casilla normal. En un pliego de páginas sueltas, el lado del lomo llega hasta el lomo y no pasa a la otra página. El encuadre se calcula con el rectángulo alargado, así que la foto llena también el sangrado.
+- **Lo que se ve es lo que sale**: el pliego en pantalla y la exportación usan los mismos rectángulos y la misma cuenta del encuadre (`visibleRegion`).
+- **Ppp efectivos** por el lado más justo, sobre lo que se dibuja (con sangre incluida), y con los píxeles reales de la foto (los de la lista de la carpeta, ya girados).
+- **Lectura de las fotos** con `makeThumbnail` a la medida justa: es rápido, aplica la orientación y nunca amplía por encima del original. Se dibuja un pliego cada vez, por la memoria.
+- **JPEG a calidad 100** con los ppp en el fichero (DPI y densidad JFIF). La imagen se dibuja en sRGB y el perfil se incrusta con ella (comprobado con `sips`: «sRGB IEC61966-2.1»).
+- **Nombres**: solo el número, en la carpeta del álbum (P3). Con tres cifras si hay más de 99 pliegos. Un pliego en blanco sale blanco para no saltar números.
+- **Sustituir la exportación anterior** (P4): solo van a la Papelera los `.jpg` que se llaman con un número. El `.caobaalbum` y cualquier otro fichero que haya puesto el usuario se quedan.
+- **Exportar este pliego** solo escribe su número y no toca los demás.
+- El aviso de ampliación sale antes de exportar con la lista. «Exportar igualmente» sigue adelante.
+
+### 5. Alternativas descartadas
+- **Fotos siempre con margen**, sin sangre, o **sangre propuesta por el reparto**: el usuario eligió «a sangre» por casilla y a mano.
+- **Un solo umbral de aviso**, o **bloquear la exportación**: el usuario eligió el aviso escalonado, que deja exportar igualmente.
+- **«Álbum - pliego 01.jpg» en una subcarpeta `Exportado`**, o **una carpeta nueva con fecha en cada exportación**: el usuario quiere solo el número, en la carpeta del álbum.
+- **Preguntar antes de sustituir**, o **regenerar solo los pliegos cambiados**: el usuario eligió sustituir siempre.
+- **Elegir pliegos con una lista**: basta con el álbum entero más «Exportar este pliego».
+- **Leer el original entero y reducirlo después**: con fotos de 45 Mpx y 12 casillas sería mucho más lento y gastaría mucha más memoria; `makeThumbnail` lee ya reducido.
+
+### 6. Pendiente de comprobar
+- Comprobado: compila; pasan los tests (5 nuevos de la fase 3: a sangre en página y pliego, ppp efectivos, lista de avisos, dibujo de un pliego con foto, sangre y blanco, y exportación con nombres, sustitución, un solo pliego, ppp y perfil sRGB). En la app, con las 24 fotos de muestra: exportación real de 6 pliegos de 7157 × 3614 px a 300 ppp con perfil sRGB, una casilla a sangre que llega al corte, y el aviso de 140 ppp en rojo en la casilla y en la miniatura. Preferencias restauradas sin diferencias.
+- **No probado a mano**: la hoja con la lista de avisos antes de exportar, el aviso final con la carpeta y cancelar a medias. Hay que probarlo en la app.
+- **Rendimiento y memoria a 600 ppp con fotos grandes** (unos 400 MB por pliego): no se ha medido con fotos reales de 45 Mpx.
+- **Confirmar con el laboratorio** que acepta el JPEG a calidad 100 con perfil sRGB y la medida con sangrado tal cual.
+
+## 2026-11-26 — Álbum, fase 4: primer y último pliego de una página, y portada
+
+### 1. La petición tal como se ha entendido
+Fase 4 del módulo Álbum: primer y último pliego de una sola página, y portada.
+
+- **Primer y último pliego de una página** (si el álbum lo tiene marcado):
+  - El primero solo usa la página derecha y el último solo la izquierda; la otra va pegada a la tapa.
+  - En el pliego, la mitad que no se usa sale rayada con «Pegada a la tapa» y no admite fotos.
+  - El reparto automático, las guías, las plantillas y los cambios de casilla solo trabajan con la página útil, y esos pliegos no pueden cruzar el lomo.
+  - Al cambiar la opción, se rehace el reparto.
+- **Cómo se exportan**: lo elige el **tipo de álbum** (y se puede cambiar en cada álbum), según el laboratorio:
+  - el pliego entero con la mitad en blanco, como los demás;
+  - o solo la página útil (la página con su sangrado).
+- **Portada** (si el álbum la lleva):
+  - Una pieza aparte con sus propias medidas: contraportada, lomo y tapa, más su sangrado o solapa. El margen de seguridad es el del álbum.
+  - El lomo está marcado y no deben quedar caras en él.
+  - Se maqueta como un pliego más: guías con imán, encuadre, otras composiciones, plantillas, «a sangre» y candado.
+  - Sus fotos son libres: se arrastran desde la carpeta o desde la tira, y pueden estar también dentro del álbum. No cuenta para la tira ni para la cascada.
+  - Para empezar, propone la primera foto del álbum a sangre en la tapa.
+  - En la fila de pliegos va delante del pliego 1, como «Portada».
+- **Exportar la portada**:
+  - `00.jpg`, en la misma carpeta, a la medida de la portada abierta más su sangrado, con los ppp del álbum.
+  - Al exportar el álbum entero se sustituye con los demás.
+  - «Exportar este pliego», con la portada delante, exporta solo la portada.
+  - El aviso de ampliación también la revisa.
+- **Fuera el «Próximamente»** de las dos opciones en Ajustes y en los ajustes del álbum.
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «sigue con la fase 4». Lo acordado el 2026-11-25:
+- cada álbum decide si el primer y el último pliego son de una sola página (la otra va pegada a la tapa);
+- cada álbum decide si lleva portada, con sus propias medidas en mm (tapas, lomo y sangrado o solapa), y se maqueta como un pliego con el lomo marcado.
+
+Esas opciones ya se guardan desde la fase 1, con el aviso «Próximamente».
+
+### 2. Preguntas y respuestas
+- **P1. Primer y último pliego de una página: ¿cómo se exportan?**
+  - **R:** se elige en el tipo. El tipo de álbum tiene una opción más para elegir entre exportar el pliego entero con la mitad en blanco o solo la página útil, según el laboratorio.
+- **P2. ¿Qué lleva la portada y de dónde salen sus fotos?**
+  - **R:** rejilla propia y fotos libres. La portada se maqueta como un pliego más, con guías, encuadre, plantillas y «a sangre». Sus fotos se arrastran desde la carpeta o desde la tira, y pueden estar también dentro del álbum. Para empezar, propone la primera foto del álbum a sangre en la tapa.
+- **P3. ¿Cómo se llama el fichero de la portada al exportar?**
+  - **R:** `00.jpg`, delante de los pliegos y siguiendo la numeración. Al exportar el álbum entero se sustituye con los demás.
+- **Plan aprobado:** «dale» (2026-11-26).
+
+### 3. Fuentes analizadas
+- El módulo Álbum de las fases 1 a 3 (sin commit, sobre `main` v3.29.1): `AlbumSpec`, `AlbumSpreadLayout.drawRects`, el planificador de `AlbumAutoLayout`, `AlbumExport` y las vistas del pliego.
+
+### 4. Decisiones
+- **El lomo con ancho** entra en `AlbumSpec` (`spineWidthMM`, 0 en los pliegos), en vez de hacer una geometría aparte para la portada. Así la portada reutiliza todo lo de los pliegos: guías, imán, a sangre, encuadre, otras composiciones, plantillas, aviso de ampliación y exportación. Se repasó lo que suponía el lomo en la mitad: imán, guía del lomo, a sangre y medida de exportación.
+- **Páginas sueltas en el reparto**: el primer trozo de la tira es el primer pliego (página derecha) y el último trozo del último tramo es el último pliego (página izquierda). Se componen solo con esa página, sin cruzar el lomo, sin cobrar la otra en blanco y con 6 fotos como máximo. Si el último pliego tiene candado, se respeta tal cual.
+- **Exportar una página sola**: se dibuja el pliego entero y se recorta la página con su sangrado. «A sangre», por el lado del lomo, llega entonces también al sangrado, para que no quede una tira blanca al cortar.
+- **La portada es una pieza más** con el índice -1 (`AlbumExport.coverIndex`) en el modelo, la exportación y los avisos, para no duplicar código. Sus fotos son libres y no tocan la tira.
+- **Portada de partida**: la primera foto a sangre en la tapa. Si la portada está vacía y sin candado, coge la primera foto en cuanto la haya.
+- **`00.jpg`** (P3): como es un número, al exportar el álbum entero también se sustituye.
+- **La barra de exportación** enseña la medida de lo que se ve, y con la portada delante el botón dice «Exportar la portada».
+
+### 5. Alternativas descartadas
+- **Exportar siempre el pliego entero** o **siempre solo la página**: depende del laboratorio, así que se elige en el tipo (P1).
+- **Una foto en la tapa** o **una foto envolvente** como única portada: el usuario quiere una rejilla propia con fotos libres (P2).
+- **`portada.jpg`** o elegir el nombre en el tipo: el usuario eligió `00.jpg` (P3).
+- **Una geometría aparte para la portada**: obligaba a duplicar guías, a sangre y exportación. Se prefirió dar ancho al lomo.
+- **Que las fotos de la portada salgan de la tira** (y cuenten para la cascada): la portada suele repetir una foto del álbum, y moverla rehacía pliegos sin motivo.
+
+### 6. Pendiente de comprobar
+- Comprobado: compila; pasan 247 tests (211 de antes y 36 del álbum, 3 de ellos nuevos: geometría de la portada con lomo ancho, reparto con páginas sueltas con número fijo y libre, y exportación con portada y páginas solas). En la app, con las 24 fotos de muestra y un tipo con páginas sueltas («Solo la página útil») y portada de 31 × 31 cm con lomo de 2 cm: el primer y el último pliego con la otra página rayada, la portada con su lomo y la tapa a sangre, y la exportación real `00.jpg` de 7913 × 4016, `01.jpg` y `07.jpg` de 3614 × 3614 y los demás de 7157 × 3614. Preferencias restauradas sin diferencias.
+- **No probado a mano**: soltar fotos en la portada, sus guías y su lomo, y cambiar la opción de páginas sueltas en un álbum ya maquetado.
+- **Confirmar con el laboratorio** las medidas de la portada (cómo cuenta la solapa) y si quiere las páginas sueltas enteras o solas.
+- **Ajuste tras probarlo (2026-11-26)**: el usuario vio la pantalla de un álbum recién creado «un poco rara, sin las secciones bien definidas». Ahora cada zona va en su bloque con el estilo común (`caobaPanel`) y ocupa todo el alto aunque esté vacía. La fila de pliegos y la tira vacías llevan un texto que explica qué saldrá ahí, y el selector de álbum ya no deja un hueco a su izquierda.
+- **Fallo encontrado al probarlo (2026-11-26)**: «para qué valen los botones de + y -… los pulso y no hacen nada». Eran añadir y quitar pliego. Repartían solo desde el pliego que se veía, que era el último y tenía candado, así que no había fotos que mover: el pliego nuevo salía en blanco al final y, al quitar uno, las fotos creaban otro. Arreglo:
+  - ahora reparten de nuevo **todo el álbum** con el número nuevo, sin tocar los pliegos con candado;
+  - si el último tramo no tiene fotos, los pliegos de más o de menos van al último tramo que sí las tiene;
+  - los botones llevan texto: «Añadir pliego» y «Quitar pliego».
+  
+  Con test (`testChangingTheSpreadCountKeepsItAndTheLocks`).
+- **Fallo encontrado al probarlo (2026-11-26)**: en el menú de plantillas solo se veían rectángulos en blanco. En modo oscuro, el gris «secundario» del sistema es casi blanco y las casillas no se distinguían del fondo blanco. Ahora llevan un gris fijo. Lo mismo para el fondo de una casilla vacía del pliego.
+- **Fallo encontrado al probarlo (2026-11-26)**: con un álbum ya maquetado, «Ninguna» y luego «Todas» dejaban los primeros pliegos en blanco. Eran dos fallos:
+  - «Ninguna» no quitaba el candado de los pliegos que se quedaban sin sus fotos, que seguían con ellas aunque ya no estaban en el álbum;
+  - al volver a meter fotos, el reparto empezaba en el primer pliego con fotos y se saltaba los pliegos en blanco de delante.
+  
+  Arreglo:
+  - cada vez que cambia la tira, el pliego que tenga fotos fuera del álbum pierde el candado (y también esas fotos);
+  - el reparto empieza también desde los pliegos en blanco sin candado que haya delante.
+  
+  Comprobado en la app con `--state album.retoggle=1`, un gancho nuevo para capturas que hace «Ninguna» y «Todas».
+
+## 2026-11-26 — Álbum: deshacer los últimos cambios
+
+### 1. La petición tal como se ha entendido
+Poder deshacer y rehacer los cambios del álbum abierto.
+
+- **Qué se deshace: todo lo que cambia el álbum**:
+  - guías, encuadre y «a sangre»;
+  - cambios de foto entre casillas, otras composiciones, plantillas, igualar y ajustar a las fotos;
+  - candados de pliego y de foto;
+  - fotos que entran o salen, el orden de la tira, el número de fotos de un pliego y añadir o quitar pliegos;
+  - «Repartir automáticamente»;
+  - los ajustes del álbum y la portada.
+- **Cada gesto es un paso**: arrastrar una guía de principio a fin, un encuadre completo (de entrar a salir) o meter una foto con el reparto que provoca. Deshacer vuelve a como estaba justo antes.
+- **Cómo**:
+  - ⌘Z deshace y ⇧⌘Z rehace (Edición › Deshacer / Rehacer);
+  - dos botones ↶ ↷ en la cabecera del álbum, que se apagan cuando no hay nada que deshacer o rehacer y dicen en su ayuda qué deshacen.
+- **Cuánto**: hasta 50 pasos atrás por álbum, mientras siga abierto. Al cambiar de álbum o de sesión, o al cerrar CAOBA, se empieza de cero.
+- **Lo que no se deshace**:
+  - las caras ya analizadas (no cambian el álbum);
+  - las exportaciones, que son ficheros;
+  - crear, duplicar, renombrar o borrar álbumes.
+- Deshacer también se guarda solo, como cualquier otro cambio.
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «posibilidad de deshacer los ultimos cambios» (en el módulo Álbum).
+
+### 2. Preguntas y respuestas
+- **P1. ¿Qué cambios se deshacen y cómo?**
+  - **R:** todo, con ⌘Z y con botones. Se deshace cualquier cambio del álbum: guías, encuadre, cambios de casilla, candados, plantillas, repartos, fotos que entran o salen y ajustes del álbum. Con ⌘Z y ⇧⌘Z (Edición › Deshacer / Rehacer) y con dos botones ↶ ↷ en la cabecera del álbum.
+- **P2. ¿Cuánto historial y hasta cuándo dura?**
+  - **R:** 50 pasos, mientras esté abierto. Hasta 50 cambios atrás por álbum mientras siga abierto. Al cambiar de álbum o de sesión, o al cerrar CAOBA, se empieza de cero; lo guardado se queda como está.
+- **Plan aprobado:** «si» (2026-11-26).
+
+### 3. Fuentes analizadas
+- `AlbumWorkspace` (todas las acciones que cambian el álbum), `SpreadEditorCanvas` y `AlbumView` (sin commit, sobre `main` v3.29.1).
+
+### 4. Decisiones
+- **El deshacer de la ventana** (`UndoManager`) en vez de uno propio: así ⌘Z, ⇧⌘Z y Edición › Deshacer funcionan solos y el menú dice qué se deshace. Los botones ↶ ↷ llaman al mismo deshacer y se refrescan con un contador (`undoToken`).
+- **Copias del álbum** (tira, pliegos, portada y ajustes) en lugar de deshacer acción por acción: cada acción solo apunta la copia de antes y deshacer vuelve a ella. Es sencillo y vale para todo, repartos incluidos.
+- **El paso se apunta en la acción del usuario**, no en el reparto. Así el reparto que provoca va en el mismo paso, aunque acabe después, y el que se lanza tras analizar las caras no cuenta.
+- **Las acciones repetidas en menos de un segundo son un solo paso**: teclear una medida o pulsar varias veces el número de fotos no llena el historial.
+- **Guía y encuadre ya eran un solo cambio** al soltar o al salir, así que cada uno es un paso.
+- **Las caras no se deshacen**, y el análisis de una foto que sale se conserva mientras siga en la carpeta, para no repetirlo al deshacer.
+- **Deshacer cancela el reparto en marcha**: ya no corresponde a lo que hay.
+- **50 pasos y solo mientras el álbum está abierto** (P2). Al abrir otro álbum o cambiar de carpeta, se borra.
+
+### 5. Alternativas descartadas
+- **Solo los retoques a mano** o **solo con el teclado**: el usuario quiere deshacer todo, con ⌘Z y con botones (P1).
+- **Guardar el historial con el álbum** o **sin límite de pasos**: el usuario eligió 50 pasos mientras está abierto (P2).
+- **Un deshacer propio con su propio ⌘Z**: habría chocado con el de la ventana (casillas de texto, menú Edición).
+
+### 6. Pendiente de comprobar
+- Comprobado: compila y pasan los tests. En la app, con las fotos de muestra (`album.alternative=5` y `album.undo=1`): tras deshacer, la tira y los pliegos guardados son idénticos a los de antes del cambio, ↶ se apaga y ↷ se enciende. Preferencias restauradas sin diferencias.
+- **No probado a mano**: ⌘Z y ⇧⌘Z desde el teclado y el menú Edición, deshacer una guía y un encuadre, y deshacer durante un reparto.
+
+## 2026-11-26 — Álbum: herramientas de la portada
+
+### 1. La petición tal como se ha entendido
+La portada es una sola foto en la tapa y solo se cambia la foto y su encuadre.
+
+- **Se quedan**: soltar una foto en la tapa, encuadrarla con doble clic, «A sangre» y «Quitar de la portada» (en el menú de la casilla).
+- **Se quitan en la portada**: «Otras composiciones», «Igualar», «Ajustar a las fotos», «Plantilla…», el candado (no hace falta: la portada no entra en la cascada), las guías y el lomo (no se arrastran) y «Fijar la foto en esta casilla».
+- Si una portada ya tiene otra rejilla (de antes de este cambio, con varias casillas o cruzando a la contraportada), sale un botón «Una sola foto en la tapa» que la deja como al principio, con la primera de sus fotos a sangre en la tapa.
+
+**Confirmación:** «si» (2026-11-26). Cambio pequeño: se hace directamente tras confirmar lo entendido, que ya describe qué se toca.
+
+Petición original: «en la portada no me debería permitir las opciones de composición, igualar, ajustar...».
+
+### 2. Preguntas y respuestas
+- **P1. ¿Qué herramientas se quedan en la portada?**
+  - **R:** solo foto y encuadre. La portada lleva una sola foto en la tapa. Se quitan también «Plantilla…», el candado y mover las guías o el lomo. Se quedan soltar la foto, encuadrarla (doble clic), «A sangre» y «Quitar de la portada».
+
+### 3. Fuentes analizadas
+- `AlbumView` (barra de retoques), `SpreadEditorCanvas` (guías y menú de la casilla) y `AlbumWorkspace` (sin commit).
+
+### 4. Decisiones
+- En la portada, la barra de retoques se cambia por una con solo «Una sola foto en la tapa» (si hace falta) y una ayuda. Tampoco se dibujan guías que arrastrar, y el menú de la casilla no ofrece fijar la foto. Encuadre, «A sangre» y «Quitar de la portada» se quedan.
+- `resetCover` deja la portada como al principio, con la primera de sus fotos o, si no tiene, la primera del álbum. Cuenta como un paso que se puede deshacer.
+- Las herramientas siguen igual en los pliegos.
+
+### 5. Alternativas descartadas
+- Quitar solo composiciones, igualar y ajustar, o dejar las guías para cruzar a la contraportada: el usuario eligió solo foto y encuadre (P1).
+
+### 6. Pendiente de comprobar
+- Comprobado en la app con las fotos de muestra: la portada sin barra de retoques y, con otra rejilla, el botón «Una sola foto en la tapa». Compila. Preferencias restauradas sin diferencias.
+- No probado a mano: pulsar «Una sola foto en la tapa» y deshacerlo.
+
+## 2026-11-26 — Álbum: reparto automático o a mano
+
+### 1. La petición tal como se ha entendido
+Cada álbum elige si el reparto se hace solo o solo cuando se pide.
+
+- **La casilla «Reparto automático»** va junto al botón «Repartir» y se guarda con cada álbum.
+  - Por defecto está **desmarcada** (manual), también en los álbumes que ya existen.
+  - Un álbum nuevo se reparte solo la primera vez que se le meten fotos, para tener ya una primera versión.
+  - Al marcarla con cambios pendientes, se reparte en ese momento.
+- **Marcada**: como hasta ahora, cada cambio vuelve a repartir lo que hace falta.
+- **Desmarcada (manual)**: lo maquetado no se mueve hasta pulsar el botón.
+  - **Fotos que entran** (una suelta, «Todas» o tras sustituir y correr): quedan en la tira marcadas como «sin colocar» y se pueden soltar en una casilla.
+  - **Fotos que salen** (una suelta, «Ninguna» o tras sustituir y sacar): dejan su casilla vacía.
+  - **Añadir pliego**: sale en blanco detrás del que se ve. **Quitar pliego**: desaparece y sus fotos quedan «sin colocar».
+  - **Número de fotos de un pliego**: se apunta como pedido («5 fotos, pendiente») y se aplica al repartir.
+  - **Ordenar la tira** y **cambiar las medidas o las páginas sueltas**: se apuntan para el siguiente reparto.
+  - Lo que no cambia a qué pliego va cada foto se aplica al momento, como hasta ahora: intercambiar fotos, guías, encuadre, plantillas, otras composiciones, igualar y ajustar.
+  - Mientras haya algo pendiente, el botón lo avisa: «Hay cambios sin repartir».
+- **El botón «Repartir»** reparte el álbum entero con el número de pliegos que tenga y respeta:
+  - los pliegos con candado;
+  - las fotos fijadas;
+  - el número de fotos pedido en cada pliego (ahora en todos los pliegos, no solo en el que se cambió).
+
+  El menú del botón añade «Olvidar los números de fotos pedidos», además de «Quitar todos los candados».
+- Todo se puede deshacer, también marcar o desmarcar la casilla.
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «lo de repartir automáticamente cuando el álbum ya está creado a lo mejor debería ser pulsando el botón… es decir, tengo el álbum con fotos, añado/quito pliegos y finalmente recalculo. O por lo menos que sea un check para que pueda estar funcionando automático o cuando quiera».
+
+### 2. Preguntas y respuestas
+- **P1. ¿Cómo se elige entre automático y a mano?**
+  - **R:** una casilla por álbum, en manual por defecto. La casilla «Reparto automático» va junto al botón y se guarda con cada álbum. Un álbum nuevo se reparte solo la primera vez que se le meten fotos y después queda en manual; marcando la casilla, sigue repartiéndose solo.
+- **P2. En manual, ¿qué pasa con lo que cambias hasta que pulsas el botón?**
+  - **R:** nada se mueve y todo espera. Lo maquetado no se toca hasta pulsar el botón:
+    - las fotos nuevas quedan en la tira marcadas como «sin colocar», y se pueden soltar en una casilla;
+    - las que se sacan dejan su casilla vacía;
+    - un pliego añadido sale en blanco y uno quitado desaparece;
+    - el botón avisa «Hay cambios sin repartir» hasta que se pulsa.
+- **P3. ¿Qué hace el botón «Repartir» cuando lo pulsas?**
+  - **R:** todo, respetando lo del usuario. Reparte el álbum entero con el número de pliegos que tenga, y respeta los pliegos con candado, las fotos fijadas y el número de fotos pedido en cada pliego.
+- **Plan aprobado:** «dale» (2026-11-26).
+
+### 3. Fuentes analizadas
+- `AlbumWorkspace` (cada acción que reparte), `AlbumAutoLayout.redistribute` / `solveRun` / `Planner` (cortes con número fijo y libre) y `AlbumView` (sin commit).
+
+### 4. Decisiones
+- **Dos datos en el álbum**: `autoLayout` (la casilla) y `pendingLayout` (cambios esperando). Los álbumes de antes se abren en manual y sin nada pendiente (P1).
+- **«Manual» empieza tras el primer reparto**: un álbum sin pliegos se reparte solo al meterle fotos, para tener la primera versión.
+- **En manual cada acción deja el álbum coherente pero sin repartir** (P2): fotos sin colocar en la tira, casillas vacías, pliego en blanco o quitado, número pedido apuntado. Lo que no cambia a qué pliego va cada foto (intercambiar, guías, encuadre, plantillas…) se aplica al momento.
+- **El motor respeta ahora las fotos pedidas en todos los pliegos** (P3), no solo en el del cambio. Con número fijo, cada pliego pedido es una restricción más de la programación dinámica. Con número libre se calcula la tabla por número de pliegos y se elige el mejor contando el coste de cada pliego. Si lo pedido es imposible con número fijo, se reparte sin esas restricciones.
+- **«Repartir»** ya no olvida los números pedidos (antes sí): eso pasa a «Olvidar los números de fotos pedidos», en su menú.
+- **Las fotos sin colocar** no son un dato aparte: son las de la tira que no están en ningún pliego. El reparto ya las coloca porque trabaja sobre la tira.
+- El modo y lo pendiente entran en el deshacer.
+
+### 5. Alternativas descartadas
+- **Automático por defecto** o **siempre a mano, sin casilla**: el usuario eligió la casilla, desmarcada (P1).
+- **Rehacer solo el pliego tocado** o **preguntar tras cada cambio**: el usuario prefirió que todo espere (P2).
+- **Repartir solo desde el primer cambio** o **de cero olvidando lo pedido**: el usuario quiere todo el álbum respetando lo suyo (P3).
+
+### 6. Pendiente de comprobar
+- Comprobado: compila y pasan los tests (3 nuevos: fotos pedidas en varios pliegos con número fijo y libre; fotos sin colocar y casillas vacías; álbumes de antes en manual). En la app, con las fotos de muestra (`album.manualtest`): en manual, sacar una foto deja su casilla vacía, añadir un pliego lo pone en blanco y sale el aviso; al pulsar «Repartir» se reparte todo, el pliego pedido queda con 2 fotos y el aviso desaparece. Preferencias restauradas sin diferencias.
+- **No probado a mano**: soltar una foto sin colocar en una casilla, la casilla marcada con cambios pendientes, y deshacer en manual.
+- **Ajuste tras probarlo (2026-11-26)**: «separa esta parte en una sección con marco diferente y que se vea bien» (los controles bajo el pliego). Ahora van en su propio bloque dentro del del pliego, con otro fondo y su borde: navegación, una línea, los retoques y la línea de estado. Al revisarlo apareció otro fallo: la fila de pliegos y la tira eran más altas que su hueco y se montaban sobre el bloque de arriba. Ese hueco pasa a tener 250 pt como mínimo (260 de partida) y se recorta a su sitio.
+
+## 2026-11-26 — Álbum: maquetar un pliego vacío y llevarle fotos
+
+### 1. La petición tal como se ha entendido
+Maquetar a mano un pliego vacío, con casillas vacías, y llenarlo de fotos arrastrando.
+
+- **Rejilla de un pliego vacío**:
+  - Un pliego sin fotos enseña tantas casillas vacías como fotos pide. Si no pide ninguna, se avisa de que se elija con el número de fotos.
+  - Al cambiar el número de fotos de un pliego vacío, se rehace su rejilla vacía con ese número (no queda «pendiente»).
+  - Las casillas vacías se cambian como en cualquier pliego: ‹ › (otras composiciones con ese número de casillas, también cruzando el lomo), «Plantilla…» (las de ese número de casillas), guías, «Igualar» y «Ajustar» (que con casillas vacías las deja de 3:2).
+  - El pliego queda **con candado**, para que «Repartir» no deshaga la rejilla.
+- **Llevar fotos a un pliego** (desde la tira, la carpeta u otro pliego):
+  - **Sobre una casilla vacía**: entra ahí.
+  - **Sobre una casilla ocupada**: el menú de siempre (intercambiar, sustituir y correr, sustituir y sacar).
+  - **Sobre una zona libre del pliego grande, o sobre su miniatura** en la fila de pliegos: va a la primera casilla vacía o, si no hay, el pliego se recompone con una foto más (con su mejor composición), y queda con candado.
+  - **Si la foto venía de otro pliego**: allí deja su casilla vacía en manual, o se reparte lo que corra en automático.
+  - **Si no estaba en el álbum** (viene de la carpeta): entra en el álbum.
+  - En la **portada**, soltarla sobre el pliego o su miniatura la pone en la tapa.
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «en un pliego sin fotos debería poder ajustar la composición, grid, plantilla para tener una previa. Además tengo que poder mover fotos para ahí: en la tira debería poder arrastrar y llevar a ese pliego».
+
+### 2. Preguntas y respuestas
+- **P1. ¿Cómo se monta la rejilla de un pliego vacío?**
+  - **R:** casillas vacías según el número. El pliego enseña tantas casillas vacías como fotos pide (si no pide ninguna, se elige con el número de fotos). Con ‹ ›, «Plantilla…», las guías, «Igualar» y «Ajustar» se cambian como en cualquier pliego, y luego se sueltan fotos en ellas. Queda con candado para que «Repartir» no lo deshaga.
+- **P2. ¿Cómo se llevan fotos de la tira a un pliego?**
+  - **R:** sobre una casilla, sobre el pliego o sobre su miniatura.
+    - Sobre una casilla vacía, la foto entra ahí; sobre una ocupada, sale el menú de siempre.
+    - Sobre una zona libre del pliego grande, o sobre su miniatura en la fila de pliegos, va a la primera casilla vacía o, si no hay, el pliego se recompone con una foto más.
+    - Si venía de otro pliego, allí deja su casilla vacía (en manual) o corre el reparto (en automático).
+- **Plan aprobado:** «dale» (2026-11-26).
+
+### 3. Fuentes analizadas
+- `AlbumAutoLayout` (`ranked`, `redistribute` con los tramos de los candados), `AlbumWorkspace` (`setPhotoCount`, `drop`, `alternatives`, `photoCount`), `SpreadEditorCanvas` y la fila de pliegos (sin commit).
+
+### 4. Decisiones
+- **Rejilla vacía** con fotos de relleno en 3:2 y las mismas formas y plantillas del reparto. La de partida es página a página: sin fotos no se sabe dónde caerán las caras, y la primera prueba dejó una cara en el lomo. Las que cruzan siguen en ‹ ›. Se calcula la lista entera antes de elegir: con una sola, salía la mejor aunque cruzara (fallo encontrado al probarlo).
+- **El número de fotos en un pliego vacío** hace la rejilla al momento y con candado (P1), sin dejarlo «pendiente».
+- **Pliegos con candado y solo casillas vacías**: el reparto los respeta y los deja en su sitio. Antes solo partía el álbum por los pliegos con candado que tenían fotos, así que estos se rehacían o se iban de sitio (fallo encontrado con un test).
+- **Plantillas por casillas**, no por fotos, para que un pliego vacío también las tenga.
+- **Soltar en el pliego o en su miniatura** (P2): primera casilla vacía o el pliego con una foto más (mejor composición, con las fijadas en su sitio), con candado. La foto se coloca en la tira detrás de las del pliego.
+- El número de fotos cuenta las casillas mientras quede alguna vacía.
+
+### 5. Alternativas descartadas
+- **Solo con plantilla** o **casillas vacías sin candado**: el usuario eligió casillas según el número, con candado (P1).
+- **Soltar solo en casillas** o **sin recomponer**: el usuario quiere poder soltar en el pliego y en su miniatura, recomponiendo si no hay hueco (P2).
+
+### 6. Pendiente de comprobar
+- Comprobado: compila y pasan los tests (3 nuevos: rejillas vacías, también de una página y de partida sin cruzar; recomponer con una foto más respetando la fijada; pliego vacío con candado que sobrevive al reparto en su sitio). En la app (`album.emptytest=drop`): pliego vacío con 3 casillas página a página, la foto soltada entra en la primera, y el pliego de donde venía deja su casilla vacía (manual). Preferencias restauradas sin diferencias.
+- **No probado a mano**: arrastrar de verdad a una zona libre del pliego y a una miniatura (y el resalte), y recomponer un pliego lleno con una foto más.
+- **Fallo encontrado al probarlo (2026-11-26)**: «Otras composiciones», «Ajustar a las fotos» y «Plantilla…» seguían desactivados en un pliego vacío, porque se apagaban cuando el pliego no tenía fotos. Ahora se apagan solo si no tiene casillas. La lista de otras composiciones se recalcula también si cambia el número de casillas.
+
+## 2026-11-26 — Álbum: dividir, fusionar y quitar casillas
+
+### 1. La petición tal como se ha entendido
+Organizar las casillas de un pliego como las celdas de una tabla de Word, y que el número de fotos se ajuste solo.
+
+- **Operaciones de casilla**, en el menú de la casilla (clic derecho) y en un menú «Casilla» de la barra de retoques, para la casilla elegida:
+  - **Dividir en columnas / en filas**: la casilla se parte en dos y la nueva sale vacía, al lado o debajo. Si ya estaba en una fila (o columna), se añade a ella.
+  - **Fusionar con la de la izquierda / derecha / arriba / abajo**: solo con una vecina que comparte todo ese lado. Las dos pasan a ser una sola casilla que ocupa el sitio de ambas.
+    - Se queda la foto de la casilla elegida (o la única que haya).
+    - Si las dos tenían foto, la otra sale del pliego y sigue en el álbum: «sin colocar» en manual, o corre a los siguientes en automático.
+  - **Quitar casilla**: desaparece y su sitio se lo quedan las vecinas. Si tenía foto, pasa lo mismo que al fusionar.
+- **El número de fotos se ajusta solo**: tras cada operación, el pliego tiene las casillas que se ven, sin «pendiente», y queda con candado.
+- **En manual, cambiar el número de fotos de un pliego con fotos se aplica ya a ese pliego**:
+  - Se recompone con ese número de casillas y sus fotos en orden.
+  - Si hay más casillas que fotos, las de más quedan vacías. Si hay menos, las fotos que sobran quedan «sin colocar».
+  - Los demás pliegos no se tocan y el pliego queda con candado.
+  - (En automático sigue como hasta ahora: recoloca y las demás corren).
+- Todo se puede deshacer. Las fotos fijadas no se mueven al dividir ni fusionar, y no se pueden quitar ni fusionar perdiendo su foto.
+- En la portada no hay operaciones de casilla (es una sola foto en la tapa).
+
+**Confirmación:** «si» (2026-11-26).
+
+Petición original: «tenía un pliego con 8 fotos, muevo una al pliego anterior, cambio el pliego a 7 fotos… de algún modo tengo que poder hacer que desaparezca esa plantilla [casilla], unificarla con otra de las fotos existentes… además, en una casilla debería tener la posibilidad de dividirla, en fila o columna, fusionarla (con la casilla de al lado que cumpla condiciones), similar a como trabajamos con las celdas de una tabla en Word. Al hacer esos pasos el número de fotos del pliego cambia automáticamente. La idea es dar al usuario una forma más ágil de organizar las fotos en los pliegos».
+
+### 2. Preguntas y respuestas
+- **P1. ¿Qué operaciones sobre una casilla y dónde?**
+  - **R:** en el menú de la casilla y en la barra, para la casilla elegida:
+    - «Dividir en columnas» y «Dividir en filas» (sale una casilla vacía al lado);
+    - «Fusionar con la de la izquierda / derecha / arriba / abajo» (solo con las vecinas que comparten todo el lado);
+    - «Quitar casilla» (su sitio se lo quedan las vecinas).
+  
+  El usuario mandó además una captura de su caso: el pliego 3 con una casilla vacía arriba a la izquierda (encima de una foto, en la misma columna) y «7 fotos (pendiente)». Con «Fusionar con la de abajo» o «Quitar casilla», la foto de abajo ocuparía toda la columna.
+- **P2. Al fusionar dos casillas que tienen foto, ¿qué pasa con la otra foto?**
+  - **R:** se queda la foto de la casilla elegida. La otra sale del pliego y queda en la tira «sin colocar» (en manual) o corre a los pliegos siguientes (en automático); sigue en el álbum.
+- **P3. En manual, ¿qué hace el número de fotos de un pliego que ya tiene fotos?**
+  - **R:** se aplica ya a ese pliego. Se recompone al momento con ese número de casillas y sus fotos en orden: si hay más casillas que fotos, las de más quedan vacías; si hay menos, las fotos que sobran quedan «sin colocar». Los demás pliegos no se tocan y el pliego queda con candado.
+- **Plan aprobado:** «dale» (2026-11-26).
+
+### 3. Fuentes analizadas
+- El árbol de cortes (`AlbumNode`, `AlbumSpreadLayout` en `AlbumLayout.swift` y `AlbumEditing.swift`), `AlbumAutoLayout.ranked` y `AlbumWorkspace.setPhotoCount` (sin commit). Captura del usuario con el pliego 3 en «7 fotos (pendiente)» y una casilla vacía encima de una foto.
+
+### 4. Decisiones
+- **Vecinas que comparten todo el lado = casillas hermanas en el mismo corte**. Es exacto con el árbol de cortes y no necesita medir rectángulos: dos casillas de cortes distintos nunca comparten un lado entero.
+- **Dividir añade al corte del mismo sentido** si la casilla ya está en uno (como insertar una columna en una fila de tabla), repartiendo su parte a medias. Si no, crea un corte de dos.
+- **Fusionar** se queda con la foto de la elegida (P2), o con la de la vecina si la elegida está vacía (el caso de la captura). Las dos partes se suman.
+- **Quitar** simplifica los cortes con un solo hijo, para que el árbol no se llene de cortes vacíos; puede dejar una página en blanco.
+- **Las fotos fijadas no se pierden** al fusionar ni al quitar casillas: esas opciones salen apagadas.
+- **Tras cada operación el pliego queda con candado y sin número pendiente**: el número de fotos pasa a ser el de casillas.
+- **Número de fotos en manual con fotos**: se aplica ya a ese pliego (P3) con `composed` (fotos de relleno para las casillas de más, que luego se vacían).
+- La ayuda «Doble clic…» sale de la barra de retoques, que se quedaba corta con el menú «Casilla». Pasa a la ayuda de cada casilla y a la línea de estado.
+
+### 5. Alternativas descartadas
+- **Operaciones solo en el menú o solo en la barra**: el usuario quiere las dos (P1).
+- **Que la otra foto salga del álbum al fusionar**, o **fusionar solo con una vacía**: el usuario eligió que quede sin colocar (P2).
+- **Que el número de fotos siga pendiente en manual** o **que pregunte**: el usuario eligió que se aplique ya (P3).
+- **Fusionar por rectángulos** (cualquier vecina que toque todo el lado): con el árbol de cortes no siempre se puede representar sin rehacer la rejilla.
+
+### 6. Pendiente de comprobar
+- Comprobado: compila y pasan los tests (5 nuevos: fusionar una vacía, fusionar dos fotos y no poder con una fijada, dividir en un corte del mismo sentido o de otro, quitar hasta dejar la página en blanco y no poder con una fijada, y componer con más o menos casillas que fotos). En la app (`album.celltest`): casilla vacía que cuenta como casilla («6 fotos»), menú «Casilla» encendido, fusionar (la foto de al lado ocupa el hueco y el pliego pasa a 4 fotos con candado) y quitar (de 6 a 5 fotos). Preferencias restauradas sin diferencias.
+- **No probado a mano**: los menús con el ratón (clic derecho y barra) y dividir desde la app.
+
+## 2026-11-26 — Álbum: el clic derecho elige la casilla
+
+### 1. La petición tal como se ha entendido
+El clic derecho sobre una casilla, además de abrir su menú, la deja elegida, para que el menú «Casilla» de la barra actúe sobre ella. Cambio pequeño y sin dudas: se hace directamente.
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `SpreadEditorCanvas` (sin commit).
+
+### 4. Decisiones
+- SwiftUI no avisa al abrir un menú contextual, así que un monitor de eventos local mira dónde cae el clic derecho y elige la casilla que hay debajo. Solo en la ventana de ese pliego. El menú se abre igual.
+
+### 5. Alternativas descartadas
+- Elegirla desde el propio menú, al construirlo: SwiftUI no garantiza cuándo se construye.
+
+### 6. Pendiente de comprobar
+- Compila. No se puede probar con capturas (hace falta el ratón): comprobar en la app que el clic derecho deja la casilla con el borde rojo.
+
+## 2026-11-26 — Álbum: el reparto, a la cabecera
+
+### 1. La petición tal como se ha entendido
+«Estos controles [Reparto automático y Repartir] ¿hacen referencia al pliego o son generales del álbum? Si son generales, a lo mejor podían ir arriba». Son del álbum entero, así que se suben a su cabecera. Cambio pequeño de colocación: se hace directamente.
+
+### 2. Preguntas y respuestas
+- Ninguna (la pregunta del usuario se contesta: son del álbum).
+
+### 3. Fuentes analizadas
+- `AlbumView` (cabecera y barra del pliego) y `AlbumAutoLayout.reason` (sin commit).
+
+### 4. Decisiones
+- «Reparto automático» y «Repartir» (con su menú) pasan a la cabecera del álbum, a la derecha. Con cambios pendientes, un punto naranja delante del botón: dentro de la etiqueta de un menú no se veía. El aviso «Hay cambios sin repartir» sigue en la línea de estado del pliego.
+- **Fallo visto en la captura del usuario**: «Fotos del mismo momento (en -257 s)». Si las fotos de un pliego no iban en orden de hora (movidas a mano), se restaba la primera de la última. Ahora se mide de la más antigua a la más nueva.
+
+### 5. Alternativas descartadas
+- Dejarlos en la barra del pliego: llevaban a pensar que solo afectaban a ese pliego.
+
+### 6. Pendiente de comprobar
+- Comprobado con capturas: los dos controles en la cabecera, en una línea, con el punto naranja si hay cambios pendientes. Compila y pasan los tests. Preferencias restauradas sin diferencias.
+
+## 2026-11-26 — Álbum: mover en la tira fotos sin colocar
+
+### 1. La petición tal como se ha entendido
+En manual, mover una foto en la tira la mueve también en los pliegos, como si la tira fueran las casillas en fila.
+
+- **Soltar una foto en la tira entre las fotos de un pliego** (delante de una de ellas):
+  - la foto entra en ese pliego en ese sitio: ocupa esa casilla y las fotos siguientes del pliego se corren una casilla;
+  - la última foto del pliego, que se queda fuera, pasa a «?» (sin colocar), justo detrás en la tira;
+  - la rejilla del pliego no cambia.
+- **Si la foto venía de otro pliego**, allí deja su casilla vacía. Si viene del mismo pliego, solo cambian de orden sus fotos (nada sale).
+- **Si se suelta entre fotos sin colocar**, o fuera de cualquier pliego, solo cambia el orden de la tira, como ahora.
+- Las casillas vacías del pliego se aprovechan: si hay alguna, la última foto no sale y se ocupa el hueco.
+- Las fotos fijadas no se mueven ni se empujan: se saltan, y en los pliegos con candado tampoco se puede soltar (ya era así en la tira).
+- En automático no cambia nada: mover en la tira reparte, como hasta ahora.
+- Cuenta como un paso que se puede deshacer, y marca que hay cambios sin repartir si alguna foto queda sin colocar.
+
+**Confirmación:** «si, dale» (2026-11-26). Cambio acotado: se hace directamente tras confirmar lo entendido, que ya dice qué se toca.
+
+Petición original: «he quitado un pliego, me marca fotos con ?, muevo una de esas fotos… tendría que haberla metido en el pliego siguiente y la que queda detrás pasarla ahora a ?». La captura muestra la tira con «? ? [foto del pliego 1] ? [foto del pliego 1]…»: en manual, mover en la tira solo cambia su orden, así que la foto movida sigue sin colocar.
+
+### 2. Preguntas y respuestas
+- **P1. ¿Qué debe pasar al mover en la tira una foto sin colocar?**
+  - **R:** entra y empuja a la última. La foto entra en ese pliego donde se suelta (ocupa la casilla de la que había ahí y las demás se corren una casilla) y la última foto de ese pliego, que se queda fuera, pasa a «?». La rejilla del pliego no cambia.
+
+### 3. Fuentes analizadas
+- `AlbumWorkspace.movePhotos` / `stripChanged` y la tira de `AlbumView` (sin commit). Captura del usuario con «? ? [foto] ? [foto]» tras quitar un pliego y mover una foto.
+
+### 4. Decisiones
+- En manual, `movePhotos` con una sola foto prueba primero `moveIntoSpread`. Si la foto de destino está en un pliego sin candado, la foto movida entra en su casilla y las siguientes se corren. Solo se corren las casillas sin foto fijada.
+- Si hay casillas vacías en el pliego, se ocupa una (la primera detrás o, si no, cualquiera) y no sale ninguna foto. Si no, sale la última, que se pone en la tira detrás de las fotos de ese pliego.
+- La foto movida deja vacía su casilla de origen si venía de otro pliego. Si es del mismo, solo se reordenan.
+- El pliego queda con candado y sin número pendiente. Si alguna foto queda sin colocar, se marca que hay cambios sin repartir.
+- Si el destino es una foto sin colocar, o está en un pliego con candado, solo se reordena la tira, como antes. En automático, mover en la tira sigue repartiendo.
+
+### 5. Alternativas descartadas
+- **Que el pliego crezca con una casilla más** o **mandar la foto al primer hueco del pliego siguiente**: el usuario eligió que entre y empuje a la última (P1).
+
+### 6. Pendiente de comprobar
+- Comprobado en la app (`album.striptest=1`): al quitar un pliego, sus 4 fotos quedan «?»; al llevar la primera delante del pliego siguiente, entra en él, sus fotos se corren, la última pasa a «?» detrás del pliego y este queda con candado. Compila. Preferencias restauradas sin diferencias.
+- **No probado a mano**: el arrastre real en la tira con el ratón.
+- **Fallo encontrado al probarlo (2026-11-26)**: «¿por qué me deja meter una foto con ? en medio de dos del pliego?». El pliego tenía candado, y en ese caso solo se reordenaba la tira, así que la «?» quedaba en medio de sus fotos sin entrar en él. Arreglo:
+  - soltar una foto entre las de un pliego la mete en él aunque tenga candado, porque el candado es para que «Repartir» no lo toque, no para los cambios a mano; las fijadas se siguen respetando;
+  - si no puede entrar, va en la tira detrás de ese pliego, nunca en medio de sus fotos.
+  
+  Comprobado con `album.striptest=twice`.
+
+## 2026-11-26 — Álbum: empezar en automático y la tira en el orden en que se eligen las fotos
+
+### 1. La petición tal como se ha entendido
+Al crear un álbum y elegir fotos, se ve ya cómo va quedando.
+
+- **Los álbumes nuevos empiezan con «Reparto automático» marcado**. Siguen en automático mientras se eligen fotos y se retoca: los retoques ponen candado al pliego y el reparto lo respeta. Pasan a manual solo si se desmarca la casilla.
+- Los álbumes que ya existen se quedan como estén (el «A00» del usuario está en manual; se puede marcar).
+- **Las fotos entran en la tira en el orden en que se marcan**: cada una va al final, y en automático los últimos pliegos se rehacen al momento, así el álbum va saliendo según se eligen. «Todas» mete las que faltan al final, por fecha de disparo.
+- También en manual, la foto que se marca va al final de la tira, sin colocar.
+
+- **Añadido al confirmar**: en el reparto automático hay que cuidar las proporciones.
+  - Una foto vertical nunca va a una casilla horizontal, ni al revés (las casi cuadradas valen para las dos).
+  - Un recorte moderado sí vale, por ejemplo una 4:5 en una casilla 2:3, pero centrado en lo principal: las caras o, si no hay, lo más llamativo.
+
+**Confirmación:** «sí» (2026-11-26), con el añadido de las proporciones. Cambio acotado: se hace directamente.
+
+Petición original: «creo que tenemos que cambiar un poco el inicio del álbum: si selecciono solo una foto ya se queda en manual, debería estar en reparto automático. Si voy seleccionando fotos va usando ese orden en la tira, así voy previsualizando ya el resultado final».
+
+### 2. Preguntas y respuestas
+- **P1. ¿Cuándo pasa un álbum de automático a manual?**
+  - **R:** solo si se desmarca. El álbum sigue en automático mientras se eligen fotos y se retoca (los retoques ponen candado al pliego y el reparto lo respeta), y pasa a manual solo cuando el usuario desmarca la casilla.
+- **P2. ¿En qué orden entran las fotos en la tira?**
+  - **R:** en el orden en que se marcan. Cada foto que se marca va al final de la tira, así el álbum sigue el orden de elección. «Todas» mete las que faltan al final, por fecha de disparo.
+- **Dos peticiones más mientras se hacía (2026-11-26)**, de ejecución directa:
+  - «El recálculo automático siempre afecta de la posición en la que estoy hacia adelante». En automático se recalcula desde el pliego que se ve (o desde el del cambio, si es anterior); los de antes no se tocan. «Repartir» y los cambios de medidas siguen repartiendo todo el álbum.
+  - «En fotos de la carpeta, el cursor en medio de la foto muestra una lupa que abre previsualización de la foto en grande». Con el ratón encima sale una lupa en el centro de la miniatura que abre el visor de siempre; en el álbum, su casilla es «En el álbum».
+
+### 3. Fuentes analizadas
+- `AlbumDocument` (valor de partida de `autoLayout`), `AlbumWorkspace` (`toggle`, `toggleAll`, todos los `redistribute`), `AlbumAutoLayout.cellCost` y `spineCost`, y `PhotoViewerSheet` (sin commit).
+
+### 4. Decisiones
+- **Los álbumes nuevos empiezan en automático**; los guardados de antes, sin el dato, se abren en manual. Así el «A00» del usuario no cambia solo.
+- **Orden de elección**: cada foto marcada va al final de la tira. «Todas» añade las que faltan al final, por fecha.
+- **Recálculo desde la posición actual** (`autoStart`). Además arregla un fallo que salió al probarlo: al elegir fotos una a una, cada foto nueva se repartía solo desde el último pliego (los anteriores no se revisaban) y salían 7 pliegos de una foto. Desde el pliego 1, salen 2 pliegos bien repartidos.
+- **Orientación**: cambiar de vertical a apaisada cuesta 25 en el reparto, así que no pasa si hay otra salida. Hay test con verticales 2:3 y 4:5, apaisadas 3:2 y 16:9 y cuadradas, con número de pliegos libre y fijo. Los recortes moderados ya se centraban en las caras o en lo llamativo (`visibleRegion` con el foco).
+- **Fotos sin analizar en el lomo**: salió al probarlo (una vertical sola, aún sin caras analizadas, quedó cruzando el lomo con la cara en el pliegue). Ahora, sin análisis, se protege el centro de la foto, salvo en panorámicas. Analizada y sin caras, puede cruzar el lomo, como antes (para que las panorámicas sigan pudiendo).
+- **La lupa** usa el visor que ya tenían los demás módulos, con una casilla configurable: en el álbum mete o saca la foto del álbum, no la selección de la lista.
+
+### 5. Alternativas descartadas
+- **Pasar a manual al primer retoque** o **al añadir o quitar pliegos**: el usuario eligió solo al desmarcar (P1).
+- **Por fecha siempre** o **elegirlo con un selector**: el usuario eligió el orden en que se marcan (P2).
+- **Proteger lo más llamativo de las fotos sin caras en el lomo**: impedía que las panorámicas cruzaran el lomo (lo cazó un test).
+
+### 6. Pendiente de comprobar
+- Comprobado: compila y pasan los tests (3 nuevos: ninguna foto cambia de orientación; los álbumes nuevos empiezan en automático; una foto sin analizar no deja su centro en el lomo). En la app (`album.pick`): álbum nuevo en automático, una foto ya maquetada y, con 7, dos pliegos en el orden de elección. Preferencias restauradas sin diferencias.
+- **No probado a mano**: la lupa con el ratón y el visor desde el álbum.
+
+## 2026-11-26 — Álbum: plantillas repetidas y vertical doblada por el lomo
+
+### 1. La petición tal como se ha entendido
+«¿Qué pasa aquí con las plantillas?». En la captura, el menú de plantillas de 1 foto enseña muchas iguales, y el pliego tiene una foto vertical sola centrada sobre el lomo (con el perro en el pliegue). Son dos fallos: se arreglan directamente.
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `AlbumTemplates.templates(photos:)` y `AlbumAutoLayout.Planner.spineCost` (sin commit).
+
+### 4. Decisiones
+- **Plantillas sin repetidas**: se comparan por su forma (cortes y partes redondeadas). Las de collage que solo cambian en la proporción del lienzo son, estiradas al pliego, la misma rejilla. Las de 1 foto pasan de 20 a 1.
+- **Una vertical o cuadrada no se dobla por su centro**: si cruza el lomo y el pliegue cae entre el 30 % y el 70 % de su ancho, cuesta como una cara en el lomo. Ahí la foto estaba analizada y sus caras quedaban a los lados, pero lo principal (el perro) no es una cara.
+- **Las apaisadas sí pueden cruzar a doble página** si sus caras no caen en el pliegue. Es lo habitual en los álbumes layflat con fotos de grupo; lo cazaron dos tests al aplicar la regla primero a todas.
+
+### 5. Alternativas descartadas
+- Aplicar la regla del centro también a las apaisadas: impedía las fotos de grupo a doble página.
+
+### 6. Pendiente de comprobar
+- Comprobado: pasan los tests (2 nuevos: la vertical no se dobla por el centro; las plantillas de 1 foto quedan en una y las de 3 siguen siendo varias). En la app, una vertical sola en un álbum nuevo queda en su página. Preferencias restauradas sin diferencias.
+
+## 2026-11-26 — Álbum: más casillas que fotos en automático
+
+### 1. La petición tal como se ha entendido
+«Si en el pliego aumento el número de fotos me lo tiene que permitir, dejando las casillas en blanco si no hay más selección de fotos». En automático, pedir más fotos de las que quedan no hacía nada, porque el reparto solo usa las fotos que hay. Fallo de ejecución directa.
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `AlbumWorkspace.setPhotoCount` y `AlbumAutoLayout.composed` (sin commit).
+
+### 4. Decisiones
+- En automático, si se piden más fotos de las que quedan en la tira desde ese pliego (las suyas y las de detrás), el pliego se recompone ya con ese número de casillas y las de más quedan en blanco, con candado; igual que en manual. Si hay fotos de sobra, sigue como antes (reparte desde ese pliego).
+- Las casillas en blanco no tocan la franja del lomo: de las mejores composiciones se elige la primera en la que ninguna lo hace, porque no se sabe qué foto irá ahí. Salió al probarlo: con 2 fotos y 3 casillas, la vacía cruzaba el lomo.
+
+### 5. Alternativas descartadas
+- Que el número no pudiera pasar de las fotos disponibles: el usuario quiere poder pedir más y dejar casillas en blanco.
+
+### 6. Pendiente de comprobar
+- Comprobado: pasan los tests (1 nuevo: casillas vacías fuera del lomo). En la app (`album.count=3` con 2 fotos): dos fotos en una página y la casilla en blanco en la otra. Preferencias restauradas sin diferencias.
+- **Fallo encontrado al probarlo (2026-11-26)**: «aumento a más fotos en el pliego y cuando cambio la composición no tiene en cuenta las casillas sin foto». Las otras composiciones se calculaban solo con las fotos del pliego, así que las casillas vacías desaparecían. Ahora, si el pliego tiene casillas vacías, las alternativas tienen el mismo número de casillas (`AlbumAutoLayout.composedOptions`, que también usa `composed`), y primero salen las que no tienen ninguna vacía en el lomo. Con test; comprobado en la app con 2 fotos y 4 casillas.
+- **Fallo encontrado al probarlo (2026-11-26)**: «si ahora selecciono una nueva foto de la carpeta debería usar la casilla vacía… y lo que está haciendo es crear un pliego nuevo». El pliego con la casilla vacía tenía candado (por cambiar la composición), y el reparto no toca los pliegos con candado, así que la foto nueva abría otro. Ahora, al marcar una foto, si hay una casilla vacía (primero en el pliego que se ve; si no, en el primero que la tenga), la foto entra ahí y se coloca en la tira detrás de las fotos de ese pliego. Solo si no hay ninguna va al final y se reparte. Comprobado en la app (`album.addone=1`): con 2 fotos y 3 casillas, la tercera foto ocupa la vacía y sigue habiendo un pliego.
+
+## 2026-11-26 — Álbum: reordenar o intercambiar en la tira
+
+### 1. La petición tal como se ha entendido
+En la tira hay que distinguir dos gestos: soltar una foto **entre dos fotos** cambia el orden, y soltarla **encima de otra** las intercambia de posición. Petición clara: se hace directamente.
+
+### 2. Preguntas y respuestas
+- Ninguna.
+
+### 3. Fuentes analizadas
+- `AlbumStrip` (`AlbumView`) y `AlbumWorkspace.movePhotos` (sin commit).
+
+### 4. Decisiones
+- Entre cada dos miniaturas (y al principio y al final) hay una franja fina de 10 pt que se ilumina al pasar con una foto; soltar ahí reordena, como antes. La miniatura, al pasar por encima, se marca con un borde, y soltar ahí intercambia.
+- Intercambiar (`swapPhotos`) cambia el sitio de las dos en la tira y su casilla en los pliegos, aunque estén en pliegos distintos o tengan candado. Los dos pliegos quedan con candado.
+  - Si una estaba sin colocar, ocupa la casilla de la otra, que queda sin colocar: en manual, como cambio pendiente; en automático, se reparte desde ese pliego.
+  - Las fotos fijadas no se intercambian.
+
+### 5. Alternativas descartadas
+- Un modificador de teclado (⌥ para intercambiar): menos visible que soltar entre o encima.
+
+### 6. Pendiente de comprobar
+- Comprobado en el fichero del álbum (`album.swaptest=1`): la 01 y la 05 cambian de casilla (pliego 1 ↔ pliego 2) y de sitio en la tira. Compila. Preferencias restauradas sin diferencias.
+- **No probado a mano**: el arrastre real, el resalte de la franja y de la miniatura.
+- **Cambio de texto (2026-11-26)**: «Olvidar los números de fotos pedidos», en el menú de «Repartir», no se entendía. Pasa a «Quitar los números de fotos fijados a mano»; el paso de deshacer se llama «Quitar los números fijados a mano».

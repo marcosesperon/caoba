@@ -20,12 +20,16 @@ public struct FocusResult: Sendable, Equatable {
     public var hasFaces: Bool
     public var faceCount: Int
     public var subject: CGRect?
+    /// Cada cara por separado (0-1, origen arriba-izquierda). Vacío si no se buscaron o no hay.
+    /// La usa el álbum para saber lo pequeña que queda la cara más pequeña.
+    public var faces: [CGRect]
 
-    public init(point: CGPoint, hasFaces: Bool, faceCount: Int, subject: CGRect? = nil) {
+    public init(point: CGPoint, hasFaces: Bool, faceCount: Int, subject: CGRect? = nil, faces: [CGRect] = []) {
         self.point = point
         self.hasFaces = hasFaces
         self.faceCount = faceCount
         self.subject = subject
+        self.faces = faces
     }
 
     public static let center = FocusResult(point: CGPoint(x: 0.5, y: 0.5), hasFaces: false, faceCount: 0)
@@ -83,7 +87,8 @@ public actor FocusDetector {
         let handler = VNImageRequestHandler(cgImage: image, orientation: .up)
         guard (try? handler.perform([request])) != nil, let faces = request.results, !faces.isEmpty,
               let box = union(of: faces.map(\.boundingBox)) else { return nil }
-        return FocusResult(point: CGPoint(x: box.midX, y: box.midY), hasFaces: true, faceCount: faces.count, subject: box)
+        let flipped = faces.map { CGRect(x: $0.boundingBox.minX, y: 1 - $0.boundingBox.maxY, width: $0.boundingBox.width, height: $0.boundingBox.height) }
+        return FocusResult(point: CGPoint(x: box.midX, y: box.midY), hasFaces: true, faceCount: faces.count, subject: box, faces: flipped)
     }
 
     /// Saliencia: primero "objectness" (dónde está el sujeto), que localiza

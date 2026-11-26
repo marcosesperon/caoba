@@ -13,27 +13,28 @@ CAOBA es un proyecto del estudio de fotografía **[CAOBA](https://caobafoto.com/
 
 ## ✨ Funcionalidades
 
-La aplicación se organiza en **11 módulos** agrupados en tres secciones, como en su barra lateral. Casi todos trabajan sobre la **sesión activa** (o una carpeta de fotos cualquiera): la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
+La aplicación se organiza en **12 módulos** agrupados en tres secciones, como en su barra lateral. Casi todos trabajan sobre la **sesión activa** (o una carpeta de fotos cualquiera): la eliges una vez, marcas qué fotos entran y cambias de módulo sin volver a empezar.
 
 ### Creadores
 
 1. **Slideshow** — Vídeos MP4 a partir de fotos o collages, con música, fundidos y efectos Ken Burns
 2. **Collage** — Collages fotográficos con 1049 plantillas y editor de encuadre, y carruseles de Instagram
-3. **Contact Sheet** — Hojas de contacto con las miniaturas de tus fotos
+3. **Álbum** — Maqueta de álbumes de fotos por pliegos, con reparto automático y exportación para el laboratorio
+4. **Contact Sheet** — Hojas de contacto con las miniaturas de tus fotos
 
 ### Utilidades
 
-4. **Descargar tarjeta** — De la tarjeta al RAW de la sesión, por sesiones, sin repetir nada y con cada copia comprobada
-5. **Procesador** — Procesado por lotes: rotar, recortar, redimensionar, calidad y formato
-6. **Marca de agua** — Tu logo sobre todas las fotos de una carpeta
-7. **Metadatos** — Lee y escribe EXIF, incluido GPS, sin recomprimir la imagen
-8. **Renombrador** — Renombrado masivo con patrones (también con el nombre y la fecha de la sesión), y con deshacer
+5. **Descargar tarjeta** — De la tarjeta al RAW de la sesión, por sesiones, sin repetir nada y con cada copia comprobada
+6. **Procesador** — Procesado por lotes: rotar, recortar, redimensionar, calidad y formato
+7. **Marca de agua** — Tu logo sobre todas las fotos de una carpeta
+8. **Metadatos** — Lee y escribe EXIF, incluido GPS, sin recomprimir la imagen
+9. **Renombrador** — Renombrado masivo con patrones (también con el nombre y la fecha de la sesión), y con deshacer
 
 ### Otras herramientas
 
-9. **Código QR** — QR a partir de texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento
-10. **Shutter Count** — Disparos del obturador y vida útil estimada de la cámara
-11. **Recuperar fotos** — Recupera fotos y vídeos borrados de tarjetas de memoria
+10. **Código QR** — QR a partir de texto, URL, WiFi, contacto, email, teléfono, SMS, ubicación o evento
+11. **Shutter Count** — Disparos del obturador y vida útil estimada de la cámara
+12. **Recuperar fotos** — Recupera fotos y vídeos borrados de tarjetas de memoria
 
 ---
 
@@ -74,6 +75,14 @@ Convierte una colección de fotos en un vídeo con música, montado en un **time
 - **Ajustar foco** automático por saliencia o por caras.
 - Lado mayor configurable, separación, esquinas redondeadas, fondo, título, calidad y logo con posición y opacidad.
 - Salida a carpeta con nombres automáticos (`collage_01.jpg`, `collage_02.jpg`…).
+
+### 📖 Álbum
+
+- **Tipos de álbum** en Ajustes › Álbumes con las medidas de tu laboratorio: página, sangrado, margen de seguridad, franja del lomo, número de pliegos (opcional), resolución, primer y último pliego de una página y portada.
+- **Varios álbumes por sesión** (por personas, localizaciones o versiones), cada uno guardado solo en `Álbum/<nombre>`.
+- **Reparto automático** según el formato de cada foto, sus caras y el momento en que se hizo: las verticales en casillas verticales, nada importante en el lomo y caras que no queden diminutas. Se ve el álbum según eliges las fotos; desmarcando «Reparto automático», nada se mueve hasta pulsar «Repartir».
+- **Retoque a mano**: guías que se arrastran con imán, encuadre con zoom, fotos que cruzan las dos hojas, otras composiciones, plantillas, dividir, fusionar o quitar casillas como en una tabla, intercambiar fotos y candados de pliego y de foto. Todo se deshace con ⌘Z.
+- **Exportación** a JPEG sRGB a calidad máxima, a la medida real con sangrado y a la resolución del álbum (300 a 600 ppp): `00.jpg` (portada), `01.jpg`, `02.jpg`… Avisa de las fotos que se amplían demasiado.
 
 ### 📇 Contact Sheet
 

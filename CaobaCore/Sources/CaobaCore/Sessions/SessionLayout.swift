@@ -38,7 +38,7 @@ public enum SessionDatePosition: String, Sendable, Codable, CaseIterable {
 
 /// Módulos que guardan su resultado dentro de la sesión, cada uno con su nombre en Ajustes.
 public enum SessionOutput: String, Sendable, Codable, CaseIterable {
-    case processor, watermark, collage, slideshow, contactSheet
+    case processor, watermark, collage, slideshow, contactSheet, album
 }
 
 /// Una sesión de fotos: una carpeta con fecha y nombre, p. ej. `2026/2026-11-15 Nombre de la sesión`.
@@ -92,6 +92,8 @@ public struct SessionLayout: Sendable, Equatable, Codable {
         .collage: "Collages",
         .slideshow: "{fecha_sesion} {sesion} - Slideshow",
         .contactSheet: "{fecha_sesion} {sesion} - Contact Sheet",
+        // Carpeta con un álbum por subcarpeta (su fichero y sus pliegos exportados).
+        .album: "Álbum",
     ]
 
     public init() {}
